@@ -1,0 +1,277 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: January 5 2014 $
+.Dt KCGI 3
+.Os
+.Sh NAME
+.Nm kcgi ,
+.Nm http_parse ,
+.Nm http_free ,
+.Nm attr ,
+.Nm closure ,
+.Nm decl ,
+.Nm elem ,
+.Nm input ,
+.Nm sym ,
+.Nm text ,
+.Nd minimal CGI framework in C
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft void
+.Fo http_free
+.Fa "struct req *req"
+.Fc
+.Ft void
+.Fo http_parse
+.Fa "struct req *req"
+.Fc
+.Ft void
+.Fo attr
+.Fa "struct req *req"
+.Fa "enum elem elem"
+.Fa "..."
+.Fc
+.Ft void
+.Fo closure
+.Fa "struct req *req"
+.Fa "size_t count"
+.Fc
+.Ft void
+.Fn decl
+.Ft void
+.Fo elem
+.Fa "struct req *req"
+.Fa "enum elem elem"
+.Fc
+.Ft void
+.Fo input
+.Fa "struct req *req"
+.Fa "enum key key"
+.Fc
+.Ft void
+.Fo sym
+.Fa "enum entity entity"
+.Fc
+.Ft void
+.Fo text
+.Fa "const char *cp"
+.Fc
+.Ft int
+.Fn kvalid_double "struct kpair *kp"
+.Ft int
+.Fn kvalid_email "struct kpair *kp"
+.Ft int
+.Fn kvalid_int "struct kpair *kp"
+.Ft int
+.Fn kvalid_pageid "struct kpair *kp"
+.Ft int
+.Fn kvalid_udouble "struct kpair *kp"
+.Ft int
+.Fn kvalid_uint "struct kpair *kp"
+.Ft "void *"
+.Fn xmalloc "size_t sz"
+.Ft "void *"
+.Fn xrealloc "void *p" "size_t nm" "size_t sz"
+.Ft "void *"
+.Fn xxrealloc "void *p" "size_t sz"
+.Ft "char *"
+.Fn xstrdup "const char *cp"
+.Sh DESCRIPTION
+The
+.Nm kcgi
+framework is meant to be compiled along with web application sources.
+Use the framework as follows:
+.Bl -enum
+.It
+Copy
+.Pa @DATADIR@/kcgi.c
+and
+.Pa @DATADIR@/kcgi.h
+into the system sources.
+.It
+Create a file
+.Pa kcgi-local.h
+providing
+.Vt enum page
+for page identifiers and
+.Vt enum key
+for input fields.
+For example:
+.Bd -literal
+enum page {
+	PAGE_FOO,
+	PAGE_INDEX,
+	PAGE__MAX
+};
+enum key {
+	KEY_SESSION_ID,
+	KEY_SESSION_COOKIE,
+	KEY__MAX
+};
+.Ed
+.Pp
+Anything can go in the
+.Vt enum page
+and
+.Vt enum key
+enumerations, though they must end in
+.Dv PAGE__MAX
+and
+.Dv KEY__MAX ,
+respectively.
+.It
+Add the
+.Vt const struct kvalid keys[KEY__MAX]
+and
+.Vt const char *const pages[PAGE__MAX]
+array definitions in the application sources.
+.It
+Edit the build system to compile
+.Pa kcgi.c
+into the web application binary.
+.El
+.Pp
+The
+.Pa @DATADIR@/Makefile.sample
+gives an example of building
+.Pa kcgi.c
+with sample application source
+.Pa @DATADIR@/sample.c .
+.Ss Variables
+Your sources must define the
+.Vt const char *const pages[PAGE__MAX]
+and
+.Vt const struct kvalid keys[KEY__MAX]
+global variables.
+The former is a string array of page names (without the suffix).
+The latter array of
+.Vt "struct kvalid"
+consists of the following entries:
+.Bl -ohang
+.It Va "int (*valid)(struct kpair *)"
+Validating function.
+This can be
+.Dv NULL
+if anything goes.
+.It Va "const char *name"
+The field name, i.e., how it appears in the HTML form input name.
+This cannot be
+.Dv NULL .
+.It Va "enum kfield field"
+How to format the field value upon repopulation.
+This can be
+.Dv KFIELD__MAX
+if the value shouldn't be repopulated.
+.It Va "const char *label"
+Populate an HTML label element.
+Can be
+.Dv NULL
+if it doesn't have a label.
+.It Va "const char *def"
+Default value for population fields.
+.El
+.Ss Functions
+The following functions initialise an HTTP request.
+.Bl -ohang
+.It Fn http_free "struct req *req"
+Free the memory of a context created by
+.Fn http_parse .
+.It Fn http_parse "struct req *req"
+Fill a request
+.Fa req
+with input fields from the CGI environment.
+.El
+.Pp
+The following functions create an HTML tree.
+.Bl -ohang
+.It Fn attr "struct req *req" "enum elem elem" "..."
+Open the scope of element
+.Fa elem
+with matching key-value pairs in the varargs for its attributes.
+The maximum number of nested scopes is fixed at 128.
+The terminating attribute key must be
+.Dv ATTR__MAX.
+.It Fn closure "struct req *req" "size_t count"
+Close the last
+.Fa count
+scopes.
+This will call
+.Xr abort 3
+if
+.Fa count
+exceeds the number of open scopes.
+.It Fn decl
+Emit the document HTML declaration.
+.It Fn elem "struct req *req" "enum elem elem"
+Invokes
+.Fn attr
+with no attributes.
+.It Fn input "struct req *req" "enum key key"
+Emit the HTML code for the input element
+.Fa key
+and its label as defined in the user-defined array
+.Va keys .
+This will also fill in a value as stored in the input fields of
+.Va req .
+This is meant to simplify the repopulation of fields.
+.It Fn sym "enum entity entity"
+Emit the HTML code for
+.Va entity .
+.It Fn text "const char *cp"
+Emit the text
+.Va cp ,
+escaping it for HTML if necessary.
+.El
+.Pp
+The following functions are provided for the global
+.Va keys
+array.
+.Bl -ohang
+.It Fn kvalid_double "struct kpair *kp"
+Validate a double-precision floating-point number.
+.It Fn kvalid_email "struct kpair *kp"
+Validate an e-mail address.
+.Em Note :
+this is a heuristic validation, not a formal one.
+.It Fn kvalid_int "struct kpair *kp"
+Validate a signed 64-bit integer.
+.It Fn kvalid_pageid "struct kpair *kp"
+Validate a page identifier in
+.Vt enum page .
+.It Fn kvalid_udouble "struct kpair *kp"
+Validate a positive non-zero double-precision floating-point number.
+.It Fn kvalid_uint "struct kpair *kp"
+Validate an unsigned 64-bit natural number.
+.El
+.Pp
+The following functions provide safe wrappers for memory allocation:
+.Bl -ohang
+.It Fn xmalloc "size_t sz"
+Allocate or exit on memory exhaustion.
+.It Fn xrealloc "void *p" "size_t nm" "size_t sz"
+Allocate or exit on memory allocation and discourage multiplication
+overflows when multipying count by type size.
+.It Fn xxrealloc "void *p" "size_t sz"
+Allocate or exit on memory exhaustion.
+.It Fn xstrdup "const char *cp"
+Allocate or exit on memory exhaustion.
+.El
+.Sh AUTHORS
+The
+.Nm
+framework was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
