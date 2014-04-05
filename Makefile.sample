@@ -1,0 +1,10 @@
+CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings 
+
+sample: sample.o kcgi.o
+	$(CC) -o $@ sample.o kcgi.o
+
+sample.o kcgi.o: kcgi.h kcgi-local.h
+
+clean:
+	rm -f sample kcgi.o sample.o
+	rm -rf sample.dSYM
