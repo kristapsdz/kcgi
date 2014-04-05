@@ -267,9 +267,6 @@ strtonum(const char *numstr, long long minval,
 }
 #endif /*!__OpenBSD__*/
 
-/*
- * Print an element with no attributes.
- */
 void
 elem(struct req *req, enum elem elem)
 {
@@ -341,12 +338,6 @@ input(struct req *req, enum key key)
 		ATTR__MAX);
 }
 
-/*
- * Print out an element with attributes.
- * Attributes are pairs of "enum attr" and strings.
- * If not auto-closing, the tag will be added to the stack and must be
- * closed out with closure() at some future point.
- */
 void
 attr(struct req *req, enum elem elem, ...)
 {
@@ -376,10 +367,6 @@ attr(struct req *req, enum elem elem, ...)
 	assert(req->elemsz < 128);
 }
 
-/*
- * Close out "sz" open tags.
- * Note that auto-closing tags close themselves out.
- */
 void
 closure(struct req *req, size_t sz)
 {
@@ -394,10 +381,6 @@ closure(struct req *req, size_t sz)
 	}
 }
 
-/*
- * Print out the document declaration.
- * Since we're using HTML5, this will be just a stub.
- */
 void
 decl(void)
 {
