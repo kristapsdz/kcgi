@@ -19,59 +19,63 @@
 .Os
 .Sh NAME
 .Nm kcgi ,
-.Nm http_parse ,
-.Nm http_free ,
-.Nm attr ,
-.Nm closure ,
-.Nm decl ,
-.Nm elem ,
-.Nm input ,
-.Nm sym ,
-.Nm text ,
+.Nm khttp_parse ,
+.Nm khttp_free ,
+.Nm kattr ,
+.Nm kclosure ,
+.Nm kdecl ,
+.Nm kelem ,
+.Nm ksym ,
+.Nm ktext ,
+.Nm kcalloc ,
+.Nm kmalloc ,
+.Nm krealloc ,
+.Nm kstrdup ,
+.Nm kxrealloc
 .Nd minimal CGI library in C
 .Sh SYNOPSIS
 .In kcgi.h
 .Ft void
-.Fo http_free
-.Fa "struct req *req"
+.Fo khttp_free
+.Fa "struct kreq *req"
 .Fc
 .Ft void
-.Fo http_parse
-.Fa "struct req *req"
+.Fo khttp_parse
+.Fa "struct kreq *req"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keymax"
 .Fa "const char *const *pages"
 .Fa "size_t pagemax"
 .Fc
 .Ft void
-.Fo attr
-.Fa "struct req *req"
-.Fa "enum elem elem"
+.Fo kattr
+.Fa "struct kreq *req"
+.Fa "enum kelem elem"
 .Fa "..."
 .Fc
 .Ft void
-.Fo closure
-.Fa "struct req *req"
+.Fo kclosure
+.Fa "struct kreq *req"
 .Fa "size_t count"
 .Fc
 .Ft void
-.Fn decl
+.Fn kdecl
 .Ft void
-.Fo elem
-.Fa "struct req *req"
-.Fa "enum elem elem"
+.Fo kelem
+.Fa "struct kreq *req"
+.Fa "enum kelem elem"
 .Fc
+.\" .Ft void
+.\" .Fo input
+.\" .Fa "struct kreq *req"
+.\" .Fa "enum key key"
+.\" .Fc
 .Ft void
-.Fo input
-.Fa "struct req *req"
-.Fa "enum key key"
-.Fc
-.Ft void
-.Fo sym
+.Fo ksym
 .Fa "enum entity entity"
 .Fc
 .Ft void
-.Fo text
+.Fo ktext
 .Fa "const char *cp"
 .Fc
 .Ft int
@@ -87,24 +91,26 @@
 .Ft int
 .Fn kvalid_uint "struct kpair *kp"
 .Ft "void *"
-.Fn xmalloc "size_t sz"
+.Fn kcalloc "size_t nm" "size_t sz"
 .Ft "void *"
-.Fn xrealloc "void *p" "size_t nm" "size_t sz"
+.Fn kmalloc "size_t sz"
 .Ft "void *"
-.Fn xxrealloc "void *p" "size_t sz"
+.Fn krealloc "void *p" "size_t nm" "size_t sz"
 .Ft "char *"
-.Fn xstrdup "const char *cp"
+.Fn kstrdup "const char *cp"
+.Ft "void *"
+.Fn kxrealloc "void *p" "size_t sz"
 .Sh DESCRIPTION
 The
 .Nm kcgi
 library handles the CGI environment for C web applications.
 Interfacing applications generally call
-.Fn http_parse
+.Fn khttp_parse
 as early as possible, with
-.Fn http_free
+.Fn khttp_free
 before the system exits.
 The
-.Fn attr ,
+.Fn kattr ,
 .Fn elem ,
 and so on functions are used to build HTML trees.
 .Pp
@@ -117,7 +123,7 @@ The application must define the
 and
 .Vt keys
 structures provided to
-.Fn http_parse .
+.Fn khttp_parse .
 The former is a string array of page names (without the suffix).
 The latter array of
 .Vt "struct kvalid"
@@ -147,7 +153,7 @@ Default value for population fields.
 .El
 .Ss Types
 The
-.Vt "struct req"
+.Vt "struct kreq"
 type is central to
 .Nm kcgi .
 It consists of the following fields:
@@ -170,7 +176,7 @@ Entries in
 mapped into field indices as defined by the
 .Fa keys
 argument to
-.Fn http_parse .
+.Fn khttp_parse .
 .It Va fields
 All key-value pairs read from the POST and GET requests.
 .It Va fieldsz
@@ -183,7 +189,7 @@ Entries in
 mapped into field indices as defined by the
 .Fa keys
 arguments to
-.Fn http_parse .
+.Fn khttp_parse .
 .It Va mime
 The MIME type of the requested file as determined by its suffix.
 This defaults to
@@ -193,13 +199,13 @@ if no suffix is specified.
 The page index as defined by the
 .Va pages
 array passed to
-.Fn http_parse
+.Fn khttp_parse
 and parsed from the requested file.
 This is the
 .Em first
 path component!
 The default page provided to
-.Fn http_parse
+.Fn khttp_parse
 is used if no path was specified or
 .Dv PATH__MAX
 if the path failed lookup.
@@ -208,7 +214,7 @@ The path (or
 .Dv NULL )
 following the parsed component regardless of whether it was located in
 the path array provided to
-.Fn http_parse .
+.Fn khttp_parse .
 .It Va elems
 Used by the HTML functions for the HTML tree.
 Should not be touched.
@@ -221,10 +227,10 @@ Should not be touched.
 .Ss Functions
 The following functions initialise an HTTP request.
 .Bl -ohang
-.It Fn http_free "struct req *req"
+.It Fn khttp_free "struct kreq *req"
 Free the memory of a context created by
-.Fn http_parse .
-.It Fn http_parse "struct req *req" \
+.Fn khttp_parse .
+.It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
 "size_t keymax" \
 "const char *const *pages" \
@@ -245,14 +251,14 @@ is for page mapping.
 .Pp
 The following functions create an HTML tree.
 .Bl -ohang
-.It Fn attr "struct req *req" "enum elem elem" "..."
+.It Fn kattr "struct kreq *req" "enum kelem elem" "..."
 Open the scope of element
-.Fa elem
+.Fa kelem
 with matching key-value pairs in the varargs for its attributes.
 The maximum number of nested scopes is fixed at 128.
 The terminating attribute key must be
 .Dv ATTR__MAX.
-.It Fn closure "struct req *req" "size_t count"
+.It Fn kclosure "struct kreq *req" "size_t count"
 Close the last
 .Fa count
 scopes.
@@ -261,24 +267,24 @@ This will call
 if
 .Fa count
 exceeds the number of open scopes.
-.It Fn decl
+.It Fn kdecl
 Emit the document HTML declaration.
-.It Fn elem "struct req *req" "enum elem elem"
+.It Fn kelem "struct kreq *req" "enum kelem elem"
 Invokes
-.Fn attr
+.Fn kattr
 with no attributes.
-.It Fn input "struct req *req" "enum key key"
-Emit the HTML code for the input element
-.Fa key
-and its label as defined in the user-defined array
-.Va keys .
-This will also fill in a value as stored in the input fields of
-.Va req .
-This is meant to simplify the repopulation of fields.
-.It Fn sym "enum entity entity"
+.\" .It Fn input "struct kreq *req" "enum key key"
+.\" Emit the HTML code for the input element
+.\" .Fa key
+.\" and its label as defined in the user-defined array
+.\" .Va keys .
+.\" This will also fill in a value as stored in the input fields of
+.\" .Va req .
+.\" This is meant to simplify the repopulation of fields.
+.It Fn ksym "enum kentity entity"
 Emit the HTML code for
 .Va entity .
-.It Fn text "const char *cp"
+.It Fn ktext "const char *cp"
 Emit the text
 .Va cp ,
 escaping it for HTML if necessary.
@@ -305,16 +311,26 @@ Validate a positive non-zero double-precision floating-point number.
 Validate an unsigned 64-bit natural number.
 .El
 .Pp
-The following functions provide safe wrappers for memory allocation:
+The following functions provide safe wrappers for memory allocation.
+They simply call through to the standard
+.Xr malloc 3 ,
+.Xr calloc 3
+and so on:
+.Nm
+does
+.Em not
+manage its own memory!
 .Bl -ohang
-.It Fn xmalloc "size_t sz"
+.It Fn kcalloc "size_t nm" "size_t sz"
+Allocate and zero or exit on memory exhaustion.
+.It Fn kmalloc "size_t sz"
 Allocate or exit on memory exhaustion.
-.It Fn xrealloc "void *p" "size_t nm" "size_t sz"
+.It Fn krealloc "void *p" "size_t nm" "size_t sz"
 Allocate or exit on memory allocation and discourage multiplication
 overflows when multipying count by type size.
-.It Fn xxrealloc "void *p" "size_t sz"
+.It Fn kstrdup "const char *cp"
 Allocate or exit on memory exhaustion.
-.It Fn xstrdup "const char *cp"
+.It Fn kxrealloc "void *p" "size_t sz"
 Allocate or exit on memory exhaustion.
 .El
 .Sh AUTHORS

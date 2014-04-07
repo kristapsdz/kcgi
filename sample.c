@@ -33,10 +33,10 @@ struct	session {
 };
 
 struct	dispatch {
-	void		(*disp)(struct req *, struct session *);
+	void		(*disp)(struct kreq *, struct session *);
 	unsigned int	  flags; 
 #define	LOGIN 	  	  1 
-	int		  mimes[MIME__MAX]; 
+	int		  mimes[KMIME__MAX]; 
 };
 
 const char * const pages[PAGE__MAX] = {
@@ -55,32 +55,32 @@ const struct kvalid keys[KEY__MAX] = {
 	{ kvalid_int, "sesscookie", KFIELD__MAX, NULL, NULL }, /* KEY_SESSCOOKIE */
 };
 
-static void sendindex(struct req *, struct session *);
+static void sendindex(struct kreq *, struct session *);
 
 static const struct dispatch disps[PAGE__MAX] = {
 	{ sendindex, 0, {1, 0, 0}}, /* PAGE_INDEX */
 };
 
 static void
-resp_http_open(struct req *req, enum http http)
+resp_http_open(struct kreq *req, enum khttp http)
 {
 
 	switch (http) {
-	case (HTTP_200):
+	case (KHTTP_200):
 		break;
-	case (HTTP_303):
+	case (KHTTP_303):
 		puts("Status: 303 See Other");
 		break;
-	case (HTTP_403):
+	case (KHTTP_403):
 		puts("Status: 403 Forbidden");
 		break;
-	case (HTTP_404):
+	case (KHTTP_404):
 		puts("Status: 404 Page Not Found");
 		break;
-	case (HTTP_409):
+	case (KHTTP_409):
 		puts("Status: 409 Conflict");
 		break;
-	case (HTTP_415):
+	case (KHTTP_415):
 		puts("Status: 415 Unsuppoted Media Type");
 		break;
 	default:
@@ -100,23 +100,23 @@ resp_http_close(void)
 }
 
 static void
-resp_head(struct req *req, const char *title)
+resp_head(struct kreq *req, const char *title)
 {
 
-	if (MIME_HTML != req->mime)
+	if (KMIME_HTML != req->mime)
 		return;
 
-	decl();
-	elem(req, ELEM_HTML);
-	elem(req, ELEM_HEAD);
-	elem(req, ELEM_TITLE);
-	text(NULL == title ? "" : title);
-	closure(req, 2);
-	elem(req, ELEM_BODY);
+	kdecl();
+	kelem(req, KELEM_HTML);
+	kelem(req, KELEM_HEAD);
+	kelem(req, KELEM_TITLE);
+	ktext(NULL == title ? "" : title);
+	kclosure(req, 2);
+	kelem(req, KELEM_BODY);
 }
 
 static void
-resp(struct req *req, enum http http, const char *title)
+resp(struct kreq *req, enum khttp http, const char *title)
 {
 
 	resp_http_open(req, http);
@@ -125,33 +125,26 @@ resp(struct req *req, enum http http, const char *title)
 }
 
 static void
-resp_close(struct req *req)
+resp_close(struct kreq *req)
 {
 
-	if (MIME_HTML != req->mime)
+	if (KMIME_HTML != req->mime)
 		return;
-
-	while (req->elemsz) {
-		if (ELEM_BODY == req->elems[req->elemsz - 1]) 
-			break;
-		closure(req, 1);
-	}
-
 	while (req->elemsz)
-		closure(req, 1);
+		kclosure(req, 1);
 }
 
 #if 0
 static void
-send303(struct req *req, enum page page)
+send303(struct kreq *req, enum page page)
 {
 
-	resp_http_open(req, HTTP_303);
+	resp_http_open(req, KHTTP_303);
 #if 0
 	printf("Location: %s\n", pageuri(req, page));
 #endif
 	resp_http_close();
-	if (MIME_HTML == req->mime) {
+	if (KMIME_HTML == req->mime) {
 		resp_head(req, "Redirecting");
 		text("Redirecting.");
 	}
@@ -160,42 +153,43 @@ send303(struct req *req, enum page page)
 #endif
 
 static void
-sendindex(struct req *req, struct session *sess)
+sendindex(struct kreq *req, struct session *sess)
 {
 
-	resp(req, HTTP_200, "welcome");
-	if (MIME_HTML == req->mime)
-		text("welcome.");
+	resp(req, KHTTP_200, "welcome");
+	if (KMIME_HTML == req->mime)
+		ktext("welcome.");
 	resp_close(req);
 }
 
 static void
-send403(struct req *req)
+send403(struct kreq *req)
 {
 
-	resp(req, HTTP_404, "Forbidden");
-	if (MIME_HTML == req->mime)
-		text("Forbidden.");
+	resp(req, KHTTP_404, "Forbidden");
+	if (KMIME_HTML == req->mime)
+		ktext("Forbidden.");
 	resp_close(req);
 }
 
 static void
-send404(struct req *req)
+send404(struct kreq *req)
 {
 
-	resp(req, HTTP_404, "Page Not Found");
-	if (MIME_HTML == req->mime)
-		text("Page not found.");
+	resp(req, KHTTP_404, "Page Not Found");
+	if (KMIME_HTML == req->mime)
+		ktext("Page not found.");
 	resp_close(req);
 }
 
 int
 main(int argc, char *argv[])
 {
-	struct req	 r;
+	struct kreq	 r;
 	struct session	*s;
 
-	http_parse(&r, keys, KEY__MAX, pages, PAGE__MAX, PAGE_INDEX);
+	khttp_parse(&r, keys, KEY__MAX, 
+		pages, PAGE__MAX, PAGE_INDEX);
 
 	s = NULL;
 #if 0
@@ -213,8 +207,8 @@ main(int argc, char *argv[])
 	 * unknown extension.
 	 * Re-write our response as HTML and send a 404.
 	 */
-	if (PAGE__MAX == r.page || MIME__MAX == r.mime) {
-		r.mime = MIME_HTML;
+	if (PAGE__MAX == r.page || KMIME__MAX == r.mime) {
+		r.mime = KMIME_HTML;
 		send404(&r);
 		goto out;
 	}
@@ -224,7 +218,7 @@ main(int argc, char *argv[])
 		 * The given page doesn't support this MIME.
 		 * Send a 415 to indicate so.
 		 */
-		resp_http_open(&r, HTTP_415);
+		resp_http_open(&r, KHTTP_415);
 		resp_http_close();
 		goto out;
 	} else if (NULL == s && LOGIN & disps[r.page].flags) {
@@ -239,7 +233,7 @@ main(int argc, char *argv[])
 	(*disps[r.page].disp)(&r, s);
 out:
 	free(s);
-	http_free(&r);
+	khttp_free(&r);
 	return(EXIT_SUCCESS);
 }
 
