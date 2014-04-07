@@ -19,21 +19,6 @@
 
 #define	VERSION "@VERSION@"
 
-/* The following header should contain these enums. */
-/* 
- * enum	page {
- * 	PAGE_INDEX,
- * 	PAGE__MAX
- * };
- * 
- * enum	key {
- * 	KEY_SESSID, 
- * 	KEY_SESSCOOKIE, 
- * 	KEY__MAX
- * };
- */
-#include "kcgi-local.h"
-
 enum	http {
 	HTTP_200,
 	HTTP_303,
@@ -168,39 +153,44 @@ struct	kvalid {
 	const char	 *def;
 };
 
+#if 0
 struct	session {
 	time_t		 mtime; /* last modification time */
 	int64_t		 cookie; /* unique session cookie */
 	enum page	 page; /* current page */
 	int64_t		 id; 
 };
+#endif
 
 struct	req {
-	enum method	 method;
-	struct kpair	*cookies;
-	size_t		 cookiesz;
-	struct kpair	*cookiemap[KEY__MAX];
-	struct kpair	*fields;
-	struct kpair	*fieldmap[KEY__MAX];
-	size_t		 fieldsz;
-	enum mime	 mime;
-	enum page	 page;
-	char		*path;
-	char		*pathstacked;
-	enum elem	 elems[128];
-	size_t		 elemsz;
+	enum method	  method;
+	struct kpair	 *cookies;
+	size_t		  cookiesz;
+	struct kpair	**cookiemap;
+	struct kpair	 *fields;
+	struct kpair	**fieldmap;
+	size_t		  fieldsz;
+	enum mime	  mime;
+	size_t		  page;
+	char		 *path;
+	enum elem	  elems[128];
+	size_t		  elemsz;
 };
 
 __BEGIN_DECLS
 
 void		 http_free(struct req *req);
-void		 http_parse(struct req *req);
-
+void		 http_parse(struct req *req, 
+			const struct kvalid *keys, size_t keymax,
+			const char *const *pages, size_t pagemax,
+			size_t defpage);
 void		 attr(struct req *req, enum elem elem, ...);
 void		 closure(struct req *req, size_t count);
 void		 decl(void);
 void		 elem(struct req *req, enum elem elem);
+#if 0
 void		 input(struct req *req, enum key key);
+#endif
 void		 sym(enum entity entity);
 void		 text(const char *cp);
 
@@ -211,13 +201,12 @@ int		 kvalid_pageid(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
+void		*xcalloc(size_t nm, size_t sz);
 void		*xmalloc(size_t sz);
 void		*xrealloc(void *p, size_t nm, size_t sz);
 void		*xxrealloc(void *p, size_t sz);
 char		*xstrdup(const char *cp);
 
-extern const struct kvalid	 keys[KEY__MAX];
-extern const char * const 	 pages[PAGE__MAX];
 extern const char * const	 mimes[MIME__MAX];
 extern const char * const	 mimetypes[MIME__MAX];
 extern const char		*pname;

@@ -3,7 +3,7 @@
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
-		<title>kcgi | minimal CGI framework for C</title>
+		<title>kcgi | minimal CGI library for C</title>
 		<style>
 			html, body { margin: 0; padding: 0; }
 			header { margin-top: 1em; }
@@ -25,7 +25,7 @@
 		<header>
 			<span class="nm">kcgi</span>
 			&#8212;
-			<span class="nd">minimal CGI framework for C</span>
+			<span class="nd">minimal CGI library for C</span>
 			<nav>
 				<span>version <span>@VERSION@</span></span>
 				<span><a href="snapshots/kcgi.tgz">Sources</a></span>
@@ -34,8 +34,7 @@
 		</header>
 		<article>
 			<p>
-				<span class="nm">kcgi</span> is a simple, minimal CGI framework for web applications (HTML and HTTP) in C.  
-				It is <em>not</em> a library, but meant to be built into your application source.
+				<span class="nm">kcgi</span> is a simple, minimal CGI library for web applications (HTML and HTTP) in C.  
 			</p>
 			<p>
 				Some features:
@@ -47,10 +46,11 @@
 				<li>automatic field (request, form, and cookie) validation</li>
 			</ul>
 			<p>
-				The framework itself consists of an ISO C source and header, both under the permissible <a
-					href="http://opensource.org/licenses/ISC" rel="license">ISC license</a>, to be included in your sources.
-				For simplicity, I distribute a <a href="kcgi.3.html">kcgi(3)</a> manpage for function reference, which includes
-				detailed instructions on deploying and using <span class="nm">kcgi</span>.
+				The library itself consists of easily-auditable ISO C source and header, both under the permissible <a
+					href="http://opensource.org/licenses/ISC" rel="license">ISC license</a>.
+				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all functions.
+				To use the library, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into
+				your <code>PREFIX</code> of choice.
 			</p>
 			<p>
 				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions.
@@ -60,8 +60,7 @@
 			</h2>
 			<p>
 				Initial public release.
-				The framework has been used by several small-scale applications.
-				This properly splits the HTTP and HTML logic into a framework.
+				The library has been used by several small-scale applications.
 			</p>
 		</article>
 		<footer>

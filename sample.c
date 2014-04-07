@@ -11,6 +11,27 @@
 
 #include "kcgi.h"
 
+enum	page {
+	PAGE_INDEX,
+	PAGE__MAX
+};
+
+enum	key {
+	KEY_SESSID, 
+	KEY_SESSCOOKIE, 
+	KEY__MAX
+};
+
+struct	user {
+	char		  name[257];
+	int64_t		  id;
+};
+
+struct	session {
+	struct user	  user;
+	int64_t		  id;
+};
+
 struct	dispatch {
 	void		(*disp)(struct req *, struct session *);
 	unsigned int	  flags; 
@@ -174,7 +195,7 @@ main(int argc, char *argv[])
 	struct req	 r;
 	struct session	*s;
 
-	http_parse(&r);
+	http_parse(&r, keys, KEY__MAX, pages, PAGE__MAX, PAGE_INDEX);
 
 	s = NULL;
 #if 0

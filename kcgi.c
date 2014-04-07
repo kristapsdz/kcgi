@@ -207,6 +207,21 @@ xrealloc(void *pp, size_t nm, size_t sz)
 }
 
 /*
+ * Safe calloc(): don't return on exhaustion.
+ */
+void *
+xcalloc(size_t nm, size_t sz)
+{
+	char	*p;
+
+	if (NULL != (p = calloc(nm, sz)))
+		return(p);
+
+	perror(NULL);
+	exit(EXIT_FAILURE);
+}
+
+/*
  * Safe malloc(): don't return on exhaustion.
  */
 void *
@@ -274,6 +289,7 @@ elem(struct req *req, enum elem elem)
 	attr(req, elem, ATTR__MAX);
 }
 
+#if 0
 void
 input(struct req *req, enum key key)
 {
@@ -337,6 +353,7 @@ input(struct req *req, enum key key)
 		ATTR_VALUE, cp,
 		ATTR__MAX);
 }
+#endif
 
 void
 attr(struct req *req, enum elem elem, ...)
@@ -771,11 +788,14 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
  * pasred query string, cookie, and form data.
  */
 void
-http_parse(struct req *req)
+http_parse(struct req *req, 
+	const struct kvalid *keys, size_t keymax,
+	const char *const *pages, size_t pagemax,
+	size_t defpage)
 {
 	char		*cp, *ep, *sub;
 	enum mime	 m;
-	enum page	 p;
+	size_t		 p;
 	size_t		 i, j;
 
 	if (NULL == (pname = getenv("SCRIPT_NAME")))
@@ -783,8 +803,11 @@ http_parse(struct req *req)
 
 	memset(req, 0, sizeof(struct req));
 
+	req->cookiemap = xcalloc(keymax, sizeof(struct kpair *));
+	req->fieldmap = xcalloc(keymax, sizeof(struct kpair *));
+
 	sub = NULL;
-	p = PAGE_INDEX;
+	p = defpage;
 	m = MIME_HTML;
 
 	/*
@@ -815,15 +838,15 @@ http_parse(struct req *req)
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
 
-		for (p = 0; p < PAGE__MAX; p++)
+		for (p = 0; p < pagemax; p++)
 			if (0 == strcasecmp(pages[p], cp))
 				break;
 	}
 
 	req->mime = m;
 	req->page = p;
-	if (NULL != (req->pathstacked = sub))
-		req->path = xstrdup(req->pathstacked);
+	if (NULL != sub)
+		req->path = xstrdup(sub);
 
 	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
@@ -864,7 +887,7 @@ http_parse(struct req *req)
 	 * application itself.  Nice.
 	 */
 
-	for (i = 0; i < KEY__MAX; i++) {
+	for (i = 0; i < keymax; i++) {
 		for (j = 0; j < req->fieldsz; j++) {
 			if (strcmp(req->fields[j].key, keys[i].name))
 				continue;
@@ -905,6 +928,8 @@ http_free(struct req *req)
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
+	free(req->cookies);
+	free(req->fields);
 }
 
 void
@@ -1053,6 +1078,7 @@ kvalid_uint(struct kpair *p)
 	return(NULL == ep);
 }
 
+#if 0
 int
 kvalid_pageid(struct kpair *p)
 {
@@ -1061,3 +1087,4 @@ kvalid_pageid(struct kpair *p)
 		return(0);
 	return(p->parsed.i >= 0 && p->parsed.i < PAGE__MAX);
 }
+#endif
