@@ -1,8 +1,17 @@
+CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 VERSION = 0.1.2
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
+
+all: sample 
+
+libkcgi.a: kcgi.o
+	$(AR) rs $@ kcgi.o 
+
+sample: sample.o libkcgi.a
+	$(CC) -o $@ sample.o -L. -lkcgi
 
 www: index.html kcgi-$(VERSION).tgz kcgi.3.html
 
@@ -36,3 +45,4 @@ kcgi-$(VERSION).tgz:
 
 clean:
 	rm -f kcgi-$(VERSION).tgz index.html kcgi.3.html
+	rm -f libkcgi.a kcgi.o sample.o sample
