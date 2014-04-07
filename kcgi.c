@@ -28,7 +28,8 @@
 
 #include "kcgi.h"
 
-/* * 10 MB upload limit. */
+/* 10 MB upload limit for GET/POST. */
+/* FIXME: pass this into http_parse(). */
 #define	UPLOAD_LIMIT	 10485760
 
 /* Maximum length of a URI (plus nil). */
@@ -237,6 +238,26 @@ kmalloc(size_t sz)
 }
 
 #ifndef __OpenBSD__
+/* OPENBSD ORIGINAL: lib/libc/stdlib/strtonum.c */
+/* $OpenBSD$*/
+/*
+ * Copyright (c) 2004 Ted Unangst and Todd Miller
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the
+ * above copyright notice and this permission notice appear in all
+ * copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
 #define INVALID 	1
 #define TOOSMALL 	2
 #define TOOLARGE 	3
@@ -399,7 +420,7 @@ kclosure(struct kreq *req, size_t sz)
 }
 
 void
-kdecl(void)
+kdecl(struct kreq *req)
 {
 
 	puts("<!DOCTYPE html>");
@@ -443,6 +464,7 @@ urldecode(char *p)
 /*
  * Parse out key-value pairs from an HTTP request variable.
  * This can be either a cookie or a POST/GET string.
+ * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
 parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
@@ -450,29 +472,26 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 	char            *key, *val;
 	size_t           sz;
 
-	while (p && '\0' != *p) {
+	while (NULL != p && '\0' != *p) {
+		/* Skip leading whitespace. */
 		while (' ' == *p)
 			p++;
 
 		key = p;
 		val = NULL;
-
 		if (NULL != (p = strchr(p, '='))) {
+			/* Key/value pair. */
 			*p++ = '\0';
 			val = p;
-
 			sz = strcspn(p, ";&");
-			/* LINTED */
 			p += sz;
-
 			if ('\0' != *p)
 				*p++ = '\0';
 		} else {
+			/* No value--error. */
 			p = key;
 			sz = strcspn(p, ";&");
-			/* LINTED */
 			p += sz;
-
 			if ('\0' != *p)
 				p++;
 			continue;
@@ -480,15 +499,16 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
-
+		if (strlen(val) > UPLOAD_LIMIT)
+			continue;
 		if ( ! urldecode(key))
 			break;
 		if ( ! urldecode(val))
 			break;
-
 		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
 		(*kv)[*kvsz].key = kstrdup(key);
 		(*kv)[*kvsz].val = kstrdup(val);
+		(*kv)[*kvsz].valsz = strlen(val);
 		(*kvsz)++;
 	}
 }
@@ -500,28 +520,45 @@ parse_urlenc(struct kpair **kv, size_t *kvsz)
 	ssize_t		 ssz;
 	size_t		 sz;
 
+	/*
+	 * Read in chunks of 4096 from standard input.
+	 * Make sure we have room for the nil terminator.
+	 */
 	p = kmalloc(4096 + 1);
 	sz = 0;
 	do {
-		ssz = read(STDIN_FILENO, p + sz, 4096);
-		if (ssz <= 0)
+		if ((ssz = read(STDIN_FILENO, p + sz, 4096)) <= 0)
 			continue;
 		sz += (size_t)ssz;
+		/* Conservatively make sure we don't overflow. */
 		assert(sz < SIZE_T_MAX - 4097);
 		p = kxrealloc(p, sz + 4096 + 1);
 	} while (ssz > 0);
 
+	/* 
+	 * If we have a nil terminator in the input sequence, we'll
+	 * preemptively stop there in parse_pairs().
+	 */
 	p[sz] = '\0';
 	parse_pairs(kv, kvsz, p);
 	free(p);
 }
 
+/*
+ * Use fgetln() to suck down lines from stdin.
+ * The multipart format is line-based when in the "structure" part of
+ * the form, which dictates control sequences and so on.
+ * Note: we nil-terminate this line!
+ * If it has a nil before the \n\r, subsequent functions will truncate
+ * to that point.
+ */
 static char *
 getformln(void)
 {
 	char		*line;
 	size_t		 sz;
 
+	/* Only handle \n\r terminated lines. */
 	if (NULL == (line = fgetln(stdin, &sz)))
 		return(NULL);
 	else if (sz < 2)
@@ -536,16 +573,23 @@ getformln(void)
 	return(line);
 }
 
+/*
+ * Reset a particular hmime component.
+ * We can get duplicates, so reallocate.
+ */
 static void
 hmime_reset(char **dst, const char *src)
 {
 
-	if (*dst)
-		free(*dst);
-
+	free(*dst);
 	*dst = kstrdup(src);
 }
 
+/*
+ * Parse out a multipart instruction.
+ * All of these operate on non-binary data, which is guaranteed by the
+ * line parser.
+ */
 static int
 hmime_parse(struct hmime *mime)
 {
@@ -556,19 +600,18 @@ hmime_parse(struct hmime *mime)
 	while (NULL != (line = getformln())) {
 		if ('\0' == *line)
 			return(1);
-
 		key = line;
 		if (NULL == (val = strchr(key, ':')))
 			return(0);
 		*val++ = '\0';
-
-		while (isspace((unsigned char)*val))
+		while (isspace((int)*val))
 			val++;
 
 		line = NULL;
 		if (NULL != val && NULL != (line = strchr(val, ';')))
 			*line++ = '\0';
 
+		/* White-list these control statements. */
 		if (0 == strcasecmp(key, "content-transfer-encoding"))
 			hmime_reset(&mime->xcode, val);
 		else if (0 == strcasecmp(key, "content-disposition"))
@@ -578,6 +621,7 @@ hmime_parse(struct hmime *mime)
 		else
 			return(0);
 
+		/* These are sub-components. */
 		while (NULL != (key = line)) {
 			while (isspace((unsigned char)*key))
 				key++;
@@ -598,6 +642,7 @@ hmime_parse(struct hmime *mime)
 			} else if (NULL != (line = strchr(val, ';')))
 				*line++ = '\0';
 
+			/* White-listed sub-commands. */
 			if (0 == strcasecmp(key, "filename"))
 				hmime_reset(&mime->file, val);
 			else if (0 == strcasecmp(key, "name"))
@@ -612,6 +657,11 @@ hmime_parse(struct hmime *mime)
 	return(0);
 }
 
+/*
+ * Get a binary line.
+ * Only make sure that the end is a newline.
+ * (Not a CRLF, which MIME dictates for transferral!)
+ */
 static char *
 getbinln(size_t *sz)
 {
@@ -625,6 +675,10 @@ getbinln(size_t *sz)
 	return(line);
 }
 
+/*
+ * Test whether the line, not nil-terminated and with line size "sz",
+ * matches the boundary b, not nil-terminated with size bsz.
+ */
 static int
 boundary(const char *line, size_t sz, const char *b, size_t bsz)
 {
@@ -654,6 +708,10 @@ boundary(const char *line, size_t sz, const char *b, size_t bsz)
 	return(-1);
 }
 
+/*
+ * Parse a single value from a multipart form data entry.
+ * Be careful: this can have nil-terminators and all sorts of ugliness.
+ */
 static int
 form_parse(struct kpair **kv, size_t *kvsz, 
 		const char *name, const char *b, size_t bsz)
@@ -666,35 +724,46 @@ form_parse(struct kpair **kv, size_t *kvsz,
 	cp = NULL;
 	rc = -1;
 
+	/*
+	 * Download until we reach a hardcoded limit or the boundary is
+	 * reached.  Or any other error occurs.
+	 */
 	while (NULL != (line = getbinln(&sz))) {
 		if ((rc = boundary(line, sz, b, bsz)) >= 0)
 			break;
 		assert(sz > 0);
-		if (valsz + sz > UPLOAD_LIMIT)
-			break;
+		assert(valsz < UPLOAD_LIMIT);
+		/*
+		 * Make sure we won't overflow the maximum buffer size
+		 * even if that limit is close to the integer limit.
+		 * In other words, avoid integer overflow.
+		 */
+		if (UPLOAD_LIMIT - valsz < sz) {
+			free(cp);
+			return(-1);
+		}
 		cp = kxrealloc(cp, valsz + sz);
 		memcpy(cp + valsz, line, sz);
 		valsz += sz;
 	}
 
-	cp = kxrealloc(cp, valsz + 1);
-	cp[valsz] = '\0';
-
-	if (NULL == line) 
-		rc = -1;
-
-	if (rc >= 0 && valsz > 3)
-		cp[valsz - 2] = '\0';
-	else {
+	if (NULL == line || valsz < 2) {
+		/* We didn't reach a boundary or have no CRLF. */
+		free(cp);
+		return(-1);
+	} else if ('\n' != cp[valsz - 1] || '\r' != cp[valsz - 2]) {
+		/* No proper CRLF ending. */
 		free(cp);
 		return(-1);
 	}
 
+	valsz -= 2;
+	cp[valsz] = '\0';
 	*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
 	(*kv)[*kvsz].key = kstrdup(name);
 	(*kv)[*kvsz].val = cp;
+	(*kv)[*kvsz].valsz = valsz;
 	(*kvsz)++;
-
 	return(rc);
 }
 
@@ -712,6 +781,15 @@ hmime_free(struct hmime *mime)
 	memset(mime, 0, sizeof(struct hmime));
 }
 
+/*
+ * This parses a single form from a multi-form sequence.
+ * The array "b" starts with a nil-terminated bounary sequence for the
+ * given form.
+ * Note that for multipart/mixed forms, we'll reenter this function for
+ * the multipart.
+ * FIXME: if we have multiple files come in, then we might not have a
+ * "name" but the one that will inherit from the "top-level" multipart.
+ */
 static int
 multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 {
@@ -720,6 +798,7 @@ multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 	int		 rc;
 	size_t		 bsz;
 
+	/* Stop if we're at the boundary (or problems). */
 	if (NULL == b) 
 		return(-1);
 	else if (NULL == (line = getformln())) 
@@ -734,23 +813,30 @@ multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 
 	while (rc > 0) {
 		rc = -1;
+		/* Try to parse the form MIME set. */
 		if ( ! hmime_parse(&mime))
 			break;
 
+		/* Make sure we have a disposition and name. */
 		if (NULL == mime.disp)
 			break;
 		else if (NULL == mime.name)
 			break;
-		else if (strcmp(mime.disp, "form-data")) 
+		/* FIXME: multipart/mixed might not have this. */
+		else if (0 != strcmp(mime.disp, "form-data")) 
 			break;
 
 		if (NULL == mime.ctype || NULL != mime.file) {
+			/* Read a binary file. */
 			rc = form_parse(kv, kvsz, mime.name, b, bsz);
 			hmime_free(&mime);
 			continue;
-		} else if (strcmp(mime.ctype, "multipart/mixed"))
+		} else if (0 != strcmp(mime.ctype, "multipart/mixed"))
 			break;
-
+		/*
+		 * If we're a multipart/mixed file, we'll have multiple
+		 * subcomponents with the given boundary.
+		 */
 		rc = multiform_parse(kv, kvsz, mime.bound);
 		hmime_free(&mime);
 	}
@@ -759,6 +845,12 @@ multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 	return(rc);
 }
 
+/*
+ * Parse an entire multi-part form.
+ * This can consists of as many forms as possible.
+ * Throughout the sequence, we're very careful with binary and
+ * non-binary data.
+ */
 static void
 parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 {
@@ -771,6 +863,7 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 	while (' ' == *line)
 		line++;
 
+	/* Each form consists of a bounded sequence of lines. */
 	sz = strlen("boundary=");
 	if (strncmp(line, "boundary=", sz)) 
 		return;
@@ -778,7 +871,7 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 
 	while (' ' == *line) 
 		line++;
-
+	/* Go ahead and parse the form... */
 	multiform_parse(kv, kvsz, line);
 }
 
@@ -853,7 +946,6 @@ khttp_parse(struct kreq *req,
 	 * been set -- we don't care which), then switch on that type
 	 * for parsing out key value pairs.
 	 */
-
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcmp(cp, "application/x-www-form-urlencoded"))
 			parse_urlenc(&req->fields, &req->fieldsz);
@@ -866,8 +958,9 @@ khttp_parse(struct kreq *req,
 	 * so parse those out now.
 	 * Note: both QUERY_STRING and CONTENT_TYPE fields share the
 	 * same field space.
+	 * Since this is a getenv(), we know the returned value is
+	 * nil-terminated.
 	 */
-
 	if (NULL != (cp = getenv("QUERY_STRING")))
 		parse_pairs(&req->fields, &req->fieldsz, cp);
 
@@ -876,8 +969,9 @@ khttp_parse(struct kreq *req,
 	 * These use the same syntax as QUERY_STRING elements, but don't
 	 * share the same namespace (just as a means to differentiate
 	 * the same names).
+	 * Since this is a getenv(), we know the returned value is
+	 * nil-terminated.
 	 */
-
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
 		parse_pairs(&req->cookies, &req->cookiesz, cp);
 
@@ -886,7 +980,6 @@ khttp_parse(struct kreq *req,
 	 * This will let us do constant-time lookups within the
 	 * application itself.  Nice.
 	 */
-
 	for (i = 0; i < keymax; i++) {
 		for (j = 0; j < req->fieldsz; j++) {
 			if (strcmp(req->fields[j].key, keys[i].name))
@@ -933,7 +1026,7 @@ khttp_free(struct kreq *req)
 }
 
 void
-ksym(enum kentity entity)
+ksym(struct kreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
@@ -941,16 +1034,16 @@ ksym(enum kentity entity)
 }
 
 void
-ktext(const char *cp)
+ktext(struct kreq *req, const char *cp)
 {
 
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
-			ksym(KENTITY_GT);
+			ksym(req, KENTITY_GT);
 			break;
 		case ('<'):
-			ksym(KENTITY_LT);
+			ksym(req, KENTITY_LT);
 			break;
 		default:
 			putchar((int)*cp);
