@@ -18,22 +18,11 @@ enum	page {
 
 enum	key {
 	KEY_SESSID, 
-	KEY_SESSCOOKIE, 
 	KEY__MAX
 };
 
-struct	user {
-	char		  name[257];
-	int64_t		  id;
-};
-
-struct	session {
-	struct user	  user;
-	int64_t		  id;
-};
-
 struct	dispatch {
-	void		(*disp)(struct kreq *, struct session *);
+	void		(*disp)(struct kreq *);
 	unsigned int	  flags; 
 #define	LOGIN 	  	  1 
 	int		  mimes[KMIME__MAX]; 
@@ -52,10 +41,9 @@ const struct kvalid keys[KEY__MAX] = {
 	{ kvalid_id, "userid", KFIELD__MAX, NULL, NULL }, /* KEY_USERID */
 #endif
 	{ kvalid_int, "sessid", KFIELD__MAX, NULL, NULL }, /* KEY_SESSID */
-	{ kvalid_int, "sesscookie", KFIELD__MAX, NULL, NULL }, /* KEY_SESSCOOKIE */
 };
 
-static void sendindex(struct kreq *, struct session *);
+static void sendindex(struct kreq *);
 
 static const struct dispatch disps[PAGE__MAX] = {
 	{ sendindex, 0, {1, 0, 0}}, /* PAGE_INDEX */
@@ -106,11 +94,11 @@ resp_head(struct kreq *req, const char *title)
 	if (KMIME_HTML != req->mime)
 		return;
 
-	kdecl();
+	kdecl(req);
 	kelem(req, KELEM_HTML);
 	kelem(req, KELEM_HEAD);
 	kelem(req, KELEM_TITLE);
-	ktext(NULL == title ? "" : title);
+	ktext(req, NULL == title ? "" : title);
 	kclosure(req, 2);
 	kelem(req, KELEM_BODY);
 }
@@ -153,12 +141,12 @@ send303(struct kreq *req, enum page page)
 #endif
 
 static void
-sendindex(struct kreq *req, struct session *sess)
+sendindex(struct kreq *req)
 {
 
 	resp(req, KHTTP_200, "welcome");
 	if (KMIME_HTML == req->mime)
-		ktext("welcome.");
+		ktext(req, "welcome.");
 	resp_close(req);
 }
 
@@ -168,7 +156,7 @@ send403(struct kreq *req)
 
 	resp(req, KHTTP_404, "Forbidden");
 	if (KMIME_HTML == req->mime)
-		ktext("Forbidden.");
+		ktext(req, "Forbidden.");
 	resp_close(req);
 }
 
@@ -178,30 +166,21 @@ send404(struct kreq *req)
 
 	resp(req, KHTTP_404, "Page Not Found");
 	if (KMIME_HTML == req->mime)
-		ktext("Page not found.");
+		ktext(req, "Page not found.");
 	resp_close(req);
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	struct kreq	 r;
-	struct session	*s;
 
+	/*
+	 * Set up our main HTTP context: where we're dialling from, etc.
+	 */
 	khttp_parse(&r, keys, KEY__MAX, 
 		pages, PAGE__MAX, PAGE_INDEX);
 
-	s = NULL;
-#if 0
-	if (NULL != r.cookiemap[KEY_USERID] &&
-			NULL != r.cookiemap[KEY_SESSID] &&
-			NULL != r.cookiemap[KEY_SESSCOOKIE])
-		s = session_lookup
-			(r.cookiemap[KEY_SESSID]->parsed.i,
-			 r.cookiemap[KEY_USERID]->parsed.i,
-			 r.cookiemap[KEY_SESSCOOKIE]->parsed.i,
-			 r.page);
-#endif
 	/*
 	 * We've been asked for an unknown page or something with an
 	 * unknown extension.
@@ -221,7 +200,7 @@ main(int argc, char *argv[])
 		resp_http_open(&r, KHTTP_415);
 		resp_http_close();
 		goto out;
-	} else if (NULL == s && LOGIN & disps[r.page].flags) {
+	} else if (LOGIN & disps[r.page].flags) {
 		/*
 		 * This page demands that we be logged in.
 		 * Send is to the login page.
@@ -230,9 +209,8 @@ main(int argc, char *argv[])
 		goto out;
 	} 
 
-	(*disps[r.page].disp)(&r, s);
+	(*disps[r.page].disp)(&r);
 out:
-	free(s);
 	khttp_free(&r);
 	return(EXIT_SUCCESS);
 }
