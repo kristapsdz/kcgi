@@ -58,96 +58,96 @@ struct	tag {
 	const char	*name; /* name of element */
 };
 
-static	const char * const entities[ENTITY__MAX] = {
-	"#xE9", /* ENTITY_ACUTE */
-	"gt", /* ENTITY_GT */
-	"#x2190", /* ENTITY_LARR */
-	"lt", /* ENTITY_LT */
-	"#x2014", /* ENTITY_MDASH */
-	"#x2013", /* ENTITY_NDASH */
-	"#x2192", /* ENTITY_RARR */
+static	const char * const entities[KENTITY__MAX] = {
+	"#xE9", /* KENTITY_ACUTE */
+	"gt", /* KENTITY_GT */
+	"#x2190", /* KENTITY_LARR */
+	"lt", /* KENTITY_LT */
+	"#x2014", /* KENTITY_MDASH */
+	"#x2013", /* KENTITY_NDASH */
+	"#x2192", /* KENTITY_RARR */
 };
 
-static	const struct tag tags[ELEM__MAX] = {
-	{ 1, "html" }, /* ELEM_HTML */
-	{ 1, "head" }, /* ELEM_HEAD */
-	{ 1, "body" }, /* ELEM_BODY */
-	{ 0, "title" }, /* ELEM_TITLE */
-	{ 3, "meta" }, /* ELEM_META */
-	{ 3, "link" }, /* ELEM_LINK */
-	{ 1, "form" }, /* ELEM_FORM */
-	{ 2, "input" }, /* ELEM_INPUT */
-	{ 1, "textarea" }, /* ELEM_TEXTAREA */
-	{ 1, "p" }, /* ELEM_P */
-	{ 1, "blockquote" }, /* ELEM_BLOCKQUOTE */
-	{ 3, "br" }, /* ELEM_BR */
-	{ 1, "fieldset" }, /* ELEM_FIELDSET */
-	{ 0, "legend" }, /* ELEM_LEGEND */
-	{ 0, "label" }, /* ELEM_LABEL */
-	{ 0, "a" }, /* ELEM_A */
-	{ 0, "code" }, /* ELEM_CODE */
-	{ 1, "div" }, /* ELEM_DIV */
-	{ 0, "span" }, /* ELEM_SPAN */
-	{ 1, "ul" }, /* ELEM_UL */
-	{ 1, "li" }, /* ELEM_LI */
-	{ 0, "strong" }, /* ELEM_STRONG */
-	{ 1, "table" }, /* ELEM_TABLE */
-	{ 1, "caption" }, /* ELEM_CAPTION */
-	{ 1, "tr" }, /* ELEM_TR */
-	{ 1, "td" }, /* ELEM_TD */
-	{ 1, "th" }, /* ELEM_TH */
-	{ 1, "select" }, /* ELEM_SELECT */
-	{ 0, "option" }, /* ELEM_OPTION */
-	{ 2, "img" }, /* ELEM_IMG */
-	{ 0, "i" }, /* ELEM_I */
-	{ 0, "q" }, /* ELEM_Q */
-	{ 1, "dl" }, /* ELEM_DL */
-	{ 1, "dt" }, /* ELEM_DT */
-	{ 1, "dd" }, /* ELEM_DD */
-	{ 3, "col" }, /* ELEM_COL */
-	{ 0, "var" }, /* ELEM_VAR */
+static	const struct tag tags[KELEM__MAX] = {
+	{ 1, "html" }, /* KELEM_HTML */
+	{ 1, "head" }, /* KELEM_HEAD */
+	{ 1, "body" }, /* KELEM_BODY */
+	{ 0, "title" }, /* KELEM_TITLE */
+	{ 3, "meta" }, /* KELEM_META */
+	{ 3, "link" }, /* KELEM_LINK */
+	{ 1, "form" }, /* KELEM_FORM */
+	{ 2, "input" }, /* KELEM_INPUT */
+	{ 1, "textarea" }, /* KELEM_TEXTAREA */
+	{ 1, "p" }, /* KELEM_P */
+	{ 1, "blockquote" }, /* KELEM_BLOCKQUOTE */
+	{ 3, "br" }, /* KELEM_BR */
+	{ 1, "fieldset" }, /* KELEM_FIELDSET */
+	{ 0, "legend" }, /* KELEM_LEGEND */
+	{ 0, "label" }, /* KELEM_LABEL */
+	{ 0, "a" }, /* KELEM_A */
+	{ 0, "code" }, /* KELEM_CODE */
+	{ 1, "div" }, /* KELEM_DIV */
+	{ 0, "span" }, /* KELEM_SPAN */
+	{ 1, "ul" }, /* KELEM_UL */
+	{ 1, "li" }, /* KELEM_LI */
+	{ 0, "strong" }, /* KELEM_STRONG */
+	{ 1, "table" }, /* KELEM_TABLE */
+	{ 1, "caption" }, /* KELEM_CAPTION */
+	{ 1, "tr" }, /* KELEM_TR */
+	{ 1, "td" }, /* KELEM_TD */
+	{ 1, "th" }, /* KELEM_TH */
+	{ 1, "select" }, /* KELEM_SELECT */
+	{ 0, "option" }, /* KELEM_OPTION */
+	{ 2, "img" }, /* KELEM_IMG */
+	{ 0, "i" }, /* KELEM_I */
+	{ 0, "q" }, /* KELEM_Q */
+	{ 1, "dl" }, /* KELEM_DL */
+	{ 1, "dt" }, /* KELEM_DT */
+	{ 1, "dd" }, /* KELEM_DD */
+	{ 3, "col" }, /* KELEM_COL */
+	{ 0, "var" }, /* KELEM_VAR */
 };
 
-const char * const mimes[MIME__MAX] = {
-	"html", /* MIME_HTML */
-	"csv", /* MIME_CSV */
-	"png", /* MIME_PNG */
+const char * const mimes[KMIME__MAX] = {
+	"html", /* KMIME_HTML */
+	"csv", /* KMIME_CSV */
+	"png", /* KMIME_PNG */
 };
 
-const char * const mimetypes[MIME__MAX] = {
-	"text/html; charset=utf-8", /* MIME_HTML */
-	"text/csv", /* MIME_CSV */
-	"image/png", /* MIME_PNG */
+const char * const mimetypes[KMIME__MAX] = {
+	"text/html; charset=utf-8", /* KMIME_HTML */
+	"text/csv", /* KMIME_CSV */
+	"image/png", /* KMIME_PNG */
 };
 
-static	const char * const attrs[ATTR__MAX] = {
-	"http-equiv", /* ATTR_HTTP_EQUIV */
-	"content", /* ATTR_CONTENT */
-	"rel", /* ATTR_REL */
-	"href", /* ATTR_HREF */
-	"type", /* ATTR_TYPE */
-	"action", /* ATTR_ACTION */
-	"method", /* ATTR_METHOD */
-	"name", /* ATTR_NAME */
-	"value", /* ATTR_VALUE */
-	"onclick", /* ATTR_ONCLICK */
-	"id", /* ATTR_ID */
-	"for", /* ATTR_FOR */
-	"class", /* ATTR_CLASS */
-	"colspan", /* ATTR_COLSPAN */
-	"disabled", /* ATTR_DISABLED */
-	"selected", /* ATTR_SELECTED */
-	"src", /* ATTR_SRC */
-	"clear", /* ATTR_CLEAR */
-	"checked", /* ATTR_CHECKED */
-	"style", /* ATTR_STYLE */
-	"target", /* ATTR_TARGET */
-	"step", /* ATTR_STEP */
-	"min", /* ATTR_MIN */
-	"max", /* ATTR_MAX */
-	"width", /* ATTR_WIDTH */
-	"span", /* ATTR_SPAN */
-	"rowspan", /* ATTR_ROWSPAN */
+static	const char * const attrs[KATTR__MAX] = {
+	"http-equiv", /* KATTR_HTTP_EQUIV */
+	"content", /* KATTR_CONTENT */
+	"rel", /* KATTR_REL */
+	"href", /* KATTR_HREF */
+	"type", /* KATTR_TYPE */
+	"action", /* KATTR_ACTION */
+	"method", /* KATTR_METHOD */
+	"name", /* KATTR_NAME */
+	"value", /* KATTR_VALUE */
+	"onclick", /* KATTR_ONCLICK */
+	"id", /* KATTR_ID */
+	"for", /* KATTR_FOR */
+	"class", /* KATTR_CLASS */
+	"colspan", /* KATTR_COLSPAN */
+	"disabled", /* KATTR_DISABLED */
+	"selected", /* KATTR_SELECTED */
+	"src", /* KATTR_SRC */
+	"clear", /* KATTR_CLEAR */
+	"checked", /* KATTR_CHECKED */
+	"style", /* KATTR_STYLE */
+	"target", /* KATTR_TARGET */
+	"step", /* KATTR_STEP */
+	"min", /* KATTR_MIN */
+	"max", /* KATTR_MAX */
+	"width", /* KATTR_WIDTH */
+	"span", /* KATTR_SPAN */
+	"rowspan", /* KATTR_ROWSPAN */
 };
 
 /* 
@@ -159,7 +159,7 @@ const char	*pname = NULL;
  * Safe strdup(): don't return on memory failure.
  */
 char *
-xstrdup(const char *cp)
+kstrdup(const char *cp)
 {
 	char	*p;
 
@@ -174,7 +174,7 @@ xstrdup(const char *cp)
  * Safe realloc(): don't return on memory failure.
  */
 void *
-xxrealloc(void *pp, size_t sz)
+kxrealloc(void *pp, size_t sz)
 {
 	char	*p;
 
@@ -189,7 +189,7 @@ xxrealloc(void *pp, size_t sz)
  * Safe realloc() with overflow-checking.
  */
 void *
-xrealloc(void *pp, size_t nm, size_t sz)
+krealloc(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
@@ -210,7 +210,7 @@ xrealloc(void *pp, size_t nm, size_t sz)
  * Safe calloc(): don't return on exhaustion.
  */
 void *
-xcalloc(size_t nm, size_t sz)
+kcalloc(size_t nm, size_t sz)
 {
 	char	*p;
 
@@ -225,7 +225,7 @@ xcalloc(size_t nm, size_t sz)
  * Safe malloc(): don't return on exhaustion.
  */
 void *
-xmalloc(size_t sz)
+kmalloc(size_t sz)
 {
 	char	*p;
 
@@ -283,24 +283,24 @@ strtonum(const char *numstr, long long minval,
 #endif /*!__OpenBSD__*/
 
 void
-elem(struct req *req, enum elem elem)
+kelem(struct kreq *req, enum kelem elem)
 {
 
-	attr(req, elem, ATTR__MAX);
+	kattr(req, elem, KATTR__MAX);
 }
 
 #if 0
 void
-input(struct req *req, enum key key)
+input(struct kreq *req, enum key key)
 {
 	const char	*cp, *type;
 	char		 buf[URISZ];
 
 	if (NULL != keys[key].label && 
 			KFIELD_SUBMIT != keys[key].field) {
-		attr(req, ELEM_LABEL,
-			ATTR_FOR, keys[key].name,
-			ATTR__MAX);
+		attr(req, KELEM_LABEL,
+			KATTR_FOR, keys[key].name,
+			KATTR__MAX);
 		text(keys[key].label);
 		closure(req, 1);
 		text(":");
@@ -346,25 +346,25 @@ input(struct req *req, enum key key)
 	else if (NULL != keys[key].def) 
 		cp = keys[key].def;
 
-	attr(req, ELEM_INPUT,
-		ATTR_TYPE, type,
-		ATTR_NAME, keys[key].name,
-		ATTR_ID, keys[key].name,
-		ATTR_VALUE, cp,
-		ATTR__MAX);
+	attr(req, KELEM_INPUT,
+		KATTR_TYPE, type,
+		KATTR_NAME, keys[key].name,
+		KATTR_ID, keys[key].name,
+		KATTR_VALUE, cp,
+		KATTR__MAX);
 }
 #endif
 
 void
-attr(struct req *req, enum elem elem, ...)
+kattr(struct kreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
-	enum attr	 at;
+	enum kattr	 at;
 	const char	*cp;
 
 	printf("<%s", tags[elem].name);
 	va_start(ap, elem);
-	while (ATTR__MAX != (at = va_arg(ap, enum attr))) {
+	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
 		cp = va_arg(ap, char *);
 		assert(NULL != cp);
 		printf(" %s=\"%s\"", attrs[at], cp);
@@ -385,7 +385,7 @@ attr(struct req *req, enum elem elem, ...)
 }
 
 void
-closure(struct req *req, size_t sz)
+kclosure(struct kreq *req, size_t sz)
 {
 	size_t		 i;
 
@@ -399,7 +399,7 @@ closure(struct req *req, size_t sz)
 }
 
 void
-decl(void)
+kdecl(void)
 {
 
 	puts("<!DOCTYPE html>");
@@ -486,9 +486,9 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 		if ( ! urldecode(val))
 			break;
 
-		*kv = xrealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-		(*kv)[*kvsz].key = xstrdup(key);
-		(*kv)[*kvsz].val = xstrdup(val);
+		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
+		(*kv)[*kvsz].key = kstrdup(key);
+		(*kv)[*kvsz].val = kstrdup(val);
 		(*kvsz)++;
 	}
 }
@@ -500,7 +500,7 @@ parse_urlenc(struct kpair **kv, size_t *kvsz)
 	ssize_t		 ssz;
 	size_t		 sz;
 
-	p = xmalloc(4096 + 1);
+	p = kmalloc(4096 + 1);
 	sz = 0;
 	do {
 		ssz = read(STDIN_FILENO, p + sz, 4096);
@@ -508,7 +508,7 @@ parse_urlenc(struct kpair **kv, size_t *kvsz)
 			continue;
 		sz += (size_t)ssz;
 		assert(sz < SIZE_T_MAX - 4097);
-		p = xxrealloc(p, sz + 4096 + 1);
+		p = kxrealloc(p, sz + 4096 + 1);
 	} while (ssz > 0);
 
 	p[sz] = '\0';
@@ -543,7 +543,7 @@ hmime_reset(char **dst, const char *src)
 	if (*dst)
 		free(*dst);
 
-	*dst = xstrdup(src);
+	*dst = kstrdup(src);
 }
 
 static int
@@ -672,12 +672,12 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		assert(sz > 0);
 		if (valsz + sz > UPLOAD_LIMIT)
 			break;
-		cp = xxrealloc(cp, valsz + sz);
+		cp = kxrealloc(cp, valsz + sz);
 		memcpy(cp + valsz, line, sz);
 		valsz += sz;
 	}
 
-	cp = xxrealloc(cp, valsz + 1);
+	cp = kxrealloc(cp, valsz + 1);
 	cp[valsz] = '\0';
 
 	if (NULL == line) 
@@ -690,8 +690,8 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		return(-1);
 	}
 
-	*kv = xrealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-	(*kv)[*kvsz].key = xstrdup(name);
+	*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
+	(*kv)[*kvsz].key = kstrdup(name);
 	(*kv)[*kvsz].val = cp;
 	(*kvsz)++;
 
@@ -788,27 +788,27 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
  * pasred query string, cookie, and form data.
  */
 void
-http_parse(struct req *req, 
+khttp_parse(struct kreq *req, 
 	const struct kvalid *keys, size_t keymax,
 	const char *const *pages, size_t pagemax,
 	size_t defpage)
 {
 	char		*cp, *ep, *sub;
-	enum mime	 m;
+	enum kmime	 m;
 	size_t		 p;
 	size_t		 i, j;
 
 	if (NULL == (pname = getenv("SCRIPT_NAME")))
 		pname = "";
 
-	memset(req, 0, sizeof(struct req));
+	memset(req, 0, sizeof(struct kreq));
 
-	req->cookiemap = xcalloc(keymax, sizeof(struct kpair *));
-	req->fieldmap = xcalloc(keymax, sizeof(struct kpair *));
+	req->cookiemap = kcalloc(keymax, sizeof(struct kpair *));
+	req->fieldmap = kcalloc(keymax, sizeof(struct kpair *));
 
 	sub = NULL;
 	p = defpage;
-	m = MIME_HTML;
+	m = KMIME_HTML;
 
 	/*
 	 * First, parse the first path element (the page we want to
@@ -817,10 +817,10 @@ http_parse(struct req *req,
 	 * inline.
 	 */
 
-	req->method = METHOD_GET;
+	req->method = KMETHOD_GET;
 	if (NULL != (cp = getenv("REQUEST_METHOD")) &&
 			0 == strcasecmp(cp, "post"))
-		req->method = METHOD_POST;
+		req->method = KMETHOD_POST;
 
 	if (NULL != (cp = getenv("PATH_INFO")) && '/' == *cp)
 		cp++;
@@ -831,7 +831,7 @@ http_parse(struct req *req,
 			ep--;
 
 		if ('.' == *ep)
-			for (*ep++ = '\0', m = 0; m < MIME__MAX; m++)
+			for (*ep++ = '\0', m = 0; m < KMIME__MAX; m++)
 				if (0 == strcasecmp(mimes[m], ep))
 					break;
 
@@ -846,7 +846,7 @@ http_parse(struct req *req,
 	req->mime = m;
 	req->page = p;
 	if (NULL != sub)
-		req->path = xstrdup(sub);
+		req->path = kstrdup(sub);
 
 	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
@@ -922,7 +922,7 @@ kpair_free(struct kpair *p, size_t sz)
 }
 
 void
-http_free(struct req *req)
+khttp_free(struct kreq *req)
 {
 
 	kpair_free(req->cookies, req->cookiesz);
@@ -933,24 +933,24 @@ http_free(struct req *req)
 }
 
 void
-sym(enum entity entity)
+ksym(enum kentity entity)
 {
 
-	assert(entity < ENTITY__MAX);
+	assert(entity < KENTITY__MAX);
 	printf("&%s;", entities[entity]);
 }
 
 void
-text(const char *cp)
+ktext(const char *cp)
 {
 
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
-			sym(ENTITY_GT);
+			ksym(KENTITY_GT);
 			break;
 		case ('<'):
-			sym(ENTITY_LT);
+			ksym(KENTITY_LT);
 			break;
 		default:
 			putchar((int)*cp);

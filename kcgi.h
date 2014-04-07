@@ -19,109 +19,109 @@
 
 #define	VERSION "@VERSION@"
 
-enum	http {
-	HTTP_200,
-	HTTP_303,
-	HTTP_403,
-	HTTP_404,
-	HTTP_409,
-	HTTP_415,
-	HTTP__MAX
+enum	khttp {
+	KHTTP_200,
+	KHTTP_303,
+	KHTTP_403,
+	KHTTP_404,
+	KHTTP_409,
+	KHTTP_415,
+	KHTTP__MAX
 };
 
-enum	entity {
-	ENTITY_EACUTE,
-	ENTITY_GT,
-	ENTITY_LARR,
-	ENTITY_LT,
-	ENTITY_MDASH,
-	ENTITY_NDASH,
-	ENTITY_RARR,
-	ENTITY__MAX
+enum	kentity {
+	KENTITY_EACUTE,
+	KENTITY_GT,
+	KENTITY_LARR,
+	KENTITY_LT,
+	KENTITY_MDASH,
+	KENTITY_NDASH,
+	KENTITY_RARR,
+	KENTITY__MAX
 };
 
-enum	attr {
-	ATTR_HTTP_EQUIV,
-	ATTR_CONTENT,
-	ATTR_REL,
-	ATTR_HREF,
-	ATTR_TYPE,
-	ATTR_ACTION,
-	ATTR_METHOD,
-	ATTR_NAME,
-	ATTR_VALUE,
-	ATTR_ONCLICK,
-	ATTR_ID,
-	ATTR_FOR,
-	ATTR_CLASS,
-	ATTR_COLSPAN,
-	ATTR_DISABLED,
-	ATTR_SELECTED,
-	ATTR_SRC,
-	ATTR_CLEAR,
-	ATTR_CHECKED,
-	ATTR_STYLE,
-	ATTR_TARGET,
-	ATTR_STEP,
-	ATTR_MIN,
-	ATTR_MAX,
-	ATTR_WIDTH,
-	ATTR_SPAN,
-	ATTR_ROWSPAN,
-	ATTR__MAX
+enum	kattr {
+	KATTR_HTTP_EQUIV,
+	KATTR_CONTENT,
+	KATTR_REL,
+	KATTR_HREF,
+	KATTR_TYPE,
+	KATTR_ACTION,
+	KATTR_METHOD,
+	KATTR_NAME,
+	KATTR_VALUE,
+	KATTR_ONCLICK,
+	KATTR_ID,
+	KATTR_FOR,
+	KATTR_CLASS,
+	KATTR_COLSPAN,
+	KATTR_DISABLED,
+	KATTR_SELECTED,
+	KATTR_SRC,
+	KATTR_CLEAR,
+	KATTR_CHECKED,
+	KATTR_STYLE,
+	KATTR_TARGET,
+	KATTR_STEP,
+	KATTR_MIN,
+	KATTR_MAX,
+	KATTR_WIDTH,
+	KATTR_SPAN,
+	KATTR_ROWSPAN,
+	KATTR__MAX
 };
 
-enum	mime {
-	MIME_HTML,
-	MIME_CSV,
-	MIME_PNG,
-	MIME__MAX
+enum	kmime {
+	KMIME_HTML,
+	KMIME_CSV,
+	KMIME_PNG,
+	KMIME__MAX
 };
 
-enum	elem {
-	ELEM_HTML,
-	ELEM_HEAD,
-	ELEM_BODY,
-	ELEM_TITLE,
-	ELEM_META,
-	ELEM_LINK,
-	ELEM_FORM,
-	ELEM_INPUT,
-	ELEM_TEXTAREA,
-	ELEM_P,
-	ELEM_BLOCKQUOTE,
-	ELEM_BR,
-	ELEM_FIELDSET,
-	ELEM_LEGEND,
-	ELEM_LABEL,
-	ELEM_A,
-	ELEM_CODE,
-	ELEM_DIV,
-	ELEM_SPAN,
-	ELEM_UL,
-	ELEM_LI,
-	ELEM_STRONG,
-	ELEM_TABLE,
-	ELEM_CAPTION,
-	ELEM_TR,
-	ELEM_TD,
-	ELEM_TH,
-	ELEM_SELECT,
-	ELEM_OPTION,
-	ELEM_IMG,
-	ELEM_I,
-	ELEM_Q,
-	ELEM_DL,
-	ELEM_DT,
-	ELEM_DD,
-	ELEM_COL,
-	ELEM_VAR,
-	ELEM__MAX
+enum	kelem {
+	KELEM_HTML,
+	KELEM_HEAD,
+	KELEM_BODY,
+	KELEM_TITLE,
+	KELEM_META,
+	KELEM_LINK,
+	KELEM_FORM,
+	KELEM_INPUT,
+	KELEM_TEXTAREA,
+	KELEM_P,
+	KELEM_BLOCKQUOTE,
+	KELEM_BR,
+	KELEM_FIELDSET,
+	KELEM_LEGEND,
+	KELEM_LABEL,
+	KELEM_A,
+	KELEM_CODE,
+	KELEM_DIV,
+	KELEM_SPAN,
+	KELEM_UL,
+	KELEM_LI,
+	KELEM_STRONG,
+	KELEM_TABLE,
+	KELEM_CAPTION,
+	KELEM_TR,
+	KELEM_TD,
+	KELEM_TH,
+	KELEM_SELECT,
+	KELEM_OPTION,
+	KELEM_IMG,
+	KELEM_I,
+	KELEM_Q,
+	KELEM_DL,
+	KELEM_DT,
+	KELEM_DD,
+	KELEM_COL,
+	KELEM_VAR,
+	KELEM__MAX
 };
 
-enum	method {
-	METHOD_POST,
-	METHOD_GET
+enum	kmethod {
+	KMETHOD_POST,
+	KMETHOD_GET
 };
 
 struct	kpair {
@@ -162,37 +162,37 @@ struct	session {
 };
 #endif
 
-struct	req {
-	enum method	  method;
+struct	kreq {
+	enum kmethod	  method;
 	struct kpair	 *cookies;
 	size_t		  cookiesz;
 	struct kpair	**cookiemap;
 	struct kpair	 *fields;
 	struct kpair	**fieldmap;
 	size_t		  fieldsz;
-	enum mime	  mime;
+	enum kmime	  mime;
 	size_t		  page;
 	char		 *path;
-	enum elem	  elems[128];
+	enum kelem	  elems[128];
 	size_t		  elemsz;
 };
 
 __BEGIN_DECLS
 
-void		 http_free(struct req *req);
-void		 http_parse(struct req *req, 
+void		 khttp_free(struct kreq *req);
+void		 khttp_parse(struct kreq *req, 
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage);
-void		 attr(struct req *req, enum elem elem, ...);
-void		 closure(struct req *req, size_t count);
-void		 decl(void);
-void		 elem(struct req *req, enum elem elem);
+void		 kattr(struct kreq *req, enum kelem elem, ...);
+void		 kclosure(struct kreq *req, size_t count);
+void		 kdecl(void);
+void		 kelem(struct kreq *req, enum kelem elem);
 #if 0
-void		 input(struct req *req, enum key key);
+void		 input(struct kreq *req, enum key key);
 #endif
-void		 sym(enum entity entity);
-void		 text(const char *cp);
+void		 ksym(enum kentity entity);
+void		 ktext(const char *cp);
 
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
@@ -201,14 +201,14 @@ int		 kvalid_pageid(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
-void		*xcalloc(size_t nm, size_t sz);
-void		*xmalloc(size_t sz);
-void		*xrealloc(void *p, size_t nm, size_t sz);
-void		*xxrealloc(void *p, size_t sz);
-char		*xstrdup(const char *cp);
+void		*kcalloc(size_t nm, size_t sz);
+void		*kmalloc(size_t sz);
+void		*krealloc(void *p, size_t nm, size_t sz);
+void		*kxrealloc(void *p, size_t sz);
+char		*kstrdup(const char *cp);
 
-extern const char * const	 mimes[MIME__MAX];
-extern const char * const	 mimetypes[MIME__MAX];
+extern const char * const	 mimes[KMIME__MAX];
+extern const char * const	 mimetypes[KMIME__MAX];
 extern const char		*pname;
 
 __END_DECLS
