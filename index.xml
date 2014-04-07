@@ -34,19 +34,22 @@
 		</header>
 		<article>
 			<p>
-				<span class="nm">kcgi</span> is a simple, minimal CGI library for web applications (HTML and HTTP) in C.  
+				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in C.  
+				It was designed to be simple, permissibly-licensed, and easily-audited (and well-audited!).
+				See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a> for
+				alternatives.
 			</p>
 			<p>
 				Some features:
 			</p>
 			<ul>
-				<li><code>multipart/form-data</code> and <code>application/x-www-form-urlencoded</code> forms</li>
+				<li><code>multipart/form-data</code> and <code>application/x-www-form-urlencoded</code> input</li>
 				<li>lightweight functions for building HTML trees</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
 				<li>automatic field (request, form, and cookie) validation</li>
 			</ul>
 			<p>
-				The library itself consists of easily-auditable ISO C source and header, both under the permissible <a
+				The library itself consists of easily-auditable ISO C sources under the permissible <a
 					href="http://opensource.org/licenses/ISC" rel="license">ISC license</a>.
 				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all functions.
 				To use the library, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into

@@ -127,6 +127,7 @@ enum	kmethod {
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
+	size_t		 valsz; /* length of "value" */
 	struct kpair	*next; /* next in map entry */
 	union parsed {
 		int64_t	 i; /* validated integer */
@@ -186,13 +187,13 @@ void		 khttp_parse(struct kreq *req,
 			size_t defpage);
 void		 kattr(struct kreq *req, enum kelem elem, ...);
 void		 kclosure(struct kreq *req, size_t count);
-void		 kdecl(void);
+void		 kdecl(struct kreq *req);
 void		 kelem(struct kreq *req, enum kelem elem);
 #if 0
 void		 input(struct kreq *req, enum key key);
 #endif
-void		 ksym(enum kentity entity);
-void		 ktext(const char *cp);
+void		 ksym(struct kreq *req, enum kentity entity);
+void		 ktext(struct kreq *req, const char *cp);
 
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
