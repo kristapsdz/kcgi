@@ -331,7 +331,7 @@ kelem(struct kreq *req, enum kelem elem)
 
 #if 0
 void
-input(struct kreq *req, enum key key)
+kinput(struct kreq *req, enum key key)
 {
 	const char	*cp, *type;
 	char		 buf[URISZ];
@@ -914,8 +914,8 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
  */
 void
 khttp_parse(struct kreq *req, 
-	const struct kvalid *keys, size_t keymax,
-	const char *const *pages, size_t pagemax,
+	const struct kvalid *keys, size_t keysz,
+	const char *const *pages, size_t pagesz,
 	size_t defpage)
 {
 	char		*cp, *ep, *sub;
@@ -928,9 +928,13 @@ khttp_parse(struct kreq *req,
 
 	memset(req, 0, sizeof(struct kreq));
 
+	req->keys = keys;
+	req->keysz = keysz;
+	req->pages = pages;
+	req->pagesz = pagesz;
 	req->kdata = kcalloc(1, sizeof(struct kdata));
-	req->cookiemap = kcalloc(keymax, sizeof(struct kpair *));
-	req->fieldmap = kcalloc(keymax, sizeof(struct kpair *));
+	req->cookiemap = kcalloc(keysz, sizeof(struct kpair *));
+	req->fieldmap = kcalloc(keysz, sizeof(struct kpair *));
 
 	sub = NULL;
 	p = defpage;
@@ -964,7 +968,7 @@ khttp_parse(struct kreq *req,
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
 
-		for (p = 0; p < pagemax; p++)
+		for (p = 0; p < pagesz; p++)
 			if (0 == strcasecmp(pages[p], cp))
 				break;
 	}
@@ -1013,7 +1017,7 @@ khttp_parse(struct kreq *req,
 	 * This will let us do constant-time lookups within the
 	 * application itself.  Nice.
 	 */
-	for (i = 0; i < keymax; i++) {
+	for (i = 0; i < keysz; i++) {
 		for (j = 0; j < req->fieldsz; j++) {
 			if (strcmp(req->fields[j].key, keys[i].name))
 				continue;
