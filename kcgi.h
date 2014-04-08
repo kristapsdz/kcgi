@@ -20,9 +20,6 @@
 /* Version of the header. */
 #define	VERSION		"@VERSION@"
 
-/* Maximum length of a URI (plus nil). */
-#define	URISZ 		 2049
-
 enum	khttp {
 	KHTTP_200,
 	KHTTP_303,
@@ -148,17 +145,21 @@ struct	kvalid {
 struct	kdata;
 
 struct	kreq {
-	enum kmethod	  method;
-	struct kpair	 *cookies;
-	size_t		  cookiesz;
-	struct kpair	**cookiemap;
-	struct kpair	 *fields;
-	struct kpair	**fieldmap;
-	size_t		  fieldsz;
-	enum kmime	  mime;
-	size_t		  page;
-	char		 *path;
-	struct kdata	 *kdata;
+	enum kmethod		  method;
+	struct kpair		 *cookies;
+	size_t			  cookiesz;
+	struct kpair		**cookiemap;
+	struct kpair		 *fields;
+	struct kpair		**fieldmap;
+	size_t			  fieldsz;
+	enum kmime		  mime;
+	size_t			  page;
+	char			 *path;
+	struct kdata		 *kdata;
+	const struct kvalid	 *keys;
+	size_t			  keysz;
+	const char *const	 *pages;
+	size_t			  pagesz;
 };
 
 __BEGIN_DECLS

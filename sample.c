@@ -86,11 +86,9 @@ static void
 sendindex(struct kreq *req)
 {
 	size_t	 sv;
-	char	 page[URISZ];
+	char	*page;
 
-	snprintf(page, URISZ, "%s/%s", 
-		pname, pages[PAGE_INDEX]);
-
+	asprintf(&page, "%s/%s", pname, pages[PAGE_INDEX]);
 	resp(req, KHTTP_200, "Welcome");
 	if (KMIME_HTML != req->mime)
 		resp_close(req);
@@ -134,6 +132,7 @@ sendindex(struct kreq *req)
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
 	resp_close(req);
+	free(page);
 }
 
 static void
