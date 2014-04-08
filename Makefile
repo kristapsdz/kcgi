@@ -46,7 +46,7 @@ kcgi.3.html: kcgi.3
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
-	cp Makefile Makefile.sample sample.c kcgi-local.h kcgi.h kcgi.3 .dist/kcgi-$(VERSION)
+	cp Makefile sample.c kcgi.h kcgi.3 .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
