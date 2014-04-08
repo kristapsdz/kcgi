@@ -48,9 +48,9 @@
 .Fo khttp_parse
 .Fa "struct kreq *req"
 .Fa "const struct kvalid *keys"
-.Fa "size_t keymax"
+.Fa "size_t keysz"
 .Fa "const char *const *pages"
-.Fa "size_t pagemax"
+.Fa "size_t pagesz"
 .Fc
 .Ft void
 .Fo kattr
@@ -131,7 +131,6 @@
 .Fn kstrdup "const char *cp"
 .Ft "void *"
 .Fn kxrealloc "void *p" "size_t sz"
-.Fd "#define URISZ"
 .Sh DESCRIPTION
 The
 .Nm kcgi
@@ -259,6 +258,18 @@ the path array provided to
 .It Va kdata
 Internal data.
 Should not be touched.
+.It Va keys
+Value passed to
+.Fn khttp_parse .
+.It Va keysz
+Value passed to
+.Fn khttp_parse .
+.It Va pages
+Value passed to
+.Fn khttp_parse .
+.It Va pagesz
+Value passed to
+.Fn khttp_parse .
 .El
 .Pp
 Another central type is
@@ -293,20 +304,20 @@ Free the memory of a context created by
 .Fn khttp_parse .
 .It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
-"size_t keymax" \
+"size_t keysz" \
 "const char *const *pages" \
-"size_t pagemax"
+"size_t pagesz"
 Fill a request
 .Fa req
 with input fields from the CGI environment.
 Array
 .Fa keys
 of size
-.Fa keymax
+.Fa keysz
 consists of input and validation fields, while
 .Fa pages
 of size
-.Fa pagemax
+.Fa pagesz
 is for page mapping.
 .El
 .Pp
