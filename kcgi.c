@@ -109,16 +109,25 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ 0, "var" }, /* KELEM_VAR */
 };
 
-const char * const mimes[KMIME__MAX] = {
+const char * const kmimes[KMIME__MAX] = {
 	"html", /* KMIME_HTML */
 	"csv", /* KMIME_CSV */
 	"png", /* KMIME_PNG */
 };
 
-const char * const mimetypes[KMIME__MAX] = {
+const char * const kmimetypes[KMIME__MAX] = {
 	"text/html; charset=utf-8", /* KMIME_HTML */
 	"text/csv", /* KMIME_CSV */
 	"image/png", /* KMIME_PNG */
+};
+
+const char *const khttps[KHTTP__MAX] = {
+	NULL,
+	"303 See Other",
+	"403 Forbidden",
+	"404 Page Not Found",
+	"409 Conflict",
+	"415 Unsupported Media Type"
 };
 
 static	const char * const attrs[KATTR__MAX] = {
@@ -925,7 +934,7 @@ khttp_parse(struct kreq *req,
 
 		if ('.' == *ep)
 			for (*ep++ = '\0', m = 0; m < KMIME__MAX; m++)
-				if (0 == strcasecmp(mimes[m], ep))
+				if (0 == strcasecmp(kmimes[m], ep))
 					break;
 
 		if (NULL != (sub = strchr(cp, '/')))
@@ -1034,6 +1043,21 @@ ksym(struct kreq *req, enum kentity entity)
 }
 
 void
+khead(struct kreq *req, const char *key, const char *val)
+{
+
+	printf("%s: %s\r\n", key, val);
+}
+
+void
+kbody(struct kreq *req)
+{
+
+	fputs("\r\n\r\n", stdout);
+	fflush(stdout);
+}
+
+void
 ktext(struct kreq *req, const char *cp)
 {
 
@@ -1074,7 +1098,8 @@ trim(char *val)
 }
 
 /*
- * Simple email address validation.
+ * Simple email address validation: this is NOT according to the spec,
+ * but a simple heuristic look at the address.
  * Note that this lowercases the mail address.
  */
 static char *
@@ -1116,10 +1141,28 @@ valid_email(char *p)
 }
 
 int
+kvalid_string(struct kpair *p)
+{
+
+	/*
+	 * To check if we're a valid string, simply make sure that the
+	 * nil pointer is where we expect it to be.
+	 */
+	if (strlen(p->val) != p->valsz)
+		return(0);
+	p->parsed.s = p->val;
+	return(1);
+}
+
+int
 kvalid_email(struct kpair *p)
 {
 
-	return(NULL != (p->parsed.s = valid_email(p->val)));
+	/*
+	 * Must be both a valid string and email.
+	 */
+	return(kvalid_string(p) && 
+		NULL != (p->parsed.s = valid_email(p->val)));
 }
 
 int
@@ -1137,6 +1180,9 @@ kvalid_double(struct kpair *p)
 	char		*ep;
 	double		 lval;
 	const char	*cp;
+
+	if ( ! kvalid_string(p))
+		return(0);
 
 	if (NULL != (cp = strrchr(p->val, '.')))
 		if (strlen(cp + 1) > 2) 
@@ -1157,6 +1203,8 @@ kvalid_int(struct kpair *p)
 {
 	const char	*ep;
 
+	if ( ! kvalid_string(p))
+		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
 	return(NULL == ep);
@@ -1171,13 +1219,3 @@ kvalid_uint(struct kpair *p)
 	return(NULL == ep);
 }
 
-#if 0
-int
-kvalid_pageid(struct kpair *p)
-{
-
-	if ( ! kvalid_int(p))
-		return(0);
-	return(p->parsed.i >= 0 && p->parsed.i < PAGE__MAX);
-}
-#endif

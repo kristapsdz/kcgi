@@ -136,32 +136,10 @@ struct	kpair {
 	} parsed;
 };
 
-enum	kfield {
-	KFIELD_INT,
-	KFIELD_STRING,
-	KFIELD_DOUBLE,
-	KFIELD_PASSWORD,
-	KFIELD_SUBMIT,
-	KFIELD_EMAIL,
-	KFIELD__MAX
-};
-
 struct	kvalid {
 	int		(*valid)(struct kpair *);
 	const char	 *name;
-	enum kfield	  field;
-	const char	 *label;
-	const char	 *def;
 };
-
-#if 0
-struct	session {
-	time_t		 mtime; /* last modification time */
-	int64_t		 cookie; /* unique session cookie */
-	enum page	 page; /* current page */
-	int64_t		 id; 
-};
-#endif
 
 struct	kreq {
 	enum kmethod	  method;
@@ -186,9 +164,12 @@ void		 khttp_parse(struct kreq *req,
 			const char *const *pages, size_t pagemax,
 			size_t defpage);
 void		 kattr(struct kreq *req, enum kelem elem, ...);
+void		 kbody(struct kreq *req);
 void		 kclosure(struct kreq *req, size_t count);
 void		 kdecl(struct kreq *req);
 void		 kelem(struct kreq *req, enum kelem elem);
+void		 khead(struct kreq *req, 
+			const char *key, const char *val);
 #if 0
 void		 input(struct kreq *req, enum key key);
 #endif
@@ -198,7 +179,7 @@ void		 ktext(struct kreq *req, const char *cp);
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
 int		 kvalid_int(struct kpair *);
-int		 kvalid_pageid(struct kpair *);
+int		 kvalid_string(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
@@ -208,8 +189,9 @@ void		*krealloc(void *p, size_t nm, size_t sz);
 void		*kxrealloc(void *p, size_t sz);
 char		*kstrdup(const char *cp);
 
-extern const char * const	 mimes[KMIME__MAX];
-extern const char * const	 mimetypes[KMIME__MAX];
+extern const char *const	 kmimes[KMIME__MAX];
+extern const char *const	 kmimetypes[KMIME__MAX];
+extern const char *const	 khttps[KHTTP__MAX];
 extern const char		*pname;
 
 __END_DECLS
