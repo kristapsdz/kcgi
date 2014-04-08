@@ -17,7 +17,11 @@
 #ifndef KCGI_H
 #define KCGI_H
 
-#define	VERSION "@VERSION@"
+/* Version of the header. */
+#define	VERSION		"@VERSION@"
+
+/* Maximum length of a URI (plus nil). */
+#define	URISZ 		 2049
 
 enum	khttp {
 	KHTTP_200,
@@ -141,6 +145,8 @@ struct	kvalid {
 	const char	 *name;
 };
 
+struct	kdata;
+
 struct	kreq {
 	enum kmethod	  method;
 	struct kpair	 *cookies;
@@ -152,8 +158,7 @@ struct	kreq {
 	enum kmime	  mime;
 	size_t		  page;
 	char		 *path;
-	enum kelem	  elems[128];
-	size_t		  elemsz;
+	struct kdata	 *kdata;
 };
 
 __BEGIN_DECLS
@@ -166,14 +171,17 @@ void		 khttp_parse(struct kreq *req,
 void		 kattr(struct kreq *req, enum kelem elem, ...);
 void		 kbody(struct kreq *req);
 void		 kclosure(struct kreq *req, size_t count);
+void		 kclosureto(struct kreq *req, size_t pos);
 void		 kdecl(struct kreq *req);
 void		 kelem(struct kreq *req, enum kelem elem);
+size_t		 kelemsave(struct kreq *req);
+void		 kentity(struct kreq *req, enum kentity entity);
 void		 khead(struct kreq *req, 
 			const char *key, const char *val);
 #if 0
 void		 input(struct kreq *req, enum key key);
 #endif
-void		 ksym(struct kreq *req, enum kentity entity);
+void		 kncr(struct kreq *req, uint16_t ncr);
 void		 ktext(struct kreq *req, const char *cp);
 
 int		 kvalid_double(struct kpair *);
