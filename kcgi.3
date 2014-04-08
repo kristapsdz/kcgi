@@ -174,6 +174,13 @@ Validating function.
 This can be
 .Dv NULL
 if anything goes.
+If you provide your own
+.Fa valid
+function, it must set the
+.Fa field
+and
+.Fa parsed
+variables in the key-value pair.
 .It Va "const char *name"
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
@@ -281,20 +288,27 @@ variable passed to
 .Fn http_parse .
 .Bl -ohang
 .It Fa key
-The nil-terminated key name.
+The nil-terminated key (input) name.
 .It Fa val
-The value, which is always nil-terminated, but if the data is binary,
-nil terminators may occur before the true data length of
+The (input) value, which is always nil-terminated, but if the data is
+binary, nil terminators may occur before the true data length of
 .Fa valsz .
 .It Fa valsz
 The true length of
-.Fa val ,
-which is the same as
-.Xr strlen 3
-if the data is not binary.
-.It Fa def
-The default value of the field.
-Used in repopulating the data.
+.Fa val .
+.It Fa next
+In a cookie or field map,
+.Fa next
+points to the next parsed key-value pair with the same
+.Fa key
+name.
+.It Fa field
+If parsed, the type of data in
+.Fa parsed ,
+otherwise
+.Dv KFIELD__MAX .
+.It Fa parsed
+The parsed, validated value.
 .El
 .Ss Functions
 The following functions initialise an HTTP request.
