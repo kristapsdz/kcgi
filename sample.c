@@ -35,12 +35,7 @@ const char * const pages[PAGE__MAX] = {
 #define	PAGE_NEEDLOGIN PAGE_INDEX
 
 const struct kvalid keys[KEY__MAX] = {
-#if 0
-	{ kvalid_mail, "email", KFIELD_EMAIL, "E-mail Address", NULL },
-	{ kvalid_pass, "password", KFIELD_PASSWORD, "Password", NULL }, /* KEY_PASS */
-	{ kvalid_id, "userid", KFIELD__MAX, NULL, NULL }, /* KEY_USERID */
-#endif
-	{ kvalid_int, "sessid", KFIELD__MAX, NULL, NULL }, /* KEY_SESSID */
+	{ kvalid_int, "sessid" }, /* KEY_SESSID */
 };
 
 static void sendindex(struct kreq *);
@@ -50,41 +45,12 @@ static const struct dispatch disps[PAGE__MAX] = {
 };
 
 static void
-resp_http_open(struct kreq *req, enum khttp http)
+resp_open(struct kreq *req, enum khttp http)
 {
 
-	switch (http) {
-	case (KHTTP_200):
-		break;
-	case (KHTTP_303):
-		puts("Status: 303 See Other");
-		break;
-	case (KHTTP_403):
-		puts("Status: 403 Forbidden");
-		break;
-	case (KHTTP_404):
-		puts("Status: 404 Page Not Found");
-		break;
-	case (KHTTP_409):
-		puts("Status: 409 Conflict");
-		break;
-	case (KHTTP_415):
-		puts("Status: 415 Unsuppoted Media Type");
-		break;
-	default:
-		abort();
-		/* NOTREACHED */
-	}
-
-	printf("Content-Type: %s\n", mimetypes[req->mime]);
-}
-
-static void
-resp_http_close(void)
-{
-
-	putchar('\n');
-	fflush(stdout);
+	khead(req, "Status", khttps[http]);
+	khead(req, "Content-Type", kmimetypes[req->mime]);
+	kbody(req);
 }
 
 static void
@@ -107,8 +73,7 @@ static void
 resp(struct kreq *req, enum khttp http, const char *title)
 {
 
-	resp_http_open(req, http);
-	resp_http_close();
+	resp_open(req, http);
 	resp_head(req, title);
 }
 
@@ -122,31 +87,13 @@ resp_close(struct kreq *req)
 		kclosure(req, 1);
 }
 
-#if 0
-static void
-send303(struct kreq *req, enum page page)
-{
-
-	resp_http_open(req, KHTTP_303);
-#if 0
-	printf("Location: %s\n", pageuri(req, page));
-#endif
-	resp_http_close();
-	if (KMIME_HTML == req->mime) {
-		resp_head(req, "Redirecting");
-		text("Redirecting.");
-	}
-	resp_close(req);
-}
-#endif
-
 static void
 sendindex(struct kreq *req)
 {
 
-	resp(req, KHTTP_200, "welcome");
+	resp(req, KHTTP_200, "Welcome");
 	if (KMIME_HTML == req->mime)
-		ktext(req, "welcome.");
+		ktext(req, "Welcome!");
 	resp_close(req);
 }
 
@@ -175,42 +122,33 @@ main(void)
 {
 	struct kreq	 r;
 
-	/*
-	 * Set up our main HTTP context: where we're dialling from, etc.
-	 */
+	/* Set up our main HTTP context. */
 	khttp_parse(&r, keys, KEY__MAX, 
 		pages, PAGE__MAX, PAGE_INDEX);
 
-	/*
-	 * We've been asked for an unknown page or something with an
-	 * unknown extension.
-	 * Re-write our response as HTML and send a 404.
-	 */
 	if (PAGE__MAX == r.page || KMIME__MAX == r.mime) {
+		/*
+		 * We've been asked for an unknown page or something
+		 * with an unknown extension.
+		 * Re-write our response as HTML and send a 404.
+		 */
 		r.mime = KMIME_HTML;
 		send404(&r);
-		goto out;
-	}
-
-	if (0 == disps[r.page].mimes[r.mime]) {
+	} else if (0 == disps[r.page].mimes[r.mime]) {
 		/*
 		 * The given page doesn't support this MIME.
 		 * Send a 415 to indicate so.
 		 */
-		resp_http_open(&r, KHTTP_415);
-		resp_http_close();
-		goto out;
+		resp_open(&r, KHTTP_415);
 	} else if (LOGIN & disps[r.page].flags) {
 		/*
 		 * This page demands that we be logged in.
 		 * Send is to the login page.
 		 */
 		send403(&r);
-		goto out;
-	} 
+	} else
+		(*disps[r.page].disp)(&r);
 
-	(*disps[r.page].disp)(&r);
-out:
 	khttp_free(&r);
 	return(EXIT_SUCCESS);
 }
