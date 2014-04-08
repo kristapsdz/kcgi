@@ -14,6 +14,10 @@ libkcgi.a: kcgi.o
 
 kcgi.o sample.o: kcgi.h
 
+installcgi: sample
+	install -m 0755 sample $(PREFIX)/sample.cgi
+	install -m 0755 sample $(PREFIX)/
+
 install: libkcgi.a
 	sed -e "s!@VERSION@!$(VERSION)!g" -e "s!@DATADIR@!$(DATADIR)!g" kcgi.h >kcgi.h~
 	sed -e "s!@VERSION@!$(VERSION)!g" -e "s!@DATADIR@!$(DATADIR)!g" kcgi.3 >kcgi.3~

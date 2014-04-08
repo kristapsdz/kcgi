@@ -17,6 +17,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
@@ -32,8 +33,10 @@
 /* FIXME: pass this into http_parse(). */
 #define	UPLOAD_LIMIT	 10485760
 
-/* Maximum length of a URI (plus nil). */
-#define	URISZ 		 2049
+struct	kdata {
+	enum kelem	  elems[128];
+	size_t		  elemsz;
+};
 
 /*
  * For handling HTTP multipart forms.
@@ -59,14 +62,14 @@ struct	tag {
 	const char	*name; /* name of element */
 };
 
-static	const char * const entities[KENTITY__MAX] = {
-	"#xE9", /* KENTITY_ACUTE */
-	"gt", /* KENTITY_GT */
-	"#x2190", /* KENTITY_LARR */
-	"lt", /* KENTITY_LT */
-	"#x2014", /* KENTITY_MDASH */
-	"#x2013", /* KENTITY_NDASH */
-	"#x2192", /* KENTITY_RARR */
+static	const uint16_t entities[KENTITY__MAX] = {
+	0xE9, /* KENTITY_ACUTE */
+	0x3E, /* KENTITY_GT */
+	0x2190, /* KENTITY_LARR */
+	0x3C, /* KENTITY_LT */
+	0x2014, /* KENTITY_MDASH */
+	0x2013, /* KENTITY_NDASH */
+	0x2192, /* KENTITY_RARR */
 };
 
 static	const struct tag tags[KELEM__MAX] = {
@@ -312,6 +315,13 @@ strtonum(const char *numstr, long long minval,
 }
 #endif /*!__OpenBSD__*/
 
+size_t
+kelemsave(struct kreq *req)
+{
+
+	return(req->kdata->elemsz);
+}
+
 void
 kelem(struct kreq *req, enum kelem elem)
 {
@@ -409,9 +419,9 @@ kattr(struct kreq *req, enum kelem elem, ...)
 	if (TAG_BLOCK & tags[elem].flags)
 		putchar('\n');
 	if ( ! (TAG_ACLOSE & tags[elem].flags))
-		req->elems[req->elemsz++] = elem;
+		req->kdata->elems[req->kdata->elemsz++] = elem;
 
-	assert(req->elemsz < 128);
+	assert(req->kdata->elemsz < 128);
 }
 
 void
@@ -419,13 +429,26 @@ kclosure(struct kreq *req, size_t sz)
 {
 	size_t		 i;
 
+	if (0 == sz)
+		sz = req->kdata->elemsz;
+
 	for (i = 0; i < sz; i++) {
-		assert(req->elemsz > 0);
-		req->elemsz--;
-		printf("</%s>", tags[req->elems[req->elemsz]].name);
-		if (TAG_BLOCK & tags[req->elems[req->elemsz]].flags)
+		assert(req->kdata->elemsz > 0);
+		req->kdata->elemsz--;
+		printf("</%s>", tags[req->kdata->elems
+			[req->kdata->elemsz]].name);
+		if (TAG_BLOCK & tags[req->kdata->elems
+			[req->kdata->elemsz]].flags)
 			putchar('\n');
 	}
+}
+
+void
+kclosureto(struct kreq *req, size_t pos)
+{
+
+	assert(pos < req->kdata->elemsz);
+	kclosure(req, req->kdata->elemsz - pos);
 }
 
 void
@@ -905,6 +928,7 @@ khttp_parse(struct kreq *req,
 
 	memset(req, 0, sizeof(struct kreq));
 
+	req->kdata = kcalloc(1, sizeof(struct kdata));
 	req->cookiemap = kcalloc(keymax, sizeof(struct kpair *));
 	req->fieldmap = kcalloc(keymax, sizeof(struct kpair *));
 
@@ -1030,16 +1054,24 @@ khttp_free(struct kreq *req)
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
-	free(req->cookies);
-	free(req->fields);
+	free(req->cookiemap);
+	free(req->fieldmap);
+	free(req->kdata);
 }
 
 void
-ksym(struct kreq *req, enum kentity entity)
+kentity(struct kreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
-	printf("&%s;", entities[entity]);
+	kncr(req, entities[entity]);
+}
+
+void
+kncr(struct kreq *req, uint16_t ncr)
+{
+
+	printf("&#x%" PRIu16 ";", ncr);
 }
 
 void
@@ -1053,7 +1085,7 @@ void
 kbody(struct kreq *req)
 {
 
-	fputs("\r\n\r\n", stdout);
+	fputs("\r\n", stdout);
 	fflush(stdout);
 }
 
@@ -1064,10 +1096,10 @@ ktext(struct kreq *req, const char *cp)
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
-			ksym(req, KENTITY_GT);
+			kentity(req, KENTITY_GT);
 			break;
 		case ('<'):
-			ksym(req, KENTITY_LT);
+			kentity(req, KENTITY_LT);
 			break;
 		default:
 			putchar((int)*cp);

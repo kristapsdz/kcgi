@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -17,31 +18,27 @@ enum	page {
 };
 
 enum	key {
-	KEY_SESSID, 
+	KEY_INTEGER, 
 	KEY__MAX
 };
 
 struct	dispatch {
 	void		(*disp)(struct kreq *);
-	unsigned int	  flags; 
-#define	LOGIN 	  	  1 
 	int		  mimes[KMIME__MAX]; 
-};
-
-const char * const pages[PAGE__MAX] = {
-	"index", /* PAGE_INDEX */
-};
-
-#define	PAGE_NEEDLOGIN PAGE_INDEX
-
-const struct kvalid keys[KEY__MAX] = {
-	{ kvalid_int, "sessid" }, /* KEY_SESSID */
 };
 
 static void sendindex(struct kreq *);
 
 static const struct dispatch disps[PAGE__MAX] = {
-	{ sendindex, 0, {1, 0, 0}}, /* PAGE_INDEX */
+	{ sendindex, {1, 0, 0}}, /* PAGE_INDEX */
+};
+
+const struct kvalid keys[KEY__MAX] = {
+	{ kvalid_int, "integer" }, /* KEY_INTEGER */
+};
+
+const char *const pages[PAGE__MAX] = {
+	"index"
 };
 
 static void
@@ -81,29 +78,61 @@ static void
 resp_close(struct kreq *req)
 {
 
-	if (KMIME_HTML != req->mime)
-		return;
-	while (req->elemsz)
-		kclosure(req, 1);
+	if (KMIME_HTML == req->mime)
+		kclosure(req, 0);
 }
 
 static void
 sendindex(struct kreq *req)
 {
+	size_t	 sv;
+	char	 page[URISZ];
+
+	snprintf(page, URISZ, "%s/%s", 
+		pname, pages[PAGE_INDEX]);
 
 	resp(req, KHTTP_200, "Welcome");
-	if (KMIME_HTML == req->mime)
-		ktext(req, "Welcome!");
-	resp_close(req);
-}
-
-static void
-send403(struct kreq *req)
-{
-
-	resp(req, KHTTP_404, "Forbidden");
-	if (KMIME_HTML == req->mime)
-		ktext(req, "Forbidden.");
+	if (KMIME_HTML != req->mime)
+		resp_close(req);
+	ktext(req, "Welcome!");
+	sv = kelemsave(req);
+	kattr(req, KELEM_FORM,
+		KATTR_METHOD, "post",
+		KATTR_ACTION, page,
+		KATTR__MAX);
+	kelem(req, KELEM_FIELDSET);
+	kelem(req, KELEM_LEGEND);
+	ktext(req, "Post");
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kattr(req, KELEM_INPUT,
+		KATTR_NAME, keys[KEY_INTEGER].name,
+		KATTR__MAX);
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kattr(req, KELEM_INPUT,
+		KATTR_TYPE, "submit",
+		KATTR__MAX);
+	kclosureto(req, sv);
+	kattr(req, KELEM_FORM,
+		KATTR_METHOD, "get",
+		KATTR_ACTION, page,
+		KATTR__MAX);
+	kelem(req, KELEM_FIELDSET);
+	kelem(req, KELEM_LEGEND);
+	ktext(req, "Get");
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kattr(req, KELEM_INPUT,
+		KATTR_NAME, keys[KEY_INTEGER].name,
+		KATTR__MAX);
+	if (req->fieldmap[KEY_INTEGER])
+		kncr(req, 2713);
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kattr(req, KELEM_INPUT,
+		KATTR_TYPE, "submit",
+		KATTR__MAX);
 	resp_close(req);
 }
 
@@ -140,12 +169,6 @@ main(void)
 		 * Send a 415 to indicate so.
 		 */
 		resp_open(&r, KHTTP_415);
-	} else if (LOGIN & disps[r.page].flags) {
-		/*
-		 * This page demands that we be logged in.
-		 * Send is to the login page.
-		 */
-		send403(&r);
 	} else
 		(*disps[r.page].disp)(&r);
 

@@ -24,10 +24,13 @@
 .Nm kattr ,
 .Nm kbody ,
 .Nm kclosure ,
+.Nm kclosureto ,
 .Nm kdecl ,
 .Nm kelem ,
+.Nm kelemsave ,
+.Nm kentity ,
 .Nm khead ,
-.Nm ksym ,
+.Nm kncr ,
 .Nm ktext ,
 .Nm kcalloc ,
 .Nm kmalloc ,
@@ -65,11 +68,25 @@
 .Fa "size_t count"
 .Fc
 .Ft void
+.Fo kclosureto
+.Fa "struct kreq *req"
+.Fa "size_t pos"
+.Fc
+.Ft void
 .Fn kdecl
 .Ft "struct kreq *req"
 .Fo kelem
 .Fa "struct kreq *req"
 .Fa "enum kelem elem"
+.Fc
+.Ft size_t
+.Fo kelemsave
+.Fa "struct kreq *req"
+.Fc
+.Ft void
+.Fo kentity
+.Fa "struct kreq *req"
+.Fa "enum entity entity"
 .Fc
 .Ft void
 .Fo khead
@@ -83,9 +100,9 @@
 .\" .Fa "enum key key"
 .\" .Fc
 .Ft void
-.Fo ksym
+.Fo kncr
 .Fa "struct kreq *req"
-.Fa "enum entity entity"
+.Fa "uint16_t ncr"
 .Fc
 .Ft void
 .Fo ktext
@@ -114,6 +131,7 @@
 .Fn kstrdup "const char *cp"
 .Ft "void *"
 .Fn kxrealloc "void *p" "size_t sz"
+.Fd "#define URISZ"
 .Sh DESCRIPTION
 The
 .Nm kcgi
@@ -238,13 +256,8 @@ The path (or
 following the parsed component regardless of whether it was located in
 the path array provided to
 .Fn khttp_parse .
-.It Va elems
-Used by the HTML functions for the HTML tree.
-Should not be touched.
-.It Va elemsz
-The position in the
-.Va elems
-stack.
+.It Va kdata
+Internal data.
 Should not be touched.
 .El
 .Pp
@@ -321,12 +334,29 @@ This will call
 if
 .Fa count
 exceeds the number of open scopes.
+If
+.Fa count
+is zero, this will close all scopes.
+.It Fn kclosureto "struct kreq *req" "size_t pos"
+Close until a certain level
+.Fa pos
+in the HTML tree, which must be at or above the current level.
+Usually used with
+.Fn kelemsave .
 .It Fn kdecl "struct kreq *req"
 Emit the document HTML declaration.
 .It Fn kelem "struct kreq *req" "enum kelem elem"
 Invokes
 .Fn kattr
 with no attributes.
+.It Fn kelemsave "struct kreq *req"
+Save the current point in the HTML tree.
+Useful for saving a
+.Fn kclosureto
+rollback point.
+.It Fn kentity "struct kreq *req" "enum kentity entity"
+Emit the numeric character reference for
+.Va entity .
 .\" .It Fn input "struct kreq *req" "enum key key"
 .\" Emit the HTML code for the input element
 .\" .Fa key
@@ -344,9 +374,9 @@ This occurs before any HTML functions are invoked, and must be followed
 by
 .Fn kbody
 to indicate the start of document content.
-.It Fn ksym "struct kreq *req" "enum kentity entity"
-Emit the HTML code for
-.Va entity .
+.It Fn kncr "struct kreq *req" "uint16_t ncr"
+Emit the numeric character reference
+.Va ncr .
 .It Fn ktext "struct kreq *req" "const char *cp"
 Emit the text
 .Va cp ,
@@ -403,6 +433,9 @@ Allocate or exit on memory exhaustion.
 .It Fn kxrealloc "void *p" "size_t sz"
 Allocate or exit on memory exhaustion.
 .El
+.Sh EXAMPLES
+A simple example exists in
+.Pa @DATADIR@/sample.c .
 .Sh STANDARDS
 There are a number of standards supported by
 .Nm .
@@ -413,9 +446,6 @@ The general CGI RFC draft is RFC 3875.
 .Pp
 The HTTP cookie standard is RFC 6265
 .Pq not all attributes are supported .
-.Sh EXAMPLES
-A simple example exists in
-.Pa @DATADIR@/sample.c .
 .Sh AUTHORS
 The
 .Nm
