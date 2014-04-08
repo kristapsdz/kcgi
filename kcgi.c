@@ -1021,18 +1021,26 @@ khttp_parse(struct kreq *req,
 		for (j = 0; j < req->fieldsz; j++) {
 			if (strcmp(req->fields[j].key, keys[i].name))
 				continue;
-			if (NULL != keys[i].valid)
-				if ( ! (*keys[i].valid)(&req->fields[j]))
-					continue;
+			if (NULL != keys[i].valid &&
+				! (*keys[i].valid)(&req->fields[j])) {
+				req->fields[j].field = KFIELD__MAX;
+				continue;
+			}
+			assert(NULL == keys[i].valid ||
+				KFIELD__MAX != req->fields[j].field);
 			req->fields[j].next = req->fieldmap[i];
 			req->fieldmap[i] = &req->fields[j];
 		}
 		for (j = 0; j < req->cookiesz; j++) {
 			if (strcmp(req->cookies[j].key, keys[i].name))
 				continue;
-			if (NULL != keys[i].valid)
-				if ( ! keys[i].valid(&req->cookies[j]))
-					continue;
+			if (NULL != keys[i].valid &&
+				! keys[i].valid(&req->cookies[j])) {
+				req->cookies[j].field = KFIELD__MAX;
+				continue;
+			}
+			assert(NULL == keys[i].valid ||
+				KFIELD__MAX != req->cookies[j].field);
 			req->cookies[j].next = req->cookiemap[i];
 			req->cookiemap[i] = &req->cookies[j];
 		}
@@ -1186,6 +1194,7 @@ kvalid_string(struct kpair *p)
 	 */
 	if (strlen(p->val) != p->valsz)
 		return(0);
+	p->field = KFIELD_STRING;
 	p->parsed.s = p->val;
 	return(1);
 }
@@ -1194,11 +1203,10 @@ int
 kvalid_email(struct kpair *p)
 {
 
-	/*
-	 * Must be both a valid string and email.
-	 */
-	return(kvalid_string(p) && 
-		NULL != (p->parsed.s = valid_email(p->val)));
+	if ( ! kvalid_string(p))
+		return(0);
+	p->field = KFIELD_EMAIL;
+	return(NULL != (p->parsed.s = valid_email(p->val)));
 }
 
 int
@@ -1207,6 +1215,7 @@ kvalid_udouble(struct kpair *p)
 
 	if ( ! kvalid_double(p))
 		return(0);
+	p->field = KFIELD_DOUBLE;
 	return(isnormal(p->parsed.d) && p->parsed.d > 0.0);
 }
 
@@ -1231,6 +1240,7 @@ kvalid_double(struct kpair *p)
 	if (errno == ERANGE && (lval == HUGE_VAL || lval == -HUGE_VAL))
 		return(0);
 	p->parsed.d = lval;
+	p->field = KFIELD_DOUBLE;
 	return(1);
 }
 
@@ -1243,6 +1253,7 @@ kvalid_int(struct kpair *p)
 		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
+	p->field = KFIELD_INTEGER;
 	return(NULL == ep);
 }
 
@@ -1252,6 +1263,7 @@ kvalid_uint(struct kpair *p)
 	const char	*ep;
 
 	p->parsed.i = strtonum(trim(p->val), 1, INT64_MAX, &ep);
+	p->field = KFIELD_INTEGER;
 	return(NULL == ep);
 }
 
