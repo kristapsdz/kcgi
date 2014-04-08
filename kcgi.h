@@ -125,11 +125,20 @@ enum	kmethod {
 	KMETHOD_GET
 };
 
+enum	kfield {
+	KFIELD_INTEGER,
+	KFIELD_STRING,
+	KFIELD_DOUBLE,
+	KFIELD_EMAIL,
+	KFIELD__MAX
+};
+
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
 	size_t		 valsz; /* length of "value" */
 	struct kpair	*next; /* next in map entry */
+	enum kfield	 field; /* if parsed, the parse type */
 	union parsed {
 		int64_t	 i; /* validated integer */
 		const char *s; /* validated string */
