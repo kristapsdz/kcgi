@@ -1,4 +1,19 @@
 /*	$Id$ */
+/*
+ * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 #include <sys/types.h>
 
 #include <assert.h>
@@ -12,11 +27,19 @@
 
 #include "kcgi.h"
 
+/*
+ * All of the pages we're going to display.
+ */
 enum	page {
 	PAGE_INDEX,
+	PAGE_TEMPLATE,
 	PAGE__MAX
 };
 
+/*
+ * All of the keys we accept. 
+ * See sendindex() for how these are used.
+ */
 enum	key {
 	KEY_INTEGER1, 
 	KEY_INTEGER2, 
@@ -25,15 +48,32 @@ enum	key {
 	KEY__MAX
 };
 
+/*
+ * The elements in our template file.
+ * See sendtemplate() for how this is used.
+ */
+enum	templ {
+	TEMPL_TITLE,
+	TEMPL_NAME,
+	TEMPL__MAX
+};
+
+/*
+ * A dispatcher for our pages and their MIME types.
+ * We'll use this to route pages.
+ * We also specify which MIME types are assigned to which pages.
+ */
 struct	dispatch {
 	void		(*disp)(struct kreq *);
 	int		  mimes[KMIME__MAX]; 
 };
 
 static void sendindex(struct kreq *);
+static void sendtemplate(struct kreq *);
 
 static const struct dispatch disps[PAGE__MAX] = {
 	{ sendindex, {1, 0, 0}}, /* PAGE_INDEX */
+	{ sendtemplate, {1, 0, 0}}, /* PAGE_TEMPLATE */
 };
 
 const struct kvalid keys[KEY__MAX] = {
@@ -43,10 +83,27 @@ const struct kvalid keys[KEY__MAX] = {
 	{ NULL, "file", KFIELD__MAX }, /* KEY_FILE */
 };
 
-const char *const pages[PAGE__MAX] = {
-	"index"
+/*
+ * Template key names (as in @@TITLE@@ in the file).
+ */
+const char *const templs[TEMPL__MAX] = {
+	"title", /* TEMPL_TITLE */
+	"name" /* TEMPL_NAME */
 };
 
+/* 
+ * Page names (as in the URL component).
+ */
+const char *const pages[PAGE__MAX] = {
+	"index", /* PAGE_INDEX */
+	"template" /* PAGE_TEMPLATE */
+};
+
+/*
+ * Open an HTTP response with a status code and a particular
+ * content-type, then open the HTTP content body.
+ * We'll usually just use the same content type...
+ */
 static void
 resp_open(struct kreq *req, enum khttp http)
 {
@@ -56,38 +113,53 @@ resp_open(struct kreq *req, enum khttp http)
 	kbody(req);
 }
 
-static void
-resp_head(struct kreq *req, const char *title)
+/*
+ * Callback for filling in a particular template part.
+ * Let's just be simple for simplicity's sake.
+ */
+static int
+template(size_t key, void *arg)
 {
+	struct kreq	*req = arg;
 
-	if (KMIME_HTML != req->mime)
-		return;
+	switch (key) {
+	case (TEMPL_TITLE):
+		ktext(req, "title");
+		break;
+	case (TEMPL_NAME):
+		ktext(req, "name");
+		break;
+	default:
+		abort();
+	}
 
-	kdecl(req);
-	kelem(req, KELEM_HTML);
-	kelem(req, KELEM_HEAD);
-	kelem(req, KELEM_TITLE);
-	ktext(req, NULL == title ? "" : title);
-	kclosure(req, 2);
-	kelem(req, KELEM_BODY);
+	return(1);
 }
 
+/*
+ * Send the "templated" file.
+ * This demonstrates how to use templates.
+ */
 static void
-resp(struct kreq *req, enum khttp http, const char *title)
+sendtemplate(struct kreq *req)
 {
+	struct ktemplate t;
 
-	resp_open(req, http);
-	resp_head(req, title);
+	memset(&t, 0, sizeof(struct ktemplate));
+
+	t.key = templs;
+	t.keysz = TEMPL__MAX;
+	t.arg = req;
+	t.cb = template;
+
+	resp_open(req, KHTTP_200);
+	ktemplate(&t, "template.xml");
 }
 
-static void
-resp_close(struct kreq *req)
-{
-
-	if (KMIME_HTML == req->mime)
-		kclosure(req, 0);
-}
-
+/*
+ * Send the "index" page.
+ * This demonstrates how to use GET and POST forms.
+ */
 static void
 sendindex(struct kreq *req)
 {
@@ -95,10 +167,17 @@ sendindex(struct kreq *req)
 	char	*page;
 
 	asprintf(&page, "%s/%s", pname, pages[PAGE_INDEX]);
-	resp(req, KHTTP_200, "Welcome");
-	if (KMIME_HTML != req->mime)
-		resp_close(req);
+	resp_open(req, KHTTP_200);
+	kdecl(req);
+	kelem(req, KELEM_HTML);
+	kelem(req, KELEM_HEAD);
+	kelem(req, KELEM_TITLE);
 	ktext(req, "Welcome!");
+	kclosure(req, 2);
+	kelem(req, KELEM_BODY);
+	ktext(req, "Welcome!");
+
+	/* Start with a standard url-encoded POST form. */
 	sv = kelemsave(req);
 	kattr(req, KELEM_FORM,
 		KATTR_METHOD, "post",
@@ -117,6 +196,8 @@ sendindex(struct kreq *req)
 		KATTR__MAX);
 	kclosureto(req, sv);
 	sv = kelemsave(req);
+
+	/* Now process a GET form. */
 	kattr(req, KELEM_FORM,
 		KATTR_METHOD, "get",
 		KATTR_ACTION, page,
@@ -133,6 +214,8 @@ sendindex(struct kreq *req)
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
 	kclosureto(req, sv);
+
+	/* Lastly, process a multipart POST form. */
 	kattr(req, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ENCTYPE, "multipart/form-data",
@@ -166,18 +249,8 @@ sendindex(struct kreq *req)
 	kattr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	resp_close(req);
+	kclosure(req, 0);
 	free(page);
-}
-
-static void
-send404(struct kreq *req)
-{
-
-	resp(req, KHTTP_404, "Page Not Found");
-	if (KMIME_HTML == req->mime)
-		ktext(req, "Page not found.");
-	resp_close(req);
 }
 
 int
@@ -193,10 +266,10 @@ main(void)
 		/*
 		 * We've been asked for an unknown page or something
 		 * with an unknown extension.
-		 * Re-write our response as HTML and send a 404.
 		 */
-		r.mime = KMIME_HTML;
-		send404(&r);
+		resp_open(&r, KHTTP_404);
+		if (KMIME_HTML == r.mime)
+			ktext(&r, "Page not found.");
 	} else if (0 == disps[r.page].mimes[r.mime]) {
 		/*
 		 * The given page doesn't support this MIME.
