@@ -1348,6 +1348,8 @@ ktemplate(const struct ktemplate *t, const char *fname)
 			len = strlen(t->key[j]);
 			if (len != end - start)
 				continue;
+			else if (memcmp(&buf[start], t->key[j], len))
+				continue;
 			if ( ! (*t->cb)(j, t->arg))
 				goto out;
 			break;
