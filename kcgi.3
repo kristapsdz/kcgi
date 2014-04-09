@@ -33,6 +33,7 @@
 .Nm kinput ,
 .Nm kncr ,
 .Nm ktext ,
+.Nm ktemplate ,
 .Nm kcalloc ,
 .Nm kmalloc ,
 .Nm krealloc ,
@@ -111,6 +112,11 @@
 .Fa "const char *cp"
 .Fc
 .Ft int
+.Fo ktemplate
+.Fa "const struct ktemplate *t"
+.Fa "const char *fname"
+.Fc
+.Ft int
 .Fn kvalid_double "struct kpair *kp"
 .Ft int
 .Fn kvalid_email "struct kpair *kp"
@@ -136,22 +142,37 @@
 The
 .Nm kcgi
 library handles the CGI environment for C web applications.
-Interfacing applications generally call
+Interfacing applications generally work as follows:
+.Bl -enum
+.It
+Call
 .Fn khttp_parse
-as early as possible, with
-.Fn khttp_free
-before the system exits.
-Upon processing the
+as early as possible.
+.It
+Process input fields by examining the
 .Vt "struct kpair"
-field element input, output is emitted first using
-.Fn khead
-for HTTP headers, then
+elements.
+.It
+Emit HTTP headers with
+.Fn khead ,
+followed by
 .Fn kbody
-to indicate the start of content.
-Finally, the
+to begin the HTTP body.
+.It
+Emit HTTP body output using HTML-building functions
 .Fn kattr ,
 .Fn kelem ,
-and so on functions are used to output HTML trees.
+.Fn ktext ,
+and so on; or
+.It
+use the
+.Fn ktemplate
+system.
+.It
+Call
+.Fn khttp_free
+to clean up.
+.El
 .Pp
 The library is built around parsers for HTTP form data (cookies, GET,
 and POST) with support for multipart forms.
@@ -166,7 +187,7 @@ provided to
 as an array of 
 .Vt "struct kvalid" .
 It consists of the following entries:
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Va "int (*valid)(struct kpair *)"
 Validating function.
 This can be
@@ -202,7 +223,7 @@ The
 type is central to
 .Nm kcgi .
 It consists of the following fields:
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Va method
 The
 .Dv METHOD_GET
@@ -284,44 +305,67 @@ matched to the
 .Fa keys
 variable passed to
 .Fn http_parse .
-.Bl -ohang
-.It Fa key
+.Bl -ohang -offset indent
+.It Va key
 The nil-terminated key (input) name.
-.It Fa val
+.It Va val
 The (input) value, which is always nil-terminated, but if the data is
 binary, nil terminators may occur before the true data length of
 .Fa valsz .
-.It Fa valsz
+.It Va valsz
 The true length of
 .Fa val .
-.It Fa file
+.It Va file
 If the form provided a parsed file for the given key, this is the name
 of the input file.
-.It Fa ctype
+.It Va ctype
 If the form provided a parsed file for the given key, this is the
 content type (e.g.,
 .Li image/jpeg )
 of that file.
-.It Fa next
+.It Va next
 In a cookie or field map,
 .Fa next
 points to the next parsed key-value pair with the same
 .Fa key
 name.
-.It Fa field
+.It Va field
 If parsed, the type of data in
 .Fa parsed ,
 otherwise
 .Dv KFIELD__MAX .
-.It Fa parsed
+.It Va parsed
 The parsed, validated value.
 These may be integer, for a 64-bit signed integer; string, for a
 nil-termianted character string; or double, for a double-precision
 floating-point number.
 .El
+.Pp
+The template system, driven by
+.Fn ktemplate ,
+uses
+.Vt "struct ktemplate"
+for its templating.
+This consists of the following members:
+.Bl -ohang -offset indent
+.It Va key
+An array of keys.
+.It Va keysz
+The number of elements in
+.Va key .
+.It Va arg
+A pointer to pass to
+.Va cb .
+.It Va cb
+A callback invoked when a key at position
+.Fa key
+is found in the
+.Va key
+array.
+.El
 .Ss Functions
 The following functions initialise an HTTP request.
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Fn khttp_free "struct kreq *req"
 Free the memory of a context created by
 .Fn khttp_parse .
@@ -345,7 +389,7 @@ is for page mapping.
 .El
 .Pp
 The following functions create an HTML tree.
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Fn kattr "struct kreq *req" "enum kelem elem" "..."
 Open the scope of element
 .Fa kelem
@@ -424,7 +468,7 @@ escaping it for HTML if necessary.
 The following functions are provided for the global
 .Va keys
 array.
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Fn kvalid_double "struct kpair *kp"
 Validate a double-precision floating-point number.
 .It Fn kvalid_email "struct kpair *kp"
@@ -458,7 +502,7 @@ and so on:
 does
 .Em not
 manage its own memory!
-.Bl -ohang
+.Bl -ohang -offset indent
 .It Fn kcalloc "size_t nm" "size_t sz"
 Allocate and zero or exit on memory exhaustion.
 .It Fn kmalloc "size_t sz"
@@ -471,19 +515,29 @@ Allocate or exit on memory exhaustion.
 .It Fn kxrealloc "void *p" "size_t sz"
 Allocate or exit on memory exhaustion.
 .El
+.Pp
+The
+.Nm
+library also has a simple, light-weight template system.
+This is coordinated entirely by a single function,
+.Fn ktemplate "struct ktemplate *t" "const char *fname" .
+This function memory-maps the file
+.Fa fname
+and appends it to the output stream.
+Whenever a key is located, where keys are delimited as
+.Li @@KEY@@
+in
+.Fa fname ,
+it is looked up in the
+.Fa t
+key array.
+If found, the callback is invoked with the key index and the optional
+argument.
+Callbacks may continue to process, emit HTML trees, and so on.
 .Sh EXAMPLES
 A simple example exists in
 .Pa @DATADIR@/sample.c .
-.Sh STANDARDS
-There are a number of standards supported by
-.Nm .
-The HTML generated by the tree-builder functions conforms to the
-up-coming HTML5 standard.
-.Pp
-The general CGI RFC draft is RFC 3875.
-.Pp
-The HTTP cookie standard is RFC 6265
-.Pq not all attributes are supported .
+It illustrates templating, form handling, and so on.
 .Sh AUTHORS
 The
 .Nm

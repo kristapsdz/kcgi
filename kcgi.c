@@ -1285,6 +1285,10 @@ kvalid_uint(struct kpair *p)
 	return(NULL == ep);
 }
 
+/*
+ * There are all sorts of ways to make this faster and more efficient.
+ * For now, do it the easily-auditable way.
+ */
 int
 ktemplate(const struct ktemplate *t, const char *fname)
 {
