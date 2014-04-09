@@ -30,6 +30,7 @@
 .Nm kelemsave ,
 .Nm kentity ,
 .Nm khead ,
+.Nm kinput ,
 .Nm kncr ,
 .Nm ktext ,
 .Nm kcalloc ,
@@ -94,11 +95,11 @@
 .Fa "const char *key"
 .Fa "const char *val"
 .Fc
-.\" .Ft void
-.\" .Fo input
-.\" .Fa "struct kreq *req"
-.\" .Fa "enum key key"
-.\" .Fc
+.Ft void
+.Fo kinput
+.Fa "struct kreq *req"
+.Fa "size_t key"
+.Fc
 .Ft void
 .Fo kncr
 .Fa "struct kreq *req"
@@ -157,17 +158,14 @@ and POST) with support for multipart forms.
 The multipart parsing is still somewhat experimental in terms of
 features, though all parsing is rigorously checked for security (e.g.,
 integer overflow, binary data, etc.).
-.Ss Variables
+.Ss Types
 The application must define the
-.Vt pages
-and
 .Vt keys
-structures provided to
-.Fn khttp_parse .
-The former is a string array of page names (without the suffix).
-The latter array of
-.Vt "struct kvalid"
-consists of the following entries:
+provided to
+.Fn khttp_parse
+as an array of 
+.Vt "struct kvalid" .
+It consists of the following entries:
 .Bl -ohang
 .It Va "int (*valid)(struct kpair *)"
 Validating function.
@@ -185,11 +183,11 @@ variables in the key-value pair.
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
 .Dv NULL .
-.\" .It Va "enum kfield field"
-.\" How to format the field value upon repopulation.
-.\" This can be
-.\" .Dv KFIELD__MAX
-.\" if the value shouldn't be repopulated.
+.It Va "enum kfield field"
+How to format the field value upon repopulation, i.e., 
+This can be
+.Dv KFIELD__MAX
+if the value shouldn't be repopulated.
 .\" .It Va "const char *label"
 .\" Populate an HTML label element.
 .\" Can be
@@ -198,7 +196,7 @@ This cannot be
 .\" .It Va "const char *def"
 .\" Default value for population fields.
 .El
-.Ss Types
+.Pp
 The
 .Vt "struct kreq"
 type is central to
@@ -296,6 +294,14 @@ binary, nil terminators may occur before the true data length of
 .It Fa valsz
 The true length of
 .Fa val .
+.It Fa file
+If the form provided a parsed file for the given key, this is the name
+of the input file.
+.It Fa ctype
+If the form provided a parsed file for the given key, this is the
+content type (e.g.,
+.Li image/jpeg )
+of that file.
 .It Fa next
 In a cookie or field map,
 .Fa next
@@ -309,6 +315,9 @@ otherwise
 .Dv KFIELD__MAX .
 .It Fa parsed
 The parsed, validated value.
+These may be integer, for a 64-bit signed integer; string, for a
+nil-termianted character string; or double, for a double-precision
+floating-point number.
 .El
 .Ss Functions
 The following functions initialise an HTTP request.
@@ -382,14 +391,6 @@ rollback point.
 .It Fn kentity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.\" .It Fn input "struct kreq *req" "enum key key"
-.\" Emit the HTML code for the input element
-.\" .Fa key
-.\" and its label as defined in the user-defined array
-.\" .Va keys .
-.\" This will also fill in a value as stored in the input fields of
-.\" .Va req .
-.\" This is meant to simplify the repopulation of fields.
 .It Fn khead "struct kreq *req" "const char *key" "const char *val"
 Emit an HTTP header
 .Fa key
@@ -399,6 +400,18 @@ This occurs before any HTML functions are invoked, and must be followed
 by
 .Fn kbody
 to indicate the start of document content.
+.It Fn kinput "struct kreq *req" "size_t key"
+Emit the HTML code for the input element named
+.Fa key
+as defined in
+.Va keys
+passed to
+.Fn khttp_parse .
+This will also fill in a value if stored in parsed
+.Va fieldmap
+in
+.Va req .
+This is meant to simplify the repopulation of fields.
 .It Fn kncr "struct kreq *req" "uint16_t ncr"
 Emit the numeric character reference
 .Va ncr .
