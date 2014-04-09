@@ -45,7 +45,8 @@
 			</p>
 			<ul>
 				<li><code>multipart/form-data</code> and <code>application/x-www-form-urlencoded</code> input</li>
-				<li>lightweight functions for building HTML trees</li>
+				<li>lightweight functions for building HTML trees and HTTP headers</li>
+				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
 				<li>field (URI, form, and cookie) validation and repopulation</li>
 			</ul>
@@ -63,9 +64,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Addition of further HTML printing functions and fresh reimplementation <code>kinput</code> for automated
-				repopulation of input fields.
-				The file-uploading interface has also been improved.
+				Add a simple templating system.
+				This is fully demonstrated in the <code>sample.c</code> file.
 			</p>
 		</article>
 		<footer>
