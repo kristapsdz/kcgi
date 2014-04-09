@@ -18,7 +18,10 @@ enum	page {
 };
 
 enum	key {
-	KEY_INTEGER, 
+	KEY_INTEGER1, 
+	KEY_INTEGER2, 
+	KEY_INTEGER3, 
+	KEY_FILE,
 	KEY__MAX
 };
 
@@ -34,7 +37,10 @@ static const struct dispatch disps[PAGE__MAX] = {
 };
 
 const struct kvalid keys[KEY__MAX] = {
-	{ kvalid_int, "integer" }, /* KEY_INTEGER */
+	{ kvalid_int, "integer1", KFIELD_NUMBER }, /* KEY_INTEGER1 */
+	{ kvalid_int, "integer2", KFIELD_NUMBER }, /* KEY_INTEGER2 */
+	{ kvalid_int, "integer3", KFIELD_NUMBER }, /* KEY_INTEGER3 */
+	{ NULL, "file", KFIELD__MAX }, /* KEY_FILE */
 };
 
 const char *const pages[PAGE__MAX] = {
@@ -103,15 +109,14 @@ sendindex(struct kreq *req)
 	ktext(req, "Post");
 	kclosure(req, 1);
 	kelem(req, KELEM_P);
-	kattr(req, KELEM_INPUT,
-		KATTR_NAME, keys[KEY_INTEGER].name,
-		KATTR__MAX);
+	kinput(req, KEY_INTEGER1);
 	kclosure(req, 1);
 	kelem(req, KELEM_P);
 	kattr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
 	kclosureto(req, sv);
+	sv = kelemsave(req);
 	kattr(req, KELEM_FORM,
 		KATTR_METHOD, "get",
 		KATTR_ACTION, page,
@@ -121,11 +126,41 @@ sendindex(struct kreq *req)
 	ktext(req, "Get");
 	kclosure(req, 1);
 	kelem(req, KELEM_P);
+	kinput(req, KEY_INTEGER2);
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
 	kattr(req, KELEM_INPUT,
-		KATTR_NAME, keys[KEY_INTEGER].name,
+		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	if (req->fieldmap[KEY_INTEGER])
-		kncr(req, 2713);
+	kclosureto(req, sv);
+	kattr(req, KELEM_FORM,
+		KATTR_METHOD, "post",
+		KATTR_ENCTYPE, "multipart/form-data",
+		KATTR_ACTION, page,
+		KATTR__MAX);
+	kelem(req, KELEM_FIELDSET);
+	kelem(req, KELEM_LEGEND);
+	ktext(req, "Post (multipart)");
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kinput(req, KEY_INTEGER3);
+	kclosure(req, 1);
+	kelem(req, KELEM_P);
+	kattr(req, KELEM_INPUT,
+		KATTR_TYPE, "file",
+		KATTR_NAME, keys[KEY_FILE].name,
+		KATTR__MAX);
+	if (NULL != req->fieldmap[KEY_FILE]) {
+		if (NULL != req->fieldmap[KEY_FILE]->file) {
+			ktext(req, "file: ");
+			ktext(req, req->fieldmap[KEY_FILE]->file);
+			ktext(req, " ");
+		} 
+		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
+			ktext(req, "ctype: ");
+			ktext(req, req->fieldmap[KEY_FILE]->ctype);
+		} 
+	}
 	kclosure(req, 1);
 	kelem(req, KELEM_P);
 	kattr(req, KELEM_INPUT,
