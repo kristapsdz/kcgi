@@ -73,52 +73,60 @@ static	const uint16_t entities[KENTITY__MAX] = {
 };
 
 static	const struct tag tags[KELEM__MAX] = {
-	{ 1, "html" }, /* KELEM_HTML */
-	{ 1, "head" }, /* KELEM_HEAD */
-	{ 1, "body" }, /* KELEM_BODY */
-	{ 0, "title" }, /* KELEM_TITLE */
-	{ 3, "meta" }, /* KELEM_META */
-	{ 3, "link" }, /* KELEM_LINK */
-	{ 1, "form" }, /* KELEM_FORM */
-	{ 2, "input" }, /* KELEM_INPUT */
-	{ 1, "textarea" }, /* KELEM_TEXTAREA */
-	{ 1, "p" }, /* KELEM_P */
-	{ 1, "blockquote" }, /* KELEM_BLOCKQUOTE */
-	{ 3, "br" }, /* KELEM_BR */
-	{ 1, "fieldset" }, /* KELEM_FIELDSET */
-	{ 0, "legend" }, /* KELEM_LEGEND */
-	{ 0, "label" }, /* KELEM_LABEL */
 	{ 0, "a" }, /* KELEM_A */
-	{ 0, "code" }, /* KELEM_CODE */
-	{ 1, "div" }, /* KELEM_DIV */
-	{ 0, "span" }, /* KELEM_SPAN */
-	{ 1, "ul" }, /* KELEM_UL */
-	{ 1, "li" }, /* KELEM_LI */
-	{ 0, "strong" }, /* KELEM_STRONG */
-	{ 1, "table" }, /* KELEM_TABLE */
+	{ 1, "blockquote" }, /* KELEM_BLOCKQUOTE */
+	{ 1, "body" }, /* KELEM_BODY */
+	{ 3, "br" }, /* KELEM_BR */
 	{ 1, "caption" }, /* KELEM_CAPTION */
-	{ 1, "tr" }, /* KELEM_TR */
-	{ 1, "td" }, /* KELEM_TD */
-	{ 1, "th" }, /* KELEM_TH */
-	{ 1, "select" }, /* KELEM_SELECT */
-	{ 0, "option" }, /* KELEM_OPTION */
-	{ 2, "img" }, /* KELEM_IMG */
-	{ 0, "i" }, /* KELEM_I */
-	{ 0, "q" }, /* KELEM_Q */
+	{ 0, "code" }, /* KELEM_CODE */
+	{ 3, "col" }, /* KELEM_COL */
+	{ 1, "dd" }, /* KELEM_DD */
+	{ 1, "div" }, /* KELEM_DIV */
 	{ 1, "dl" }, /* KELEM_DL */
 	{ 1, "dt" }, /* KELEM_DT */
-	{ 1, "dd" }, /* KELEM_DD */
-	{ 3, "col" }, /* KELEM_COL */
+	{ 1, "fieldset" }, /* KELEM_FIELDSET */
+	{ 1, "form" }, /* KELEM_FORM */
+	{ 1, "head" }, /* KELEM_HEAD */
+	{ 1, "html" }, /* KELEM_HTML */
+	{ 0, "i" }, /* KELEM_I */
+	{ 2, "img" }, /* KELEM_IMG */
+	{ 2, "input" }, /* KELEM_INPUT */
+	{ 0, "label" }, /* KELEM_LABEL */
+	{ 0, "legend" }, /* KELEM_LEGEND */
+	{ 1, "li" }, /* KELEM_LI */
+	{ 3, "link" }, /* KELEM_LINK */
+	{ 3, "meta" }, /* KELEM_META */
+	{ 0, "option" }, /* KELEM_OPTION */
+	{ 1, "p" }, /* KELEM_P */
+	{ 0, "q" }, /* KELEM_Q */
+	{ 1, "select" }, /* KELEM_SELECT */
+	{ 0, "span" }, /* KELEM_SPAN */
+	{ 0, "strong" }, /* KELEM_STRONG */
+	{ 1, "table" }, /* KELEM_TABLE */
+	{ 1, "td" }, /* KELEM_TD */
+	{ 1, "textarea" }, /* KELEM_TEXTAREA */
+	{ 1, "th" }, /* KELEM_TH */
+	{ 0, "title" }, /* KELEM_TITLE */
+	{ 1, "tr" }, /* KELEM_TR */
+	{ 1, "ul" }, /* KELEM_UL */
 	{ 0, "var" }, /* KELEM_VAR */
 };
 
-const char * const kmimes[KMIME__MAX] = {
+const char *const kmimes[KMIME__MAX] = {
 	"html", /* KMIME_HTML */
 	"csv", /* KMIME_CSV */
 	"png", /* KMIME_PNG */
 };
 
-const char * const kmimetypes[KMIME__MAX] = {
+const char *const kfields[KFIELD__MAX] = {
+	"email",
+	"password",
+	"text",
+	"number",
+	"submit"
+};
+
+const char *const kmimetypes[KMIME__MAX] = {
 	"text/html; charset=utf-8", /* KMIME_HTML */
 	"text/csv", /* KMIME_CSV */
 	"image/png", /* KMIME_PNG */
@@ -133,34 +141,35 @@ const char *const khttps[KHTTP__MAX] = {
 	"415 Unsupported Media Type"
 };
 
-static	const char * const attrs[KATTR__MAX] = {
-	"http-equiv", /* KATTR_HTTP_EQUIV */
-	"content", /* KATTR_CONTENT */
-	"rel", /* KATTR_REL */
-	"href", /* KATTR_HREF */
-	"type", /* KATTR_TYPE */
+static	const char *const attrs[KATTR__MAX] = {
 	"action", /* KATTR_ACTION */
-	"method", /* KATTR_METHOD */
-	"name", /* KATTR_NAME */
-	"value", /* KATTR_VALUE */
-	"onclick", /* KATTR_ONCLICK */
-	"id", /* KATTR_ID */
-	"for", /* KATTR_FOR */
-	"class", /* KATTR_CLASS */
-	"colspan", /* KATTR_COLSPAN */
-	"disabled", /* KATTR_DISABLED */
-	"selected", /* KATTR_SELECTED */
-	"src", /* KATTR_SRC */
-	"clear", /* KATTR_CLEAR */
 	"checked", /* KATTR_CHECKED */
+	"class", /* KATTR_CLASS */
+	"clear", /* KATTR_CLEAR */
+	"colspan", /* KATTR_COLSPAN */
+	"content", /* KATTR_CONTENT */
+	"disabled", /* KATTR_DISABLED */
+	"enctype", /* KATTR_ENCTYPE */
+	"for", /* KATTR_FOR */
+	"href", /* KATTR_HREF */
+	"http-equiv", /* KATTR_HTTP_EQUIV */
+	"id", /* KATTR_ID */
+	"max", /* KATTR_MAX */
+	"method", /* KATTR_METHOD */
+	"min", /* KATTR_MIN */
+	"name", /* KATTR_NAME */
+	"onclick", /* KATTR_ONCLICK */
+	"rel", /* KATTR_REL */
+	"rowspan", /* KATTR_ROWSPAN */
+	"selected", /* KATTR_SELECTED */
+	"span", /* KATTR_SPAN */
+	"src", /* KATTR_SRC */
+	"step", /* KATTR_STEP */
 	"style", /* KATTR_STYLE */
 	"target", /* KATTR_TARGET */
-	"step", /* KATTR_STEP */
-	"min", /* KATTR_MIN */
-	"max", /* KATTR_MAX */
+	"type", /* KATTR_TYPE */
+	"value", /* KATTR_VALUE */
 	"width", /* KATTR_WIDTH */
-	"span", /* KATTR_SPAN */
-	"rowspan", /* KATTR_ROWSPAN */
 };
 
 /* 
@@ -329,71 +338,40 @@ kelem(struct kreq *req, enum kelem elem)
 	kattr(req, elem, KATTR__MAX);
 }
 
-#if 0
 void
-kinput(struct kreq *req, enum key key)
+kinput(struct kreq *req, size_t key)
 {
-	const char	*cp, *type;
-	char		 buf[URISZ];
+	const char	*cp;
+	char		 buf[64];
 
-	if (NULL != keys[key].label && 
-			KFIELD_SUBMIT != keys[key].field) {
-		attr(req, KELEM_LABEL,
-			KATTR_FOR, keys[key].name,
-			KATTR__MAX);
-		text(keys[key].label);
-		closure(req, 1);
-		text(":");
-	}
-
-	cp = buf;
-	buf[0] = '\0';
-	type = "text";
-
-	switch (keys[key].field) {
-	case (KFIELD_SUBMIT):
-		cp = keys[key].label;
-		type = "submit";
-		break;
-	case (KFIELD_PASSWORD):
-		type = "password";
-		break;
-	case (KFIELD_EMAIL):
-		type = "email";
-		break;
-	default:
-		break;
-	}
-
+	cp = "";
 	if (NULL != req->fieldmap[key])
-		switch (keys[key].field) {
-		case (KFIELD_DOUBLE):
-			snprintf(buf, URISZ, "%.2f",
+		switch (req->fieldmap[key]->type) {
+		case (KPAIR_DOUBLE):
+			snprintf(buf, sizeof(buf), "%.2f",
 				req->fieldmap[key]->parsed.d);
+			cp = buf;
 			break;
-		case (KFIELD_INT):
-			snprintf(buf, URISZ, "%lld",
+		case (KPAIR_INTEGER):
+			snprintf(buf, sizeof(buf), "%lld",
 				req->fieldmap[key]->parsed.i);
+			cp = buf;
 			break;
-		case (KFIELD_EMAIL):
-			/* FALLTHROUGH */
-		case (KFIELD_STRING):
+		case (KPAIR_STRING):
 			cp = req->fieldmap[key]->parsed.s;
 			break;
 		default:
+			abort();
 			break;
 		}
-	else if (NULL != keys[key].def) 
-		cp = keys[key].def;
 
-	attr(req, KELEM_INPUT,
-		KATTR_TYPE, type,
-		KATTR_NAME, keys[key].name,
-		KATTR_ID, keys[key].name,
+	assert(req->keys[key].field < KFIELD__MAX);
+	kattr(req, KELEM_INPUT,
+		KATTR_TYPE, kfields[req->keys[key].field],
+		KATTR_NAME, req->keys[key].name,
 		KATTR_VALUE, cp,
 		KATTR__MAX);
 }
-#endif
 
 void
 kattr(struct kreq *req, enum kelem elem, ...)
@@ -538,6 +516,7 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 		if ( ! urldecode(val))
 			break;
 		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
+		memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
 		(*kv)[*kvsz].key = kstrdup(key);
 		(*kv)[*kvsz].val = kstrdup(val);
 		(*kv)[*kvsz].valsz = strlen(val);
@@ -746,7 +725,7 @@ boundary(const char *line, size_t sz, const char *b, size_t bsz)
  */
 static int
 form_parse(struct kpair **kv, size_t *kvsz, 
-		const char *name, const char *b, size_t bsz)
+	const struct hmime *mime, const char *b, size_t bsz)
 {
 	char		*cp, *line;
 	size_t		 sz, valsz;
@@ -761,6 +740,11 @@ form_parse(struct kpair **kv, size_t *kvsz,
 	 * reached.  Or any other error occurs.
 	 */
 	while (NULL != (line = getbinln(&sz))) {
+#ifdef DEBUG
+		fprintf(stderr, "%s: Read %zu bytes "
+			"(have %zu, max %d)\n", 
+			__func__, sz, valsz, UPLOAD_LIMIT);
+#endif
 		if ((rc = boundary(line, sz, b, bsz)) >= 0)
 			break;
 		assert(sz > 0);
@@ -771,6 +755,12 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		 * In other words, avoid integer overflow.
 		 */
 		if (UPLOAD_LIMIT - valsz < sz) {
+#ifdef DEBUG
+			fprintf(stderr, "%s: Maximum exceeded "
+				"(have %zu, wanted %zu, "
+				"maximum %d)\n", __func__,
+				maxsz, sz, UPLOAD_LIMIT);
+#endif
 			free(cp);
 			return(-1);
 		}
@@ -779,11 +769,24 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		valsz += sz;
 	}
 
+#ifdef DEBUG
+	fprintf(stderr, "%s: Exited read loop with "
+		"%zu bytes\n", __func__, valsz);
+#endif
+
 	if (NULL == line || valsz < 2) {
+#ifdef DEBUG
+		fprintf(stderr, "%s: End of input stream "
+			"while reading.\n", __func__);
+#endif
 		/* We didn't reach a boundary or have no CRLF. */
 		free(cp);
 		return(-1);
 	} else if ('\n' != cp[valsz - 1] || '\r' != cp[valsz - 2]) {
+#ifdef DEBUG
+		fprintf(stderr, "%s: No CRLF "
+			"while reading.\n", __func__);
+#endif
 		/* No proper CRLF ending. */
 		free(cp);
 		return(-1);
@@ -792,7 +795,13 @@ form_parse(struct kpair **kv, size_t *kvsz,
 	valsz -= 2;
 	cp[valsz] = '\0';
 	*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-	(*kv)[*kvsz].key = kstrdup(name);
+	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
+	assert(NULL != mime->name);
+	(*kv)[*kvsz].key = kstrdup(mime->name);
+	if (NULL != mime->ctype) 
+		(*kv)[*kvsz].ctype = kstrdup(mime->ctype);
+	if (NULL != mime->file) 
+		(*kv)[*kvsz].file = kstrdup(mime->file);
 	(*kv)[*kvsz].val = cp;
 	(*kv)[*kvsz].valsz = valsz;
 	(*kvsz)++;
@@ -860,7 +869,7 @@ multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 
 		if (NULL == mime.ctype || NULL != mime.file) {
 			/* Read a binary file. */
-			rc = form_parse(kv, kvsz, mime.name, b, bsz);
+			rc = form_parse(kv, kvsz, &mime, b, bsz);
 			hmime_free(&mime);
 			continue;
 		} else if (0 != strcmp(mime.ctype, "multipart/mixed"))
@@ -887,6 +896,10 @@ static void
 parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 {
 	size_t		 sz;
+
+#ifdef DEBUG
+	fprintf(stderr, "%s: starting\n", __func__);
+#endif
 
 	while (' ' == *line)
 		line++;
@@ -1023,11 +1036,11 @@ khttp_parse(struct kreq *req,
 				continue;
 			if (NULL != keys[i].valid &&
 				! (*keys[i].valid)(&req->fields[j])) {
-				req->fields[j].field = KFIELD__MAX;
+				req->fields[j].type = KPAIR__MAX;
 				continue;
 			}
 			assert(NULL == keys[i].valid ||
-				KFIELD__MAX != req->fields[j].field);
+				KPAIR__MAX != req->fields[j].type);
 			req->fields[j].next = req->fieldmap[i];
 			req->fieldmap[i] = &req->fields[j];
 		}
@@ -1036,11 +1049,11 @@ khttp_parse(struct kreq *req,
 				continue;
 			if (NULL != keys[i].valid &&
 				! keys[i].valid(&req->cookies[j])) {
-				req->cookies[j].field = KFIELD__MAX;
+				req->cookies[j].type = KPAIR__MAX;
 				continue;
 			}
 			assert(NULL == keys[i].valid ||
-				KFIELD__MAX != req->cookies[j].field);
+				KPAIR__MAX != req->cookies[j].type);
 			req->cookies[j].next = req->cookiemap[i];
 			req->cookiemap[i] = &req->cookies[j];
 		}
@@ -1055,6 +1068,8 @@ kpair_free(struct kpair *p, size_t sz)
 	for (i = 0; i < sz; i++) {
 		free(p[i].key);
 		free(p[i].val);
+		free(p[i].file);
+		free(p[i].ctype);
 	}
 	free(p);
 }
@@ -1194,7 +1209,7 @@ kvalid_string(struct kpair *p)
 	 */
 	if (strlen(p->val) != p->valsz)
 		return(0);
-	p->field = KFIELD_STRING;
+	p->type = KPAIR_STRING;
 	p->parsed.s = p->val;
 	return(1);
 }
@@ -1205,7 +1220,6 @@ kvalid_email(struct kpair *p)
 
 	if ( ! kvalid_string(p))
 		return(0);
-	p->field = KFIELD_EMAIL;
 	return(NULL != (p->parsed.s = valid_email(p->val)));
 }
 
@@ -1215,7 +1229,7 @@ kvalid_udouble(struct kpair *p)
 
 	if ( ! kvalid_double(p))
 		return(0);
-	p->field = KFIELD_DOUBLE;
+	p->type = KPAIR_DOUBLE;
 	return(isnormal(p->parsed.d) && p->parsed.d > 0.0);
 }
 
@@ -1240,7 +1254,7 @@ kvalid_double(struct kpair *p)
 	if (errno == ERANGE && (lval == HUGE_VAL || lval == -HUGE_VAL))
 		return(0);
 	p->parsed.d = lval;
-	p->field = KFIELD_DOUBLE;
+	p->type = KPAIR_DOUBLE;
 	return(1);
 }
 
@@ -1253,7 +1267,7 @@ kvalid_int(struct kpair *p)
 		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
-	p->field = KFIELD_INTEGER;
+	p->type = KPAIR_INTEGER;
 	return(NULL == ep);
 }
 
@@ -1263,7 +1277,7 @@ kvalid_uint(struct kpair *p)
 	const char	*ep;
 
 	p->parsed.i = strtonum(trim(p->val), 1, INT64_MAX, &ep);
-	p->field = KFIELD_INTEGER;
+	p->type = KPAIR_INTEGER;
 	return(NULL == ep);
 }
 

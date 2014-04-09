@@ -47,7 +47,7 @@
 				<li><code>multipart/form-data</code> and <code>application/x-www-form-urlencoded</code> input</li>
 				<li>lightweight functions for building HTML trees</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
-				<li>automatic field (request, form, and cookie) validation</li>
+				<li>field (URI, form, and cookie) validation and repopulation</li>
 			</ul>
 			<p>
 				The library itself consists of easily-auditable ISO C sources under the <a
@@ -63,7 +63,9 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Initial public release.
+				Addition of further HTML printing functions and fresh reimplementation <code>kinput</code> for automated
+				repopulation of input fields.
+				The file-uploading interface has also been improved.
 			</p>
 		</article>
 		<footer>

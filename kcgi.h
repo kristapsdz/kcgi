@@ -42,33 +42,34 @@ enum	kentity {
 };
 
 enum	kattr {
-	KATTR_HTTP_EQUIV,
-	KATTR_CONTENT,
-	KATTR_REL,
-	KATTR_HREF,
-	KATTR_TYPE,
 	KATTR_ACTION,
-	KATTR_METHOD,
-	KATTR_NAME,
-	KATTR_VALUE,
-	KATTR_ONCLICK,
-	KATTR_ID,
-	KATTR_FOR,
-	KATTR_CLASS,
-	KATTR_COLSPAN,
-	KATTR_DISABLED,
-	KATTR_SELECTED,
-	KATTR_SRC,
-	KATTR_CLEAR,
 	KATTR_CHECKED,
+	KATTR_CLASS,
+	KATTR_CLEAR,
+	KATTR_COLSPAN,
+	KATTR_CONTENT,
+	KATTR_DISABLED,
+	KATTR_ENCTYPE,
+	KATTR_FOR,
+	KATTR_HREF,
+	KATTR_HTTP_EQUIV,
+	KATTR_ID,
+	KATTR_MAX,
+	KATTR_METHOD,
+	KATTR_MIN,
+	KATTR_NAME,
+	KATTR_ONCLICK,
+	KATTR_REL,
+	KATTR_ROWSPAN,
+	KATTR_SELECTED,
+	KATTR_SPAN,
+	KATTR_SRC,
+	KATTR_STEP,
 	KATTR_STYLE,
 	KATTR_TARGET,
-	KATTR_STEP,
-	KATTR_MIN,
-	KATTR_MAX,
+	KATTR_TYPE,
+	KATTR_VALUE,
 	KATTR_WIDTH,
-	KATTR_SPAN,
-	KATTR_ROWSPAN,
 	KATTR__MAX
 };
 
@@ -80,42 +81,42 @@ enum	kmime {
 };
 
 enum	kelem {
-	KELEM_HTML,
-	KELEM_HEAD,
-	KELEM_BODY,
-	KELEM_TITLE,
-	KELEM_META,
-	KELEM_LINK,
-	KELEM_FORM,
-	KELEM_INPUT,
-	KELEM_TEXTAREA,
-	KELEM_P,
-	KELEM_BLOCKQUOTE,
-	KELEM_BR,
-	KELEM_FIELDSET,
-	KELEM_LEGEND,
-	KELEM_LABEL,
 	KELEM_A,
-	KELEM_CODE,
-	KELEM_DIV,
-	KELEM_SPAN,
-	KELEM_UL,
-	KELEM_LI,
-	KELEM_STRONG,
-	KELEM_TABLE,
+	KELEM_BLOCKQUOTE,
+	KELEM_BODY,
+	KELEM_BR,
 	KELEM_CAPTION,
-	KELEM_TR,
-	KELEM_TD,
-	KELEM_TH,
-	KELEM_SELECT,
-	KELEM_OPTION,
-	KELEM_IMG,
-	KELEM_I,
-	KELEM_Q,
+	KELEM_CODE,
+	KELEM_COL,
+	KELEM_DD,
+	KELEM_DIV,
 	KELEM_DL,
 	KELEM_DT,
-	KELEM_DD,
-	KELEM_COL,
+	KELEM_FIELDSET,
+	KELEM_FORM,
+	KELEM_HEAD,
+	KELEM_HTML,
+	KELEM_I,
+	KELEM_IMG,
+	KELEM_INPUT,
+	KELEM_LABEL,
+	KELEM_LEGEND,
+	KELEM_LI,
+	KELEM_LINK,
+	KELEM_META,
+	KELEM_OPTION,
+	KELEM_P,
+	KELEM_Q,
+	KELEM_SELECT,
+	KELEM_SPAN,
+	KELEM_STRONG,
+	KELEM_TABLE,
+	KELEM_TD,
+	KELEM_TEXTAREA,
+	KELEM_TH,
+	KELEM_TITLE,
+	KELEM_TR,
+	KELEM_UL,
 	KELEM_VAR,
 	KELEM__MAX
 };
@@ -126,19 +127,29 @@ enum	kmethod {
 };
 
 enum	kfield {
-	KFIELD_INTEGER,
-	KFIELD_STRING,
-	KFIELD_DOUBLE,
 	KFIELD_EMAIL,
+	KFIELD_PASSWORD,
+	KFIELD_TEXT,
+	KFIELD_NUMBER,
+	KFIELD_SUBMIT,
 	KFIELD__MAX
+};
+
+enum	kpairtype {
+	KPAIR_INTEGER,
+	KPAIR_STRING,
+	KPAIR_DOUBLE,
+	KPAIR__MAX
 };
 
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
 	size_t		 valsz; /* length of "value" */
+	char		*file; /* if from a file, that filename */
+	char		*ctype; /* content-type, if defined */
 	struct kpair	*next; /* next in map entry */
-	enum kfield	 field; /* if parsed, the parse type */
+	enum kpairtype	 type; /* if parsed, the parse type */
 	union parsed {
 		int64_t	 i; /* validated integer */
 		const char *s; /* validated string */
@@ -149,6 +160,7 @@ struct	kpair {
 struct	kvalid {
 	int		(*valid)(struct kpair *);
 	const char	 *name;
+	enum kfield	  field;
 };
 
 struct	kdata;
@@ -188,9 +200,7 @@ size_t		 kelemsave(struct kreq *req);
 void		 kentity(struct kreq *req, enum kentity entity);
 void		 khead(struct kreq *req, 
 			const char *key, const char *val);
-#if 0
-void		 input(struct kreq *req, enum key key);
-#endif
+void		 kinput(struct kreq *req, size_t key);
 void		 kncr(struct kreq *req, uint16_t ncr);
 void		 ktext(struct kreq *req, const char *cp);
 
@@ -210,6 +220,7 @@ char		*kstrdup(const char *cp);
 extern const char *const	 kmimes[KMIME__MAX];
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
+extern const char *const	 kfields[KFIELD__MAX];
 extern const char		*pname;
 
 __END_DECLS
