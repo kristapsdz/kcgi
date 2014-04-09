@@ -151,9 +151,9 @@ struct	kpair {
 	struct kpair	*next; /* next in map entry */
 	enum kpairtype	 type; /* if parsed, the parse type */
 	union parsed {
-		int64_t	 i; /* validated integer */
+		int64_t i; /* validated integer */
 		const char *s; /* validated string */
-		double	 d; /* validated decimal */
+		double d; /* validated decimal */
 	} parsed;
 };
 
@@ -183,6 +183,13 @@ struct	kreq {
 	size_t			  pagesz;
 };
 
+struct	ktemplate {
+	const char *const	 *key;
+	size_t		 	  keysz;
+	void		 	 *arg;
+	int		 	(*cb)(size_t key, void *arg);
+};
+
 __BEGIN_DECLS
 
 void		 khttp_free(struct kreq *req);
@@ -210,6 +217,9 @@ int		 kvalid_int(struct kpair *);
 int		 kvalid_string(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
+
+int		 ktemplate(const struct ktemplate *t, 
+			const char *fname);
 
 void		*kcalloc(size_t nm, size_t sz);
 void		*kmalloc(size_t sz);
