@@ -14,9 +14,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <sys/mman.h>
+#include <sys/stat.h>
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <math.h>
@@ -1281,3 +1285,83 @@ kvalid_uint(struct kpair *p)
 	return(NULL == ep);
 }
 
+int
+ktemplate(const struct ktemplate *t, const char *fname)
+{
+	struct stat 	 st;
+	char		*buf;
+	size_t		 sz, i, j, len, start, end;
+	int		 fd, rc;
+
+	if (-1 == (fd = open(fname, O_RDONLY, 0)))
+		return(0);
+
+	if (-1 == fstat(fd, &st)) {
+		close(fd);
+		return(0);
+	} else if (st.st_size >= (1U << 31)) {
+		close(fd);
+		return(0);
+	} else if (0 == st.st_size) {
+		close(fd);
+		return(1);
+	}
+
+	sz = (size_t)st.st_size;
+	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
+
+	if (NULL == buf) {
+		close(fd);
+		return(0);
+	}
+
+	rc = 0;
+
+	for (i = 0; i < sz - 1; i++) {
+		/* Look for the starting "@@" marker. */
+		if ('@' != buf[i]) {
+			putchar(buf[i]);
+			continue;
+		} else if ('@' != buf[i + 1]) {
+			putchar(buf[i]);
+			continue;
+		} 
+
+		/* Seek to find the end "@@" marker. */
+		start = i + 2;
+		for (end = start + 2; end < sz - 1; end++)
+			if ('@' == buf[end] && '@' == buf[end + 1])
+				break;
+
+		/* Continue printing if not found of 0-length. */
+		if (end == sz - 1 || end == start) {
+			putchar(buf[i]);
+			continue;
+		}
+
+		/* Look for a matching key. */
+		for (j = 0; j < t->keysz; j++) {
+			len = strlen(t->key[j]);
+			if (len != end - start)
+				continue;
+			if ( ! (*t->cb)(j, t->arg))
+				goto out;
+			break;
+		}
+
+		/* Didn't find it... */
+		if (j == t->keysz)
+			putchar(buf[i]);
+		else
+			i = end + 1;
+	}
+
+	if (i < sz)
+		putchar(buf[i]);
+
+	rc = 1;
+out:
+	munmap(buf, sz);
+	close(fd);
+	return(rc);
+}

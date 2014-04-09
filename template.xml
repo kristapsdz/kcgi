@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>@@TITLE@@</title>
+	</head>
+	<body>
+		<header>
+			<h1>@@NAME@@</h1>
+		</header>
+		<article>
+			Hello, world.
+		</article>
+	</body>
+</html>
