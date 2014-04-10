@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 9 2014 $
+.Dd $Mdocdate: April 10 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -227,9 +227,10 @@ It consists of the following fields:
 .Bl -ohang -offset indent
 .It Va method
 The
-.Dv METHOD_GET
+.Dv KMETHOD_GET
 or
-.Dv METHOD_POST submission method.
+.Dv KMETHOD_POST
+submission method.
 Note that other methods aren't supported.
 .It Va cookies
 All key-value pairs read from user cookies.
@@ -238,8 +239,15 @@ The size of the
 .Va cookies
 array.
 .It Va cookiemap
-Entries in
+Entries in successfully-parsed (or un-parsed)
 .Va cookies
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Va cookienmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa cookies
 mapped into field indices as defined by the
 .Fa keys
 argument to
@@ -251,11 +259,18 @@ The number of elements in the
 .Va fields
 array.
 .It Va fieldmap
-Entries in
+Entries in successfully-parsed (or un-parsed)
 .Fa fields
 mapped into field indices as defined by the
 .Fa keys
 arguments to
+.Fn khttp_parse .
+.It Va fieldnmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa fields
+mapped into field indices as defined by the
+.Fa keys
+argument to
 .Fn khttp_parse .
 .It Va mime
 The MIME type of the requested file as determined by its suffix.

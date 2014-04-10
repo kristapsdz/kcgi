@@ -951,7 +951,9 @@ khttp_parse(struct kreq *req,
 	req->pagesz = pagesz;
 	req->kdata = kcalloc(1, sizeof(struct kdata));
 	req->cookiemap = kcalloc(keysz, sizeof(struct kpair *));
+	req->cookienmap = kcalloc(keysz, sizeof(struct kpair *));
 	req->fieldmap = kcalloc(keysz, sizeof(struct kpair *));
+	req->fieldnmap = kcalloc(keysz, sizeof(struct kpair *));
 
 	sub = NULL;
 	p = defpage;
@@ -1041,6 +1043,8 @@ khttp_parse(struct kreq *req,
 			if (NULL != keys[i].valid &&
 				! (*keys[i].valid)(&req->fields[j])) {
 				req->fields[j].type = KPAIR__MAX;
+				req->fields[j].next = req->fieldnmap[i];
+				req->fieldnmap[i] = &req->fields[j];
 				continue;
 			}
 			assert(NULL == keys[i].valid ||
@@ -1054,6 +1058,8 @@ khttp_parse(struct kreq *req,
 			if (NULL != keys[i].valid &&
 				! keys[i].valid(&req->cookies[j])) {
 				req->cookies[j].type = KPAIR__MAX;
+				req->cookies[j].next = req->cookienmap[i];
+				req->cookienmap[i] = &req->cookies[j];
 				continue;
 			}
 			assert(NULL == keys[i].valid ||
@@ -1086,7 +1092,9 @@ khttp_free(struct kreq *req)
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
 	free(req->cookiemap);
+	free(req->cookienmap);
 	free(req->fieldmap);
+	free(req->fieldnmap);
 	free(req->kdata);
 }
 
