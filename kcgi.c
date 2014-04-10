@@ -1106,10 +1106,15 @@ kncr(struct kreq *req, uint16_t ncr)
 }
 
 void
-khead(struct kreq *req, const char *key, const char *val)
+khead(struct kreq *req, const char *key, const char *fmt, ...)
 {
+	va_list	 ap;
 
-	printf("%s: %s\r\n", key, val);
+	printf("%s: ", key);
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	printf("\r\n");
+	va_end(ap);
 }
 
 void

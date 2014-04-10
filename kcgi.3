@@ -94,7 +94,8 @@
 .Fo khead
 .Fa "struct kreq *req"
 .Fa "const char *key"
-.Fa "const char *val"
+.Fa "const char *fmt"
+.Fa "..."
 .Fc
 .Ft void
 .Fo kinput
@@ -435,11 +436,12 @@ rollback point.
 .It Fn kentity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.It Fn khead "struct kreq *req" "const char *key" "const char *val"
+.It Fn khead "struct kreq *req" "const char *key" "const char *fmt" "..."
 Emit an HTTP header
 .Fa key
-with value
-.Fa val .
+with value formatted by
+.Fa fmt
+and its variable arguments.
 This occurs before any HTML functions are invoked, and must be followed
 by
 .Fn kbody

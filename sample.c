@@ -108,8 +108,8 @@ static void
 resp_open(struct kreq *req, enum khttp http)
 {
 
-	khead(req, "Status", khttps[http]);
-	khead(req, "Content-Type", kmimetypes[req->mime]);
+	khead(req, "Status", "%s", khttps[http]);
+	khead(req, "Content-Type", "%s", kmimetypes[req->mime]);
 	kbody(req);
 }
 
