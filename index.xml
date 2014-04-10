@@ -66,6 +66,7 @@
 			<p>
 				Made <code>khead()</code> accept variadic arguments (prevents unnecessary creation of buffers to hold temporary
 				header data).
+				Add <code>cookienmap</code> and <code>fieldnmap</code> fields to see input fields that failed the parse stage.
 			</p>
 		</article>
 		<footer>
