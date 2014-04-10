@@ -170,8 +170,10 @@ struct	kreq {
 	struct kpair		 *cookies;
 	size_t			  cookiesz;
 	struct kpair		**cookiemap;
+	struct kpair		**cookienmap;
 	struct kpair		 *fields;
 	struct kpair		**fieldmap;
+	struct kpair		**fieldnmap;
 	size_t			  fieldsz;
 	enum kmime		  mime;
 	size_t			  page;
