@@ -205,8 +205,9 @@ void		 kdecl(struct kreq *req);
 void		 kelem(struct kreq *req, enum kelem elem);
 size_t		 kelemsave(struct kreq *req);
 void		 kentity(struct kreq *req, enum kentity entity);
-void		 khead(struct kreq *req, 
-			const char *key, const char *val);
+void		 khead(struct kreq *req, const char *key, 
+			const char *fmt, ...)
+			__attribute__((format(printf, 3, 4)));
 void		 kinput(struct kreq *req, size_t key);
 void		 kncr(struct kreq *req, uint16_t ncr);
 void		 ktext(struct kreq *req, const char *cp);
