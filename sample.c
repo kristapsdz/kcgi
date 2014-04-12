@@ -153,7 +153,7 @@ sendtemplate(struct kreq *req)
 	t.cb = template;
 
 	resp_open(req, KHTTP_200);
-	ktemplate(&t, "template.xml");
+	ktemplate(req, &t, "template.xml");
 }
 
 /*

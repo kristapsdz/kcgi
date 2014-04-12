@@ -33,7 +33,7 @@ install: libkcgi.a
 	rm -f kcgi.h~ kcgi.3~
 
 sample: sample.o libkcgi.a
-	$(CC) -o $@ sample.o -L. -lkcgi
+	$(CC) -o $@ sample.o -L. -lkcgi -lz
 
 www: index.html kcgi-$(VERSION).tgz kcgi.3.html
 

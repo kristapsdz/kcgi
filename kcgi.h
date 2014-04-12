@@ -221,7 +221,7 @@ int		 kvalid_string(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
-int		 ktemplate(const struct ktemplate *t, 
+int		 ktemplate(struct kreq *req, const struct ktemplate *t, 
 			const char *fname);
 
 void		*kcalloc(size_t nm, size_t sz);
