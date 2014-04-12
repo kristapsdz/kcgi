@@ -49,6 +49,7 @@
 				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
 				<li>field (URI, form, and cookie) validation and repopulation</li>
+				<li>automatic HTTP compression support (via <a href="http://www.zlib.net">zlib</a>)</li>
 			</ul>
 			<p>
 				The library itself consists of easily-auditable ISO C sources under the <a
@@ -64,9 +65,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Made <code>khead()</code> accept variadic arguments (prevents unnecessary creation of buffers to hold temporary
-				header data).
-				Add <code>cookienmap</code> and <code>fieldnmap</code> fields to see input fields that failed the parse stage.
+				Automatic compression support by detecting the <code>gzip</code> option in <code>HTTP_ACCEPT_ENCODING</code> and
+				passing printed data through <a href="http://www.zlib.net">zlib</a> compression functions.
 			</p>
 		</article>
 		<footer>
