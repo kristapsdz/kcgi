@@ -114,6 +114,7 @@
 .Fc
 .Ft int
 .Fo ktemplate
+.Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *fname"
 .Fc
@@ -537,7 +538,7 @@ The
 .Nm
 library also has a simple, light-weight template system.
 This is coordinated entirely by a single function,
-.Fn ktemplate "struct ktemplate *t" "const char *fname" .
+.Fn ktemplate "struct kreq *req" "struct ktemplate *t" "const char *fname" .
 This function memory-maps the file
 .Fa fname
 and appends it to the output stream.

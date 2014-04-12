@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <zlib.h>
 
 #include "kcgi.h"
 
@@ -38,8 +39,9 @@
 #define	UPLOAD_LIMIT	 10485760
 
 struct	kdata {
-	enum kelem	  elems[128];
-	size_t		  elemsz;
+	enum kelem	 elems[128];
+	size_t		 elemsz;
+	gzFile		 gz;
 };
 
 /*
@@ -137,7 +139,7 @@ const char *const kmimetypes[KMIME__MAX] = {
 };
 
 const char *const khttps[KHTTP__MAX] = {
-	NULL,
+	"200 OK",
 	"303 See Other",
 	"403 Forbidden",
 	"404 Page Not Found",
@@ -180,6 +182,20 @@ static	const char *const attrs[KATTR__MAX] = {
  * Name of executing CGI script.
  */
 const char	*pname = NULL;
+
+#define	KPRINTF(_req, ...) \
+	do if (NULL != (_req)->kdata->gz) \
+		gzprintf((_req)->kdata->gz, __VA_ARGS__); \
+	else \
+		printf(__VA_ARGS__); \
+	while (0)
+
+#define	KPUTCHAR(_req, _c) \
+	do if (NULL != (_req)->kdata->gz) \
+		gzputc((_req)->kdata->gz, (_c)); \
+	else \
+		putchar((_c)); \
+	while (0)
 
 /* 
  * Safe strdup(): don't return on memory failure.
@@ -382,46 +398,47 @@ kattr(struct kreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
 	enum kattr	 at;
+	struct kdata	*k = req->kdata;
 	const char	*cp;
 
-	printf("<%s", tags[elem].name);
+	KPRINTF(req, "<%s", tags[elem].name);
+
 	va_start(ap, elem);
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
 		cp = va_arg(ap, char *);
 		assert(NULL != cp);
-		printf(" %s=\"%s\"", attrs[at], cp);
+		KPRINTF(req, " %s=\"%s\"", attrs[at], cp);
 
 	}
 	va_end(ap);
 
 	if (TAG_ACLOSE & tags[elem].flags)
-		putchar('/');
-	putchar('>');
+		KPUTCHAR(req, '/');
+	KPUTCHAR(req, '>');
 
-	if (TAG_BLOCK & tags[elem].flags)
-		putchar('\n');
+	if (TAG_BLOCK & tags[elem].flags) 
+		KPUTCHAR(req, '\n');
+
 	if ( ! (TAG_ACLOSE & tags[elem].flags))
-		req->kdata->elems[req->kdata->elemsz++] = elem;
-
-	assert(req->kdata->elemsz < 128);
+		k->elems[k->elemsz++] = elem;
+	assert(k->elemsz < 128);
 }
 
 void
 kclosure(struct kreq *req, size_t sz)
 {
 	size_t		 i;
+	struct kdata	*k = req->kdata;
 
 	if (0 == sz)
-		sz = req->kdata->elemsz;
+		sz = k->elemsz;
 
 	for (i = 0; i < sz; i++) {
-		assert(req->kdata->elemsz > 0);
-		req->kdata->elemsz--;
-		printf("</%s>", tags[req->kdata->elems
-			[req->kdata->elemsz]].name);
-		if (TAG_BLOCK & tags[req->kdata->elems
-			[req->kdata->elemsz]].flags)
-			putchar('\n');
+		assert(k->elemsz > 0);
+		k->elemsz--;
+		KPRINTF(req, "</%s>", tags[k->elems[k->elemsz]].name);
+		if (TAG_BLOCK & tags[k->elems[k->elemsz]].flags) 
+			KPUTCHAR(req, '\n');
 	}
 }
 
@@ -437,7 +454,7 @@ void
 kdecl(struct kreq *req)
 {
 
-	puts("<!DOCTYPE html>");
+	KPRINTF(req, "%s", "<!DOCTYPE html>\n");
 }
 
 /*
@@ -1088,6 +1105,8 @@ void
 khttp_free(struct kreq *req)
 {
 
+	if (NULL != req->kdata->gz)
+		gzclose(req->kdata->gz);
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
@@ -1110,7 +1129,7 @@ void
 kncr(struct kreq *req, uint16_t ncr)
 {
 
-	printf("&#x%" PRIu16 ";", ncr);
+	KPRINTF(req, "&#x%" PRIu16 ";", ncr);
 }
 
 void
@@ -1128,6 +1147,28 @@ khead(struct kreq *req, const char *key, const char *fmt, ...)
 void
 kbody(struct kreq *req)
 {
+	const char	*cp;
+
+	/*
+	 * If gzip is an accepted encoding, then create the "gz" stream
+	 * that will be used for all subsequent I/O operations.
+	 */
+	if (NULL != (cp = getenv("HTTP_ACCEPT_ENCODING")) &&
+			NULL != strstr(cp, "gzip")) {
+		req->kdata->gz = gzdopen(STDOUT_FILENO, "w");
+		if (NULL == req->kdata->gz) {
+			perror(NULL);
+			exit(EXIT_FAILURE);
+		}
+		khead(req, "Content-Encoding", "%s", "gzip");
+	} 
+	/*
+	 * XXX: newer versions of zlib have a "T" transparent mode that
+	 * one can add to gzdopen() that allows using the gz without any
+	 * compression.
+	 * Unfortunately, that's not guaranteed on all systems, so we
+	 * must do without it.
+	 */
 
 	fputs("\r\n", stdout);
 	fflush(stdout);
@@ -1146,7 +1187,7 @@ ktext(struct kreq *req, const char *cp)
 			kentity(req, KENTITY_LT);
 			break;
 		default:
-			putchar((int)*cp);
+			KPUTCHAR(req, *cp);
 			break;
 		}
 }
@@ -1303,7 +1344,8 @@ kvalid_uint(struct kpair *p)
  * For now, do it the easily-auditable way.
  */
 int
-ktemplate(const struct ktemplate *t, const char *fname)
+ktemplate(struct kreq *req, 
+	const struct ktemplate *t, const char *fname)
 {
 	struct stat 	 st;
 	char		*buf;
@@ -1337,10 +1379,10 @@ ktemplate(const struct ktemplate *t, const char *fname)
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
 		if ('@' != buf[i]) {
-			putchar(buf[i]);
+			KPUTCHAR(req, buf[i]);
 			continue;
 		} else if ('@' != buf[i + 1]) {
-			putchar(buf[i]);
+			KPUTCHAR(req, buf[i]);
 			continue;
 		} 
 
@@ -1352,7 +1394,7 @@ ktemplate(const struct ktemplate *t, const char *fname)
 
 		/* Continue printing if not found of 0-length. */
 		if (end == sz - 1 || end == start) {
-			putchar(buf[i]);
+			KPUTCHAR(req, buf[i]);
 			continue;
 		}
 
@@ -1370,13 +1412,13 @@ ktemplate(const struct ktemplate *t, const char *fname)
 
 		/* Didn't find it... */
 		if (j == t->keysz)
-			putchar(buf[i]);
+			KPUTCHAR(req, buf[i]);
 		else
 			i = end + 1;
 	}
 
 	if (i < sz)
-		putchar(buf[i]);
+		KPUTCHAR(req, buf[i]);
 
 	rc = 1;
 out:
