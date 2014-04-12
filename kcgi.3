@@ -206,6 +206,18 @@ multipart forms.
 The multipart parsing is still somewhat experimental in terms of
 features, though all parsing is rigorously checked for security (e.g.,
 integer overflow, binary data, etc.).
+.Pp
+To compile applications with
+.Nm ,
+make sure
+.Pa kcgi.h
+is in the header path and
+.Pa libkcgi.a
+in the library path, then link with
+.Fl Ar lkcgi
+and
+.Fl Ar lz
+.Pq unless compression has been disabled at compile-time .
 .Ss Types
 The
 .Vt "struct kreq"
@@ -306,7 +318,7 @@ The application must define the
 .Vt keys
 provided to
 .Fn khttp_parse
-as an array of 
+as an array of
 .Vt "struct kvalid" ,
 which consists of the following:
 .Bl -ohang -offset indent
