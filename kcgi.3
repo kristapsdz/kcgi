@@ -571,7 +571,8 @@ The
 .Nm
 library also has a simple, light-weight template system.
 This is coordinated entirely by a single function,
-.Fn ktemplate "struct kreq *req" "struct ktemplate *t" "const char *fname" .
+.Bl -ohang -offset indent
+.It Fn ktemplate "struct kreq *req" "struct ktemplate *t" "const char *fname"
 This function memory-maps the file
 .Fa fname
 and appends it to the output stream.
@@ -585,6 +586,7 @@ key array.
 If found, the callback is invoked with the key index and the optional
 argument.
 Callbacks may continue to process, emit HTML trees, and so on.
+.El
 .Sh EXAMPLES
 A simple example exists in
 .Pa @DATADIR@/sample.c .
