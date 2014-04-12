@@ -29,7 +29,7 @@ install: libkcgi.a
 	install -m 0444 libkcgi.a $(LIBDIR)
 	install -m 0444 kcgi.h~ $(INCLUDEDIR)/kcgi.h
 	install -m 0444 kcgi.3~ $(MANDIR)/kcgi.3
-	install -m 0444 sample.c $(DATADIR)
+	install -m 0444 template.xml sample.c $(DATADIR)
 	rm -f kcgi.h~ kcgi.3~
 
 sample: sample.o libkcgi.a
@@ -51,7 +51,7 @@ kcgi.3.html: kcgi.3
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
-	cp Makefile sample.c kcgi.h kcgi.3 .dist/kcgi-$(VERSION)
+	cp Makefile sample.c kcgi.c kcgi.h kcgi.3 template.xml .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
