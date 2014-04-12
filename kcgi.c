@@ -41,7 +41,9 @@
 struct	kdata {
 	enum kelem	 elems[128];
 	size_t		 elemsz;
+#ifdef	HAVE_ZLIB
 	gzFile		 gz;
+#endif
 };
 
 /*
@@ -183,19 +185,36 @@ static	const char *const attrs[KATTR__MAX] = {
  */
 const char	*pname = NULL;
 
+/*
+ * Wrapper for printing data to the standard output.
+ * This switches depending on compression support and whether our system
+ * supports zlib compression at all.
+ */
+#ifdef HAVE_ZLIB
 #define	KPRINTF(_req, ...) \
 	do if (NULL != (_req)->kdata->gz) \
 		gzprintf((_req)->kdata->gz, __VA_ARGS__); \
 	else \
 		printf(__VA_ARGS__); \
 	while (0)
+#else
+#define	KPRINTF(_req, ...) printf(__VA_ARGS__)
+#endif
 
+/*
+ * Wrapper for printing characters to standard output.
+ * See KPRINTF().
+ */
+#ifdef HAVE_ZLIB
 #define	KPUTCHAR(_req, _c) \
 	do if (NULL != (_req)->kdata->gz) \
 		gzputc((_req)->kdata->gz, (_c)); \
 	else \
 		putchar((_c)); \
 	while (0)
+#else
+#define KPUTCHAR(_req, _c) putchar((_c))
+#endif
 
 /* 
  * Safe strdup(): don't return on memory failure.
@@ -1105,8 +1124,10 @@ void
 khttp_free(struct kreq *req)
 {
 
+#ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz)
 		gzclose(req->kdata->gz);
+#endif
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
@@ -1147,12 +1168,15 @@ khead(struct kreq *req, const char *key, const char *fmt, ...)
 void
 kbody(struct kreq *req)
 {
+#ifdef HAVE_ZLIB
 	const char	*cp;
+#endif
 
 	/*
 	 * If gzip is an accepted encoding, then create the "gz" stream
 	 * that will be used for all subsequent I/O operations.
 	 */
+#ifdef HAVE_ZLIB
 	if (NULL != (cp = getenv("HTTP_ACCEPT_ENCODING")) &&
 			NULL != strstr(cp, "gzip")) {
 		req->kdata->gz = gzdopen(STDOUT_FILENO, "w");
@@ -1162,6 +1186,7 @@ kbody(struct kreq *req)
 		}
 		khead(req, "Content-Encoding", "%s", "gzip");
 	} 
+#endif
 	/*
 	 * XXX: newer versions of zlib have a "T" transparent mode that
 	 * one can add to gzdopen() that allows using the gz without any

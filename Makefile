@@ -1,10 +1,10 @@
-CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings
+CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_ZLIB
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
-VERSION = 0.1.6
+VERSION = 0.1.7
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 
