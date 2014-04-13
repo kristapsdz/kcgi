@@ -108,9 +108,9 @@ static void
 resp_open(struct kreq *req, enum khttp http)
 {
 
-	khead(req, "Status", "%s", khttps[http]);
-	khead(req, "Content-Type", "%s", kmimetypes[req->mime]);
-	kbody(req);
+	khttp_head(req, "Status", "%s", khttps[http]);
+	khttp_head(req, "Content-Type", "%s", kmimetypes[req->mime]);
+	khttp_body(req);
 }
 
 /*
@@ -124,10 +124,10 @@ template(size_t key, void *arg)
 
 	switch (key) {
 	case (TEMPL_TITLE):
-		ktext(req, "title");
+		khtml_text(req, "title");
 		break;
 	case (TEMPL_NAME):
-		ktext(req, "name");
+		khtml_text(req, "name");
 		break;
 	default:
 		abort();
@@ -168,88 +168,88 @@ sendindex(struct kreq *req)
 
 	asprintf(&page, "%s/%s", pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
-	kdecl(req);
-	kelem(req, KELEM_HTML);
-	kelem(req, KELEM_HEAD);
-	kelem(req, KELEM_TITLE);
-	ktext(req, "Welcome!");
-	kclosure(req, 2);
-	kelem(req, KELEM_BODY);
-	ktext(req, "Welcome!");
+	khtml_decl(req);
+	khtml_elem(req, KELEM_HTML);
+	khtml_elem(req, KELEM_HEAD);
+	khtml_elem(req, KELEM_TITLE);
+	khtml_text(req, "Welcome!");
+	khtml_closure(req, 2);
+	khtml_elem(req, KELEM_BODY);
+	khtml_text(req, "Welcome!");
 
 	/* Start with a standard url-encoded POST form. */
-	sv = kelemsave(req);
-	kattr(req, KELEM_FORM,
+	sv = khtml_elemsave(req);
+	khtml_attr(req, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ACTION, page,
 		KATTR__MAX);
-	kelem(req, KELEM_FIELDSET);
-	kelem(req, KELEM_LEGEND);
-	ktext(req, "Post");
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kinput(req, KEY_INTEGER1);
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kattr(req, KELEM_INPUT,
+	khtml_elem(req, KELEM_FIELDSET);
+	khtml_elem(req, KELEM_LEGEND);
+	khtml_text(req, "Post");
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_input(req, KEY_INTEGER1);
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	kclosureto(req, sv);
-	sv = kelemsave(req);
+	khtml_closureto(req, sv);
+	sv = khtml_elemsave(req);
 
 	/* Now process a GET form. */
-	kattr(req, KELEM_FORM,
+	khtml_attr(req, KELEM_FORM,
 		KATTR_METHOD, "get",
 		KATTR_ACTION, page,
 		KATTR__MAX);
-	kelem(req, KELEM_FIELDSET);
-	kelem(req, KELEM_LEGEND);
-	ktext(req, "Get");
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kinput(req, KEY_INTEGER2);
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kattr(req, KELEM_INPUT,
+	khtml_elem(req, KELEM_FIELDSET);
+	khtml_elem(req, KELEM_LEGEND);
+	khtml_text(req, "Get");
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_input(req, KEY_INTEGER2);
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	kclosureto(req, sv);
+	khtml_closureto(req, sv);
 
 	/* Lastly, process a multipart POST form. */
-	kattr(req, KELEM_FORM,
+	khtml_attr(req, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ENCTYPE, "multipart/form-data",
 		KATTR_ACTION, page,
 		KATTR__MAX);
-	kelem(req, KELEM_FIELDSET);
-	kelem(req, KELEM_LEGEND);
-	ktext(req, "Post (multipart)");
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kinput(req, KEY_INTEGER3);
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kattr(req, KELEM_INPUT,
+	khtml_elem(req, KELEM_FIELDSET);
+	khtml_elem(req, KELEM_LEGEND);
+	khtml_text(req, "Post (multipart)");
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_input(req, KEY_INTEGER3);
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "file",
 		KATTR_NAME, keys[KEY_FILE].name,
 		KATTR__MAX);
 	if (NULL != req->fieldmap[KEY_FILE]) {
 		if (NULL != req->fieldmap[KEY_FILE]->file) {
-			ktext(req, "file: ");
-			ktext(req, req->fieldmap[KEY_FILE]->file);
-			ktext(req, " ");
+			khtml_text(req, "file: ");
+			khtml_text(req, req->fieldmap[KEY_FILE]->file);
+			khtml_text(req, " ");
 		} 
 		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
-			ktext(req, "ctype: ");
-			ktext(req, req->fieldmap[KEY_FILE]->ctype);
+			khtml_text(req, "ctype: ");
+			khtml_text(req, req->fieldmap[KEY_FILE]->ctype);
 		} 
 	}
-	kclosure(req, 1);
-	kelem(req, KELEM_P);
-	kattr(req, KELEM_INPUT,
+	khtml_closure(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	kclosure(req, 0);
+	khtml_closure(req, 0);
 	free(page);
 }
 
@@ -269,7 +269,7 @@ main(void)
 		 */
 		resp_open(&r, KHTTP_404);
 		if (KMIME_HTML == r.mime)
-			ktext(&r, "Page not found.");
+			khtml_text(&r, "Page not found.");
 	} else if (0 == disps[r.page].mimes[r.mime]) {
 		/*
 		 * The given page doesn't support this MIME.
