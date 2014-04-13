@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 12 2014 $
+.Dd $Mdocdate: April 13 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -23,11 +23,11 @@
 .Nm khttp_free ,
 .Nm khtml_attr ,
 .Nm khttp_body ,
-.Nm khtml_closure ,
-.Nm khtml_closureto ,
+.Nm khtml_close ,
+.Nm khtml_closeto ,
 .Nm khtml_decl ,
 .Nm khtml_elem ,
-.Nm khtml_elemsave ,
+.Nm khtml_elemat ,
 .Nm khtml_entity ,
 .Nm khttp_head ,
 .Nm khtml_input ,
@@ -65,12 +65,12 @@
 .Fa "struct kreq *req"
 .Fc
 .Ft void
-.Fo khtml_closure
+.Fo khtml_close
 .Fa "struct kreq *req"
 .Fa "size_t count"
 .Fc
 .Ft void
-.Fo khtml_closureto
+.Fo khtml_closeto
 .Fa "struct kreq *req"
 .Fa "size_t pos"
 .Fc
@@ -82,7 +82,7 @@
 .Fa "enum kelem elem"
 .Fc
 .Ft size_t
-.Fo khtml_elemsave
+.Fo khtml_elemat
 .Fa "struct kreq *req"
 .Fc
 .Ft void
@@ -164,11 +164,11 @@ to begin the HTTP body.
 .It
 Emit HTTP body output using HTML-building functions
 .Fn khtml_attr ,
-.Fn khtml_closure ,
-.Fn khtml_closureto ,
+.Fn khtml_close ,
+.Fn khtml_closeto ,
 .Fn khtml_decl ,
 .Fn khtml_elem ,
-.Fn khtml_elemsave ,
+.Fn khtml_elemat ,
 .Fn khtml_entity ,
 .Fn khtml_input ,
 .Fn khtml_ncr
@@ -465,7 +465,7 @@ This function will append the
 HTTP parameter with compression support if the request specifies it.
 If appended, all subsequent output will be compressed with
 .Xr zlib 3 .
-.It Fn khtml_closure "struct kreq *req" "size_t count"
+.It Fn khtml_close "struct kreq *req" "size_t count"
 Close the last
 .Fa count
 scopes.
@@ -477,22 +477,22 @@ exceeds the number of open scopes.
 If
 .Fa count
 is zero, this will close all scopes.
-.It Fn khtml_closureto "struct kreq *req" "size_t pos"
+.It Fn khtml_closeto "struct kreq *req" "size_t pos"
 Close until a certain level
 .Fa pos
 in the HTML tree, which must be at or above the current level.
 Usually used with
-.Fn khtml_elemsave .
+.Fn khtml_elemat .
 .It Fn khtml_decl "struct kreq *req"
 Emit the document HTML declaration.
 .It Fn khtml_elem "struct kreq *req" "enum kelem elem"
 Invokes
 .Fn khtml_attr
 with no attributes.
-.It Fn khtml_elemsave "struct kreq *req"
+.It Fn khtml_elemat "struct kreq *req"
 Save the current point in the HTML tree.
 Useful for saving a
-.Fn khtml_closureto
+.Fn khtml_closeto
 rollback point.
 .It Fn khtml_entity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
@@ -525,7 +525,9 @@ Emit the numeric character reference
 .It Fn khtml_text "struct kreq *req" "const char *cp"
 Emit the text
 .Va cp ,
-escaping it for HTML if necessary.
+escaping it (e.g.,
+.Sq \&> )
+for HTML if necessary.
 .El
 .Pp
 The following functions are provided for the global

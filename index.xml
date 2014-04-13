@@ -65,9 +65,10 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				XXX
 				Rename functions for clarity: <code>kelem</code> and other HTML functions are now prefixed with
 				<code>khtml_elem</code>, while <code>khead</code> and other HTTP functions are prefixed with <code>khttp</code>.
+				Rename <code>khtml_closure</code> to <code>khtml_close</code> and <code>khtml_elemsave</code> to
+				<code>khtml_elemat</code>.
 			</p>
 		</article>
 		<footer>

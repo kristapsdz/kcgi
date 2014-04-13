@@ -364,7 +364,7 @@ strtonum(const char *numstr, long long minval,
 #endif /*!__OpenBSD__*/
 
 size_t
-khtml_elemsave(struct kreq *req)
+khtml_elemat(struct kreq *req)
 {
 
 	return(req->kdata->elemsz);
@@ -444,7 +444,7 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 }
 
 void
-khtml_closure(struct kreq *req, size_t sz)
+khtml_close(struct kreq *req, size_t sz)
 {
 	size_t		 i;
 	struct kdata	*k = req->kdata;
@@ -462,11 +462,11 @@ khtml_closure(struct kreq *req, size_t sz)
 }
 
 void
-khtml_closureto(struct kreq *req, size_t pos)
+khtml_closeto(struct kreq *req, size_t pos)
 {
 
 	assert(pos < req->kdata->elemsz);
-	khtml_closure(req, req->kdata->elemsz - pos);
+	khtml_close(req, req->kdata->elemsz - pos);
 }
 
 void
@@ -1369,7 +1369,7 @@ kvalid_uint(struct kpair *p)
  * For now, do it the easily-auditable way.
  */
 int
-ktemplate(struct kreq *req, 
+khtml_template(struct kreq *req, 
 	const struct ktemplate *t, const char *fname)
 {
 	struct stat 	 st;
