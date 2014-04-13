@@ -201,20 +201,25 @@ const char	*pname = NULL;
 #define	KPRINTF(_req, ...) printf(__VA_ARGS__)
 #endif
 
-/*
- * Wrapper for printing characters to standard output.
- * See KPRINTF().
- */
-#ifdef HAVE_ZLIB
-#define	KPUTCHAR(_req, _c) \
-	do if (NULL != (_req)->kdata->gz) \
-		gzputc((_req)->kdata->gz, (_c)); \
-	else \
-		putchar((_c)); \
-	while (0)
-#else
-#define KPUTCHAR(_req, _c) putchar((_c))
-#endif
+void
+khttp_puts(struct kreq *req, const char *cp)
+{
+
+	if (NULL != req->kdata->gz)
+		gzputs(req->kdata->gz, cp);
+	else 
+		fputs(cp, stdout);
+}
+
+void
+khttp_putc(struct kreq *req, int c)
+{
+
+	if (NULL != req->kdata->gz)
+		gzputc(req->kdata->gz, c);
+	else 
+		putchar(c);
+}
 
 /* 
  * Safe strdup(): don't return on memory failure.
@@ -432,11 +437,11 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	va_end(ap);
 
 	if (TAG_ACLOSE & tags[elem].flags)
-		KPUTCHAR(req, '/');
-	KPUTCHAR(req, '>');
+		khttp_putc(req, '/');
+	khttp_putc(req, '>');
 
 	if (TAG_BLOCK & tags[elem].flags) 
-		KPUTCHAR(req, '\n');
+		khttp_putc(req, '\n');
 
 	if ( ! (TAG_ACLOSE & tags[elem].flags))
 		k->elems[k->elemsz++] = elem;
@@ -457,7 +462,7 @@ khtml_close(struct kreq *req, size_t sz)
 		k->elemsz--;
 		KPRINTF(req, "</%s>", tags[k->elems[k->elemsz]].name);
 		if (TAG_BLOCK & tags[k->elems[k->elemsz]].flags) 
-			KPUTCHAR(req, '\n');
+			khttp_putc(req, '\n');
 	}
 }
 
@@ -473,7 +478,7 @@ void
 khtml_decl(struct kreq *req)
 {
 
-	KPRINTF(req, "%s", "<!DOCTYPE html>\n");
+	khttp_puts(req, "<!DOCTYPE html>\n");
 }
 
 /*
@@ -1212,7 +1217,7 @@ khtml_text(struct kreq *req, const char *cp)
 			khtml_entity(req, KENTITY_LT);
 			break;
 		default:
-			KPUTCHAR(req, *cp);
+			khttp_putc(req, *cp);
 			break;
 		}
 }
@@ -1404,10 +1409,10 @@ khtml_template(struct kreq *req,
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
 		if ('@' != buf[i]) {
-			KPUTCHAR(req, buf[i]);
+			khttp_putc(req, buf[i]);
 			continue;
 		} else if ('@' != buf[i + 1]) {
-			KPUTCHAR(req, buf[i]);
+			khttp_putc(req, buf[i]);
 			continue;
 		} 
 
@@ -1419,7 +1424,7 @@ khtml_template(struct kreq *req,
 
 		/* Continue printing if not found of 0-length. */
 		if (end == sz - 1 || end == start) {
-			KPUTCHAR(req, buf[i]);
+			khttp_putc(req, buf[i]);
 			continue;
 		}
 
@@ -1437,13 +1442,13 @@ khtml_template(struct kreq *req,
 
 		/* Didn't find it... */
 		if (j == t->keysz)
-			KPUTCHAR(req, buf[i]);
+			khttp_putc(req, buf[i]);
 		else
 			i = end + 1;
 	}
 
 	if (i < sz)
-		KPUTCHAR(req, buf[i]);
+		khttp_putc(req, buf[i]);
 
 	rc = 1;
 out:
