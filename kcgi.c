@@ -364,21 +364,21 @@ strtonum(const char *numstr, long long minval,
 #endif /*!__OpenBSD__*/
 
 size_t
-kelemsave(struct kreq *req)
+khtml_elemsave(struct kreq *req)
 {
 
 	return(req->kdata->elemsz);
 }
 
 void
-kelem(struct kreq *req, enum kelem elem)
+khtml_elem(struct kreq *req, enum kelem elem)
 {
 
-	kattr(req, elem, KATTR__MAX);
+	khtml_attr(req, elem, KATTR__MAX);
 }
 
 void
-kinput(struct kreq *req, size_t key)
+khtml_input(struct kreq *req, size_t key)
 {
 	const char	*cp;
 	char		 buf[64];
@@ -405,7 +405,7 @@ kinput(struct kreq *req, size_t key)
 		}
 
 	assert(req->keys[key].field < KFIELD__MAX);
-	kattr(req, KELEM_INPUT,
+	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, kfields[req->keys[key].field],
 		KATTR_NAME, req->keys[key].name,
 		KATTR_VALUE, cp,
@@ -413,7 +413,7 @@ kinput(struct kreq *req, size_t key)
 }
 
 void
-kattr(struct kreq *req, enum kelem elem, ...)
+khtml_attr(struct kreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
 	enum kattr	 at;
@@ -444,7 +444,7 @@ kattr(struct kreq *req, enum kelem elem, ...)
 }
 
 void
-kclosure(struct kreq *req, size_t sz)
+khtml_closure(struct kreq *req, size_t sz)
 {
 	size_t		 i;
 	struct kdata	*k = req->kdata;
@@ -462,15 +462,15 @@ kclosure(struct kreq *req, size_t sz)
 }
 
 void
-kclosureto(struct kreq *req, size_t pos)
+khtml_closureto(struct kreq *req, size_t pos)
 {
 
 	assert(pos < req->kdata->elemsz);
-	kclosure(req, req->kdata->elemsz - pos);
+	khtml_closure(req, req->kdata->elemsz - pos);
 }
 
 void
-kdecl(struct kreq *req)
+khtml_decl(struct kreq *req)
 {
 
 	KPRINTF(req, "%s", "<!DOCTYPE html>\n");
@@ -1139,22 +1139,22 @@ khttp_free(struct kreq *req)
 }
 
 void
-kentity(struct kreq *req, enum kentity entity)
+khtml_entity(struct kreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
-	kncr(req, entities[entity]);
+	khtml_ncr(req, entities[entity]);
 }
 
 void
-kncr(struct kreq *req, uint16_t ncr)
+khtml_ncr(struct kreq *req, uint16_t ncr)
 {
 
 	KPRINTF(req, "&#x%" PRIu16 ";", ncr);
 }
 
 void
-khead(struct kreq *req, const char *key, const char *fmt, ...)
+khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 {
 	va_list	 ap;
 
@@ -1166,7 +1166,7 @@ khead(struct kreq *req, const char *key, const char *fmt, ...)
 }
 
 void
-kbody(struct kreq *req)
+khttp_body(struct kreq *req)
 {
 #ifdef HAVE_ZLIB
 	const char	*cp;
@@ -1184,7 +1184,7 @@ kbody(struct kreq *req)
 			perror(NULL);
 			exit(EXIT_FAILURE);
 		}
-		khead(req, "Content-Encoding", "%s", "gzip");
+		khttp_head(req, "Content-Encoding", "%s", "gzip");
 	} 
 #endif
 	/*
@@ -1200,16 +1200,16 @@ kbody(struct kreq *req)
 }
 
 void
-ktext(struct kreq *req, const char *cp)
+khtml_text(struct kreq *req, const char *cp)
 {
 
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
-			kentity(req, KENTITY_GT);
+			khtml_entity(req, KENTITY_GT);
 			break;
 		case ('<'):
-			kentity(req, KENTITY_LT);
+			khtml_entity(req, KENTITY_LT);
 			break;
 		default:
 			KPUTCHAR(req, *cp);
