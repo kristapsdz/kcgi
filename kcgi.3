@@ -19,19 +19,19 @@
 .Os
 .Sh NAME
 .Nm kcgi ,
+.Nm khttp_body ,
 .Nm khttp_free ,
+.Nm khttp_head ,
 .Nm khttp_parse ,
 .Nm khttp_putc ,
 .Nm khttp_puts ,
 .Nm khtml_attr ,
-.Nm khttp_body ,
 .Nm khtml_close ,
 .Nm khtml_closeto ,
 .Nm khtml_decl ,
 .Nm khtml_elem ,
 .Nm khtml_elemat ,
 .Nm khtml_entity ,
-.Nm khttp_head ,
 .Nm khtml_input ,
 .Nm khtml_ncr ,
 .Nm khtml_text ,
@@ -45,8 +45,19 @@
 .Sh SYNOPSIS
 .In kcgi.h
 .Ft void
+.Fo khttp_body
+.Fa "struct kreq *req"
+.Fc
+.Ft void
 .Fo khttp_free
 .Fa "struct kreq *req"
+.Fc
+.Ft void
+.Fo khttp_head
+.Fa "struct kreq *req"
+.Fa "const char *key"
+.Fa "const char *fmt"
+.Fa "..."
 .Fc
 .Ft void
 .Fo khttp_parse
@@ -73,10 +84,6 @@
 .Fa "..."
 .Fc
 .Ft void
-.Fo kbody
-.Fa "struct kreq *req"
-.Fc
-.Ft void
 .Fo khtml_close
 .Fa "struct kreq *req"
 .Fa "size_t count"
@@ -101,13 +108,6 @@
 .Fo khtml_entity
 .Fa "struct kreq *req"
 .Fa "enum entity entity"
-.Fc
-.Ft void
-.Fo khttp_head
-.Fa "struct kreq *req"
-.Fa "const char *key"
-.Fa "const char *fmt"
-.Fa "..."
 .Fc
 .Ft void
 .Fo khtml_input
