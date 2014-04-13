@@ -21,19 +21,19 @@
 .Nm kcgi ,
 .Nm khttp_parse ,
 .Nm khttp_free ,
-.Nm kattr ,
-.Nm kbody ,
-.Nm kclosure ,
-.Nm kclosureto ,
-.Nm kdecl ,
-.Nm kelem ,
-.Nm kelemsave ,
-.Nm kentity ,
-.Nm khead ,
-.Nm kinput ,
-.Nm kncr ,
-.Nm ktext ,
-.Nm ktemplate ,
+.Nm khtml_attr ,
+.Nm khttp_body ,
+.Nm khtml_closure ,
+.Nm khtml_closureto ,
+.Nm khtml_decl ,
+.Nm khtml_elem ,
+.Nm khtml_elemsave ,
+.Nm khtml_entity ,
+.Nm khttp_head ,
+.Nm khtml_input ,
+.Nm khtml_ncr ,
+.Nm khtml_text ,
+.Nm khtml_template ,
 .Nm kcalloc ,
 .Nm kmalloc ,
 .Nm krealloc ,
@@ -55,7 +55,7 @@
 .Fa "size_t pagesz"
 .Fc
 .Ft void
-.Fo kattr
+.Fo khtml_attr
 .Fa "struct kreq *req"
 .Fa "enum kelem elem"
 .Fa "..."
@@ -65,55 +65,55 @@
 .Fa "struct kreq *req"
 .Fc
 .Ft void
-.Fo kclosure
+.Fo khtml_closure
 .Fa "struct kreq *req"
 .Fa "size_t count"
 .Fc
 .Ft void
-.Fo kclosureto
+.Fo khtml_closureto
 .Fa "struct kreq *req"
 .Fa "size_t pos"
 .Fc
 .Ft void
-.Fn kdecl
+.Fn khtml_decl
 .Ft "struct kreq *req"
-.Fo kelem
+.Fo khtml_elem
 .Fa "struct kreq *req"
 .Fa "enum kelem elem"
 .Fc
 .Ft size_t
-.Fo kelemsave
+.Fo khtml_elemsave
 .Fa "struct kreq *req"
 .Fc
 .Ft void
-.Fo kentity
+.Fo khtml_entity
 .Fa "struct kreq *req"
 .Fa "enum entity entity"
 .Fc
 .Ft void
-.Fo khead
+.Fo khttp_head
 .Fa "struct kreq *req"
 .Fa "const char *key"
 .Fa "const char *fmt"
 .Fa "..."
 .Fc
 .Ft void
-.Fo kinput
+.Fo khtml_input
 .Fa "struct kreq *req"
 .Fa "size_t key"
 .Fc
 .Ft void
-.Fo kncr
+.Fo khtml_ncr
 .Fa "struct kreq *req"
 .Fa "uint16_t ncr"
 .Fc
 .Ft void
-.Fo ktext
+.Fo khtml_text
 .Fa "struct kreq *req"
 .Fa "const char *cp"
 .Fc
 .Ft int
-.Fo ktemplate
+.Fo khtml_template
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *fname"
@@ -157,31 +157,31 @@ Process input fields by examining the
 elements.
 .It
 Emit HTTP headers with
-.Fn khead ,
+.Fn khttp_head ,
 followed by
-.Fn kbody
+.Fn khttp_body
 to begin the HTTP body.
 .It
 Emit HTTP body output using HTML-building functions
-.Fn kattr ,
-.Fn kclosure ,
-.Fn kclosureto ,
-.Fn kdecl ,
-.Fn kelem ,
-.Fn kelemsave ,
-.Fn kentity ,
-.Fn kinput ,
-.Fn kncr
+.Fn khtml_attr ,
+.Fn khtml_closure ,
+.Fn khtml_closureto ,
+.Fn khtml_decl ,
+.Fn khtml_elem ,
+.Fn khtml_elemsave ,
+.Fn khtml_entity ,
+.Fn khtml_input ,
+.Fn khtml_ncr
 and
-.Fn ktext ;
+.Fn khtml_text ;
 or
 .It
 use the
-.Fn ktemplate
+.Fn khtml_template
 system with a mixture of HTML-building functions; or
 .It
 use
-.Fn ktext
+.Fn khtml_text
 for non-HTML media.
 .Em \&Do not
 use
@@ -340,7 +340,7 @@ This cannot be
 .Dv NULL .
 .It Va "enum kfield field"
 How to format the field value if used in
-.Fn kinput .
+.Fn khtml_input .
 This can be
 .Dv KFIELD__MAX
 if the value shouldn't be repopulated.
@@ -397,7 +397,7 @@ floating-point number.
 .El
 .Pp
 The template system, driven by
-.Fn ktemplate ,
+.Fn khtml_template ,
 uses
 .Vt "struct ktemplate"
 for its templating.
@@ -425,7 +425,7 @@ The following functions initialise an HTTP request.
 Free the memory of a context created by
 .Fn khttp_parse
 and, if applicable, closes the compressed output stream opened by
-.Fn kbody .
+.Fn khttp_body .
 .It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
 "size_t keysz" \
@@ -447,25 +447,25 @@ is for page mapping.
 .Pp
 The following functions create an HTML tree.
 .Bl -ohang -offset indent
-.It Fn kattr "struct kreq *req" "enum kelem elem" "..."
+.It Fn khtml_attr "struct kreq *req" "enum kelem elem" "..."
 Open the scope of element
-.Fa kelem
+.Fa elem
 with matching key-value pairs in the varargs for its attributes.
 The maximum number of nested scopes is fixed at 128.
 The terminating attribute key must be
 .Dv ATTR__MAX.
-.It Fn kbody "struct kreq *req"
+.It Fn khttp_body "struct kreq *req"
 End a sequence of HTTP headers outputted with
-.Fn khead .
+.Fn khttp_head .
 The
-.Fn khead
+.Fn khttp_head
 function must not be called after this.
 This function will append the
 .Li Content-Encoding
 HTTP parameter with compression support if the request specifies it.
 If appended, all subsequent output will be compressed with
 .Xr zlib 3 .
-.It Fn kclosure "struct kreq *req" "size_t count"
+.It Fn khtml_closure "struct kreq *req" "size_t count"
 Close the last
 .Fa count
 scopes.
@@ -477,27 +477,27 @@ exceeds the number of open scopes.
 If
 .Fa count
 is zero, this will close all scopes.
-.It Fn kclosureto "struct kreq *req" "size_t pos"
+.It Fn khtml_closureto "struct kreq *req" "size_t pos"
 Close until a certain level
 .Fa pos
 in the HTML tree, which must be at or above the current level.
 Usually used with
-.Fn kelemsave .
-.It Fn kdecl "struct kreq *req"
+.Fn khtml_elemsave .
+.It Fn khtml_decl "struct kreq *req"
 Emit the document HTML declaration.
-.It Fn kelem "struct kreq *req" "enum kelem elem"
+.It Fn khtml_elem "struct kreq *req" "enum kelem elem"
 Invokes
-.Fn kattr
+.Fn khtml_attr
 with no attributes.
-.It Fn kelemsave "struct kreq *req"
+.It Fn khtml_elemsave "struct kreq *req"
 Save the current point in the HTML tree.
 Useful for saving a
-.Fn kclosureto
+.Fn khtml_closureto
 rollback point.
-.It Fn kentity "struct kreq *req" "enum kentity entity"
+.It Fn khtml_entity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.It Fn khead "struct kreq *req" "const char *key" "const char *fmt" "..."
+.It Fn khttp_head "struct kreq *req" "const char *key" "const char *fmt" "..."
 Emit an HTTP header
 .Fa key
 with value formatted by
@@ -505,9 +505,9 @@ with value formatted by
 and its variable arguments.
 This occurs before any HTML functions are invoked, and must be followed
 by
-.Fn kbody
+.Fn khttp_body
 to indicate the start of document content.
-.It Fn kinput "struct kreq *req" "size_t key"
+.It Fn khtml_input "struct kreq *req" "size_t key"
 Emit the HTML code for the input element named
 .Fa key
 as defined in
@@ -519,10 +519,10 @@ This will also fill in a value if stored in parsed
 in
 .Va req .
 This is meant to simplify the repopulation of fields.
-.It Fn kncr "struct kreq *req" "uint16_t ncr"
+.It Fn khtml_ncr "struct kreq *req" "uint16_t ncr"
 Emit the numeric character reference
 .Va ncr .
-.It Fn ktext "struct kreq *req" "const char *cp"
+.It Fn khtml_text "struct kreq *req" "const char *cp"
 Emit the text
 .Va cp ,
 escaping it for HTML if necessary.
@@ -584,7 +584,7 @@ The
 library also has a simple, light-weight template system.
 This is coordinated entirely by a single function,
 .Bl -ohang -offset indent
-.It Fn ktemplate "struct kreq *req" "struct ktemplate *t" "const char *fname"
+.It Fn khtml_template "struct kreq *req" "struct ktemplate *t" "const char *fname"
 This function memory-maps the file
 .Fa fname
 and appends it to the output stream.

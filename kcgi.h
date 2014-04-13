@@ -194,25 +194,26 @@ struct	ktemplate {
 
 __BEGIN_DECLS
 
+void		 khttp_body(struct kreq *req);
 void		 khttp_free(struct kreq *req);
+void		 khttp_head(struct kreq *req, const char *key, 
+			const char *fmt, ...)
+			__attribute__((format(printf, 3, 4)));
 void		 khttp_parse(struct kreq *req, 
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage);
-void		 kattr(struct kreq *req, enum kelem elem, ...);
-void		 kbody(struct kreq *req);
-void		 kclosure(struct kreq *req, size_t count);
-void		 kclosureto(struct kreq *req, size_t pos);
-void		 kdecl(struct kreq *req);
-void		 kelem(struct kreq *req, enum kelem elem);
-size_t		 kelemsave(struct kreq *req);
-void		 kentity(struct kreq *req, enum kentity entity);
-void		 khead(struct kreq *req, const char *key, 
-			const char *fmt, ...)
-			__attribute__((format(printf, 3, 4)));
-void		 kinput(struct kreq *req, size_t key);
-void		 kncr(struct kreq *req, uint16_t ncr);
-void		 ktext(struct kreq *req, const char *cp);
+
+void		 khtml_attr(struct kreq *req, enum kelem elem, ...);
+void		 khtml_closure(struct kreq *req, size_t count);
+void		 khtml_closureto(struct kreq *req, size_t pos);
+void		 khtml_decl(struct kreq *req);
+void		 khtml_elem(struct kreq *req, enum kelem elem);
+size_t		 khtml_elemsave(struct kreq *req);
+void		 khtml_entity(struct kreq *req, enum kentity entity);
+void		 khtml_input(struct kreq *req, size_t key);
+void		 khtml_ncr(struct kreq *req, uint16_t ncr);
+void		 khtml_text(struct kreq *req, const char *cp);
 
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
