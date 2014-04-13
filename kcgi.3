@@ -435,11 +435,34 @@ array.
 .Ss Functions
 The following functions initialise an HTTP request.
 .Bl -ohang -offset indent
+.It Fn khttp_body "struct kreq *req"
+End a sequence of HTTP headers outputted with
+.Fn khttp_head .
+The
+.Fn khttp_head
+function must not be called after this.
+This function will append the
+.Li Content-Encoding
+HTTP parameter with compression support if the request specifies it.
+If appended, all subsequent output will be compressed with
+.Xr zlib 3 .
 .It Fn khttp_free "struct kreq *req"
 Free the memory of a context created by
 .Fn khttp_parse
 and, if applicable, closes the compressed output stream opened by
 .Fn khttp_body .
+.It Fn khttp_head "struct kreq *req" "const char *key" "const char *fmt" "..."
+Emit an HTTP header
+.Fa key
+with value formatted by
+.Fa fmt
+and its variable arguments.
+This occurs before any HTML functions are invoked.
+The sequence of
+.Fn khttp_head
+calls, if any, must be followed by a mandatory
+.Fn khttp_body
+to indicate the start of document content.
 .It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
 "size_t keysz" \
@@ -468,17 +491,6 @@ with matching key-value pairs in the varargs for its attributes.
 The maximum number of nested scopes is fixed at 128.
 The terminating attribute key must be
 .Dv ATTR__MAX.
-.It Fn khttp_body "struct kreq *req"
-End a sequence of HTTP headers outputted with
-.Fn khttp_head .
-The
-.Fn khttp_head
-function must not be called after this.
-This function will append the
-.Li Content-Encoding
-HTTP parameter with compression support if the request specifies it.
-If appended, all subsequent output will be compressed with
-.Xr zlib 3 .
 .It Fn khtml_close "struct kreq *req" "size_t count"
 Close the last
 .Fa count
@@ -511,16 +523,6 @@ rollback point.
 .It Fn khtml_entity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.It Fn khttp_head "struct kreq *req" "const char *key" "const char *fmt" "..."
-Emit an HTTP header
-.Fa key
-with value formatted by
-.Fa fmt
-and its variable arguments.
-This occurs before any HTML functions are invoked, and must be followed
-by
-.Fn khttp_body
-to indicate the start of document content.
 .It Fn khtml_input "struct kreq *req" "size_t key"
 Emit the HTML code for the input element named
 .Fa key
