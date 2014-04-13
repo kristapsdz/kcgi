@@ -153,7 +153,7 @@ sendtemplate(struct kreq *req)
 	t.cb = template;
 
 	resp_open(req, KHTTP_200);
-	ktemplate(req, &t, "template.xml");
+	khtml_template(req, &t, "template.xml");
 }
 
 /*
@@ -173,12 +173,12 @@ sendindex(struct kreq *req)
 	khtml_elem(req, KELEM_HEAD);
 	khtml_elem(req, KELEM_TITLE);
 	khtml_text(req, "Welcome!");
-	khtml_closure(req, 2);
+	khtml_close(req, 2);
 	khtml_elem(req, KELEM_BODY);
 	khtml_text(req, "Welcome!");
 
 	/* Start with a standard url-encoded POST form. */
-	sv = khtml_elemsave(req);
+	sv = khtml_elemat(req);
 	khtml_attr(req, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ACTION, page,
@@ -186,16 +186,16 @@ sendindex(struct kreq *req)
 	khtml_elem(req, KELEM_FIELDSET);
 	khtml_elem(req, KELEM_LEGEND);
 	khtml_text(req, "Post");
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_input(req, KEY_INTEGER1);
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	khtml_closureto(req, sv);
-	sv = khtml_elemsave(req);
+	khtml_closeto(req, sv);
+	sv = khtml_elemat(req);
 
 	/* Now process a GET form. */
 	khtml_attr(req, KELEM_FORM,
@@ -205,15 +205,15 @@ sendindex(struct kreq *req)
 	khtml_elem(req, KELEM_FIELDSET);
 	khtml_elem(req, KELEM_LEGEND);
 	khtml_text(req, "Get");
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_input(req, KEY_INTEGER2);
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	khtml_closureto(req, sv);
+	khtml_closeto(req, sv);
 
 	/* Lastly, process a multipart POST form. */
 	khtml_attr(req, KELEM_FORM,
@@ -224,10 +224,10 @@ sendindex(struct kreq *req)
 	khtml_elem(req, KELEM_FIELDSET);
 	khtml_elem(req, KELEM_LEGEND);
 	khtml_text(req, "Post (multipart)");
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_input(req, KEY_INTEGER3);
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "file",
@@ -244,12 +244,12 @@ sendindex(struct kreq *req)
 			khtml_text(req, req->fieldmap[KEY_FILE]->ctype);
 		} 
 	}
-	khtml_closure(req, 1);
+	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	khtml_closure(req, 0);
+	khtml_close(req, 0);
 	free(page);
 }
 
