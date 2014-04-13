@@ -19,8 +19,10 @@
 .Os
 .Sh NAME
 .Nm kcgi ,
-.Nm khttp_parse ,
 .Nm khttp_free ,
+.Nm khttp_parse ,
+.Nm khttp_putc ,
+.Nm khttp_puts ,
 .Nm khtml_attr ,
 .Nm khttp_body ,
 .Nm khtml_close ,
@@ -53,6 +55,16 @@
 .Fa "size_t keysz"
 .Fa "const char *const *pages"
 .Fa "size_t pagesz"
+.Fc
+.Ft void
+.Fo khttp_putc
+.Fa "struct kreq *req"
+.Fa "int c"
+.Fc
+.Ft void
+.Fo khttp_puts
+.Fa "struct kreq *req"
+.Fa "const char *cp"
 .Fc
 .Ft void
 .Fo khtml_attr
@@ -181,7 +193,9 @@ use the
 system with a mixture of HTML-building functions; or
 .It
 use
-.Fn khtml_text
+.Fn khttp_putc
+and
+.Fn khttp_puts
 for non-HTML media.
 .Em \&Do not
 use
@@ -528,6 +542,19 @@ Emit the text
 escaping it (e.g.,
 .Sq \&> )
 for HTML if necessary.
+.El
+.Pp
+If your application puts data directly into the HTTP body without HTML
+escaping, use the following functions:
+.Bl -ohang -offset indent
+.It Fn khttp_putc "struct kreq *req" "int c"
+Append a single character
+.Fa c
+to the output stream.
+.It Fn khttp_puts "struct kreq *req" "const char *cp"
+Append a nil-terminated string
+.Fa cp
+to the output stream.
 .El
 .Pp
 The following functions are provided for the global
