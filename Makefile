@@ -4,7 +4,7 @@ DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
-VERSION = 0.1.7
+VERSION = 0.1.9
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 

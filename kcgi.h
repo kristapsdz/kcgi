@@ -203,6 +203,8 @@ void		 khttp_parse(struct kreq *req,
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage);
+void		 khttp_putc(struct kreq *req, int c);
+void		 khttp_puts(struct kreq *req, const char *cp);
 
 void		 khtml_attr(struct kreq *req, enum kelem elem, ...);
 void		 khtml_close(struct kreq *req, size_t count);
