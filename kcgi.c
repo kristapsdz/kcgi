@@ -1011,6 +1011,16 @@ khttp_parse(struct kreq *req,
 	req->fieldmap = kcalloc(keysz, sizeof(struct kpair *));
 	req->fieldnmap = kcalloc(keysz, sizeof(struct kpair *));
 
+	/* Determine whether we have authenticaiton. */
+	if (NULL != (cp = getenv("AUTH_TYPE"))) {
+		if (0 == strcmp(cp, "Basic"))
+			req->auth = KAUTH_BASIC;
+		else if (0 == strcmp(cp, "Digest"))
+			req->auth = KAUTH_DIGEST;
+		else
+			req->auth = KAUTH_UNKNOWN;
+	}
+
 	sub = NULL;
 	p = defpage;
 	m = KMIME_HTML;

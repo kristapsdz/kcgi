@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 13 2014 $
+.Dd $Mdocdate: April 14 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -246,6 +246,11 @@ or
 .Dv KMETHOD_POST
 submission method.
 Note that other methods aren't supported.
+.It Va auth
+Type of HTTP authorisation, if any.
+If an authorisation is specified but with unknown type (i.e., not digest
+or basic authentiation), this is set to
+.Dv KAUTH_UNKNOWN .
 .It Va cookies
 All key-value pairs read from user cookies.
 .It Va cookiesz
