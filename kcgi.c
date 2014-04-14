@@ -38,9 +38,15 @@
 /* FIXME: pass this into http_parse(). */
 #define	UPLOAD_LIMIT	 10485760
 
+enum	kstate {
+	KSTATE_HEAD = 0,
+	KSTATE_BODY
+};
+
 struct	kdata {
 	enum kelem	 elems[128];
 	size_t		 elemsz;
+	enum kstate	 state;
 #ifdef	HAVE_ZLIB
 	gzFile		 gz;
 #endif
@@ -372,6 +378,7 @@ size_t
 khtml_elemat(struct kreq *req)
 {
 
+	assert(KSTATE_BODY == req->kdata->state);
 	return(req->kdata->elemsz);
 }
 
@@ -379,6 +386,7 @@ void
 khtml_elem(struct kreq *req, enum kelem elem)
 {
 
+	assert(KSTATE_BODY == req->kdata->state);
 	khtml_attr(req, elem, KATTR__MAX);
 }
 
@@ -387,6 +395,8 @@ khtml_input(struct kreq *req, size_t key)
 {
 	const char	*cp;
 	char		 buf[64];
+
+	assert(KSTATE_BODY == req->kdata->state);
 
 	cp = "";
 	if (NULL != req->fieldmap[key])
@@ -425,6 +435,7 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	struct kdata	*k = req->kdata;
 	const char	*cp;
 
+	assert(KSTATE_BODY == req->kdata->state);
 	KPRINTF(req, "<%s", tags[elem].name);
 
 	va_start(ap, elem);
@@ -454,6 +465,8 @@ khtml_close(struct kreq *req, size_t sz)
 	size_t		 i;
 	struct kdata	*k = req->kdata;
 
+	assert(KSTATE_BODY == req->kdata->state);
+
 	if (0 == sz)
 		sz = k->elemsz;
 
@@ -470,6 +483,7 @@ void
 khtml_closeto(struct kreq *req, size_t pos)
 {
 
+	assert(KSTATE_BODY == req->kdata->state);
 	assert(pos < req->kdata->elemsz);
 	khtml_close(req, req->kdata->elemsz - pos);
 }
@@ -478,6 +492,7 @@ void
 khtml_decl(struct kreq *req)
 {
 
+	assert(KSTATE_BODY == req->kdata->state);
 	khttp_puts(req, "<!DOCTYPE html>\n");
 }
 
@@ -1148,6 +1163,7 @@ khtml_entity(struct kreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
+	assert(KSTATE_BODY == req->kdata->state);
 	khtml_ncr(req, entities[entity]);
 }
 
@@ -1155,6 +1171,7 @@ void
 khtml_ncr(struct kreq *req, uint16_t ncr)
 {
 
+	assert(KSTATE_BODY == req->kdata->state);
 	KPRINTF(req, "&#x%" PRIu16 ";", ncr);
 }
 
@@ -1162,6 +1179,8 @@ void
 khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 {
 	va_list	 ap;
+
+	assert(KSTATE_HEAD == req->kdata->state);
 
 	printf("%s: ", key);
 	va_start(ap, fmt);
@@ -1176,6 +1195,7 @@ khttp_body(struct kreq *req)
 #ifdef HAVE_ZLIB
 	const char	*cp;
 #endif
+	assert(KSTATE_HEAD == req->kdata->state);
 
 	/*
 	 * If gzip is an accepted encoding, then create the "gz" stream
@@ -1202,11 +1222,14 @@ khttp_body(struct kreq *req)
 
 	fputs("\r\n", stdout);
 	fflush(stdout);
+	req->kdata->state = KSTATE_BODY;
 }
 
 void
 khtml_text(struct kreq *req, const char *cp)
 {
+
+	assert(KSTATE_BODY == req->kdata->state);
 
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
@@ -1381,6 +1404,8 @@ khtml_template(struct kreq *req,
 	char		*buf;
 	size_t		 sz, i, j, len, start, end;
 	int		 fd, rc;
+
+	assert(KSTATE_BODY == req->kdata->state);
 
 	if (-1 == (fd = open(fname, O_RDONLY, 0)))
 		return(0);

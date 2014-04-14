@@ -440,7 +440,7 @@ End a sequence of HTTP headers outputted with
 .Fn khttp_head .
 The
 .Fn khttp_head
-function must not be called after this.
+function may not be called after this.
 This function will append the
 .Li Content-Encoding
 HTTP parameter with compression support if the request specifies it.
@@ -463,6 +463,10 @@ The sequence of
 calls, if any, must be followed by a mandatory
 .Fn khttp_body
 to indicate the start of document content.
+You may not invoke
+.Fn khttp_head
+subsequent to
+.Fn khttp_body .
 .It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
 "size_t keysz" \
@@ -483,6 +487,8 @@ is for page mapping.
 .El
 .Pp
 The following functions create an HTML tree.
+None of these functions may be called before
+.Fn khttp_body .
 .Bl -ohang -offset indent
 .It Fn khtml_attr "struct kreq *req" "enum kelem elem" "..."
 Open the scope of element
