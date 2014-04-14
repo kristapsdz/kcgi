@@ -69,12 +69,7 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Add <code>khttp_putc</code> and <code>khttp_puts</code> for appending directly to the (possibly-compressed)
-				output stream.
-				Rename functions for clarity: <code>kelem</code> and other HTML functions are now prefixed with
-				<code>khtml_elem</code>, while <code>khead</code> and other HTTP functions are prefixed with <code>khttp</code>.
-				Rename <code>khtml_closure</code> to <code>khtml_close</code> and <code>khtml_elemsave</code> to
-				<code>khtml_elemat</code>.
+				Recognise HTTP authentication methods in <code>struct kreq</code>.
 			</p>
 		</article>
 		<footer>
