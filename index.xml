@@ -19,6 +19,9 @@
 			footer { margin-top: 1em; font-size: smaller; color: #666; }
 			footer a { color: #000; }
 			h2 { font-size: inherit; font-weight: bolder; color: #333; }
+			@media only screen and (max-width: 600px), only screen and (max-device-width: 600px) {
+			header, article, footer { width: 98%; }
+			}
 		</style>
 	</head>
 	<body>
@@ -34,30 +37,31 @@
 		</header>
 		<article>
 			<p>
-				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in C.  
-				It was designed to be simple, permissibly-licensed, and auditable.
+				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in ISO C.  
+				It was designed to be simple, <a href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a>, and
+				auditable.
 				See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a> for
 				alternatives.
+				To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make
+					install</code> into your <code>PREFIX</code> of choice.
+				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all function, variables, types, and general usage.
 				<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 			</p>
+			<h2>
+				Features
+			</h2>
 			<p>
-				Some features:
+				The following is a rough feature list of <span class="nm">kcgi</span>.
+				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li><code>multipart/form-data</code> and <code>application/x-www-form-urlencoded</code> input</li>
-				<li>lightweight functions for building HTML trees and HTTP headers</li>
+				<li>query string, cookie, and form (multipart and urlencoded) input</li>
+				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
 				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
-				<li>field (URI, form, and cookie) validation and repopulation</li>
-				<li>automatic HTTP compression support (via <a href="http://www.zlib.net">zlib</a>)</li>
+				<li>input field validation and repopulation</li>
+				<li>automatic HTTP compression (via <a href="http://www.zlib.net">zlib</a>)</li>
 			</ul>
-			<p>
-				The library itself consists of easily-auditable ISO C sources under the <a
-					href="http://opensource.org/licenses/ISC" rel="license">ISC license</a>.
-				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all function, variables, and usage.
-				To use the library, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into
-				your <code>PREFIX</code> of choice.
-			</p>
 			<p>
 				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions.
 			</p>
