@@ -278,6 +278,23 @@ krealloc(void *pp, size_t nm, size_t sz)
 	exit(EXIT_FAILURE);
 }
 
+void *
+kasprintf(const char *fmt, ...)
+{
+	char	*p;
+	va_list	 ap;
+
+	va_start(ap, fmt);
+	vasprintf(&p, fmt, ap);
+	va_end(ap);
+
+	if (NULL != p)
+		return(p);
+
+	perror(NULL);
+	exit(EXIT_FAILURE);
+}
+
 /*
  * Safe calloc(): don't return on exhaustion.
  */

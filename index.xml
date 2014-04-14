@@ -63,6 +63,17 @@
 				<li>automatic HTTP compression (via <a href="http://www.zlib.net">zlib</a>)</li>
 			</ul>
 			<p>
+				Most <span class="nm">kcgi</span> applications work as follows:
+			</p>
+			<ol>
+				<li>Initialise HTTP context with <code>khttp_parse</code>.</li>
+				<li>Emit any HTTP headers with <code>khttp_head</code>.</li>
+				<li>Signal HTTP body with <code>khttp_body</code>.</li>
+				<li>Use HTML builder functions (<code>khtml_elem</code> etc.), the <code>khtml_template</code> template system,
+					or directly output (<code>khttp_puts</code> etc.) for generating body content.</li>
+				<li>Close and free HTTP context with <code>khttp_free</code>.</li>
+			</ol>
+			<p>
 				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions.
 			</p>
 			<h2>
@@ -71,6 +82,7 @@
 			<p>
 				Recognise HTTP authentication methods in <code>struct kreq</code>.
 				Add <code>fullpath</code> and clarify <code>path</code> members of <code>struct kreq</code>.
+				Add <code>kasprintf</code> as a wrapper for <code>asprintf</code>.
 			</p>
 		</article>
 		<footer>
