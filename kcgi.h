@@ -163,10 +163,18 @@ struct	kvalid {
 	enum kfield	  field;
 };
 
+enum	kauth {
+	KAUTH_NONE = 0,
+	KAUTH_BASIC,
+	KAUTH_DIGEST,
+	KAUTH_UNKNOWN
+};
+
 struct	kdata;
 
 struct	kreq {
 	enum kmethod		  method;
+	enum kauth		  auth;
 	struct kpair		 *cookies;
 	size_t			  cookiesz;
 	struct kpair		**cookiemap;
