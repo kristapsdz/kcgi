@@ -186,6 +186,7 @@ struct	kreq {
 	enum kmime		  mime;
 	size_t			  page;
 	char			 *path;
+	char			 *fullpath;
 	struct kdata		 *kdata;
 	const struct kvalid	 *keys;
 	size_t			  keysz;

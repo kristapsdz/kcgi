@@ -70,6 +70,7 @@
 			</h2>
 			<p>
 				Recognise HTTP authentication methods in <code>struct kreq</code>.
+				Add <code>fullpath</code> and clarify <code>path</code> members of <code>struct kreq</code>.
 			</p>
 		</article>
 		<footer>
