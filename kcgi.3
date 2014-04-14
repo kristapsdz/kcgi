@@ -36,6 +36,7 @@
 .Nm khtml_ncr ,
 .Nm khtml_text ,
 .Nm khtml_template ,
+.Nm kasprintf ,
 .Nm kcalloc ,
 .Nm kmalloc ,
 .Nm krealloc ,
@@ -142,6 +143,8 @@
 .Fn kvalid_udouble "struct kpair *kp"
 .Ft int
 .Fn kvalid_uint "struct kpair *kp"
+.Ft "void *"
+.Fn kasprintf "const char *fmt" "..."
 .Ft "void *"
 .Fn kcalloc "size_t nm" "size_t sz"
 .Ft "void *"
@@ -624,18 +627,34 @@ and so on:
 does
 .Em not
 manage its own memory!
+These functions never return
+.Dv NULL .
 .Bl -ohang -offset indent
+.It Fn kasprintf "const char *fmt" "..."
+Allocate as with
+.Xr asprintf 3 ,
+but exit on memory exhaustion.
 .It Fn kcalloc "size_t nm" "size_t sz"
-Allocate and zero or exit on memory exhaustion.
+Allocate and zero as with
+.Xr calloc 3 ,
+but exit on memory exhaustion.
 .It Fn kmalloc "size_t sz"
-Allocate or exit on memory exhaustion.
+Allocate as with
+.Xr malloc 3 ,
+but exit on memory exhaustion.
 .It Fn krealloc "void *p" "size_t nm" "size_t sz"
-Allocate or exit on memory allocation and discourage multiplication
-overflows when multipying count by type size.
+Allocate as with
+.Xr realloc 3 ,
+but exit on memory allocation and discourage multiplication overflows
+when multipying count by type size.
 .It Fn kstrdup "const char *cp"
-Allocate or exit on memory exhaustion.
+Allocate as with
+.Xr strdup 3 ,
+but exit on memory exhaustion.
 .It Fn kxrealloc "void *p" "size_t sz"
-Allocate or exit on memory exhaustion.
+Allocate as with
+.Xr realloc 3 ,
+but exit on memory exhaustion.
 .El
 .Pp
 The
