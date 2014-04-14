@@ -166,7 +166,7 @@ sendindex(struct kreq *req)
 	size_t	 sv;
 	char	*page;
 
-	asprintf(&page, "%s/%s", pname, pages[PAGE_INDEX]);
+	page = kasprintf("%s/%s", pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
 	khtml_decl(req);
 	khtml_elem(req, KELEM_HTML);
