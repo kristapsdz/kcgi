@@ -237,6 +237,7 @@ int		 khtml_template(struct kreq *req,
 			const struct ktemplate *t, 
 			const char *fname);
 
+void		*kasprintf(const char *fmt, ...);
 void		*kcalloc(size_t nm, size_t sz);
 void		*kmalloc(size_t sz);
 void		*krealloc(void *p, size_t nm, size_t sz);
