@@ -316,6 +316,23 @@ The path (or
 following the parsed component regardless of whether it was located in
 the path array provided to
 .Fn khttp_parse .
+For example, if the
+.Dv PATH_INFO
+is
+.Pa foo.cgi/bar/baz ,
+the path component would be
+.Pa baz
+.Pq with the leading slash stripped .
+.It Va fullpath
+The full path following the server name or
+.Dv NULL
+if there is no path following the server.
+For example, if
+.Pa foo.cgi/bar/baz
+is the
+.Dv PATH_INFO ,
+this would be
+.Pa /bar/baz .
 .It Va kdata
 Internal data.
 Should not be touched.

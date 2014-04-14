@@ -1033,11 +1033,15 @@ khttp_parse(struct kreq *req,
 	 */
 
 	req->method = KMETHOD_GET;
-	if (NULL != (cp = getenv("REQUEST_METHOD")) &&
-			0 == strcasecmp(cp, "post"))
-		req->method = KMETHOD_POST;
+	if (NULL != (cp = getenv("REQUEST_METHOD")))
+		if (0 == strcasecmp(cp, "post"))
+			req->method = KMETHOD_POST;
 
-	if (NULL != (cp = getenv("PATH_INFO")) && '/' == *cp)
+	if (NULL != (cp = getenv("PATH_INFO")))
+		req->fullpath = kstrdup(cp);
+
+	/* This isn't possible in the real world. */
+	if (NULL != cp && '/' == *cp)
 		cp++;
 
 	if (NULL != cp && '\0' != *cp) {
@@ -1161,6 +1165,7 @@ khttp_free(struct kreq *req)
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
+	free(req->fullpath);
 	free(req->cookiemap);
 	free(req->cookienmap);
 	free(req->fieldmap);
