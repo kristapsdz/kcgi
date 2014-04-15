@@ -55,7 +55,7 @@
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li>query string, cookie, and form (multipart and urlencoded) input</li>
+				<li>query string, cookie, and form (multipart, urlencoded, and plain) input</li>
 				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
 				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
@@ -80,9 +80,7 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Recognise HTTP authentication methods in <code>struct kreq</code>.
-				Add <code>fullpath</code> and clarify <code>path</code> members of <code>struct kreq</code>.
-				Add <code>kasprintf</code> as a wrapper for <code>asprintf</code>.
+				Add <code>remote</code> for client's remote address.
 			</p>
 		</article>
 		<footer>

@@ -187,6 +187,7 @@ struct	kreq {
 	size_t			  page;
 	char			 *path;
 	char			 *fullpath;
+	char			 *remote;
 	struct kdata		 *kdata;
 	const struct kvalid	 *keys;
 	size_t			  keysz;

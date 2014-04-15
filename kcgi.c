@@ -548,13 +548,59 @@ urldecode(char *p)
 	return(1);
 }
 
+static void
+parse_pairs_plain(struct kpair **kv, size_t *kvsz, char *p)
+{
+	char            *key, *val;
+
+	while (NULL != p && '\0' != *p) {
+		/* Skip leading whitespace. */
+		while (' ' == *p)
+			p++;
+
+		key = p;
+		val = NULL;
+		if (NULL != (p = strchr(p, '='))) {
+			/* Key/value pair. */
+			*p++ = '\0';
+			val = p;
+			p = strstr(val, "\r\n");
+			if (NULL != p) {
+				*p = '\0';
+				p += 2;
+			}
+		} else {
+			/* No value--error. */
+			p = strstr(key, "\r\n");
+			if (NULL != p) {
+				*p = '\0';
+				p += 2;
+			}
+			continue;
+		}
+
+		if ('\0' == *key || '\0' == *val)
+			continue;
+		/* FIXME: push this into parse_textplain(). */
+		if (strlen(val) > UPLOAD_LIMIT)
+			continue;
+		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
+		memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
+		(*kv)[*kvsz].key = kstrdup(key);
+		(*kv)[*kvsz].val = kstrdup(val);
+		(*kv)[*kvsz].valsz = strlen(val);
+		(*kvsz)++;
+	}
+}
+
+
 /*
  * Parse out key-value pairs from an HTTP request variable.
  * This can be either a cookie or a POST/GET string.
  * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
-parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
+parse_pairs_urlenc(struct kpair **kv, size_t *kvsz, char *p)
 {
 	char            *key, *val;
 	size_t           sz;
@@ -586,6 +632,7 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
+		/* FIXME: push this into parse_textplain(). */
 		if (strlen(val) > UPLOAD_LIMIT)
 			continue;
 		if ( ! urldecode(key))
@@ -602,7 +649,7 @@ parse_pairs(struct kpair **kv, size_t *kvsz, char *p)
 }
 
 static void
-parse_urlenc(struct kpair **kv, size_t *kvsz)
+parse_textplain(struct kpair **kv, size_t *kvsz)
 {
 	char		*p;
 	ssize_t		 ssz;
@@ -611,6 +658,7 @@ parse_urlenc(struct kpair **kv, size_t *kvsz)
 	/*
 	 * Read in chunks of 4096 from standard input.
 	 * Make sure we have room for the nil terminator.
+	 * FIXME: check against UPLOAD_LIMIT.
 	 */
 	p = kmalloc(4096 + 1);
 	sz = 0;
@@ -625,10 +673,46 @@ parse_urlenc(struct kpair **kv, size_t *kvsz)
 
 	/* 
 	 * If we have a nil terminator in the input sequence, we'll
-	 * preemptively stop there in parse_pairs().
+	 * preemptively stop there in parse_pairs_plain().
 	 */
 	p[sz] = '\0';
-	parse_pairs(kv, kvsz, p);
+	parse_pairs_plain(kv, kvsz, p);
+	free(p);
+}
+
+/*
+ * Parse url-encoded document content.
+ * This isn't the most efficient, but easy to read.
+ */
+static void
+parse_urlenc(struct kpair **kv, size_t *kvsz)
+{
+	char		*p;
+	ssize_t		 ssz;
+	size_t		 sz;
+
+	/*
+	 * Read in chunks of 4096 from standard input.
+	 * Make sure we have room for the nil terminator.
+	 * FIXME: check against UPLOAD_LIMIT.
+	 */
+	p = kmalloc(4096 + 1);
+	sz = 0;
+	do {
+		if ((ssz = read(STDIN_FILENO, p + sz, 4096)) <= 0)
+			continue;
+		sz += (size_t)ssz;
+		/* Conservatively make sure we don't overflow. */
+		assert(sz < SIZE_T_MAX - 4097);
+		p = kxrealloc(p, sz + 4096 + 1);
+	} while (ssz > 0);
+
+	/* 
+	 * If we have a nil terminator in the input sequence, we'll
+	 * preemptively stop there in parse_pairs_urlenc().
+	 */
+	p[sz] = '\0';
+	parse_pairs_urlenc(kv, kvsz, p);
 	free(p);
 }
 
@@ -1028,11 +1112,11 @@ khttp_parse(struct kreq *req,
 	req->fieldmap = kcalloc(keysz, sizeof(struct kpair *));
 	req->fieldnmap = kcalloc(keysz, sizeof(struct kpair *));
 
-	/* Determine whether we have authenticaiton. */
+	/* Determine authenticaiton: RFC 3875, 4.1.1. */
 	if (NULL != (cp = getenv("AUTH_TYPE"))) {
-		if (0 == strcmp(cp, "Basic"))
+		if (0 == strcasecmp(cp, "basic"))
 			req->auth = KAUTH_BASIC;
-		else if (0 == strcmp(cp, "Digest"))
+		else if (0 == strcasecmp(cp, "digest"))
 			req->auth = KAUTH_DIGEST;
 		else
 			req->auth = KAUTH_UNKNOWN;
@@ -1042,18 +1126,26 @@ khttp_parse(struct kreq *req,
 	p = defpage;
 	m = KMIME_HTML;
 
+	/* RFC 3875, 4.1.8. */
+	/* Never supposed to be NULL, but to be sure... */
+	if (NULL == (cp = getenv("REMOTE_ADDR")))
+		req->remote = kstrdup("127.0.0.1");
+	else
+		req->remote = kstrdup(cp);
+
+	/* RFC 3875, 4.1.12. */
+	/* Note that we assume GET, POST being explicit. */
+	req->method = KMETHOD_GET;
+	if (NULL != (cp = getenv("REQUEST_METHOD")))
+		if (0 == strcmp(cp, "POST"))
+			req->method = KMETHOD_POST;
+
 	/*
 	 * First, parse the first path element (the page we want to
 	 * access), subsequent path information, and the file suffix.
 	 * We convert suffix and path element into the respective enum's
 	 * inline.
 	 */
-
-	req->method = KMETHOD_GET;
-	if (NULL != (cp = getenv("REQUEST_METHOD")))
-		if (0 == strcasecmp(cp, "post"))
-			req->method = KMETHOD_POST;
-
 	if (NULL != (cp = getenv("PATH_INFO")))
 		req->fullpath = kstrdup(cp);
 
@@ -1063,17 +1155,16 @@ khttp_parse(struct kreq *req,
 
 	if (NULL != cp && '\0' != *cp) {
 		ep = cp + strlen(cp) - 1;
+		/* Look up mime type from suffix. */
 		while (ep > cp && '/' != *ep && '.' != *ep)
 			ep--;
-
 		if ('.' == *ep)
 			for (*ep++ = '\0', m = 0; m < KMIME__MAX; m++)
 				if (0 == strcasecmp(kmimes[m], ep))
 					break;
-
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
-
+		/* Look up page type from component. */
 		for (p = 0; p < pagesz; p++)
 			if (0 == strcasecmp(pages[p], cp))
 				break;
@@ -1081,6 +1172,8 @@ khttp_parse(struct kreq *req,
 
 	req->mime = m;
 	req->page = p;
+
+	/* Assign subpath to remaining parts. */
 	if (NULL != sub)
 		req->path = kstrdup(sub);
 
@@ -1088,13 +1181,19 @@ khttp_parse(struct kreq *req,
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
 	 * been set -- we don't care which), then switch on that type
 	 * for parsing out key value pairs.
+	 * RFC 3875, 4.1.3.
+	 * HTML5, 4.10.
+	 * We only support the main three content types.
 	 */
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
-		if (0 == strcmp(cp, "application/x-www-form-urlencoded"))
+		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
 			parse_urlenc(&req->fields, &req->fieldsz);
-		else if (0 == strncmp(cp, "multipart/form-data", 19)) 
+		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
 			parse_multi(&req->fields, &req->fieldsz, cp + 19);
-	}
+		else if (0 == strcasecmp(cp, "text/plain"))
+			parse_textplain(&req->fields, &req->fieldsz);
+	} else
+		parse_textplain(&req->fields, &req->fieldsz);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
@@ -1105,7 +1204,7 @@ khttp_parse(struct kreq *req,
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("QUERY_STRING")))
-		parse_pairs(&req->fields, &req->fieldsz, cp);
+		parse_pairs_urlenc(&req->fields, &req->fieldsz, cp);
 
 	/*
 	 * Cookies come last.
@@ -1116,12 +1215,12 @@ khttp_parse(struct kreq *req,
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
-		parse_pairs(&req->cookies, &req->cookiesz, cp);
+		parse_pairs_urlenc(&req->cookies, &req->cookiesz, cp);
 
 	/*
 	 * Run through all fields and sort them into named buckets.
 	 * This will let us do constant-time lookups within the
-	 * application itself.  Nice.
+	 * application itself.  Niiiice.
 	 */
 	for (i = 0; i < keysz; i++) {
 		for (j = 0; j < req->fieldsz; j++) {
@@ -1183,6 +1282,7 @@ khttp_free(struct kreq *req)
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
 	free(req->fullpath);
+	free(req->remote);
 	free(req->cookiemap);
 	free(req->cookienmap);
 	free(req->fieldmap);
@@ -1257,12 +1357,17 @@ khttp_body(struct kreq *req)
 	req->kdata->state = KSTATE_BODY;
 }
 
+/*
+ * Emit text in an HTML document.
+ * This means, minimally, that we need to escape the open and close
+ * delimiters for HTML tags.
+ */
 void
 khtml_text(struct kreq *req, const char *cp)
 {
 
+	/* TODO: speed up with strcspn. */
 	assert(KSTATE_BODY == req->kdata->state);
-
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
@@ -1279,6 +1384,8 @@ khtml_text(struct kreq *req, const char *cp)
 
 /*
  * Trim leading and trailing whitespace from a word.
+ * Note that this returns a pointer within "val" and optionally sets the
+ * nil-terminator, so don't free() the returned value.
  */
 static char *
 trim(char *val)
@@ -1427,6 +1534,11 @@ kvalid_uint(struct kpair *p)
 /*
  * There are all sorts of ways to make this faster and more efficient.
  * For now, do it the easily-auditable way.
+ * Memory-map the given file and look through it character by character
+ * til we get to the key delimiter "@@".
+ * Once there, scan to the matching "@@".
+ * Look for the matching key within these pairs.
+ * If found, invoke the callback function with the given key.
  */
 int
 khtml_template(struct kreq *req, 
