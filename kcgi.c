@@ -549,7 +549,7 @@ urldecode(char *p)
 }
 
 static void
-parse_pairs_plain(struct kpair **kv, size_t *kvsz, char *p)
+parse_pairs_text(struct kpair **kv, size_t *kvsz, char *p)
 {
 	char            *key, *val;
 
@@ -580,9 +580,6 @@ parse_pairs_plain(struct kpair **kv, size_t *kvsz, char *p)
 		}
 
 		if ('\0' == *key || '\0' == *val)
-			continue;
-		/* FIXME: push this into parse_textplain(). */
-		if (strlen(val) > UPLOAD_LIMIT)
 			continue;
 		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
 		memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
@@ -632,7 +629,6 @@ parse_pairs_urlenc(struct kpair **kv, size_t *kvsz, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
-		/* FIXME: push this into parse_textplain(). */
 		if (strlen(val) > UPLOAD_LIMIT)
 			continue;
 		if ( ! urldecode(key))
@@ -648,70 +644,57 @@ parse_pairs_urlenc(struct kpair **kv, size_t *kvsz, char *p)
 	}
 }
 
-static void
-parse_textplain(struct kpair **kv, size_t *kvsz)
+/*
+ * Read full stdin request into memory.
+ * This reads at most "len" bytes and nil-terminates the results, the
+ * length of which may be less than "len" and is stored in *szp if not
+ * NULL.
+ * Returns the pointer to the data.
+ */
+static char *
+scanbuf(size_t len, size_t *szp)
 {
-	char		*p;
 	ssize_t		 ssz;
 	size_t		 sz;
+	char		*p;
 
-	/*
-	 * Read in chunks of 4096 from standard input.
-	 * Make sure we have room for the nil terminator.
-	 * FIXME: check against UPLOAD_LIMIT.
-	 */
-	p = kmalloc(4096 + 1);
-	sz = 0;
-	do {
-		if ((ssz = read(STDIN_FILENO, p + sz, 4096)) <= 0)
-			continue;
-		sz += (size_t)ssz;
-		/* Conservatively make sure we don't overflow. */
-		assert(sz < SIZE_T_MAX - 4097);
-		p = kxrealloc(p, sz + 4096 + 1);
-	} while (ssz > 0);
+	/* Allocate the entire buffer here. */
+	p = kmalloc(len + 1);
 
-	/* 
-	 * If we have a nil terminator in the input sequence, we'll
-	 * preemptively stop there in parse_pairs_plain().
-	 */
+	/* Keep reading til we get all the data. */
+	/* FIXME: use poll() to avoid blocking. */
+	for (sz = 0; sz < len; sz += (size_t)ssz) {
+		ssz = read(STDIN_FILENO, p + sz, len - sz);
+		if (ssz < 0) {
+			perror(NULL);
+			exit(EXIT_FAILURE);
+		} else if (0 == ssz)
+			break;
+	}
+
+	/* ALWAYS nil-terminate. */
 	p[sz] = '\0';
-	parse_pairs_plain(kv, kvsz, p);
+	if (NULL != szp)
+		*szp = sz;
+	return(p);
+}
+
+static void
+parse_text(size_t len, struct kpair **kv, size_t *kvsz)
+{
+	char		*p;
+
+	p = scanbuf(len, NULL);
+	parse_pairs_text(kv, kvsz, p);
 	free(p);
 }
 
-/*
- * Parse url-encoded document content.
- * This isn't the most efficient, but easy to read.
- */
 static void
-parse_urlenc(struct kpair **kv, size_t *kvsz)
+parse_urlenc(size_t len, struct kpair **kv, size_t *kvsz)
 {
 	char		*p;
-	ssize_t		 ssz;
-	size_t		 sz;
 
-	/*
-	 * Read in chunks of 4096 from standard input.
-	 * Make sure we have room for the nil terminator.
-	 * FIXME: check against UPLOAD_LIMIT.
-	 */
-	p = kmalloc(4096 + 1);
-	sz = 0;
-	do {
-		if ((ssz = read(STDIN_FILENO, p + sz, 4096)) <= 0)
-			continue;
-		sz += (size_t)ssz;
-		/* Conservatively make sure we don't overflow. */
-		assert(sz < SIZE_T_MAX - 4097);
-		p = kxrealloc(p, sz + 4096 + 1);
-	} while (ssz > 0);
-
-	/* 
-	 * If we have a nil terminator in the input sequence, we'll
-	 * preemptively stop there in parse_pairs_urlenc().
-	 */
-	p[sz] = '\0';
+	p = scanbuf(len, NULL);
 	parse_pairs_urlenc(kv, kvsz, p);
 	free(p);
 }
@@ -901,11 +884,6 @@ form_parse(struct kpair **kv, size_t *kvsz,
 	 * reached.  Or any other error occurs.
 	 */
 	while (NULL != (line = getbinln(&sz))) {
-#ifdef DEBUG
-		fprintf(stderr, "%s: Read %zu bytes "
-			"(have %zu, max %d)\n", 
-			__func__, sz, valsz, UPLOAD_LIMIT);
-#endif
 		if ((rc = boundary(line, sz, b, bsz)) >= 0)
 			break;
 		assert(sz > 0);
@@ -916,12 +894,6 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		 * In other words, avoid integer overflow.
 		 */
 		if (UPLOAD_LIMIT - valsz < sz) {
-#ifdef DEBUG
-			fprintf(stderr, "%s: Maximum exceeded "
-				"(have %zu, wanted %zu, "
-				"maximum %d)\n", __func__,
-				maxsz, sz, UPLOAD_LIMIT);
-#endif
 			free(cp);
 			return(-1);
 		}
@@ -930,24 +902,11 @@ form_parse(struct kpair **kv, size_t *kvsz,
 		valsz += sz;
 	}
 
-#ifdef DEBUG
-	fprintf(stderr, "%s: Exited read loop with "
-		"%zu bytes\n", __func__, valsz);
-#endif
-
 	if (NULL == line || valsz < 2) {
-#ifdef DEBUG
-		fprintf(stderr, "%s: End of input stream "
-			"while reading.\n", __func__);
-#endif
 		/* We didn't reach a boundary or have no CRLF. */
 		free(cp);
 		return(-1);
 	} else if ('\n' != cp[valsz - 1] || '\r' != cp[valsz - 2]) {
-#ifdef DEBUG
-		fprintf(stderr, "%s: No CRLF "
-			"while reading.\n", __func__);
-#endif
 		/* No proper CRLF ending. */
 		free(cp);
 		return(-1);
@@ -993,7 +952,7 @@ hmime_free(struct hmime *mime)
  * "name" but the one that will inherit from the "top-level" multipart.
  */
 static int
-multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
+parse_multiform(struct kpair **kv, size_t *kvsz, const char *b)
 {
 	struct hmime	 mime;
 	char		*line;
@@ -1039,7 +998,7 @@ multiform_parse(struct kpair **kv, size_t *kvsz, const char *b)
 		 * If we're a multipart/mixed file, we'll have multiple
 		 * subcomponents with the given boundary.
 		 */
-		rc = multiform_parse(kv, kvsz, mime.bound);
+		rc = parse_multiform(kv, kvsz, mime.bound);
 		hmime_free(&mime);
 	}
 
@@ -1058,10 +1017,6 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 {
 	size_t		 sz;
 
-#ifdef DEBUG
-	fprintf(stderr, "%s: starting\n", __func__);
-#endif
-
 	while (' ' == *line)
 		line++;
 	if (';' != *line++)
@@ -1078,7 +1033,7 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 	while (' ' == *line) 
 		line++;
 	/* Go ahead and parse the form... */
-	multiform_parse(kv, kvsz, line);
+	parse_multiform(kv, kvsz, line);
 }
 
 /*
@@ -1094,8 +1049,7 @@ khttp_parse(struct kreq *req,
 {
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
-	size_t		 p;
-	size_t		 i, j;
+	size_t		 p, i, j, len;
 
 	if (NULL == (pname = getenv("SCRIPT_NAME")))
 		pname = "";
@@ -1178,6 +1132,17 @@ khttp_parse(struct kreq *req,
 		req->path = kstrdup(sub);
 
 	/*
+	 * The CONTENT_LENGTH must be a valid integer.
+	 * Since we're storing into "len", make sure it's in size_t.
+	 * If there's an error, it will default to zero.
+	 * Note that LLONG_MAX < SIZE_T_MAX.
+	 * RFC 3875, 4.1.2.
+	 */
+	len = 0;
+	if (NULL != (cp = getenv("CONTENT_LENGTH")))
+		len = strtonum(cp, 0, LLONG_MAX, NULL);
+
+	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
 	 * been set -- we don't care which), then switch on that type
 	 * for parsing out key value pairs.
@@ -1187,13 +1152,13 @@ khttp_parse(struct kreq *req,
 	 */
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(&req->fields, &req->fieldsz);
+			parse_urlenc(len, &req->fields, &req->fieldsz);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
 			parse_multi(&req->fields, &req->fieldsz, cp + 19);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_textplain(&req->fields, &req->fieldsz);
+			parse_text(len, &req->fields, &req->fieldsz);
 	} else
-		parse_textplain(&req->fields, &req->fieldsz);
+		parse_text(len, &req->fields, &req->fieldsz);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
