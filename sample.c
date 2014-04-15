@@ -44,6 +44,7 @@ enum	key {
 	KEY_INTEGER1, 
 	KEY_INTEGER2, 
 	KEY_INTEGER3, 
+	KEY_INTEGER4, 
 	KEY_FILE,
 	KEY__MAX
 };
@@ -80,6 +81,7 @@ const struct kvalid keys[KEY__MAX] = {
 	{ kvalid_int, "integer1", KFIELD_NUMBER }, /* KEY_INTEGER1 */
 	{ kvalid_int, "integer2", KFIELD_NUMBER }, /* KEY_INTEGER2 */
 	{ kvalid_int, "integer3", KFIELD_NUMBER }, /* KEY_INTEGER3 */
+	{ kvalid_int, "integer4", KFIELD_NUMBER }, /* KEY_INTEGER4 */
 	{ NULL, "file", KFIELD__MAX }, /* KEY_FILE */
 };
 
@@ -214,6 +216,27 @@ sendindex(struct kreq *req)
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
 	khtml_closeto(req, sv);
+
+	/* Now a text/plain form.  (These are rare.) */
+	sv = khtml_elemat(req);
+	khtml_attr(req, KELEM_FORM,
+		KATTR_METHOD, "post",
+		KATTR_ENCTYPE, "text/plain",
+		KATTR_ACTION, page,
+		KATTR__MAX);
+	khtml_elem(req, KELEM_FIELDSET);
+	khtml_elem(req, KELEM_LEGEND);
+	khtml_text(req, "Post (text/plain)");
+	khtml_close(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_input(req, KEY_INTEGER4);
+	khtml_close(req, 1);
+	khtml_elem(req, KELEM_P);
+	khtml_attr(req, KELEM_INPUT,
+		KATTR_TYPE, "submit",
+		KATTR__MAX);
+	khtml_closeto(req, sv);
+	sv = khtml_elemat(req);
 
 	/* Lastly, process a multipart POST form. */
 	khtml_attr(req, KELEM_FORM,
