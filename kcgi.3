@@ -219,7 +219,7 @@ The
 library is built around the
 .Fn khttp_parse
 parsers for HTTP form data (cookies, GET, and POST) with support for
-multipart forms.
+multipart, url-encoded, and plain forms.
 The multipart parsing is still somewhat experimental in terms of
 features, though all parsing is rigorously checked for security (e.g.,
 integer overflow, binary data, etc.).
@@ -336,6 +336,8 @@ is the
 .Dv PATH_INFO ,
 this would be
 .Pa /bar/baz .
+.It Va remote
+The string form of the client's IPV4 or IVP6 address.
 .It Va kdata
 Internal data.
 Should not be touched.
@@ -681,6 +683,14 @@ Callbacks may continue to process, emit HTML trees, and so on.
 A simple example exists in
 .Pa @DATADIR@/sample.c .
 It illustrates templating, form handling, and so on.
+.Sh STANDARDS
+The
+.Nm
+library partially implements the draft RFC 3875,
+.Qq The Common Gateway Interface (CGI) Version 1.1 ,
+and outputs HTML5 compatible with the draft standard of February 2014.
+The partial multipart form data support is defined by RFC 2388,
+.Qq Returning Values from Forms: multipart/form-data .
 .Sh AUTHORS
 The
 .Nm
