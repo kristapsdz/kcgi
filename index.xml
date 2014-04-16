@@ -67,6 +67,7 @@
 			</p>
 			<ol>
 				<li>Initialise HTTP context with <code>khttp_parse</code>.</li>
+				<li>Process parsed content in <code>struct kreq</code>.</li>
 				<li>Emit any HTTP headers with <code>khttp_head</code>.</li>
 				<li>Signal HTTP body with <code>khttp_body</code>.</li>
 				<li>Use HTML builder functions (<code>khtml_elem</code> etc.), the <code>khtml_template</code> template system,
@@ -81,6 +82,11 @@
 			</h2>
 			<p>
 				Add <code>remote</code> for client's remote address.
+				Add parsing of <code>text/plain</code> parsing as stipulated by the HTML5 (and earlier) draft specification.
+				Re-write url-encoding and plain content parsing engine to read all content into a buffer before parsing as
+				bounded by <code>CONTENT_LENGTH</code>.
+				This reduces the complexity of parsing, [begins to] deprecates the <code>UPLOAD_LIMIT</code> symbol (which is
+				usually set in the surrounding web server), and makes the parse itself safer.
 			</p>
 		</article>
 		<footer>
