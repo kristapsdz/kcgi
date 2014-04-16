@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 14 2014 $
+.Dd $Mdocdate: April 15 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -219,7 +219,7 @@ The
 library is built around the
 .Fn khttp_parse
 parsers for HTTP form data (cookies, GET, and POST) with support for
-multipart, url-encoded, and plain forms.
+multipart (mixed and form-data), url-encoded, and plain forms.
 The multipart parsing is still somewhat experimental in terms of
 features, though all parsing is rigorously checked for security (e.g.,
 integer overflow, binary data, etc.).
@@ -412,13 +412,21 @@ binary, nil terminators may occur before the true data length of
 The true length of
 .Fa val .
 .It Va file
-If the form provided a parsed file for the given key, this is the name
-of the input file.
+The value's source filename or
+.Dv NULL
+if not defined.
 .It Va ctype
-If the form provided a parsed file for the given key, this is the
-content type (e.g.,
-.Li image/jpeg )
-of that file.
+The value's content type (e.g.,
+.Li image/jpeg ) ,
+or
+.Dv NULL
+if not defined.
+.It Va xcode
+The value's content transfer encoding (e.g.,
+.Li base64 ) ,
+or
+.Dv NULL
+if not defined.
 .It Va next
 In a cookie or field map,
 .Fa next
@@ -690,7 +698,9 @@ library partially implements the draft RFC 3875,
 .Qq The Common Gateway Interface (CGI) Version 1.1 ,
 and outputs HTML5 compatible with the draft standard of February 2014.
 The partial multipart form data support is defined by RFC 2388,
-.Qq Returning Values from Forms: multipart/form-data .
+.Qq Returning Values from Forms: multipart/form-data ,
+which is further defined by RFCs 2045 and 2046,
+.Qq Multipurpose Internet Mail Extensions .
 .Sh AUTHORS
 The
 .Nm
