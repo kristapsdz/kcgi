@@ -1,4 +1,4 @@
-CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings 
+CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Uncomment this if you don't want zlib.
 CFLAGS += -DHAVE_ZLIB
 PREFIX = /usr/local
@@ -11,12 +11,12 @@ WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 
 
-libkcgi.a: kcgi.o
-	$(AR) rs $@ kcgi.o 
+libkcgi.a: kcgi.o compat.o
+	$(AR) rs $@ kcgi.o compat.o
 
 kcgi.o sample.o: kcgi.h
 
-kcgi.o: config.h
+kcgi.o compat.o: config.h
 
 config.h: config.h.pre config.h.post configure test-memmem.c test-strtonum.c
 	rm -f config.log
@@ -66,7 +66,7 @@ kcgi-$(VERSION).tgz:
 
 clean:
 	rm -f kcgi-$(VERSION).tgz index.html kcgi.3.html
-	rm -f libkcgi.a kcgi.o sample.o sample
+	rm -f libkcgi.a kcgi.o sample.o sample compat.o
 	rm -f config.log config.h
 	rm -f test-memmem test-strtonum 
 	rm -f test-memmem.o test-strtonum.o
