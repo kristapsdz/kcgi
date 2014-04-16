@@ -56,7 +56,7 @@ struct	kdata {
  * For handling HTTP multipart forms.
  * This consists of data for a single multipart form entry.
  */
-struct	hmime {
+struct	mime {
 	char	 *disp; /* content disposition */
 	char	 *name; /* name of form entry */
 	size_t	  namesz; /* size of "name" string */
@@ -171,6 +171,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"max", /* KATTR_MAX */
 	"method", /* KATTR_METHOD */
 	"min", /* KATTR_MIN */
+	"multiple", /* KATTR_MULTIPLE */
 	"name", /* KATTR_NAME */
 	"onclick", /* KATTR_ONCLICK */
 	"rel", /* KATTR_REL */
@@ -325,6 +326,69 @@ kmalloc(size_t sz)
 	exit(EXIT_FAILURE);
 }
 
+#ifdef __APPLE__
+/*	$OpenBSD$ */
+/*-
+ * Copyright (c) 2005 Pascal Gloor <pascal.gloor@spale.com>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 3. The name of the author may not be used to endorse or promote
+ *    products derived from this software without specific prior written
+ *    permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/*
+ * Find the first occurrence of the byte string s in byte string l.
+ */
+void *
+memmem(const void *l, size_t l_len, const void *s, size_t s_len)
+{
+	const char *cur, *last;
+	const char *cl = l;
+	const char *cs = s;
+
+	/* a zero length needle should just return the haystack */
+	if (l_len == 0)
+		return (void *)cl;
+
+	/* "s" must be smaller or equal to "l" */
+	if (l_len < s_len)
+		return NULL;
+
+	/* special case where s_len == 1 */
+	if (s_len == 1)
+		return memchr(l, *cs, l_len);
+
+	/* the last position where its possible to find "s" in "l" */
+	last = cl + l_len - s_len;
+
+	for (cur = cl; cur <= last; cur++)
+		if (cur[0] == cs[0] && memcmp(cur, cs, s_len) == 0)
+			return (void *)cur;
+
+	return NULL;
+}
+#endif
+
 #ifndef __OpenBSD__
 /* OPENBSD ORIGINAL: lib/libc/stdlib/strtonum.c */
 /* $OpenBSD$*/
@@ -390,6 +454,15 @@ strtonum(const char *numstr, long long minval,
 	return (ll);
 }
 #endif /*!__OpenBSD__*/
+
+static void
+kpair_expand(struct kpair **kv, size_t *kvsz)
+{
+
+	*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
+	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
+	(*kvsz)++;
+}
 
 size_t
 khtml_elemat(struct kreq *req)
@@ -549,7 +622,7 @@ urldecode(char *p)
 }
 
 static void
-parse_pairs_text(struct kpair **kv, size_t *kvsz, char *p)
+parse_pairs_text(struct kreq *req, char *p)
 {
 	char            *key, *val;
 
@@ -581,12 +654,10 @@ parse_pairs_text(struct kpair **kv, size_t *kvsz, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
-		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-		memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
-		(*kv)[*kvsz].key = kstrdup(key);
-		(*kv)[*kvsz].val = kstrdup(val);
-		(*kv)[*kvsz].valsz = strlen(val);
-		(*kvsz)++;
+		kpair_expand(&req->fields, &req->fieldsz);
+		req->fields[req->fieldsz - 1].key = kstrdup(key);
+		req->fields[req->fieldsz - 1].val = kstrdup(val);
+		req->fields[req->fieldsz - 1].valsz = strlen(val);
 	}
 }
 
@@ -629,18 +700,14 @@ parse_pairs_urlenc(struct kpair **kv, size_t *kvsz, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
-		if (strlen(val) > UPLOAD_LIMIT)
-			continue;
 		if ( ! urldecode(key))
 			break;
 		if ( ! urldecode(val))
 			break;
-		*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-		memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
-		(*kv)[*kvsz].key = kstrdup(key);
-		(*kv)[*kvsz].val = kstrdup(val);
-		(*kv)[*kvsz].valsz = strlen(val);
-		(*kvsz)++;
+		kpair_expand(kv, kvsz);
+		(*kv)[*kvsz - 1].key = kstrdup(key);
+		(*kv)[*kvsz - 1].val = kstrdup(val);
+		(*kv)[*kvsz - 1].valsz = strlen(val);
 	}
 }
 
@@ -680,60 +747,31 @@ scanbuf(size_t len, size_t *szp)
 }
 
 static void
-parse_text(size_t len, struct kpair **kv, size_t *kvsz)
+parse_text(size_t len, struct kreq *req)
 {
 	char		*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_text(kv, kvsz, p);
+	parse_pairs_text(req, p);
 	free(p);
 }
 
 static void
-parse_urlenc(size_t len, struct kpair **kv, size_t *kvsz)
+parse_urlenc(size_t len, struct kreq *req)
 {
 	char		*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_urlenc(kv, kvsz, p);
+	parse_pairs_urlenc(&req->fields, &req->fieldsz, p);
 	free(p);
 }
 
 /*
- * Use fgetln() to suck down lines from stdin.
- * The multipart format is line-based when in the "structure" part of
- * the form, which dictates control sequences and so on.
- * Note: we nil-terminate this line!
- * If it has a nil before the \n\r, subsequent functions will truncate
- * to that point.
- */
-static char *
-getformln(void)
-{
-	char		*line;
-	size_t		 sz;
-
-	/* Only handle \n\r terminated lines. */
-	if (NULL == (line = fgetln(stdin, &sz)))
-		return(NULL);
-	else if (sz < 2)
-		return(NULL);
-	else if ('\n' != line[sz - 1])
-		return(NULL);
-	else if ('\r' != line[sz - 2])
-		return(NULL);
-
-	sz -= 2;
-	line[sz] = '\0';
-	return(line);
-}
-
-/*
- * Reset a particular hmime component.
+ * Reset a particular mime component.
  * We can get duplicates, so reallocate.
  */
 static void
-hmime_reset(char **dst, const char *src)
+mime_reset(char **dst, const char *src)
 {
 
 	free(*dst);
@@ -741,44 +779,61 @@ hmime_reset(char **dst, const char *src)
 }
 
 /*
- * Parse out a multipart instruction.
- * All of these operate on non-binary data, which is guaranteed by the
- * line parser.
+ * Parse out all MIME headers.
+ * This is defined by RFC 2045.
+ * This returns TRUE if we've parsed up to (and including) the last
+ * empty CRLF line, or FALSE if something has gone wrong.
+ * If FALSE, parsing should stop immediately.
  */
 static int
-hmime_parse(struct hmime *mime)
+mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 {
-	char		*key, *val, *line;
+	char		*key, *val, *end, *start, *line;
 
-	memset(mime, 0, sizeof(struct hmime));
+	memset(mime, 0, sizeof(struct mime));
 
-	while (NULL != (line = getformln())) {
-		if ('\0' == *line)
+	while (*pos < len) {
+		/* Each MIME line ends with a CRLF. */
+		start = &buf[*pos];
+		end = memmem(start, len - *pos, "\r\n", 2);
+		if (NULL == end)
+			return(0);
+		/* Nil-terminate to make a nice line. */
+		*end = '\0';
+		/* Re-set our starting position. */
+		*pos += (end - start) + 2;
+
+		/* Empty line: we're done here! */
+		if ('\0' == *start)
 			return(1);
-		key = line;
+
+		/* Find end of MIME statement name. */
+		key = start;
 		if (NULL == (val = strchr(key, ':')))
 			return(0);
 		*val++ = '\0';
-		while (isspace((int)*val))
+		while (' ' == *val)
 			val++;
-
 		line = NULL;
-		if (NULL != val && NULL != (line = strchr(val, ';')))
+		if (NULL != (line = strchr(val, ';')))
 			*line++ = '\0';
 
-		/* White-list these control statements. */
+		/* 
+		 * Allow these specific MIME header statements.
+		 * Ignore all others.
+		 */
 		if (0 == strcasecmp(key, "content-transfer-encoding"))
-			hmime_reset(&mime->xcode, val);
+			mime_reset(&mime->xcode, val);
 		else if (0 == strcasecmp(key, "content-disposition"))
-			hmime_reset(&mime->disp, val);
+			mime_reset(&mime->disp, val);
 		else if (0 == strcasecmp(key, "content-type"))
-			hmime_reset(&mime->ctype, val);
+			mime_reset(&mime->ctype, val);
 		else
-			return(0);
+			continue;
 
-		/* These are sub-components. */
+		/* Now process any familiar MIME components. */
 		while (NULL != (key = line)) {
-			while (isspace((unsigned char)*key))
+			while (' ' == *key)
 				key++;
 			if ('\0' == *key)
 				break;
@@ -788,8 +843,7 @@ hmime_parse(struct hmime *mime)
 
 			if ('"' == *val) {
 				val++;
-				line = strchr(val, '"');
-				if (NULL == line)
+				if (NULL == (line = strchr(val, '"')))
 					return(0);
 				*line++ = '\0';
 				if (';' == *line)
@@ -799,137 +853,21 @@ hmime_parse(struct hmime *mime)
 
 			/* White-listed sub-commands. */
 			if (0 == strcasecmp(key, "filename"))
-				hmime_reset(&mime->file, val);
+				mime_reset(&mime->file, val);
 			else if (0 == strcasecmp(key, "name"))
-				hmime_reset(&mime->name, val);
+				mime_reset(&mime->name, val);
 			else if (0 == strcasecmp(key, "boundary"))
-				hmime_reset(&mime->bound, val);
+				mime_reset(&mime->bound, val);
 			else
-				return(0);
+				continue;
 		}
 	} 
 
 	return(0);
 }
 
-/*
- * Get a binary line.
- * Only make sure that the end is a newline.
- * (Not a CRLF, which MIME dictates for transferral!)
- */
-static char *
-getbinln(size_t *sz)
-{
-	char		*line;
-
-	if (NULL == (line = fgetln(stdin, sz)))
-		return(NULL);
-	else if ('\n' != line[*sz - 1])
-		return(NULL);
-
-	return(line);
-}
-
-/*
- * Test whether the line, not nil-terminated and with line size "sz",
- * matches the boundary b, not nil-terminated with size bsz.
- */
-static int
-boundary(const char *line, size_t sz, const char *b, size_t bsz)
-{
-	size_t		 extra;
-
-	if (sz < bsz + 4)
-		return(-1);
-	if ('\n' != line[sz - 1] && '\r' != line[sz - 2])
-		return(-1);
-
-	sz -= 2;
-	extra = sz - (bsz + 2);
-
-	if ('-' != line[0] || '-' != line[1])
-		return(-1);
-
-	line += 2;
-	if (memcmp(line, b, bsz))
-		return(-1);
-
-	line += bsz;
-	if (2 == extra && 0 == memcmp(line, "--", 2))
-		return(0);
-	else if (0 == extra)
-		return(1);
-
-	return(-1);
-}
-
-/*
- * Parse a single value from a multipart form data entry.
- * Be careful: this can have nil-terminators and all sorts of ugliness.
- */
-static int
-form_parse(struct kpair **kv, size_t *kvsz, 
-	const struct hmime *mime, const char *b, size_t bsz)
-{
-	char		*cp, *line;
-	size_t		 sz, valsz;
-	int		 rc;
-
-	valsz = 0;
-	cp = NULL;
-	rc = -1;
-
-	/*
-	 * Download until we reach a hardcoded limit or the boundary is
-	 * reached.  Or any other error occurs.
-	 */
-	while (NULL != (line = getbinln(&sz))) {
-		if ((rc = boundary(line, sz, b, bsz)) >= 0)
-			break;
-		assert(sz > 0);
-		assert(valsz < UPLOAD_LIMIT);
-		/*
-		 * Make sure we won't overflow the maximum buffer size
-		 * even if that limit is close to the integer limit.
-		 * In other words, avoid integer overflow.
-		 */
-		if (UPLOAD_LIMIT - valsz < sz) {
-			free(cp);
-			return(-1);
-		}
-		cp = kxrealloc(cp, valsz + sz);
-		memcpy(cp + valsz, line, sz);
-		valsz += sz;
-	}
-
-	if (NULL == line || valsz < 2) {
-		/* We didn't reach a boundary or have no CRLF. */
-		free(cp);
-		return(-1);
-	} else if ('\n' != cp[valsz - 1] || '\r' != cp[valsz - 2]) {
-		/* No proper CRLF ending. */
-		free(cp);
-		return(-1);
-	}
-
-	valsz -= 2;
-	cp[valsz] = '\0';
-	*kv = krealloc(*kv, *kvsz + 1, sizeof(struct kpair));
-	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
-	assert(NULL != mime->name);
-	(*kv)[*kvsz].key = kstrdup(mime->name);
-	if (NULL != mime->ctype) 
-		(*kv)[*kvsz].ctype = kstrdup(mime->ctype);
-	if (NULL != mime->file) 
-		(*kv)[*kvsz].file = kstrdup(mime->file);
-	(*kv)[*kvsz].val = cp;
-	(*kv)[*kvsz].valsz = valsz;
-	(*kvsz)++;
-	return(rc);
-}
-
 static void
-hmime_free(struct hmime *mime)
+mime_free(struct mime *mime)
 {
 
 	free(mime->disp);
@@ -938,83 +876,151 @@ hmime_free(struct hmime *mime)
 	free(mime->ctype);
 	free(mime->xcode);
 	free(mime->bound);
-	/* Help us segfault if re-used. */
-	memset(mime, 0, sizeof(struct hmime));
+	memset(mime, 0, sizeof(struct mime));
 }
 
 /*
- * This parses a single form from a multi-form sequence.
- * The array "b" starts with a nil-terminated bounary sequence for the
- * given form.
- * Note that for multipart/mixed forms, we'll reenter this function for
- * the multipart.
- * FIXME: if we have multiple files come in, then we might not have a
- * "name" but the one that will inherit from the "top-level" multipart.
+ * This is described by the "multipart-body" BNF part of RFC 2046,
+ * section 5.1.1.
+ * We return TRUE if the parse was ok, FALSE if errors occured (all
+ * calling parsers should bail too).
  */
 static int
-parse_multiform(struct kpair **kv, size_t *kvsz, const char *b)
+parse_multiform(struct kreq *req, const char *name,
+	const char *bound, char *buf, size_t len, size_t *pos)
 {
-	struct hmime	 mime;
-	char		*line;
-	int		 rc;
-	size_t		 bsz;
+	struct mime	 mime;
+	size_t		 endpos, bbsz, partsz;
+	char		*ln, *bb;
+	int		 rc, first;
 
-	/* Stop if we're at the boundary (or problems). */
-	if (NULL == b) 
-		return(-1);
-	else if (NULL == (line = getformln())) 
-		return(-1);
-	else if ('-' != line[0] || '-' != line[1])
-		return(-1);
-	else if (strcmp(line + 2, b))
-		return(-1);
+	rc = 0;
+	/* Define our buffer boundary. */
+	bb = kasprintf("\r\n--%s", bound);
+	bbsz = strlen(bb);
+	memset(&mime, 0, sizeof(struct mime));
 
-	rc = 1;
-	bsz = strlen(b);
-
-	while (rc > 0) {
-		rc = -1;
-		/* Try to parse the form MIME set. */
-		if ( ! hmime_parse(&mime))
-			break;
-
-		/* Make sure we have a disposition and name. */
-		if (NULL == mime.disp)
-			break;
-		else if (NULL == mime.name)
-			break;
-		/* FIXME: multipart/mixed might not have this. */
-		else if (0 != strcmp(mime.disp, "form-data")) 
-			break;
-
-		if (NULL == mime.ctype || NULL != mime.file) {
-			/* Read a binary file. */
-			rc = form_parse(kv, kvsz, &mime, b, bsz);
-			hmime_free(&mime);
-			continue;
-		} else if (0 != strcmp(mime.ctype, "multipart/mixed"))
-			break;
+	first = 1;
+	/* Read to the next instance of a buffer boundary. */
+	for (first = 1; *pos < len; first = 0, *pos = endpos) {
 		/*
-		 * If we're a multipart/mixed file, we'll have multiple
-		 * subcomponents with the given boundary.
+		 * The conditional is because the prologue, if not
+		 * specified, will not incur an initial CRLF, so our bb
+		 * is past the CRLF and two bytes smaller.
+		 * This ONLY occurs for the first read, however.
 		 */
-		rc = parse_multiform(kv, kvsz, mime.bound);
-		hmime_free(&mime);
+		ln = memmem(&buf[*pos], len - *pos, 
+			bb + (first ? 2 : 0), bbsz - (first ? 2 : 0));
+
+		/* Unexpected EOF for this part. */
+		if (NULL == ln)
+			goto out;
+
+		/* 
+		 * Set "endpos" to point to the beginning of the next
+		 * multipart component.
+		 * We set "endpos" to be at the very end if the
+		 * terminating boundary buffer occurs.
+		 */
+		endpos = *pos + (ln - &buf[*pos]) + bbsz - (first ? 2 : 0);
+		/* Check buffer space... */
+		if (endpos > len - 2)
+			goto out;
+
+		/* Terminating boundary or not... */
+		if (memcmp(&buf[endpos], "--", 2)) {
+			while (endpos < len && ' ' == buf[endpos])
+				endpos++;
+			/* We need the CRLF... */
+			if (memcmp(&buf[endpos], "\r\n", 2))
+				goto out;
+			endpos += 2;
+		} else
+			endpos = len;
+
+		/* 
+		 * Zero-length part. 
+		 * This shouldn't occur, but if it does, it'll screw up
+		 * the MIME parsing (which requires a blank CRLF before
+		 * considering itself finished).
+		 */
+		if (0 == (partsz = ln - &buf[*pos]))
+			continue;
+
+		/* We now read our MIME headers, bailing on error. */
+		mime_free(&mime);
+		if ( ! mime_parse(&mime, buf, *pos + partsz, pos))
+			goto out;
+		/* 
+		 * As per RFC 2388, we need a name and disposition. 
+		 * Note that multipart/mixed bodies will inherit the
+		 * name of their parent, so the mime.name is ignored.
+		 */
+		if (NULL == mime.name && NULL == name)
+			continue;
+		else if (NULL == mime.disp) 
+			continue;
+		/* As per RFC 2045, we default to text/plain. */
+		if (NULL == mime.ctype) 
+			mime.ctype = kstrdup("text/plain");
+
+		partsz = ln - &buf[*pos];
+
+		/* 
+		 * Multipart sub-handler. 
+		 * We only recognise the multipart/mixed handler.
+		 * This will route into our own function, inheriting the
+		 * current name for content.
+		 */
+		if (0 == strcasecmp(mime.ctype, "multipart/mixed")) {
+			if (NULL == mime.bound)
+				goto out;
+			if ( ! parse_multiform
+				(req, NULL != name ? name :
+				 mime.name, mime.bound,
+				 buf, *pos + partsz, pos))
+				goto out;
+			continue;
+		}
+
+		kpair_expand(&req->fields, &req->fieldsz);
+		req->fields[req->fieldsz - 1].key = 
+			kstrdup(NULL != name ? name : mime.name);
+		req->fields[req->fieldsz - 1].val = kmalloc(partsz + 1);
+		memcpy(req->fields[req->fieldsz - 1].val, &buf[*pos], partsz);
+		req->fields[req->fieldsz - 1].val[partsz] = '\0';
+
+		req->fields[req->fieldsz - 1].valsz = partsz;
+		if (NULL != mime.file)
+			req->fields[req->fieldsz - 1].file = kstrdup(mime.file);
+		if (NULL != mime.ctype)
+			req->fields[req->fieldsz - 1].ctype = kstrdup(mime.ctype);
+		if (NULL != mime.xcode)
+			req->fields[req->fieldsz - 1].xcode = kstrdup(mime.xcode);
 	}
 
-	hmime_free(&mime);
+	/*
+	 * According to the specification, we can have transport
+	 * padding, a CRLF, then the epilogue.
+	 * But since we don't care about that crap, just pretend that
+	 * everything's fine and exit.
+	 */
+	rc = 1;
+out:
+	free(bb);
+	mime_free(&mime);
 	return(rc);
 }
 
 /*
- * Parse an entire multi-part form.
- * This can consists of as many forms as possible.
- * Throughout the sequence, we're very careful with binary and
- * non-binary data.
+ * Parse the boundary from a multipart CONTENT_TYPE and pass it to the
+ * actual parsing engine.
+ * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(struct kpair **kv, size_t *kvsz, char *line)
+parse_multi(struct kreq *req, char *line, size_t len)
 {
+	char		*cp;
 	size_t		 sz;
 
 	while (' ' == *line)
@@ -1024,16 +1030,38 @@ parse_multi(struct kpair **kv, size_t *kvsz, char *line)
 	while (' ' == *line)
 		line++;
 
-	/* Each form consists of a bounded sequence of lines. */
-	sz = strlen("boundary=");
-	if (strncmp(line, "boundary=", sz)) 
+	/* We absolutely need the boundary marker. */
+	if (strncmp(line, "boundary", 8)) 
 		return;
-	line += sz;
-
-	while (' ' == *line) 
+	line += 8;
+	while (' ' == *line)
 		line++;
-	/* Go ahead and parse the form... */
-	parse_multiform(kv, kvsz, line);
+	if ('=' != *line++)
+		return;
+	while (' ' == *line)
+		line++;
+
+	/* Make sure the line is terminated in the right place .*/
+	if ('"' == *line) {
+		if (NULL == (cp = strchr(++line, '"')))
+			return;
+		*cp = '\0';
+	} else {
+		/*
+		 * XXX: this may not properly follow RFC 2046, 5.1.1,
+		 * which specifically lays out the boundary characters.
+		 * We simply jump to the first whitespace.
+		 */
+		for (cp = line; '\0' != *cp && ' ' != *cp; cp++)
+			/* Spin. */ ;
+		*cp = '\0';
+	}
+
+	/* Read in full file. */
+	cp = scanbuf(len, &sz);
+	len = 0;
+	parse_multiform(req, NULL, line, cp, sz, &len);
+	free(cp);
 }
 
 /*
@@ -1152,13 +1180,13 @@ khttp_parse(struct kreq *req,
 	 */
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(len, &req->fields, &req->fieldsz);
+			parse_urlenc(len, req);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(&req->fields, &req->fieldsz, cp + 19);
+			parse_multi(req, cp + 19, len);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_text(len, &req->fields, &req->fieldsz);
+			parse_text(len, req);
 	} else
-		parse_text(len, &req->fields, &req->fieldsz);
+		parse_text(len, req);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
