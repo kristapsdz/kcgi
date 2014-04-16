@@ -1,4 +1,8 @@
 #ifndef	CONFIG_H
 #define	CONFIG_H
 
+#if defined(__linux__) || defined(__MINT__)
+# define _GNU_SOURCE /* vasprintf */
+#endif
+
 #include <sys/types.h>
