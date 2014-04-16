@@ -983,20 +983,23 @@ parse_multiform(struct kreq *req, const char *name,
 			continue;
 		}
 
+		/* Assign all of our key-value pair data. */
 		kpair_expand(&req->fields, &req->fieldsz);
 		req->fields[req->fieldsz - 1].key = 
 			kstrdup(NULL != name ? name : mime.name);
 		req->fields[req->fieldsz - 1].val = kmalloc(partsz + 1);
 		memcpy(req->fields[req->fieldsz - 1].val, &buf[*pos], partsz);
 		req->fields[req->fieldsz - 1].val[partsz] = '\0';
-
 		req->fields[req->fieldsz - 1].valsz = partsz;
 		if (NULL != mime.file)
-			req->fields[req->fieldsz - 1].file = kstrdup(mime.file);
+			req->fields[req->fieldsz - 1].file = 
+				kstrdup(mime.file);
 		if (NULL != mime.ctype)
-			req->fields[req->fieldsz - 1].ctype = kstrdup(mime.ctype);
+			req->fields[req->fieldsz - 1].ctype = 
+				kstrdup(mime.ctype);
 		if (NULL != mime.xcode)
-			req->fields[req->fieldsz - 1].xcode = kstrdup(mime.xcode);
+			req->fields[req->fieldsz - 1].xcode = 
+				kstrdup(mime.xcode);
 	}
 
 	/*
