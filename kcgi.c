@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <limits.h>
-#include <math.h>
+#include <math.h> /* HUGE_VAL */
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -266,7 +266,7 @@ krealloc(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (nm && sz && SIZE_T_MAX / nm < sz) {
+	if (nm && sz && SIZE_MAX / nm < sz) {
 		errno = ENOMEM;
 		perror(NULL);
 		exit(EXIT_FAILURE);
@@ -368,7 +368,7 @@ khtml_input(struct kreq *req, size_t key)
 			cp = buf;
 			break;
 		case (KPAIR_INTEGER):
-			snprintf(buf, sizeof(buf), "%lld",
+			snprintf(buf, sizeof(buf), "%" PRId64, 
 				req->fieldmap[key]->parsed.i);
 			cp = buf;
 			break;
@@ -1037,7 +1037,7 @@ khttp_parse(struct kreq *req,
 	 * The CONTENT_LENGTH must be a valid integer.
 	 * Since we're storing into "len", make sure it's in size_t.
 	 * If there's an error, it will default to zero.
-	 * Note that LLONG_MAX < SIZE_T_MAX.
+	 * Note that LLONG_MAX < SIZE_MAX.
 	 * RFC 3875, 4.1.2.
 	 */
 	len = 0;
@@ -1347,7 +1347,7 @@ kvalid_udouble(struct kpair *p)
 	if ( ! kvalid_double(p))
 		return(0);
 	p->type = KPAIR_DOUBLE;
-	return(isnormal(p->parsed.d) && p->parsed.d > 0.0);
+	return(p->parsed.d > 0.0);
 }
 
 int
