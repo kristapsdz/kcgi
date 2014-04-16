@@ -57,6 +57,7 @@ enum	kattr {
 	KATTR_MAX,
 	KATTR_METHOD,
 	KATTR_MIN,
+	KATTR_MULTIPLE,
 	KATTR_NAME,
 	KATTR_ONCLICK,
 	KATTR_REL,
@@ -145,9 +146,10 @@ enum	kpairtype {
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
-	size_t		 valsz; /* length of "value" */
-	char		*file; /* if from a file, that filename */
-	char		*ctype; /* content-type, if defined */
+	size_t		 valsz; /* length of "val" */
+	char		*file; /* content filename (or NULL) */
+	char		*ctype; /* content type (or NULL) */
+	char		*xcode; /* content xfer encoding (or NULL) */
 	struct kpair	*next; /* next in map entry */
 	enum kpairtype	 type; /* if parsed, the parse type */
 	union parsed {

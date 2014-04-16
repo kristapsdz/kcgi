@@ -254,6 +254,7 @@ sendindex(struct kreq *req)
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
 		KATTR_TYPE, "file",
+		KATTR_MULTIPLE, "",
 		KATTR_NAME, keys[KEY_FILE].name,
 		KATTR__MAX);
 	if (NULL != req->fieldmap[KEY_FILE]) {

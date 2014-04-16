@@ -55,7 +55,7 @@
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li>query string, cookie, and form (multipart, urlencoded, and plain) input</li>
+				<li>query string, cookie, and form (multipart form-data and mixed, urlencoded, and plain) input</li>
 				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
 				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
