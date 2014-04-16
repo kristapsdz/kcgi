@@ -83,10 +83,11 @@
 			<p>
 				Add <code>remote</code> for client's remote address.
 				Add parsing of <code>text/plain</code> parsing as stipulated by the HTML5 (and earlier) draft specification.
-				Re-write url-encoding and plain content parsing engine to read all content into a buffer before parsing as
-				bounded by <code>CONTENT_LENGTH</code>.
-				This reduces the complexity of parsing, [begins to] deprecates the <code>UPLOAD_LIMIT</code> symbol (which is
-				usually set in the surrounding web server), and makes the parse itself safer.
+				Re-write form handling parsing engines to read all content into a buffer before parsing as bounded by
+				<code>CONTENT_LENGTH</code>.
+				This reduces the complexity of parsing, deprecates the <code>UPLOAD_LIMIT</code> symbol (which is usually set in
+				the surrounding web server), and makes the parse itself safer.
+				These adhere to the standards as mentioned in <a href="kcgi.3.html">kcgi(3)</a>.
 			</p>
 		</article>
 		<footer>
