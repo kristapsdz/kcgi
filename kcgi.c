@@ -413,7 +413,7 @@ memmem(const void *l, size_t l_len, const void *s, size_t s_len)
 #define INVALID 	1
 #define TOOSMALL 	2
 #define TOOLARGE 	3
-static long long
+long long
 strtonum(const char *numstr, long long minval, 
 		long long maxval, const char **errstrp)
 {
