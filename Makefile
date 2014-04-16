@@ -1,4 +1,6 @@
-CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_ZLIB
+CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings 
+# Uncomment this if you don't want zlib.
+CFLAGS += -DHAVE_ZLIB
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
@@ -13,6 +15,12 @@ libkcgi.a: kcgi.o
 	$(AR) rs $@ kcgi.o 
 
 kcgi.o sample.o: kcgi.h
+
+kcgi.o: config.h
+
+config.h: config.h.pre config.h.post configure test-memmem.c test-strtonum.c
+	rm -f config.log
+	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
 
 installcgi: sample 
 	install -m 0755 sample $(PREFIX)/sample.cgi
@@ -52,9 +60,14 @@ kcgi.3.html: kcgi.3
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
 	cp Makefile sample.c kcgi.c kcgi.h kcgi.3 template.xml .dist/kcgi-$(VERSION)
+	cp configure config.h.pre config.h.post test-memmem.c test-strtonum.c .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
 clean:
 	rm -f kcgi-$(VERSION).tgz index.html kcgi.3.html
 	rm -f libkcgi.a kcgi.o sample.o sample
+	rm -f config.log config.h
+	rm -f test-memmem test-strtonum 
+	rm -f test-memmem.o test-strtonum.o
+	rm -rf *.dSYM
