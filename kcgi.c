@@ -14,6 +14,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <sys/mman.h>
 #include <sys/stat.h>
 
@@ -33,10 +37,6 @@
 #include <zlib.h>
 
 #include "kcgi.h"
-
-/* 10 MB upload limit for GET/POST. */
-/* FIXME: pass this into http_parse(). */
-#define	UPLOAD_LIMIT	 10485760
 
 enum	kstate {
 	KSTATE_HEAD = 0,
@@ -326,7 +326,7 @@ kmalloc(size_t sz)
 	exit(EXIT_FAILURE);
 }
 
-#ifdef __APPLE__
+#ifndef HAVE_MEMMEM
 /*	$OpenBSD$ */
 /*-
  * Copyright (c) 2005 Pascal Gloor <pascal.gloor@spale.com>
@@ -389,7 +389,7 @@ memmem(const void *l, size_t l_len, const void *s, size_t s_len)
 }
 #endif
 
-#ifndef __OpenBSD__
+#ifndef HAVE_STRTONUM
 /* OPENBSD ORIGINAL: lib/libc/stdlib/strtonum.c */
 /* $OpenBSD$*/
 /*
