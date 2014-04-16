@@ -75,7 +75,8 @@
 				<li>Close and free HTTP context with <code>khttp_free</code>.</li>
 			</ol>
 			<p>
-				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions.
+				This library is still quite new.
+				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 			</p>
 			<h2>
 				New in version @VERSION@...
@@ -84,6 +85,7 @@
 				Add little <code>configure</code> script to check for non-standard functions (<code>memmem</code> and
 				<code>strtonum</code>).
 				This is automatically calld upon compilation.
+				Tested on GNU/Linux, Mac OS X, and OpenBSD.
 			</p>
 		</article>
 		<footer>
