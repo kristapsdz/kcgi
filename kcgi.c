@@ -251,6 +251,7 @@ kxrealloc(void *pp, size_t sz)
 {
 	char	*p;
 
+	assert(sz > 0);
 	if (NULL != (p = realloc(pp, sz)))
 		return(p);
 
@@ -272,6 +273,7 @@ krealloc(void *pp, size_t nm, size_t sz)
 		exit(EXIT_FAILURE);
 	}
 
+	assert(nm * sz > 0);
 	if (NULL != (p = realloc(pp, nm * sz)))
 		return(p);
 
@@ -771,7 +773,6 @@ parse_multiform(struct kreq *req, const char *name,
 	bbsz = strlen(bb);
 	memset(&mime, 0, sizeof(struct mime));
 
-	first = 1;
 	/* Read to the next instance of a buffer boundary. */
 	for (first = 1; *pos < len; first = 0, *pos = endpos) {
 		/*
