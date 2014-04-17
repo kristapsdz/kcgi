@@ -48,6 +48,7 @@ www: index.html kcgi-$(VERSION).tgz kcgi.3.html
 installwww: www
 	mkdir -p $(WWWDIR)/snapshots
 	install -m 0444 index.html kcgi.3.html $(WWWDIR)
+	install -m 0444 sample.c $(WWWDIR)/sample.c.txt
 	install -m 0444 kcgi-$(VERSION).tgz $(WWWDIR)/snapshots/
 	install -m 0444 kcgi-$(VERSION).tgz $(WWWDIR)/snapshots/kcgi.tgz
 
