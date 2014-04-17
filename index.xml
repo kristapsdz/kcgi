@@ -19,6 +19,7 @@
 			footer { margin-top: 1em; font-size: smaller; color: #666; }
 			footer a { color: #000; }
 			h2 { font-size: inherit; font-weight: bolder; color: #333; }
+			.file { font-style: italic; }
 			@media only screen and (max-width: 600px), only screen and (max-device-width: 600px) {
 			header, article, footer { width: 98%; }
 			}
@@ -43,13 +44,12 @@
 				See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a> for
 				alternatives.
 				To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make
-					install</code> into your <code>PREFIX</code> of choice.
-				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all function, variables, types, and general usage.
+					install</code> into your <code>PREFIX</code> of choice (you may want to comment out
+				<code>HAVE_ZLIB</code> if your system does not support <a href="http://www.zlib.net">zlib</a> compression).
+				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all function, variables, types, standards, and general
+				usage.
 				<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 			</p>
-			<h2>
-				Features
-			</h2>
 			<p>
 				The following is a rough feature list of <span class="nm">kcgi</span>.
 				See the <a href="kcgi.3.html">manual</a> for details.
@@ -63,16 +63,44 @@
 				<li>automatic HTTP compression (via <a href="http://www.zlib.net">zlib</a>)</li>
 			</ul>
 			<p>
-				Most <span class="nm">kcgi</span> applications work as follows:
+				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
+				distributed in the source consists of a full working example):
 			</p>
 			<ol>
-				<li>Initialise HTTP context with <code>khttp_parse</code>.</li>
-				<li>Process parsed content in <code>struct kreq</code>.</li>
-				<li>Emit any HTTP headers with <code>khttp_head</code>.</li>
-				<li>Signal HTTP body with <code>khttp_body</code>.</li>
-				<li>Use HTML builder functions (<code>khtml_elem</code> etc.), the <code>khtml_template</code> template system,
-					or directly output (<code>khttp_puts</code> etc.) for generating body content.</li>
-				<li>Close and free HTTP context with <code>khttp_free</code>.</li>
+				<li>
+					Call <code>khttp_parse</code> as early as possible.  
+					This will parse input fields and set up the HTTP environment.
+					At present, <span class="nm">kcgi</span> parses (and optionally validates) cookies; query string
+					<q>GET</q> data; and the urlencoded, form-data, and plain <q>POST</q> data.
+					It also maps page and MIME requests.
+				</li>
+				<li>
+					Process input fields by examining the <code>struct kpair</code> elements of the main <code>struct
+						kreq</code> structure.
+					This main structure contains all parsed input fields and environment information (in the interests of
+					simplicity, <span class="nm">kcgi</span> uses a single structure instead of accessor functions).
+				</li>
+				<li>
+					Emit HTTP headers with <code>khttp_head</code>, followed by <code>khttp_body</code> to begin the HTTP
+					body.
+					The latter will automatically trigger compression, if requested by the client.
+				</li>
+				<li>
+					Emit HTTP body output using HTML5 tree-building functions <code>khtml_attr</code>,
+					<code>khtml_close</code>, <code>khtml_closeto</code>, <code>khtml_decl</code>, <code>khtml_elem</code>,
+					<code>khtml_elemat</code>, <code>khtml_entity</code>, <code>khtml_input</code>, <code>khtml_ncr</code>,
+					and <code>khtml_text</code>; and/or
+				</li>
+				<li>
+					use the <code>khtml_template</code> function to populate file templates with a mixture of HTML-building
+					functions; and/or
+				</li>
+				<li>
+					use <code>khttp_putc</code> and <code>khttp_puts</code> for non-HTML media.
+				</li>
+				<li>
+					Call <code>khttp_free</code> to close the HTTP document and free all memory.
+				</li>
 			</ol>
 			<p>
 				This library is still quite new.
@@ -82,10 +110,11 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Add little <code>configure</code> script to check for non-standard functions (<code>memmem</code> and
+				Add a <code>configure</code> script to check for non-standard functions (<code>memmem</code> and
 				<code>strtonum</code>).
 				This is automatically calld upon compilation.
 				Tested on GNU/Linux, Mac OS X, and OpenBSD.
+				The only non-standard function remaining is <code>asprintf</code>, which can be handled on an as-needed basis.
 			</p>
 		</article>
 		<footer>
