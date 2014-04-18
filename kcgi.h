@@ -21,12 +21,49 @@
 #define	VERSION		"@VERSION@"
 
 enum	khttp {
+	KHTTP_100,
+	KHTTP_101,
+	KHTTP_103,
 	KHTTP_200,
+	KHTTP_201,
+	KHTTP_202,
+	KHTTP_203,
+	KHTTP_204,
+	KHTTP_205,
+	KHTTP_206,
+	KHTTP_300,
+	KHTTP_301,
+	KHTTP_302,
 	KHTTP_303,
+	KHTTP_304,
+	KHTTP_306,
+	KHTTP_307,
+	KHTTP_308,
+	KHTTP_400,
+	KHTTP_401,
+	KHTTP_402,
 	KHTTP_403,
 	KHTTP_404,
+	KHTTP_405,
+	KHTTP_406,
+	KHTTP_407,
+	KHTTP_408,
 	KHTTP_409,
+	KHTTP_410,
+	KHTTP_411,
+	KHTTP_412,
+	KHTTP_413,
+	KHTTP_414,
 	KHTTP_415,
+	KHTTP_416,
+	KHTTP_417,
+	KHTTP_500,
+	KHTTP_501,
+	KHTTP_502,
+	KHTTP_503,
+	KHTTP_504,
+	KHTTP_505,
+	KHTTP_511,
 	KHTTP__MAX
 };
 
@@ -188,6 +225,7 @@ struct	kreq {
 	enum kmime		  mime;
 	size_t			  page;
 	char			 *path;
+	char			 *suffix;
 	char			 *fullpath;
 	char			 *remote;
 	struct kdata		 *kdata;
@@ -247,10 +285,8 @@ void		*krealloc(void *p, size_t nm, size_t sz);
 void		*kxrealloc(void *p, size_t sz);
 char		*kstrdup(const char *cp);
 
-extern const char *const	 kmimes[KMIME__MAX];
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
-extern const char *const	 kfields[KFIELD__MAX];
 extern const char		*pname;
 
 __END_DECLS
