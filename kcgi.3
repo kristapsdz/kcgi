@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 15 2014 $
+.Dd $Mdocdate: April 16 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -235,6 +235,32 @@ in the library path, then link with
 and
 .Fl Ar lz
 .Pq unless compression has been disabled at compile-time .
+.Ss Globals
+There are several convenience variables defined in
+.Pa kcgi.h .
+They are as follows:
+.Bl -ohang -offset indent
+.It Va kmimes
+An array of common file suffixes mapped to
+.Vt "enum kmime"
+MIME types.
+.It Va kmimetypes
+An array of common MIME type IANA names used when populating the
+.Li Content-Type
+HTTP header.
+These can be looked up using
+.Vt "enum kime"
+in the array.
+Application will generally set the
+.Li Content-Type
+from the
+.Va mime
+field of
+.Vt "struct kreq" .
+.It Va khttps
+An array of HTTP/1.0 and HTTP/1.1 headers looked up using
+.Vt "enum khttp" .
+.El
 .Ss Types
 The
 .Vt "struct kreq"
@@ -295,10 +321,15 @@ mapped into field indices as defined by the
 argument to
 .Fn khttp_parse .
 .It Va mime
-The MIME type of the requested file as determined by its suffix.
+The MIME type of the requested file as determined by its
+.Pa suffix .
 This defaults to
 .Dv MIME_HTML
-if no suffix is specified.
+if no suffix is specified or
+.Dv MIME__MAX
+if the suffix is specified but not known.
+In the interests of simplicity, only the most common MIME types are
+recognised.
 .It Va page
 The page index as defined by the
 .Va pages
@@ -322,10 +353,25 @@ the path array provided to
 For example, if the
 .Dv PATH_INFO
 is
-.Pa foo.cgi/bar/baz ,
+.Pa foo.cgi/bar/baz.html ,
 the path component would be
 .Pa baz
 .Pq with the leading slash stripped .
+.It Va suffix
+The suffix part of the
+.Dv PATH_INFO
+or
+.Dv NULL
+if none exists.
+For example, if the
+.Dv PATH_INFO
+is
+.Pa foo.cgi/bar/baz.html ,
+the suffix would be
+.Pa html .
+See the
+.Va mime
+field for the MIME type parsed from the suffix.
 .It Va fullpath
 The full path following the server name or
 .Dv NULL
@@ -701,6 +747,7 @@ The partial multipart form data support is defined by RFC 2388,
 .Qq Returning Values from Forms: multipart/form-data ,
 which is further defined by RFCs 2045 and 2046,
 .Qq Multipurpose Internet Mail Extensions .
+MIME type names are registered with IANA.
 .Sh AUTHORS
 The
 .Nm
