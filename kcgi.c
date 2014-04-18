@@ -52,6 +52,11 @@ struct	kdata {
 #endif
 };
 
+struct	mimemap {
+	const char	*name;
+	enum kmime	 mime;
+};
+
 /*
  * For handling HTTP multipart forms.
  * This consists of data for a single multipart form entry.
@@ -126,12 +131,6 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ 0, "var" }, /* KELEM_VAR */
 };
 
-const char *const kmimes[KMIME__MAX] = {
-	"html", /* KMIME_HTML */
-	"csv", /* KMIME_CSV */
-	"png", /* KMIME_PNG */
-};
-
 const char *const kfields[KFIELD__MAX] = {
 	"email",
 	"password",
@@ -141,18 +140,63 @@ const char *const kfields[KFIELD__MAX] = {
 };
 
 const char *const kmimetypes[KMIME__MAX] = {
-	"text/html; charset=utf-8", /* KMIME_HTML */
+	"text/html", /* KMIME_HTML */
 	"text/csv", /* KMIME_CSV */
 	"image/png", /* KMIME_PNG */
 };
 
 const char *const khttps[KHTTP__MAX] = {
+	"100 Continue",
+	"101 Switching Protocols",
+	"103 Checkpoint",
 	"200 OK",
+	"201 Created",
+	"202 Accepted",
+	"203 Non-Authoritative Information",
+	"204 No Content",
+	"205 Reset Content",
+	"206 Partial Content",
+	"300 Multiple Choices",
+	"301 Moved Permanently",
+	"302 Found",
 	"303 See Other",
+	"304 Not Modified",
+	"306 Switch Proxy",
+	"307 Temporary Redirect",
+	"308 Resume Incomplete",
+	"400 Bad Request",
+	"401 Unauthorized",
+	"402 Payment Required",
 	"403 Forbidden",
-	"404 Page Not Found",
+	"404 Not Found",
+	"405 Method Not Allowed",
+	"406 Not Acceptable",
+	"407 Proxy Authentication Required",
+	"408 Request Timeout",
 	"409 Conflict",
-	"415 Unsupported Media Type"
+	"410 Gone",
+	"411 Length Required",
+	"412 Precondition Failed",
+	"413 Request Entity Too Large",
+	"414 Request-URI Too Long",
+	"415 Unsupported Media Type",
+	"416 Requested Range Not Satisfiable",
+	"417 Expectation Failed",
+	"500 Internal Server Error",
+	"501 Not Implemented",
+	"502 Bad Gateway",
+	"503 Service Unavailable",
+	"504 Gateway Timeout",
+	"505 HTTP Version Not Supported",
+	"511 Network Authentication Required",
+};
+
+static 	const struct mimemap mimes[] = {
+	{ "html", KMIME_HTML },
+	{ "htm", KMIME_HTML },
+	{ "csv", KMIME_CSV },
+	{ "png", KMIME_PNG },
+	{ NULL, KMIME__MAX },
 };
 
 static	const char *const attrs[KATTR__MAX] = {
@@ -952,6 +996,7 @@ khttp_parse(struct kreq *req,
 {
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
+	const struct mimemap *mm;
 	size_t		 p, i, j, len;
 
 	if (NULL == (pname = getenv("SCRIPT_NAME")))
@@ -1015,10 +1060,17 @@ khttp_parse(struct kreq *req,
 		/* Look up mime type from suffix. */
 		while (ep > cp && '/' != *ep && '.' != *ep)
 			ep--;
-		if ('.' == *ep)
-			for (*ep++ = '\0', m = 0; m < KMIME__MAX; m++)
-				if (0 == strcasecmp(kmimes[m], ep))
+		if ('.' == *ep) {
+			*ep++ = '\0';
+			req->suffix = kstrdup(ep);
+			for (mm = mimes; NULL != mm->name; mm++)
+				if (0 == strcasecmp(mm->name, ep)) {
+					m = mm->mime;
 					break;
+				}
+			if (NULL == mm)
+				m = KMIME__MAX;
+		}
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
 		/* Look up page type from component. */
@@ -1156,6 +1208,7 @@ khttp_free(struct kreq *req)
 	free(req->fieldmap);
 	free(req->fieldnmap);
 	free(req->kdata);
+	free(req->suffix);
 }
 
 void
