@@ -68,6 +68,7 @@ enum	khttp {
 };
 
 enum	kentity {
+	KENTITY_AMP,
 	KENTITY_EACUTE,
 	KENTITY_GT,
 	KENTITY_LARR,
@@ -278,6 +279,10 @@ int		 khtml_template(struct kreq *req,
 			const struct ktemplate *t, 
 			const char *fname);
 
+char		*kutil_urlpart(struct kreq *req, 
+			enum kmime mime, size_t page, ...);
+char		*kutil_urlencode(const char *cp);
+
 void		*kasprintf(const char *fmt, ...);
 void		*kcalloc(size_t nm, size_t sz);
 void		*kmalloc(size_t sz);
@@ -287,6 +292,7 @@ char		*kstrdup(const char *cp);
 
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
+extern const char *const	 ksuffixes[KMIME__MAX];
 extern const char		*pname;
 
 __END_DECLS
