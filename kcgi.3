@@ -33,6 +33,7 @@
 .Nm khtml_elemat ,
 .Nm khtml_entity ,
 .Nm khtml_input ,
+.Nm khtml_int64 ,
 .Nm khtml_ncr ,
 .Nm khtml_text ,
 .Nm khtml_template ,
@@ -118,6 +119,11 @@
 .Fa "size_t key"
 .Fc
 .Ft void
+.Fo khtml_int64
+.Fa "struct kreq *req"
+.Fa "int64_t val"
+.Fc
+.Ft void
 .Fo khtml_ncr
 .Fa "struct kreq *req"
 .Fa "uint16_t ncr"
@@ -197,6 +203,7 @@ Emit HTTP body output using HTML-building functions
 .Fn khtml_elemat ,
 .Fn khtml_entity ,
 .Fn khtml_input ,
+.Fn khtml_int64 ,
 .Fn khtml_ncr
 and
 .Fn khtml_text ;
@@ -633,6 +640,10 @@ This will also fill in a value if stored in parsed
 in
 .Va req .
 This is meant to simplify the repopulation of fields.
+.It Fn khtml_int64 "struct kreq *req" "int64_t val"
+Wrapper over
+.Fn khtml_text
+for formatting a 64-bit signed integer.
 .It Fn khtml_ncr "struct kreq *req" "uint16_t ncr"
 Emit the numeric character reference
 .Va ncr .
@@ -769,26 +780,10 @@ array of
 while
 .Va mime
 is a MIME type.
-The variable arguments refer to input keys and values, where the first
-of each pair is a
-.Vt size_t
-mapping into the
-.Va keys
-array of
-.Vt "struct kreq"
-and the value is a nil-terminated character string value.
-.Em Note :
-the key part
-.Em must
-be an
-.Vt size_t
-type or you risk uncertain behaviour.
-So if you're using enums or otherwise, make sure to cast them.
-This variable array must be terminated with a single value of at least
-.Va keysz
-as defined in
-.Vt "struct kreq".
-Each component is properly URL-encoded.
+The variable arguments refer to input keys and values, both
+nil-terminated character pointers.
+This variable array must be terminated with a
+.Dv NULL .
 The caller must free the string with
 .Xr free 3 .
 .El
