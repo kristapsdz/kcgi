@@ -82,7 +82,8 @@ struct	tag {
 };
 
 static	const uint16_t entities[KENTITY__MAX] = {
-	0xE9, /* KENTITY_ACUTE */
+	38, /* KENTITY_AMP */
+	0xE9, /* KENTITY_EACUTE */
 	0x3E, /* KENTITY_GT */
 	0x2190, /* KENTITY_LARR */
 	0x3C, /* KENTITY_LT */
@@ -191,12 +192,21 @@ const char *const khttps[KHTTP__MAX] = {
 	"511 Network Authentication Required",
 };
 
-static 	const struct mimemap mimes[] = {
+static 	const struct mimemap suffixmap[] = {
 	{ "html", KMIME_HTML },
 	{ "htm", KMIME_HTML },
 	{ "csv", KMIME_CSV },
 	{ "png", KMIME_PNG },
 	{ NULL, KMIME__MAX },
+};
+
+/*
+ * Default MIME suffix per type.
+ */
+const char *const ksuffixes[KMIME__MAX] = {
+	"html", /* KMIME_HTML */
+	"csv", /* KMIME_CSV */
+	"png", /* KIME_PNG */
 };
 
 static	const char *const attrs[KATTR__MAX] = {
@@ -432,6 +442,86 @@ khtml_input(struct kreq *req, size_t key)
 		KATTR_NAME, req->keys[key].name,
 		KATTR_VALUE, cp,
 		KATTR__MAX);
+}
+
+char *
+kutil_urlencode(const char *cp)
+{
+	char	*p;
+	char	 ch;
+	size_t	 sz;
+	char	 buf[4];
+
+	if (NULL == cp)
+		return(NULL);
+
+	/* 
+	 * Leave three bytes per input byte for encoding. 
+	 * This ensures we needn't range-check.
+	 * First check whether our size overflows. 
+	 * We do this here because we need our size!
+	 */
+	sz = strlen(cp) + 1;
+	if (SIZE_MAX / 3 < sz) {
+		errno = ENOMEM;
+		perror(NULL);
+		exit(EXIT_FAILURE);
+	}
+	p = kcalloc(sz, 3);
+	sz *= 3;
+
+	for ( ; '\0' != (ch = *cp); cp++) {
+		/* Put in a temporary buffer then concatenate. */
+		memset(buf, 0, sizeof(buf));
+		if (' ' == ch) 
+			buf[0] = '+';
+		else if (isalnum((int)ch))
+			buf[0] = ch;
+		else
+			(void)snprintf(buf, sizeof(buf), "%%%.2x", ch);
+		(void)strlcat(p, buf, sz);
+	}
+
+	return(p);
+}
+
+char *
+kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
+{
+	va_list		 ap;
+	char		*p, *pagep, *keyp, *valp;
+	size_t		 total, key, count;
+
+	pagep = kutil_urlencode(req->pages[page]);
+	p = kasprintf("%s/%s.%s", pname, pagep, ksuffixes[mime]);
+	free(pagep);
+	total = strlen(p) + 1;
+
+	va_start(ap, page);
+	count = 0;
+	while ((key = va_arg(ap, size_t)) < req->keysz) {
+		keyp = kutil_urlencode(req->keys[key].name);
+		valp = kutil_urlencode(va_arg(ap, char *));
+		/* Size for key, value, ? or &, and =. */
+		/* FIXME: check for overflow! */
+		total += strlen(keyp) + strlen(valp) + 2;
+		p = kxrealloc(p, total);
+
+		if (count > 0)
+			(void)strlcat(p, "&", total);
+		else
+			(void)strlcat(p, "?", total);
+
+		(void)strlcat(p, keyp, total);
+		(void)strlcat(p, "=", total);
+		(void)strlcat(p, valp, total);
+
+		free(keyp);
+		free(valp);
+		count++;
+	}
+	va_end(ap);
+	return(p);
 }
 
 void
@@ -1063,7 +1153,7 @@ khttp_parse(struct kreq *req,
 		if ('.' == *ep) {
 			*ep++ = '\0';
 			req->suffix = kstrdup(ep);
-			for (mm = mimes; NULL != mm->name; mm++)
+			for (mm = suffixmap; NULL != mm->name; mm++)
 				if (0 == strcasecmp(mm->name, ep)) {
 					m = mm->mime;
 					break;
@@ -1293,6 +1383,9 @@ khtml_text(struct kreq *req, const char *cp)
 		switch (*cp) {
 		case ('>'):
 			khtml_entity(req, KENTITY_GT);
+			break;
+		case ('&'):
+			khtml_entity(req, KENTITY_AMP);
 			break;
 		case ('<'):
 			khtml_entity(req, KENTITY_LT);
