@@ -11,6 +11,9 @@ WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 
 
+mime2c: mime2c.o
+	$(CC) -o $@ mime2c.o -lutil
+
 libkcgi.a: kcgi.o compat.o
 	$(AR) rs $@ kcgi.o compat.o
 

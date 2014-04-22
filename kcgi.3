@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 16 2014 $
+.Dd $Mdocdate: April 18 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -41,7 +41,9 @@
 .Nm kmalloc ,
 .Nm krealloc ,
 .Nm kstrdup ,
-.Nm kxrealloc
+.Nm kxrealloc ,
+.Nm kutil_urlpart ,
+.Nm kutil_urlencode
 .Nd minimal CGI library in C
 .Sh SYNOPSIS
 .In kcgi.h
@@ -155,6 +157,15 @@
 .Fn kstrdup "const char *cp"
 .Ft "void *"
 .Fn kxrealloc "void *p" "size_t sz"
+.Ft "char *"
+.Fo kutil_urlpart
+.Fa "struct kreq *req"
+.Fa "enum kmime mime"
+.Fa "size_t page"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fn kutil_urlencode "const char *cp"
 .Sh DESCRIPTION
 The
 .Nm kcgi
@@ -240,7 +251,7 @@ There are several convenience variables defined in
 .Pa kcgi.h .
 They are as follows:
 .Bl -ohang -offset indent
-.It Va kmimes
+.It Va ksuffixes
 An array of common file suffixes mapped to
 .Vt "enum kmime"
 MIME types.
@@ -733,6 +744,54 @@ If found, the callback is invoked with the key index and the optional
 argument.
 Callbacks may continue to process, emit HTML trees, and so on.
 .El
+.Pp
+Several convenience functions are also provided for managing HTTP and
+HTML concepts.
+.Bl -ohang -offset indent
+.It Fn kutil_urlencode "const char *cp"
+Return a dynamically-allocated URL-encoded string or
+.Dv NULL
+if
+.Fa cp
+is
+.Dv NULL .
+The caller must free the string with
+.Xr free 3 .
+.It Fn kutil_urlpart "struct kreq *req" "enum kmime mime" "size_t page" "..."
+Return a dynamically-allocated partial URL, meaning just the script
+name, path, MIME suffix, and query string.
+The
+.Fa page
+refers to a page within the
+.Va pages
+array of
+.Vt "struct kreq" ,
+while
+.Va mime
+is a MIME type.
+The variable arguments refer to input keys and values, where the first
+of each pair is a
+.Vt size_t
+mapping into the
+.Va keys
+array of
+.Vt "struct kreq"
+and the value is a nil-terminated character string value.
+.Em Note :
+the key part
+.Em must
+be an
+.Vt size_t
+type or you risk uncertain behaviour.
+So if you're using enums or otherwise, make sure to cast them.
+This variable array must be terminated with a single value of at least
+.Va keysz
+as defined in
+.Vt "struct kreq".
+Each component is properly URL-encoded.
+The caller must free the string with
+.Xr free 3 .
+.El
 .Sh EXAMPLES
 A simple example exists in
 .Pa @DATADIR@/sample.c .
@@ -748,6 +807,8 @@ The partial multipart form data support is defined by RFC 2388,
 which is further defined by RFCs 2045 and 2046,
 .Qq Multipurpose Internet Mail Extensions .
 MIME type names are registered with IANA.
+URLs are formatted according to RFC 1630,
+.Qq Universal Resource Identifiers in WWW .
 .Sh AUTHORS
 The
 .Nm

@@ -110,11 +110,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Add a <code>configure</code> script to check for non-standard functions (<code>memmem</code> and
-				<code>strtonum</code>).
-				This is automatically calld upon compilation.
-				Tested on GNU/Linux, Mac OS X, and OpenBSD.
-				The only non-standard function remaining is <code>asprintf</code>, which can be handled on an as-needed basis.
+				Add <code>kutil_urlencode</code> and <code>kutil_urlpart</code> for standards-compliant formatting of URLs.
+				Fix <code>khtml_text</code> to properly escape ampersands.
 			</p>
 		</article>
 		<footer>
