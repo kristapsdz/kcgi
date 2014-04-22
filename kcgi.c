@@ -489,18 +489,18 @@ char *
 kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 {
 	va_list		 ap;
-	char		*p, *pagep, *keyp, *valp;
-	size_t		 total, key, count;
+	char		*p, *pp, *keyp, *valp;
+	size_t		 total, count;
 
-	pagep = kutil_urlencode(req->pages[page]);
-	p = kasprintf("%s/%s.%s", pname, pagep, ksuffixes[mime]);
-	free(pagep);
+	pp = kutil_urlencode(req->pages[page]);
+	p = kasprintf("%s/%s.%s", pname, pp, ksuffixes[mime]);
+	free(pp);
 	total = strlen(p) + 1;
 
 	va_start(ap, page);
 	count = 0;
-	while ((key = va_arg(ap, size_t)) < req->keysz) {
-		keyp = kutil_urlencode(req->keys[key].name);
+	while (NULL != (pp = va_arg(ap, char *))) {
+		keyp = kutil_urlencode(pp);
 		valp = kutil_urlencode(va_arg(ap, char *));
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
@@ -539,7 +539,12 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
 		cp = va_arg(ap, char *);
 		assert(NULL != cp);
-		KPRINTF(req, " %s=\"%s\"", attrs[at], cp);
+		khttp_putc(req, ' ');
+		khttp_puts(req, attrs[at]);
+		khttp_putc(req, '=');
+		khttp_putc(req, '"');
+		khtml_text(req, cp);
+		khttp_putc(req, '"');
 
 	}
 	va_end(ap);
@@ -1366,6 +1371,15 @@ khttp_body(struct kreq *req)
 	fputs("\r\n", stdout);
 	fflush(stdout);
 	req->kdata->state = KSTATE_BODY;
+}
+
+void
+khtml_int64(struct kreq *req, int64_t val)
+{
+	char	 buf[22];
+
+	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
+	khtml_text(req, buf);
 }
 
 /*
