@@ -111,7 +111,9 @@
 			</h2>
 			<p>
 				Add <code>kutil_urlencode</code> and <code>kutil_urlpart</code> for standards-compliant formatting of URLs.
+				Add <code>khtml_int64</code> as a convenience function.
 				Fix <code>khtml_text</code> to properly escape ampersands.
+				Fix <code>khtml_attr</code> to properly HTML-escape attribute values.
 			</p>
 		</article>
 		<footer>
