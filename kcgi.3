@@ -527,6 +527,10 @@ This consists of the following members:
 .Bl -ohang -offset indent
 .It Va key
 An array of keys.
+If a key consists of
+.Li foo ,
+it is parsed from the template input file as
+.Li @@foo@@ .
 .It Va keysz
 The number of elements in
 .Va key .
@@ -539,6 +543,10 @@ A callback invoked when a key at position
 is found in the
 .Va key
 array.
+Again, keys such as
+.Li foo
+appear in the template input file as
+.Li @@foo@@ .
 .El
 .Ss Functions
 The following functions initialise an HTTP request.
@@ -747,10 +755,10 @@ This is coordinated entirely by a single function,
 This function memory-maps the file
 .Fa fname
 and appends it to the output stream.
-Whenever a key is located, where keys are delimited as
-.Li @@KEY@@
-in
-.Fa fname ,
+Whenever a key is located, where a key named
+.Li key
+would be written in
+.Li @@key@@ ,
 it is looked up in the
 .Fa t
 key array.
