@@ -125,13 +125,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Add <code>kutil_urlencode</code> and <code>kutil_urlpart</code> for standards-compliant formatting of URLs.
-				Add <code>khtml_int64</code> as a convenience function.
-				Fix <code>khtml_text</code> to properly escape ampersands.
-				Fix <code>khtml_attr</code> to properly HTML-escape attribute values.
-				Removed <code>khtml_input</code>, which wasn't specific enough to actually be useful (e.g., implementing HTML5
-				<code>range</code> inputs and other goodies) while complicating things enough to be ugly (i.e.,
-				<code>kfield</code>).
+				Fix printing <code>khtml_ncr</code> as hex.
+				Added <code>&lt;ol&gt;</code> HTML element.
 			</p>
 		</article>
 		<footer>
