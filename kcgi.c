@@ -1271,6 +1271,72 @@ khttp_parse(struct kreq *req,
 	}
 }
 
+/*
+ * This entire function would be two lines if we were using the
+ * sys/queue macros.h.
+ */
+void
+kutil_invalidate(struct kreq *r, struct kpair *kp)
+{
+	struct kpair	*p, *lastp;
+	size_t		 i;
+
+	if (NULL == kp)
+		return;
+	else if (KPAIR__MAX == kp->type)
+		return;
+
+	/*
+	 * Look through our entire fieldmap to locate the pair, then
+	 * move it into the "bad" list.
+	 */
+	kp->type = KPAIR__MAX;
+	for (i = 0; i < r->keysz; i++) {
+		/* First time's the charm. */
+		if (kp == r->fieldmap[i]) {
+			/* Move existing fieldmap. */
+			r->fieldmap[i] = kp->next;
+			/* Invalidate, append to fieldnmap. */
+			kp->next = r->fieldnmap[i];
+			r->fieldnmap[i] = kp;
+			return;
+		} else if (NULL == r->fieldmap[i])
+			continue;
+
+		/* See if we're buried in the list. */
+		lastp = r->fieldmap[i];
+		p = lastp->next;
+		for ( ; NULL != p; lastp = p, p = p->next)
+			if (kp == p) {
+				lastp->next = kp->next;
+				kp->next = r->fieldnmap[i];
+				r->fieldnmap[i] = kp;
+				return;
+			}
+	}
+	/*
+	 * Same as above, but look in the cookie map.
+	 */
+	for (i = 0; i < r->keysz; i++) {
+		if (kp == r->cookiemap[i]) {
+			r->cookiemap[i] = kp->next;
+			kp->next = r->cookienmap[i];
+			r->cookienmap[i] = kp;
+			return;
+		} else if (NULL == r->cookiemap[i])
+			continue;
+		lastp = r->cookiemap[i];
+		p = lastp->next;
+		for ( ; NULL != p; lastp = p, p = p->next) 
+			if (kp == p) {
+				lastp->next = kp->next;
+				kp->next = r->cookienmap[i];
+				r->cookienmap[i] = kp;
+				return;
+			}
+	}
+}
+
 static void
 kpair_free(struct kpair *p, size_t sz)
 {
