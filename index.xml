@@ -69,9 +69,17 @@
 			<ol>
 				<li>
 					Call <code>khttp_parse</code> as early as possible.  
-					This will parse input fields and set up the HTTP environment.
+					This will parse input and cookie fields and set up the HTTP environment.
 					At present, <span class="nm">kcgi</span> parses (and optionally validates) cookies; query string
 					<q>GET</q> data; and the urlencoded, form-data, and plain <q>POST</q> data.
+					These use
+					<code>kvalid_double</code>,
+					<code>kvalid_email</code>,
+					<code>kvalid_int</code>,
+					<code>kvalid_string</code>,
+					<code>kvalid_udouble</code>,
+					<code>kvalid_uint</code>,
+					or locally-defined functions for validation.
 					It also maps page and MIME requests.
 				</li>
 				<li>
@@ -86,14 +94,21 @@
 					The latter will automatically trigger compression, if requested by the client.
 				</li>
 				<li>
-					Emit HTTP body output using HTML5 tree-building functions <code>khtml_attr</code>,
-					<code>khtml_close</code>, <code>khtml_closeto</code>, <code>khtml_decl</code>, <code>khtml_elem</code>,
-					<code>khtml_elemat</code>, <code>khtml_entity</code>, <code>khtml_input</code>, <code>khtml_ncr</code>,
-					and <code>khtml_text</code>; and/or
+					Emit HTTP body output using HTML5 tree-building functions 
+					<code>khtml_attr</code>,
+					<code>khtml_close</code>, 
+					<code>khtml_closeto</code>, 
+					<code>khtml_decl</code>, 
+					<code>khtml_elem</code>,
+					<code>khtml_elemat</code>, 
+					<code>khtml_entity</code>, 
+					<code>khtml_int64</code>,
+					<code>khtml_ncr</code>, or
+					<code>khtml_text</code>; or
 				</li>
 				<li>
 					use the <code>khtml_template</code> function to populate file templates with a mixture of HTML-building
-					functions; and/or
+					functions; or
 				</li>
 				<li>
 					use <code>khttp_putc</code> and <code>khttp_puts</code> for non-HTML media.
