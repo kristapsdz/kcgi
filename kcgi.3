@@ -43,6 +43,7 @@
 .Nm krealloc ,
 .Nm kstrdup ,
 .Nm kxrealloc ,
+.Nm kutil_invalidate ,
 .Nm kutil_urlpart ,
 .Nm kutil_urlencode
 .Nd minimal CGI library in C
@@ -163,6 +164,8 @@
 .Fn kstrdup "const char *cp"
 .Ft "void *"
 .Fn kxrealloc "void *p" "size_t sz"
+.Ft void
+.Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
 .Ft "char *"
 .Fo kutil_urlpart
 .Fa "struct kreq *req"
@@ -182,11 +185,18 @@ Interfacing applications generally work as follows:
 Call
 .Fn khttp_parse
 as early as possible.
-This will parse input fields and set up the HTTP environment.
+This will parse and validate input fields with
+.Fn kvalid_string
+and family, and set up the HTTP environment.
 .It
 Process input fields by examining the
 .Vt "struct kpair"
 elements.
+If you want to perform a high-level revalidation, as
+.Fn khttp_parse
+usually only validates the field type, use
+.Fn kutil_invalidate
+to keep parsed fields properly set.
 .It
 Emit HTTP headers with
 .Fn khttp_head ,
@@ -759,6 +769,11 @@ Callbacks may continue to process, emit HTML trees, and so on.
 Several convenience functions are also provided for managing HTTP and
 HTML concepts.
 .Bl -ohang -offset indent
+.It Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
+Mark a validated input field
+.Fa kp
+as invalidate.
+If the input field is not valid, this function does nothing.
 .It Fn kutil_urlencode "const char *cp"
 Return a dynamically-allocated URL-encoded string or
 .Dv NULL
