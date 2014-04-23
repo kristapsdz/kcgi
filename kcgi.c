@@ -132,14 +132,6 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ 0, "var" }, /* KELEM_VAR */
 };
 
-const char *const kfields[KFIELD__MAX] = {
-	"email",
-	"password",
-	"text",
-	"number",
-	"submit"
-};
-
 const char *const kmimetypes[KMIME__MAX] = {
 	"text/html", /* KMIME_HTML */
 	"text/csv", /* KMIME_CSV */
@@ -405,43 +397,6 @@ khtml_elem(struct kreq *req, enum kelem elem)
 
 	assert(KSTATE_BODY == req->kdata->state);
 	khtml_attr(req, elem, KATTR__MAX);
-}
-
-void
-khtml_input(struct kreq *req, size_t key)
-{
-	const char	*cp;
-	char		 buf[64];
-
-	assert(KSTATE_BODY == req->kdata->state);
-
-	cp = "";
-	if (NULL != req->fieldmap[key])
-		switch (req->fieldmap[key]->type) {
-		case (KPAIR_DOUBLE):
-			snprintf(buf, sizeof(buf), "%.2f",
-				req->fieldmap[key]->parsed.d);
-			cp = buf;
-			break;
-		case (KPAIR_INTEGER):
-			snprintf(buf, sizeof(buf), "%" PRId64, 
-				req->fieldmap[key]->parsed.i);
-			cp = buf;
-			break;
-		case (KPAIR_STRING):
-			cp = req->fieldmap[key]->parsed.s;
-			break;
-		default:
-			abort();
-			break;
-		}
-
-	assert(req->keys[key].field < KFIELD__MAX);
-	khtml_attr(req, KELEM_INPUT,
-		KATTR_TYPE, kfields[req->keys[key].field],
-		KATTR_NAME, req->keys[key].name,
-		KATTR_VALUE, cp,
-		KATTR__MAX);
 }
 
 char *
@@ -1582,14 +1537,9 @@ kvalid_double(struct kpair *p)
 {
 	char		*ep;
 	double		 lval;
-	const char	*cp;
 
 	if ( ! kvalid_string(p))
 		return(0);
-
-	if (NULL != (cp = strrchr(p->val, '.')))
-		if (strlen(cp + 1) > 2) 
-			return(0);
 
 	errno = 0;
 	lval = strtod(p->val, &ep);

@@ -78,11 +78,11 @@ static const struct dispatch disps[PAGE__MAX] = {
 };
 
 const struct kvalid keys[KEY__MAX] = {
-	{ kvalid_int, "integer1", KFIELD_NUMBER }, /* KEY_INTEGER1 */
-	{ kvalid_int, "integer2", KFIELD_NUMBER }, /* KEY_INTEGER2 */
-	{ kvalid_int, "integer3", KFIELD_NUMBER }, /* KEY_INTEGER3 */
-	{ kvalid_int, "integer4", KFIELD_NUMBER }, /* KEY_INTEGER4 */
-	{ NULL, "file", KFIELD__MAX }, /* KEY_FILE */
+	{ kvalid_int, "integer1" }, /* KEY_INTEGER1 */
+	{ kvalid_int, "integer2" }, /* KEY_INTEGER2 */
+	{ kvalid_int, "integer3" }, /* KEY_INTEGER3 */
+	{ kvalid_int, "integer4" }, /* KEY_INTEGER4 */
+	{ NULL, "file" }, /* KEY_FILE */
 };
 
 /*
@@ -165,8 +165,9 @@ sendtemplate(struct kreq *req)
 static void
 sendindex(struct kreq *req)
 {
-	size_t	 sv;
-	char	*page;
+	size_t		 sv;
+	char		*page;
+	const char	*cp;
 
 	page = kasprintf("%s/%s", pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
@@ -190,7 +191,12 @@ sendindex(struct kreq *req)
 	khtml_text(req, "Post");
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
-	khtml_input(req, KEY_INTEGER1);
+	cp = NULL == req->fieldmap[KEY_INTEGER1] ?
+		"" : req->fieldmap[KEY_INTEGER1]->val;
+	khtml_attr(req, KELEM_INPUT,
+		KATTR_TYPE, "number",
+		KATTR_NAME, keys[KEY_INTEGER1].name,
+		KATTR_VALUE, cp, KATTR__MAX);
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
@@ -209,7 +215,12 @@ sendindex(struct kreq *req)
 	khtml_text(req, "Get");
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
-	khtml_input(req, KEY_INTEGER2);
+	cp = NULL == req->fieldmap[KEY_INTEGER2] ?
+		"" : req->fieldmap[KEY_INTEGER2]->val;
+	khtml_attr(req, KELEM_INPUT,
+		KATTR_TYPE, "number",
+		KATTR_NAME, keys[KEY_INTEGER2].name,
+		KATTR_VALUE, cp, KATTR__MAX);
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
@@ -229,7 +240,12 @@ sendindex(struct kreq *req)
 	khtml_text(req, "Post (text/plain)");
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
-	khtml_input(req, KEY_INTEGER4);
+	cp = NULL == req->fieldmap[KEY_INTEGER4] ?
+		"" : req->fieldmap[KEY_INTEGER4]->val;
+	khtml_attr(req, KELEM_INPUT,
+		KATTR_TYPE, "number",
+		KATTR_NAME, keys[KEY_INTEGER4].name,
+		KATTR_VALUE, cp, KATTR__MAX);
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
@@ -249,7 +265,12 @@ sendindex(struct kreq *req)
 	khtml_text(req, "Post (multipart)");
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
-	khtml_input(req, KEY_INTEGER3);
+	cp = NULL == req->fieldmap[KEY_INTEGER3] ?
+		"" : req->fieldmap[KEY_INTEGER3]->val;
+	khtml_attr(req, KELEM_INPUT,
+		KATTR_TYPE, "number",
+		KATTR_NAME, keys[KEY_INTEGER3].name,
+		KATTR_VALUE, cp, KATTR__MAX);
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
