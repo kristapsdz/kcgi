@@ -165,15 +165,6 @@ enum	kmethod {
 	KMETHOD_GET
 };
 
-enum	kfield {
-	KFIELD_EMAIL,
-	KFIELD_PASSWORD,
-	KFIELD_TEXT,
-	KFIELD_NUMBER,
-	KFIELD_SUBMIT,
-	KFIELD__MAX
-};
-
 enum	kpairtype {
 	KPAIR_INTEGER,
 	KPAIR_STRING,
@@ -200,7 +191,6 @@ struct	kpair {
 struct	kvalid {
 	int		(*valid)(struct kpair *);
 	const char	 *name;
-	enum kfield	  field;
 };
 
 enum	kauth {
@@ -264,7 +254,6 @@ void		 khtml_decl(struct kreq *req);
 void		 khtml_elem(struct kreq *req, enum kelem elem);
 size_t		 khtml_elemat(struct kreq *req);
 void		 khtml_entity(struct kreq *req, enum kentity entity);
-void		 khtml_input(struct kreq *req, size_t key);
 void		 khtml_int64(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
 void		 khtml_text(struct kreq *req, const char *cp);

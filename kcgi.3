@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 22 2014 $
+.Dd $Mdocdate: April 23 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -32,7 +32,6 @@
 .Nm khtml_elem ,
 .Nm khtml_elemat ,
 .Nm khtml_entity ,
-.Nm khtml_input ,
 .Nm khtml_int64 ,
 .Nm khtml_ncr ,
 .Nm khtml_text ,
@@ -45,8 +44,16 @@
 .Nm kxrealloc ,
 .Nm kutil_invalidate ,
 .Nm kutil_urlpart ,
-.Nm kutil_urlencode
+.Nm kutil_urlencode ,
+.Nm kvalid_double ,
+.Nm kvalid_email ,
+.Nm kvalid_int ,
+.Nm kvalid_string ,
+.Nm kvalid_udouble ,
+.Nm kvalid_uint
 .Nd minimal CGI library in C
+.Sh LIBRARY
+.Lb libkcgi
 .Sh SYNOPSIS
 .In kcgi.h
 .Ft void
@@ -115,11 +122,6 @@
 .Fa "enum entity entity"
 .Fc
 .Ft void
-.Fo khtml_input
-.Fa "struct kreq *req"
-.Fa "size_t key"
-.Fc
-.Ft void
 .Fo khtml_int64
 .Fa "struct kreq *req"
 .Fa "int64_t val"
@@ -185,9 +187,15 @@ Interfacing applications generally work as follows:
 Call
 .Fn khttp_parse
 as early as possible.
-This will parse and validate input fields with
-.Fn kvalid_string
-and family, and set up the HTTP environment.
+This will parse and validate input fields and cookies with
+.Fn kvalid_double ,
+.Fn kvalid_email ,
+.Fn kvalid_int ,
+.Fn kvalid_string ,
+.Fn kvalid_udouble ,
+.Fn kvalid_uint ,
+and/or those provided by the implementing system.
+It also sets up the HTTP environment: compression, paths, and so on.
 .It
 Process input fields by examining the
 .Vt "struct kpair"
@@ -212,7 +220,6 @@ Emit HTTP body output using HTML-building functions
 .Fn khtml_elem ,
 .Fn khtml_elemat ,
 .Fn khtml_entity ,
-.Fn khtml_input ,
 .Fn khtml_int64 ,
 .Fn khtml_ncr
 and
@@ -263,6 +270,11 @@ in the library path, then link with
 and
 .Fl Ar lz
 .Pq unless compression has been disabled at compile-time .
+For example,
+.Bd -literal
+% cc -I/usr/local/include -c -o sample.o sample.c
+% cc -L/usr/local/lib -o sample -lkcgi -lz
+.Ed
 .Ss Globals
 There are several convenience variables defined in
 .Pa kcgi.h .
@@ -453,19 +465,6 @@ variables in the key-value pair.
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
 .Dv NULL .
-.It Va "enum kfield field"
-How to format the field value if used in
-.Fn khtml_input .
-This can be
-.Dv KFIELD__MAX
-if the value shouldn't be repopulated.
-.\" .It Va "const char *label"
-.\" Populate an HTML label element.
-.\" Can be
-.\" .Dv NULL
-.\" if it doesn't have a label.
-.\" .It Va "const char *def"
-.\" Default value for population fields.
 .El
 .Pp
 The
@@ -638,18 +637,6 @@ rollback point.
 .It Fn khtml_entity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.It Fn khtml_input "struct kreq *req" "size_t key"
-Emit the HTML code for the input element named
-.Fa key
-as defined in
-.Va keys
-passed to
-.Fn khttp_parse .
-This will also fill in a value if stored in parsed
-.Va fieldmap
-in
-.Va req .
-This is meant to simplify the repopulation of fields.
 .It Fn khtml_int64 "struct kreq *req" "int64_t val"
 Wrapper over
 .Fn khtml_text
@@ -684,6 +671,9 @@ array.
 .Bl -ohang -offset indent
 .It Fn kvalid_double "struct kpair *kp"
 Validate a double-precision floating-point number.
+.Em Note :
+this uses the current locale via
+.Xr strtod 3 .
 .It Fn kvalid_email "struct kpair *kp"
 Validate an e-mail address.
 .Em Note :
@@ -702,6 +692,9 @@ and
 to make sure the string representation of their data is sane.
 .It Fn kvalid_udouble "struct kpair *kp"
 Validate a positive non-zero double-precision floating-point number.
+.Em Note :
+this uses the current locale via
+.Xr strtod 3 .
 .It Fn kvalid_uint "struct kpair *kp"
 Validate an unsigned 64-bit natural number.
 .El
