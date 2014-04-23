@@ -116,6 +116,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ 1, "li" }, /* KELEM_LI */
 	{ 3, "link" }, /* KELEM_LINK */
 	{ 3, "meta" }, /* KELEM_META */
+	{ 1, "ol" }, /* KELEM_OL */
 	{ 0, "option" }, /* KELEM_OPTION */
 	{ 1, "p" }, /* KELEM_P */
 	{ 0, "q" }, /* KELEM_Q */
@@ -1341,7 +1342,7 @@ khtml_ncr(struct kreq *req, uint16_t ncr)
 {
 
 	assert(KSTATE_BODY == req->kdata->state);
-	KPRINTF(req, "&#x%" PRIu16 ";", ncr);
+	KPRINTF(req, "&#x%" PRIx16 ";", ncr);
 }
 
 void
