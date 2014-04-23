@@ -283,6 +283,8 @@ int		 khtml_template(struct kreq *req,
 char		*kutil_urlpart(struct kreq *req, 
 			enum kmime mime, size_t page, ...);
 char		*kutil_urlencode(const char *cp);
+void		 kutil_invalidate(struct kreq *req,
+			struct kpair *pair);
 
 void		*kasprintf(const char *fmt, ...);
 void		*kcalloc(size_t nm, size_t sz);
