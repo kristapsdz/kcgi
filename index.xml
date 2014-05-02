@@ -125,8 +125,10 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Fix printing <code>khtml_ncr</code> as hex.
-				Added <code>&lt;ol&gt;</code> HTML element.
+				Bug-fix: properly check <code>MAP_FAILED</code> instead of <code>NULL</code> return from <code>mmap</code>.
+				Also bug-fix printing hex values for NCRs.
+				Also make sure that <code>!HAVE_ZLIB</code> compiled.
+				Add <code>&lt;ol&gt;</code>.
 			</p>
 		</article>
 		<footer>
