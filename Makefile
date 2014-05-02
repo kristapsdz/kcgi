@@ -1,5 +1,5 @@
 CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
-# Uncomment this if you don't want zlib.
+# Comment this if you don't want zlib.
 CFLAGS += -DHAVE_ZLIB
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi

@@ -259,9 +259,11 @@ void
 khttp_puts(struct kreq *req, const char *cp)
 {
 
+#ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz)
 		gzputs(req->kdata->gz, cp);
 	else 
+#endif
 		fputs(cp, stdout);
 }
 
@@ -269,9 +271,11 @@ void
 khttp_putc(struct kreq *req, int c)
 {
 
+#ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz)
 		gzputc(req->kdata->gz, c);
 	else 
+#endif
 		putchar(c);
 }
 
@@ -1314,7 +1318,9 @@ khttp_free(struct kreq *req)
 #ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz)
 		gzclose(req->kdata->gz);
+	else
 #endif
+		fflush(stdout);
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
@@ -1610,10 +1616,11 @@ khtml_template(struct kreq *req,
 		return(1);
 	}
 
+
 	sz = (size_t)st.st_size;
 	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
 
-	if (NULL == buf) {
+	if (MAP_FAILED == buf) {
 		close(fd);
 		return(0);
 	}
