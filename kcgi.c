@@ -71,16 +71,18 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
+enum	htype {
+	TAG_FLOW, /* flow (block) element */
+	TAG_PHRASE,/* phrasing (inline) element */
+	TAG_VOID, /* auto-closing (e.g., INPUT) */
+	TAG_INSTRUCTION /* instruction */
+};
+
 /*
  * A tag describes an HTML element.
  */
 struct	tag {
-	int		 flags; /* bit-field of flags */
-#define	TAG_FLOW	 1 /* flow (block) element */
-#define	TAG_PHRASE	 2 /* phrasing (inline) element */
-#define	TAG_TRANS	 3 /* transparent element */
-#define	TAG_VOID	 4 /* auto-closing (e.g., INPUT) */
-#define TAG_INSTRUCTION	 8 /* instruction */
+	enum htype	 flags; 
 	const char	*name; /* name of element */
 };
 
@@ -102,7 +104,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_VOID, "area" }, /* KELEM_AREA */
 	{ TAG_FLOW, "article" }, /* KELEM_ARTICLE */
 	{ TAG_FLOW, "aside" }, /* KELEM_ASIDE */
-	{ TAG_TRANS, "audio" }, /* KELEM_AUDIO */
+	{ TAG_FLOW, "audio" }, /* KELEM_AUDIO */ /* XXX: TRANS */
 	{ TAG_PHRASE, "b" }, /* KELEM_B */
 	{ TAG_VOID, "base" }, /* KELEM_BASE */
 	{ TAG_PHRASE, "bdi" }, /* KELEM_BDI */
@@ -111,7 +113,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_FLOW, "body" }, /* KELEM_BODY */
 	{ TAG_VOID, "br" }, /* KELEM_BR */
 	{ TAG_PHRASE, "button" }, /* KELEM_BUTTON */
-	{ TAG_TRANS, "canvas" }, /* KELEM_CANVAS */
+	{ TAG_FLOW, "canvas" }, /* KELEM_CANVAS */ /* XXX: TRANS */
 	{ TAG_FLOW, "caption" }, /* KELEM_CAPTION */
 	{ TAG_PHRASE, "cite" }, /* KELEM_CITE */
 	{ TAG_PHRASE, "code" }, /* KELEM_CODE */
@@ -155,14 +157,14 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "legend" }, /* KELEM_LEGEND */
 	{ TAG_FLOW, "li" }, /* KELEM_LI */
 	{ TAG_VOID, "link" }, /* KELEM_LINK */
-	{ TAG_TRANS, "map" }, /* KELEM_MAP */
+	{ TAG_FLOW, "map" }, /* KELEM_MAP */ /* XXX: TRANS */
 	{ TAG_PHRASE, "mark" }, /* KELEM_MARK */
 	{ TAG_FLOW, "menu" }, /* KELEM_MENU */
 	{ TAG_VOID, "meta" }, /* KELEM_META */
 	{ TAG_PHRASE, "meter" }, /* KELEM_METER */
 	{ TAG_FLOW, "nav" }, /* KELEM_NAV */
-	{ TAG_TRANS, "noscript" }, /* KELEM_NOSCRIPT */
-	{ TAG_TRANS, "object" }, /* KELEM_OBJECT */
+	{ TAG_FLOW, "noscript" }, /* KELEM_NOSCRIPT */ /* XXX: TRANS */
+	{ TAG_FLOW, "object" }, /* KELEM_OBJECT */ /* XXX: TRANS */
 	{ TAG_FLOW, "ol" }, /* KELEM_OL */
 	{ TAG_FLOW, "optgroup" }, /* KELEM_OPTGROUP */
 	{ TAG_PHRASE, "option" }, /* KELEM_OPTION */
@@ -202,7 +204,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "u" }, /* KELEM_U */
 	{ TAG_FLOW, "ul" }, /* KELEM_UL */
 	{ TAG_PHRASE, "var" }, /* KELEM_VAR */
-	{ TAG_TRANS, "video" }, /* KELEM_VIDEO */
+	{ TAG_FLOW, "video" }, /* KELEM_VIDEO */ /* XXX: TRANS */
 	{ TAG_VOID, "wbr" }, /* KELEM_WBR */
 };
 
@@ -727,17 +729,17 @@ khtml_attrx(struct kreq *req, enum kelem elem, ...)
 	}
 	va_end(ap);
 
-	if (TAG_VOID & tags[elem].flags)
+	if (TAG_VOID == tags[elem].flags)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
 
-	if (TAG_FLOW & tags[elem].flags ||
-		TAG_INSTRUCTION & tags[elem].flags)
+	if (TAG_FLOW == tags[elem].flags ||
+		TAG_INSTRUCTION == tags[elem].flags)
 		khttp_putc(req, '\n');
 
-	if ( ! (TAG_VOID & tags[elem].flags))
-		if ( ! (TAG_INSTRUCTION & tags[elem].flags))
-			k->elems[k->elemsz++] = elem;
+	if (TAG_VOID != tags[elem].flags &&
+		TAG_INSTRUCTION != tags[elem].flags)
+		k->elems[k->elemsz++] = elem;
 	assert(k->elemsz < 128);
 }
 
@@ -766,17 +768,17 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	}
 	va_end(ap);
 
-	if (TAG_VOID & tags[elem].flags)
+	if (TAG_VOID == tags[elem].flags)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
 
-	if (TAG_FLOW & tags[elem].flags ||
-		TAG_INSTRUCTION & tags[elem].flags)
+	if (TAG_FLOW == tags[elem].flags ||
+		TAG_INSTRUCTION == tags[elem].flags)
 		khttp_putc(req, '\n');
 
-	if ( ! (TAG_VOID & tags[elem].flags))
-		if ( ! (TAG_INSTRUCTION & tags[elem].flags))
-			k->elems[k->elemsz++] = elem;
+	if (TAG_VOID != tags[elem].flags &&
+		TAG_INSTRUCTION != tags[elem].flags)
+		k->elems[k->elemsz++] = elem;
 	assert(k->elemsz < 128);
 }
 
