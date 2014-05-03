@@ -125,10 +125,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Bug-fix: properly check <code>MAP_FAILED</code> instead of <code>NULL</code> return from <code>mmap</code>.
-				Also bug-fix printing hex values for NCRs.
-				Also make sure that <code>!HAVE_ZLIB</code> compiled.
-				Add <code>&lt;ol&gt;</code>.
+				Added all HTML5 elements are per the <a href="http://docs.webplatform.org/wiki/html">HTML5</a> specification.
+				Removed the <code>khtml_decl</code> function in favour of a special element.
 			</p>
 		</article>
 		<footer>

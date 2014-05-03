@@ -76,8 +76,11 @@ struct	mime {
  */
 struct	tag {
 	int		 flags; /* bit-field of flags */
-#define	TAG_BLOCK	 1 /* block element (vs. inline) */
-#define	TAG_ACLOSE	 2 /* auto-closing (e.g., INPUT) */
+#define	TAG_FLOW	 1 /* flow (block) element */
+#define	TAG_PHRASE	 2 /* phrasing (inline) element */
+#define	TAG_TRANS	 3 /* transparent element */
+#define	TAG_VOID	 4 /* auto-closing (e.g., INPUT) */
+#define TAG_INSTRUCTION	 9 /* instruction */
 	const char	*name; /* name of element */
 };
 
@@ -93,44 +96,114 @@ static	const uint16_t entities[KENTITY__MAX] = {
 };
 
 static	const struct tag tags[KELEM__MAX] = {
-	{ 0, "a" }, /* KELEM_A */
-	{ 1, "blockquote" }, /* KELEM_BLOCKQUOTE */
-	{ 1, "body" }, /* KELEM_BODY */
-	{ 3, "br" }, /* KELEM_BR */
-	{ 1, "caption" }, /* KELEM_CAPTION */
-	{ 0, "code" }, /* KELEM_CODE */
-	{ 3, "col" }, /* KELEM_COL */
-	{ 1, "dd" }, /* KELEM_DD */
-	{ 1, "div" }, /* KELEM_DIV */
-	{ 1, "dl" }, /* KELEM_DL */
-	{ 1, "dt" }, /* KELEM_DT */
-	{ 1, "fieldset" }, /* KELEM_FIELDSET */
-	{ 1, "form" }, /* KELEM_FORM */
-	{ 1, "head" }, /* KELEM_HEAD */
-	{ 1, "html" }, /* KELEM_HTML */
-	{ 0, "i" }, /* KELEM_I */
-	{ 2, "img" }, /* KELEM_IMG */
-	{ 2, "input" }, /* KELEM_INPUT */
-	{ 0, "label" }, /* KELEM_LABEL */
-	{ 0, "legend" }, /* KELEM_LEGEND */
-	{ 1, "li" }, /* KELEM_LI */
-	{ 3, "link" }, /* KELEM_LINK */
-	{ 3, "meta" }, /* KELEM_META */
-	{ 1, "ol" }, /* KELEM_OL */
-	{ 0, "option" }, /* KELEM_OPTION */
-	{ 1, "p" }, /* KELEM_P */
-	{ 0, "q" }, /* KELEM_Q */
-	{ 1, "select" }, /* KELEM_SELECT */
-	{ 0, "span" }, /* KELEM_SPAN */
-	{ 0, "strong" }, /* KELEM_STRONG */
-	{ 1, "table" }, /* KELEM_TABLE */
-	{ 1, "td" }, /* KELEM_TD */
-	{ 1, "textarea" }, /* KELEM_TEXTAREA */
-	{ 1, "th" }, /* KELEM_TH */
-	{ 0, "title" }, /* KELEM_TITLE */
-	{ 1, "tr" }, /* KELEM_TR */
-	{ 1, "ul" }, /* KELEM_UL */
-	{ 0, "var" }, /* KELEM_VAR */
+	{ TAG_PHRASE, "a" }, /* KELEM_A */ /* XXX: TRANS */
+	{ TAG_PHRASE, "abbr" }, /* KELEM_ABBR */
+	{ TAG_PHRASE, "address" }, /* KELEM_ADDRESS */
+	{ TAG_VOID, "area" }, /* KELEM_AREA */
+	{ TAG_FLOW, "article" }, /* KELEM_ARTICLE */
+	{ TAG_FLOW, "aside" }, /* KELEM_ASIDE */
+	{ TAG_TRANS, "audio" }, /* KELEM_AUDIO */
+	{ TAG_PHRASE, "b" }, /* KELEM_B */
+	{ TAG_VOID, "base" }, /* KELEM_BASE */
+	{ TAG_PHRASE, "bdi" }, /* KELEM_BDI */
+	{ TAG_PHRASE, "bdo" }, /* KELEM_BDO */
+	{ TAG_FLOW, "blockquote" }, /* KELEM_BLOCKQUOTE */
+	{ TAG_FLOW, "body" }, /* KELEM_BODY */
+	{ TAG_VOID, "br" }, /* KELEM_BR */
+	{ TAG_PHRASE, "button" }, /* KELEM_BUTTON */
+	{ TAG_TRANS, "canvas" }, /* KELEM_CANVAS */
+	{ TAG_FLOW, "caption" }, /* KELEM_CAPTION */
+	{ TAG_PHRASE, "cite" }, /* KELEM_CITE */
+	{ TAG_PHRASE, "code" }, /* KELEM_CODE */
+	{ TAG_VOID, "col" }, /* KELEM_COL */
+	{ TAG_PHRASE, "colgroup" }, /* KELEM_COLGROUP */
+	{ TAG_PHRASE, "datalist" }, /* KELEM_DATALIST */
+	{ TAG_FLOW, "dd" }, /* KELEM_DD */
+	{ TAG_PHRASE, "del" }, /* KELEM_DEL */ /* XXX: TRANS */
+	{ TAG_FLOW, "details" }, /* KELEM_DETAILS */
+	{ TAG_PHRASE, "dfn" }, /* KELEM_DFN */
+	{ TAG_FLOW, "div" }, /* KELEM_DIV */
+	{ TAG_FLOW, "dl" }, /* KELEM_DL */
+	{ TAG_INSTRUCTION, "!DOCTYPE html" }, /* KELEM_DOCTYPE */
+	{ TAG_FLOW, "dt" }, /* KELEM_DT */
+	{ TAG_PHRASE, "em" }, /* KELEM_EM */
+	{ TAG_VOID, "embed" }, /* KELEM_EMBED */
+	{ TAG_FLOW, "fieldset" }, /* KELEM_FIELDSET */
+	{ TAG_FLOW, "figcaption" }, /* KELEM_FIGCAPTION */
+	{ TAG_FLOW, "figure" }, /* KELEM_FIGURE */
+	{ TAG_FLOW, "footer" }, /* KELEM_FOOTER */
+	{ TAG_FLOW, "form" }, /* KELEM_FORM */
+	{ TAG_PHRASE, "h1" }, /* KELEM_H1 */
+	{ TAG_PHRASE, "h2" }, /* KELEM_H2 */
+	{ TAG_PHRASE, "h3" }, /* KELEM_H3 */
+	{ TAG_PHRASE, "h4" }, /* KELEM_H4 */
+	{ TAG_PHRASE, "h5" }, /* KELEM_H5 */
+	{ TAG_PHRASE, "h6" }, /* KELEM_H6 */
+	{ TAG_FLOW, "head" }, /* KELEM_HEAD */
+	{ TAG_FLOW, "header" }, /* KELEM_HEADER */
+	{ TAG_FLOW, "hgroup" }, /* KELEM_HGROUP */
+	{ TAG_VOID, "hr" }, /* KELEM_HR */
+	{ TAG_FLOW, "html" }, /* KELEM_HTML */
+	{ TAG_PHRASE, "i" }, /* KELEM_I */
+	{ TAG_PHRASE, "iframe" }, /* KELEM_IFRAME */
+	{ TAG_VOID, "img" }, /* KELEM_IMG */
+	{ TAG_VOID, "input" }, /* KELEM_INPUT */
+	{ TAG_PHRASE, "ins" }, /* KELEM_INS */ /* XXX: TRANS */
+	{ TAG_PHRASE, "kbd" }, /* KELEM_KBD */
+	{ TAG_VOID, "keygen" }, /* KELEM_KEYGEN */
+	{ TAG_PHRASE, "label" }, /* KELEM_LABEL */
+	{ TAG_PHRASE, "legend" }, /* KELEM_LEGEND */
+	{ TAG_FLOW, "li" }, /* KELEM_LI */
+	{ TAG_VOID, "link" }, /* KELEM_LINK */
+	{ TAG_TRANS, "map" }, /* KELEM_MAP */
+	{ TAG_PHRASE, "mark" }, /* KELEM_MARK */
+	{ TAG_FLOW, "menu" }, /* KELEM_MENU */
+	{ TAG_VOID, "meta" }, /* KELEM_META */
+	{ TAG_PHRASE, "meter" }, /* KELEM_METER */
+	{ TAG_FLOW, "nav" }, /* KELEM_NAV */
+	{ TAG_TRANS, "noscript" }, /* KELEM_NOSCRIPT */
+	{ TAG_TRANS, "object" }, /* KELEM_OBJECT */
+	{ TAG_FLOW, "ol" }, /* KELEM_OL */
+	{ TAG_FLOW, "optgroup" }, /* KELEM_OPTGROUP */
+	{ TAG_PHRASE, "option" }, /* KELEM_OPTION */
+	{ TAG_PHRASE, "output" }, /* KELEM_OUTPUT */
+	{ TAG_PHRASE, "p" }, /* KELEM_P */
+	{ TAG_VOID, "param" }, /* KELEM_PARAM */
+	{ TAG_PHRASE, "pre" }, /* KELEM_PRE */
+	{ TAG_PHRASE, "progress" }, /* KELEM_PROGRESS */
+	{ TAG_PHRASE, "q" }, /* KELEM_Q */
+	{ TAG_PHRASE, "rp" }, /* KELEM_RP */
+	{ TAG_PHRASE, "rt" }, /* KELEM_RT */
+	{ TAG_PHRASE, "ruby" }, /* KELEM_RUBY */
+	{ TAG_PHRASE, "s" }, /* KELEM_S */
+	{ TAG_PHRASE, "samp" }, /* KELEM_SAMP */
+	{ TAG_FLOW, "script" }, /* KELEM_SCRIPT */
+	{ TAG_FLOW, "section" }, /* KELEM_SECTION */
+	{ TAG_FLOW, "select" }, /* KELEM_SELECT */
+	{ TAG_PHRASE, "small" }, /* KELEM_SMALL */
+	{ TAG_VOID, "source" }, /* KELEM_SOURCE */
+	{ TAG_PHRASE, "span" }, /* KELEM_SPAN */
+	{ TAG_PHRASE, "strong" }, /* KELEM_STRONG */
+	{ TAG_FLOW, "style" }, /* KELEM_STYLE */
+	{ TAG_PHRASE, "sub" }, /* KELEM_SUB */
+	{ TAG_PHRASE, "summary" }, /* KELEM_SUMMARY */
+	{ TAG_PHRASE, "sup" }, /* KELEM_SUP */
+	{ TAG_FLOW, "table" }, /* KELEM_TABLE */
+	{ TAG_FLOW, "tbody" }, /* KELEM_TBODY */
+	{ TAG_FLOW, "td" }, /* KELEM_TD */
+	{ TAG_FLOW, "textarea" }, /* KELEM_TEXTAREA */
+	{ TAG_FLOW, "tfoot" }, /* KELEM_TFOOT */
+	{ TAG_FLOW, "th" }, /* KELEM_TH */
+	{ TAG_FLOW, "thead" }, /* KELEM_THEAD */
+	{ TAG_PHRASE, "time" }, /* KELEM_TIME */
+	{ TAG_PHRASE, "title" }, /* KELEM_TITLE */
+	{ TAG_FLOW, "tr" }, /* KELEM_TR */
+	{ TAG_VOID, "track" }, /* KELEM_TRACK */
+	{ TAG_PHRASE, "u" }, /* KELEM_U */
+	{ TAG_FLOW, "ul" }, /* KELEM_UL */
+	{ TAG_PHRASE, "var" }, /* KELEM_VAR */
+	{ TAG_TRANS, "video" }, /* KELEM_VIDEO */
+	{ TAG_VOID, "wbr" }, /* KELEM_WBR */
 };
 
 const char *const kmimetypes[KMIME__MAX] = {
@@ -509,15 +582,16 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	}
 	va_end(ap);
 
-	if (TAG_ACLOSE & tags[elem].flags)
+	if (TAG_VOID & tags[elem].flags)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
 
-	if (TAG_BLOCK & tags[elem].flags) 
+	if (TAG_FLOW & tags[elem].flags) 
 		khttp_putc(req, '\n');
 
-	if ( ! (TAG_ACLOSE & tags[elem].flags))
-		k->elems[k->elemsz++] = elem;
+	if ( ! (TAG_VOID & tags[elem].flags))
+		if ( ! (TAG_INSTRUCTION & tags[elem].flags))
+			k->elems[k->elemsz++] = elem;
 	assert(k->elemsz < 128);
 }
 
@@ -536,7 +610,7 @@ khtml_close(struct kreq *req, size_t sz)
 		assert(k->elemsz > 0);
 		k->elemsz--;
 		KPRINTF(req, "</%s>", tags[k->elems[k->elemsz]].name);
-		if (TAG_BLOCK & tags[k->elems[k->elemsz]].flags) 
+		if (TAG_FLOW & tags[k->elems[k->elemsz]].flags) 
 			khttp_putc(req, '\n');
 	}
 }
@@ -548,14 +622,6 @@ khtml_closeto(struct kreq *req, size_t pos)
 	assert(KSTATE_BODY == req->kdata->state);
 	assert(pos < req->kdata->elemsz);
 	khtml_close(req, req->kdata->elemsz - pos);
-}
-
-void
-khtml_decl(struct kreq *req)
-{
-
-	assert(KSTATE_BODY == req->kdata->state);
-	khttp_puts(req, "<!DOCTYPE html>\n");
 }
 
 /*
