@@ -28,7 +28,6 @@
 .Nm khtml_attr ,
 .Nm khtml_close ,
 .Nm khtml_closeto ,
-.Nm khtml_decl ,
 .Nm khtml_elem ,
 .Nm khtml_elemat ,
 .Nm khtml_entity ,
@@ -104,13 +103,6 @@
 .Fo khtml_closeto
 .Fa "struct kreq *req"
 .Fa "size_t pos"
-.Fc
-.Ft void
-.Fn khtml_decl
-.Ft "struct kreq *req"
-.Fo khtml_elem
-.Fa "struct kreq *req"
-.Fa "enum kelem elem"
 .Fc
 .Ft size_t
 .Fo khtml_elemat
@@ -216,7 +208,6 @@ Emit HTTP body output using HTML-building functions
 .Fn khtml_attr ,
 .Fn khtml_close ,
 .Fn khtml_closeto ,
-.Fn khtml_decl ,
 .Fn khtml_elem ,
 .Fn khtml_elemat ,
 .Fn khtml_entity ,
@@ -625,14 +616,17 @@ exceeds the number of open scopes.
 If
 .Fa count
 is zero, this will close all scopes.
+.Em Do not
+close HTML
+.Qq void
+elements such as
+.Aq meta .
 .It Fn khtml_closeto "struct kreq *req" "size_t pos"
 Close until a certain level
 .Fa pos
 in the HTML tree, which must be at or above the current level.
 Usually used with
 .Fn khtml_elemat .
-.It Fn khtml_decl "struct kreq *req"
-Emit the document HTML declaration.
 .It Fn khtml_elem "struct kreq *req" "enum kelem elem"
 Invokes
 .Fn khtml_attr
