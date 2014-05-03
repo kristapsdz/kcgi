@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 24 2014 $
+.Dd $Mdocdate: May 3 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -26,12 +26,14 @@
 .Nm khttp_putc ,
 .Nm khttp_puts ,
 .Nm khtml_attr ,
+.Nm khtml_attrx ,
 .Nm khtml_close ,
 .Nm khtml_closeto ,
+.Nm khtml_double ,
 .Nm khtml_elem ,
 .Nm khtml_elemat ,
 .Nm khtml_entity ,
-.Nm khtml_int64 ,
+.Nm khtml_int ,
 .Nm khtml_ncr ,
 .Nm khtml_text ,
 .Nm khtml_template ,
@@ -95,6 +97,12 @@
 .Fa "..."
 .Fc
 .Ft void
+.Fo khtml_attrx
+.Fa "struct kreq *req"
+.Fa "enum kelem elem"
+.Fa "..."
+.Fc
+.Ft void
 .Fo khtml_close
 .Fa "struct kreq *req"
 .Fa "size_t count"
@@ -103,6 +111,11 @@
 .Fo khtml_closeto
 .Fa "struct kreq *req"
 .Fa "size_t pos"
+.Fc
+.Ft void
+.Fo khtml_double
+.Fa "struct kreq *req"
+.Fa "double val"
 .Fc
 .Ft size_t
 .Fo khtml_elemat
@@ -114,7 +127,7 @@
 .Fa "enum entity entity"
 .Fc
 .Ft void
-.Fo khtml_int64
+.Fo khtml_int
 .Fa "struct kreq *req"
 .Fa "int64_t val"
 .Fc
@@ -206,12 +219,14 @@ to begin the HTTP body.
 .It
 Emit HTTP body output using HTML-building functions
 .Fn khtml_attr ,
+.Fn khtml_attrx ,
 .Fn khtml_close ,
 .Fn khtml_closeto ,
+.Fn khtml_double ,
 .Fn khtml_elem ,
 .Fn khtml_elemat ,
 .Fn khtml_entity ,
-.Fn khtml_int64 ,
+.Fn khtml_int ,
 .Fn khtml_ncr
 and
 .Fn khtml_text ;
@@ -604,6 +619,30 @@ with matching key-value pairs in the varargs for its attributes.
 The maximum number of nested scopes is fixed at 128.
 The terminating attribute key must be
 .Dv ATTR__MAX.
+.It Fn khtml_attrx "struct kreq *req" "enum kelem elem" "..."
+Like
+.Fn khtml_attr ,
+but accepts an addition parameter
+.Ft "enum attrx"
+following the
+.Ft "enum attr"
+that specifies the attribute type.
+This is useful for non-string attributes, for example, invoking with
+.Dv KATTR_WIDTH ,
+.Dv KATTRX_INT ,
+and
+.Li 100
+will properly render the integer type.
+The types route through to
+.Fn khtml_text
+for
+.Dv KATTRX_STRING ,
+.Fn khtml_int
+for
+.Dv KATTRX_INT ,
+.Fn khtml_double
+for
+.Dv KATTRX_DOUBLE .
 .It Fn khtml_close "struct kreq *req" "size_t count"
 Close the last
 .Fa count
@@ -616,7 +655,7 @@ exceeds the number of open scopes.
 If
 .Fa count
 is zero, this will close all scopes.
-.Em Do not
+.Em \&Do not
 close HTML
 .Qq void
 elements such as
@@ -627,6 +666,17 @@ Close until a certain level
 in the HTML tree, which must be at or above the current level.
 Usually used with
 .Fn khtml_elemat .
+.It Fn khtml_double "struct kreq *req" "double val"
+Wrapper over
+.Fn khtml_text
+for formatting a double-precision floating point.
+This uses a buffer of size
+.Li 256
+and the
+.Li %g
+to
+.Xr snprintf 3 ,
+which may not be what you want.
 .It Fn khtml_elem "struct kreq *req" "enum kelem elem"
 Invokes
 .Fn khtml_attr
@@ -639,7 +689,7 @@ rollback point.
 .It Fn khtml_entity "struct kreq *req" "enum kentity entity"
 Emit the numeric character reference for
 .Va entity .
-.It Fn khtml_int64 "struct kreq *req" "int64_t val"
+.It Fn khtml_int "struct kreq *req" "int64_t val"
 Wrapper over
 .Fn khtml_text
 for formatting a 64-bit signed integer.

@@ -168,6 +168,7 @@ sendindex(struct kreq *req)
 	size_t		 sv;
 	char		*page;
 	const char	*cp;
+	int64_t		 num;
 
 	page = kasprintf("%s/%s", pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
@@ -215,12 +216,12 @@ sendindex(struct kreq *req)
 	khtml_text(req, "Get");
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
-	cp = NULL == req->fieldmap[KEY_INTEGER2] ?
-		"" : req->fieldmap[KEY_INTEGER2]->val;
-	khtml_attr(req, KELEM_INPUT,
+	num = NULL == req->fieldmap[KEY_INTEGER2] ?
+		0 : req->fieldmap[KEY_INTEGER2]->parsed.i;
+	khtml_attrx(req, KELEM_INPUT,
 		KATTR_TYPE, "number",
-		KATTR_NAME, keys[KEY_INTEGER2].name,
-		KATTR_VALUE, cp, KATTR__MAX);
+		KATTR_NAME, KATTRX_STRING, keys[KEY_INTEGER2].name,
+		KATTR_VALUE, KATTRX_INT, num, KATTR__MAX);
 	khtml_close(req, 1);
 	khtml_elem(req, KELEM_P);
 	khtml_attr(req, KELEM_INPUT,
