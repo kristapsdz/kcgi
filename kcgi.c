@@ -80,7 +80,7 @@ struct	tag {
 #define	TAG_PHRASE	 2 /* phrasing (inline) element */
 #define	TAG_TRANS	 3 /* transparent element */
 #define	TAG_VOID	 4 /* auto-closing (e.g., INPUT) */
-#define TAG_INSTRUCTION	 9 /* instruction */
+#define TAG_INSTRUCTION	 8 /* instruction */
 	const char	*name; /* name of element */
 };
 
@@ -276,35 +276,175 @@ const char *const ksuffixes[KMIME__MAX] = {
 };
 
 static	const char *const attrs[KATTR__MAX] = {
+	"accept-charset", /* KATTR_ACCEPT_CHARSET */
+	"accesskey", /* KATTR_ACCESSKEY */
 	"action", /* KATTR_ACTION */
+	"alt", /* KATTR_ALT */
+	"async", /* KATTR_ASYNC */
+	"autocomplete", /* KATTR_AUTOCOMPLETE */
+	"autofocus", /* KATTR_AUTOFOCUS */
+	"autoplay", /* KATTR_AUTOPLAY */
+	"border", /* KATTR_BORDER */
+	"challenge", /* KATTR_CHALLENGE */
+	"charset", /* KATTR_CHARSET */
 	"checked", /* KATTR_CHECKED */
+	"cite", /* KATTR_CITE */
 	"class", /* KATTR_CLASS */
-	"clear", /* KATTR_CLEAR */
+	"cols", /* KATTR_COLS */
 	"colspan", /* KATTR_COLSPAN */
 	"content", /* KATTR_CONTENT */
+	"contenteditable", /* KATTR_CONTENTEDITABLE */
+	"contextmenu", /* KATTR_CONTEXTMENU */
+	"controls", /* KATTR_CONTROLS */
+	"coords", /* KATTR_COORDS */
+	"datetime", /* KATTR_DATETIME */
+	"default", /* KATTR_DEFAULT */
+	"defer", /* KATTR_DEFER */
+	"dir", /* KATTR_DIR */
+	"dirname", /* KATTR_DIRNAME */
 	"disabled", /* KATTR_DISABLED */
+	"draggable", /* KATTR_DRAGGABLE */
+	"dropzone", /* KATTR_DROPZONE */
 	"enctype", /* KATTR_ENCTYPE */
 	"for", /* KATTR_FOR */
+	"form", /* KATTR_FORM */
+	"formaction", /* KATTR_FORMACTION */
+	"formenctype", /* KATTR_FORMENCTYPE */
+	"formmethod", /* KATTR_FORMMETHOD */
+	"formnovalidate", /* KATTR_FORMNOVALIDATE */
+	"formtarget", /* KATTR_FORMTARGET */
+	"header", /* KATTR_HEADER */
+	"height", /* KATTR_HEIGHT */
+	"hidden", /* KATTR_HIDDEN */
+	"high", /* KATTR_HIGH */
 	"href", /* KATTR_HREF */
+	"hreflang", /* KATTR_HREFLANG */
 	"http-equiv", /* KATTR_HTTP_EQUIV */
+	"icon", /* KATTR_ICON */
 	"id", /* KATTR_ID */
+	"ismap", /* KATTR_ISMAP */
+	"keytype", /* KATTR_KEYTYPE */
+	"kind", /* KATTR_KIND */
+	"label", /* KATTR_LABEL */
+	"lang", /* KATTR_LANG */
+	"language", /* KATTR_LANGUAGE */
+	"list", /* KATTR_LIST */
+	"loop", /* KATTR_LOOP */
+	"low", /* KATTR_LOW */
+	"manifest", /* KATTR_MANIFEST */
 	"max", /* KATTR_MAX */
+	"maxlength", /* KATTR_MAXLENGTH */
+	"media", /* KATTR_MEDIA */
+	"mediagroup", /* KATTR_MEDIAGROUP */
 	"method", /* KATTR_METHOD */
 	"min", /* KATTR_MIN */
 	"multiple", /* KATTR_MULTIPLE */
+	"muted", /* KATTR_MUTED */
 	"name", /* KATTR_NAME */
+	"novalidate", /* KATTR_NOVALIDATE */
+	"onabort", /* KATTR_ONABORT */
+	"onafterprint", /* KATTR_ONAFTERPRINT */
+	"onbeforeprint", /* KATTR_ONBEFOREPRINT */
+	"onbeforeunload", /* KATTR_ONBEFOREUNLOAD */
+	"onblur", /* KATTR_ONBLUR */
+	"oncanplay", /* KATTR_ONCANPLAY */
+	"oncanplaythrough", /* KATTR_ONCANPLAYTHROUGH */
+	"onchange", /* KATTR_ONCHANGE */
 	"onclick", /* KATTR_ONCLICK */
+	"oncontextmenu", /* KATTR_ONCONTEXTMENU */
+	"ondblclick", /* KATTR_ONDBLCLICK */
+	"ondrag", /* KATTR_ONDRAG */
+	"ondragend", /* KATTR_ONDRAGEND */
+	"ondragenter", /* KATTR_ONDRAGENTER */
+	"ondragleave", /* KATTR_ONDRAGLEAVE */
+	"ondragover", /* KATTR_ONDRAGOVER */
+	"ondragstart", /* KATTR_ONDRAGSTART */
+	"ondrop", /* KATTR_ONDROP */
+	"ondurationchange", /* KATTR_ONDURATIONCHANGE */
+	"onemptied", /* KATTR_ONEMPTIED */
+	"onended", /* KATTR_ONENDED */
+	"onerror", /* KATTR_ONERROR */
+	"onfocus", /* KATTR_ONFOCUS */
+	"onhashchange", /* KATTR_ONHASHCHANGE */
+	"oninput", /* KATTR_ONINPUT */
+	"oninvalid", /* KATTR_ONINVALID */
+	"onkeydown", /* KATTR_ONKEYDOWN */
+	"onkeypress", /* KATTR_ONKEYPRESS */
+	"onkeyup", /* KATTR_ONKEYUP */
+	"onload", /* KATTR_ONLOAD */
+	"onloadeddata", /* KATTR_ONLOADEDDATA */
+	"onloadedmetadata", /* KATTR_ONLOADEDMETADATA */
+	"onloadstart", /* KATTR_ONLOADSTART */
+	"onmessage", /* KATTR_ONMESSAGE */
+	"onmousedown", /* KATTR_ONMOUSEDOWN */
+	"onmousemove", /* KATTR_ONMOUSEMOVE */
+	"onmouseout", /* KATTR_ONMOUSEOUT */
+	"onmouseover", /* KATTR_ONMOUSEOVER */
+	"onmouseup", /* KATTR_ONMOUSEUP */
+	"onmousewheel", /* KATTR_ONMOUSEWHEEL */
+	"onoffline", /* KATTR_ONOFFLINE */
+	"ononline", /* KATTR_ONONLINE */
+	"onpagehide", /* KATTR_ONPAGEHIDE */
+	"onpageshow", /* KATTR_ONPAGESHOW */
+	"onpause", /* KATTR_ONPAUSE */
+	"onplay", /* KATTR_ONPLAY */
+	"onplaying", /* KATTR_ONPLAYING */
+	"onpopstate", /* KATTR_ONPOPSTATE */
+	"onprogress", /* KATTR_ONPROGRESS */
+	"onratechange", /* KATTR_ONRATECHANGE */
+	"onreadystatechange", /* KATTR_ONREADYSTATECHANGE */
+	"onreset", /* KATTR_ONRESET */
+	"onresize", /* KATTR_ONRESIZE */
+	"onscroll", /* KATTR_ONSCROLL */
+	"onseeked", /* KATTR_ONSEEKED */
+	"onseeking", /* KATTR_ONSEEKING */
+	"onselect", /* KATTR_ONSELECT */
+	"onshow", /* KATTR_ONSHOW */
+	"onstalled", /* KATTR_ONSTALLED */
+	"onstorage", /* KATTR_ONSTORAGE */
+	"onsubmit", /* KATTR_ONSUBMIT */
+	"onsuspend", /* KATTR_ONSUSPEND */
+	"ontimeupdate", /* KATTR_ONTIMEUPDATE */
+	"onunload", /* KATTR_ONUNLOAD */
+	"onvolumechange", /* KATTR_ONVOLUMECHANGE */
+	"onwaiting", /* KATTR_ONWAITING */
+	"open", /* KATTR_OPEN */
+	"optimum", /* KATTR_OPTIMUM */
+	"pattern", /* KATTR_PATTERN */
+	"placeholder", /* KATTR_PLACEHOLDER */
+	"poster", /* KATTR_POSTER */
+	"preload", /* KATTR_PRELOAD */
+	"radiogroup", /* KATTR_RADIOGROUP */
+	"readonly", /* KATTR_READONLY */
 	"rel", /* KATTR_REL */
+	"required", /* KATTR_REQUIRED */
+	"reversed", /* KATTR_REVERSED */
+	"rows", /* KATTR_ROWS */
 	"rowspan", /* KATTR_ROWSPAN */
+	"sandbox", /* KATTR_SANDBOX */
+	"scope", /* KATTR_SCOPE */
+	"seamless", /* KATTR_SEAMLESS */
 	"selected", /* KATTR_SELECTED */
+	"shape", /* KATTR_SHAPE */
+	"size", /* KATTR_SIZE */
+	"sizes", /* KATTR_SIZES */
 	"span", /* KATTR_SPAN */
+	"spellcheck", /* KATTR_SPELLCHECK */
 	"src", /* KATTR_SRC */
+	"srcdoc", /* KATTR_SRCDOC */
+	"srclang", /* KATTR_SRCLANG */
+	"start", /* KATTR_START */
 	"step", /* KATTR_STEP */
 	"style", /* KATTR_STYLE */
+	"tabindex", /* KATTR_TABINDEX */
 	"target", /* KATTR_TARGET */
+	"title", /* KATTR_TITLE */
+	"translate", /* KATTR_TRANSLATE */
 	"type", /* KATTR_TYPE */
+	"usemap", /* KATTR_USEMAP */
 	"value", /* KATTR_VALUE */
 	"width", /* KATTR_WIDTH */
+	"wrap", /* KATTR_WRAP */
 };
 
 /* 
@@ -558,6 +698,50 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 }
 
 void
+khtml_attrx(struct kreq *req, enum kelem elem, ...)
+{
+	va_list		 ap;
+	enum kattr	 at;
+	struct kdata	*k = req->kdata;
+
+	assert(KSTATE_BODY == req->kdata->state);
+	KPRINTF(req, "<%s", tags[elem].name);
+
+	va_start(ap, elem);
+	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
+		khttp_putc(req, ' ');
+		khttp_puts(req, attrs[at]);
+		khttp_putc(req, '=');
+		khttp_putc(req, '"');
+		switch (va_arg(ap, enum kattrx)) {
+		case (KATTRX_STRING):
+			khtml_text(req, va_arg(ap, char *));
+			break;
+		case (KATTRX_INT):
+			khtml_int(req, va_arg(ap, int64_t));
+			break;
+		case (KATTRX_DOUBLE):
+			khtml_double(req, va_arg(ap, double));
+		}
+		khttp_putc(req, '"');
+	}
+	va_end(ap);
+
+	if (TAG_VOID & tags[elem].flags)
+		khttp_putc(req, '/');
+	khttp_putc(req, '>');
+
+	if (TAG_FLOW & tags[elem].flags ||
+		TAG_INSTRUCTION & tags[elem].flags)
+		khttp_putc(req, '\n');
+
+	if ( ! (TAG_VOID & tags[elem].flags))
+		if ( ! (TAG_INSTRUCTION & tags[elem].flags))
+			k->elems[k->elemsz++] = elem;
+	assert(k->elemsz < 128);
+}
+
+void
 khtml_attr(struct kreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
@@ -586,7 +770,8 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
 
-	if (TAG_FLOW & tags[elem].flags) 
+	if (TAG_FLOW & tags[elem].flags ||
+		TAG_INSTRUCTION & tags[elem].flags)
 		khttp_putc(req, '\n');
 
 	if ( ! (TAG_VOID & tags[elem].flags))
@@ -1468,7 +1653,16 @@ khttp_body(struct kreq *req)
 }
 
 void
-khtml_int64(struct kreq *req, int64_t val)
+khtml_double(struct kreq *req, double val)
+{
+	char	 buf[256];
+
+	(void)snprintf(buf, sizeof(buf), "%g", val);
+	khtml_text(req, buf);
+}
+
+void
+khtml_int(struct kreq *req, int64_t val)
 {
 	char	 buf[22];
 

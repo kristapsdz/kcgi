@@ -1,12 +1,14 @@
 CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Comment this if you don't want zlib.
 CFLAGS += -DHAVE_ZLIB
+# Uncomment if you need statically linked.
+#STATIC = -static
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
-VERSION = 0.1.15
+VERSION = 0.1.16
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 
@@ -44,7 +46,7 @@ install: libkcgi.a
 	rm -f kcgi.h~ kcgi.3~
 
 sample: sample.o libkcgi.a
-	$(CC) -o $@ sample.o -L. -lkcgi -lz
+	$(CC) -o $@ $(STATIC) sample.o -L. -lkcgi -lz
 
 www: index.html kcgi-$(VERSION).tgz kcgi.3.html
 
