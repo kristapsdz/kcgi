@@ -57,6 +57,7 @@
 			<ul>
 				<li>query string, cookie, and form (multipart form-data and mixed, urlencoded, and plain) input</li>
 				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
+				<li>pretty-printing of HTML content</li>
 				<li>simple, callback-based template system</li>
 				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
 				<li>input field validation and repopulation</li>
@@ -129,6 +130,7 @@
 				Removed the <code>khtml_decl</code> function in favour of a special element.
 				Changed <code>khtml_int64</code> to <code>khtml_int</code> for consistency.
 				Add <code>khtml_attrx</code>, which accepts variable types (not just a string) for its arguments.
+				Finally, make sure that the HTML printing functions pretty-print properly.
 			</p>
 		</article>
 		<footer>
