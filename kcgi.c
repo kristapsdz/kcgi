@@ -332,6 +332,46 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_VOID, "wbr" }, /* KELEM_WBR */
 };
 
+const char *const khttpresps[KRESP__MAX] = {
+	"Access-Control-Allow-Origin", /* KRESP_ACCESS_CONTROL_ALLOW_ORIGIN */
+	"Accept-Ranges", /* KRESP_ACCEPT_RANGES */
+	"Age", /* KRESP_AGE */
+	"Allow", /* KRESP_ALLOW */
+	"Cache-Control", /* KRESP_CACHE_CONTROL */
+	"Connection", /* KRESP_CONNECTION */
+	"Content-Encoding", /* KRESP_CONTENT_ENCODING */
+	"Content-Language", /* KRESP_CONTENT_LANGUAGE */
+	"Content-Length", /* KRESP_CONTENT_LENGTH */
+	"Content-Location", /* KRESP_CONTENT_LOCATION */
+	"Content-MD5", /* KRESP_CONTENT_MD5 */
+	"Content-Disposition", /* KRESP_CONTENT_DISPOSITION */
+	"Content-Range", /* KRESP_CONTENT_RANGE */
+	"Content-Type", /* KRESP_CONTENT_TYPE */
+	"Date", /* KRESP_DATE */
+	"ETag", /* KRESP_ETAG */
+	"Expires", /* KRESP_EXPIRES */
+	"Last-Modified", /* KRESP_LAST_MODIFIED */
+	"Link", /* KRESP_LINK */
+	"Location", /* KRESP_LOCATION */
+	"P3P", /* KRESP_P3P */
+	"Pragma", /* KRESP_PRAGMA */
+	"Proxy-Authenticate", /* KRESP_PROXY_AUTHENTICATE */
+	"Refresh", /* KRESP_REFRESH */
+	"Retry-After", /* KRESP_RETRY_AFTER */
+	"Server", /* KRESP_SERVER */
+	"Set-Cookie", /* KRESP_SET_COOKIE */
+	"Status", /* KRESP_STATUS */
+	"Strict-Transport-Security", /* KRESP_STRICT_TRANSPORT_SECURITY */
+	"Trailer", /* KRESP_TRAILER */
+	"Transfer-Encoding", /* KRESP_TRANSFER_ENCODING */
+	"Upgrade", /* KRESP_UPGRADE */
+	"Vary", /* KRESP_VARY */
+	"Via", /* KRESP_VIA */
+	"Warning", /* KRESP_WARNING */
+	"WWW-Authenticate", /* KRESP_WWW_AUTHENTICATE */
+	"X-Frame-Options", /* KRESP_X_FRAME_OPTIONS */
+};
+
 const char *const kmimetypes[KMIME__MAX] = {
 	"text/html", /* KMIME_HTML */
 	"text/csv", /* KMIME_CSV */
@@ -1460,7 +1500,7 @@ void
 khttp_parse(struct kreq *req, 
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
-	size_t defpage)
+	size_t defpage, void *arg)
 {
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
@@ -1472,6 +1512,7 @@ khttp_parse(struct kreq *req,
 
 	memset(req, 0, sizeof(struct kreq));
 
+	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
 	req->pages = pages;
@@ -1614,8 +1655,8 @@ khttp_parse(struct kreq *req,
 		for (j = 0; j < req->fieldsz; j++) {
 			if (strcmp(req->fields[j].key, keys[i].name))
 				continue;
-			if (NULL != keys[i].valid &&
-				! (*keys[i].valid)(&req->fields[j])) {
+			if (NULL != keys[i].valid && ! keys[i].valid
+					(req, &req->fields[j])) {
 				req->fields[j].type = KPAIR__MAX;
 				req->fields[j].next = req->fieldnmap[i];
 				req->fieldnmap[i] = &req->fields[j];
@@ -1629,8 +1670,8 @@ khttp_parse(struct kreq *req,
 		for (j = 0; j < req->cookiesz; j++) {
 			if (strcmp(req->cookies[j].key, keys[i].name))
 				continue;
-			if (NULL != keys[i].valid &&
-				! keys[i].valid(&req->cookies[j])) {
+			if (NULL != keys[i].valid && ! keys[i].valid
+					(req, &req->cookies[j])) {
 				req->cookies[j].type = KPAIR__MAX;
 				req->cookies[j].next = req->cookienmap[i];
 				req->cookienmap[i] = &req->cookies[j];
@@ -1929,7 +1970,7 @@ valid_email(char *p)
 }
 
 int
-kvalid_string(struct kpair *p)
+kvalid_string(struct kreq *r, struct kpair *p)
 {
 
 	/*
@@ -1944,31 +1985,31 @@ kvalid_string(struct kpair *p)
 }
 
 int
-kvalid_email(struct kpair *p)
+kvalid_email(struct kreq *r, struct kpair *p)
 {
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_string(r, p))
 		return(0);
 	return(NULL != (p->parsed.s = valid_email(p->val)));
 }
 
 int
-kvalid_udouble(struct kpair *p)
+kvalid_udouble(struct kreq *r, struct kpair *p)
 {
 
-	if ( ! kvalid_double(p))
+	if ( ! kvalid_double(r, p))
 		return(0);
 	p->type = KPAIR_DOUBLE;
 	return(p->parsed.d > 0.0);
 }
 
 int
-kvalid_double(struct kpair *p)
+kvalid_double(struct kreq *r, struct kpair *p)
 {
 	char		*ep;
 	double		 lval;
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_string(r, p))
 		return(0);
 
 	errno = 0;
@@ -1983,11 +2024,11 @@ kvalid_double(struct kpair *p)
 }
 
 int
-kvalid_int(struct kpair *p)
+kvalid_int(struct kreq *r, struct kpair *p)
 {
 	const char	*ep;
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_string(r, p))
 		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
@@ -1996,7 +2037,7 @@ kvalid_int(struct kpair *p)
 }
 
 int
-kvalid_uint(struct kpair *p)
+kvalid_uint(struct kreq *r, struct kpair *p)
 {
 	const char	*ep;
 

@@ -67,6 +67,47 @@ enum	khttp {
 	KHTTP__MAX
 };
 
+enum	kresp {
+	KRESP_ACCESS_CONTROL_ALLOW_ORIGIN,
+	KRESP_ACCEPT_RANGES,
+	KRESP_AGE,
+	KRESP_ALLOW,
+	KRESP_CACHE_CONTROL,
+	KRESP_CONNECTION,
+	KRESP_CONTENT_ENCODING,
+	KRESP_CONTENT_LANGUAGE,
+	KRESP_CONTENT_LENGTH,
+	KRESP_CONTENT_LOCATION,
+	KRESP_CONTENT_MD5,
+	KRESP_CONTENT_DISPOSITION,
+	KRESP_CONTENT_RANGE,
+	KRESP_CONTENT_TYPE,
+	KRESP_DATE,
+	KRESP_ETAG,
+	KRESP_EXPIRES,
+	KRESP_LAST_MODIFIED,
+	KRESP_LINK,
+	KRESP_LOCATION,
+	KRESP_P3P,
+	KRESP_PRAGMA,
+	KRESP_PROXY_AUTHENTICATE,
+	KRESP_REFRESH,
+	KRESP_RETRY_AFTER,
+	KRESP_SERVER,
+	KRESP_SET_COOKIE,
+	KRESP_STATUS,
+	KRESP_STRICT_TRANSPORT_SECURITY,
+	KRESP_TRAILER,
+	KRESP_TRANSFER_ENCODING,
+	KRESP_UPGRADE,
+	KRESP_VARY,
+	KRESP_VIA,
+	KRESP_WARNING,
+	KRESP_WWW_AUTHENTICATE,
+	KRESP_X_FRAME_OPTIONS,
+	KRESP__MAX
+};
+
 enum	kentity {
 	KENTITY_AElig,
 	KENTITY_Aacute,
@@ -528,8 +569,10 @@ struct	kpair {
 	} parsed;
 };
 
+struct	kreq; /* forward declaration */
+
 struct	kvalid {
-	int		(*valid)(struct kpair *);
+	int		(*valid)(struct kreq *r, struct kpair *kp);
 	const char	 *name;
 };
 
@@ -584,7 +627,7 @@ void		 khttp_head(struct kreq *req, const char *key,
 void		 khttp_parse(struct kreq *req, 
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
-			size_t defpage);
+			size_t defpage, void *arg);
 void		 khttp_putc(struct kreq *req, int c);
 void		 khttp_puts(struct kreq *req, const char *cp);
 
@@ -600,12 +643,12 @@ void		 khtml_int(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
 void		 khtml_text(struct kreq *req, const char *cp);
 
-int		 kvalid_double(struct kpair *);
-int		 kvalid_email(struct kpair *);
-int		 kvalid_int(struct kpair *);
-int		 kvalid_string(struct kpair *);
-int		 kvalid_udouble(struct kpair *);
-int		 kvalid_uint(struct kpair *);
+int		 kvalid_double(struct kreq *, struct kpair *);
+int		 kvalid_email(struct kreq *, struct kpair *);
+int		 kvalid_int(struct kreq *, struct kpair *);
+int		 kvalid_string(struct kreq *, struct kpair *);
+int		 kvalid_udouble(struct kreq *, struct kpair *);
+int		 kvalid_uint(struct kreq *, struct kpair *);
 
 int		 khtml_template(struct kreq *req, 
 			const struct ktemplate *t, 
@@ -627,6 +670,7 @@ char		*kstrdup(const char *cp);
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
 extern const char *const	 ksuffixes[KMIME__MAX];
+extern const char *const	 kresps[KRESP__MAX];
 extern const char		*pname;
 
 __END_DECLS
