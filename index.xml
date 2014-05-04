@@ -125,8 +125,8 @@
 				New in version @VERSION@...
 			</h2>
 			<p>
-				Added all HTML5 elements and attributes as per the <a href="http://docs.webplatform.org/wiki/html">HTML5</a>
-				specification.
+				Added all HTML5 elements, attributes, and entities (HTML5, ISO 8859-1 character and symbol) as per the <a
+					href="http://docs.webplatform.org/wiki/html">HTML5</a> specification.
 				Removed the <code>khtml_decl</code> function in favour of a special element.
 				Changed <code>khtml_int64</code> to <code>khtml_int</code> for consistency.
 				Add <code>khtml_attrx</code>, which accepts variable types (not just a string) for its arguments.

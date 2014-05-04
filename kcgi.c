@@ -88,14 +88,137 @@ struct	tag {
 };
 
 static	const uint16_t entities[KENTITY__MAX] = {
-	38, /* KENTITY_AMP */
-	0xE9, /* KENTITY_EACUTE */
-	0x3E, /* KENTITY_GT */
-	0x2190, /* KENTITY_LARR */
-	0x3C, /* KENTITY_LT */
-	0x2014, /* KENTITY_MDASH */
-	0x2013, /* KENTITY_NDASH */
-	0x2192, /* KENTITY_RARR */
+	198, /* KENTITY_AElig */
+	193, /* KENTITY_Aacute */
+	194, /* KENTITY_Acirc */
+	192, /* KENTITY_Agrave */
+	197, /* KENTITY_Aring */
+	195, /* KENTITY_Atilde */
+	196, /* KENTITY_Auml */
+	199, /* KENTITY_Ccedil */
+	8225, /* KENTITY_Dagger */
+	208, /* KENTITY_ETH */
+	201, /* KENTITY_Eacute */
+	202, /* KENTITY_Ecirc */
+	200, /* KENTITY_Egrave */
+	203, /* KENTITY_Euml */
+	205, /* KENTITY_Iacute */
+	206, /* KENTITY_Icirc */
+	204, /* KENTITY_Igrave */
+	207, /* KENTITY_Iuml */
+	209, /* KENTITY_Ntilde */
+	338, /* KENTITY_OElig */
+	211, /* KENTITY_Oacute */
+	212, /* KENTITY_Ocirc */
+	210, /* KENTITY_Ograve */
+	216, /* KENTITY_Oslash */
+	213, /* KENTITY_Otilde */
+	214, /* KENTITY_Ouml */
+	352, /* KENTITY_Scaron */
+	222, /* KENTITY_THORN */
+	218, /* KENTITY_Uacute */
+	219, /* KENTITY_Ucirc */
+	217, /* KENTITY_Ugrave */
+	220, /* KENTITY_Uuml */
+	221, /* KENTITY_Yacute */
+	376, /* KENTITY_Yuml */
+	225, /* KENTITY_aacute */
+	226, /* KENTITY_acirc */
+	180, /* KENTITY_acute */
+	230, /* KENTITY_aelig */
+	224, /* KENTITY_agrave */
+	38, /* KENTITY_amp */
+	39, /* KENTITY_apos */
+	229, /* KENTITY_aring */
+	227, /* KENTITY_atilde */
+	228, /* KENTITY_auml */
+	8222, /* KENTITY_bdquo */
+	166, /* KENTITY_brvbar */
+	231, /* KENTITY_ccedil */
+	184, /* KENTITY_cedil */
+	162, /* KENTITY_cent */
+	710, /* KENTITY_circ */
+	169, /* KENTITY_copy */
+	164, /* KENTITY_curren */
+	8224, /* KENTITY_dagger */
+	176, /* KENTITY_deg */
+	247, /* KENTITY_divide */
+	233, /* KENTITY_eacute */
+	234, /* KENTITY_ecirc */
+	232, /* KENTITY_egrave */
+	8195, /* KENTITY_emsp */
+	8194, /* KENTITY_ensp */
+	240, /* KENTITY_eth */
+	235, /* KENTITY_euml */
+	8364, /* KENTITY_euro */
+	189, /* KENTITY_frac12 */
+	188, /* KENTITY_frac14 */
+	190, /* KENTITY_frac34 */
+	62, /* KENTITY_gt */
+	8230, /* KENTITY_hellip */
+	237, /* KENTITY_iacute */
+	238, /* KENTITY_icirc */
+	161, /* KENTITY_iexcl */
+	236, /* KENTITY_igrave */
+	191, /* KENTITY_iquest */
+	239, /* KENTITY_iuml */
+	171, /* KENTITY_laquo */
+	8220, /* KENTITY_ldquo */
+	8206, /* KENTITY_lrm */
+	8249, /* KENTITY_lsaquo */
+	8216, /* KENTITY_lsquo */
+	60, /* KENTITY_lt */
+	175, /* KENTITY_macr */
+	8212, /* KENTITY_mdash */
+	181, /* KENTITY_micro */
+	183, /* KENTITY_middot */
+	160, /* KENTITY_nbsp */
+	8211, /* KENTITY_ndash */
+	172, /* KENTITY_not */
+	241, /* KENTITY_ntilde */
+	243, /* KENTITY_oacute */
+	244, /* KENTITY_ocirc */
+	339, /* KENTITY_oelig */
+	242, /* KENTITY_ograve */
+	170, /* KENTITY_ordf */
+	186, /* KENTITY_ordm */
+	248, /* KENTITY_oslash */
+	245, /* KENTITY_otilde */
+	246, /* KENTITY_ouml */
+	182, /* KENTITY_para */
+	8240, /* KENTITY_permil */
+	177, /* KENTITY_plusmn */
+	163, /* KENTITY_pound */
+	34, /* KENTITY_quot */
+	187, /* KENTITY_raquo */
+	8221, /* KENTITY_rdquo */
+	174, /* KENTITY_reg */
+	8207, /* KENTITY_rlm */
+	8250, /* KENTITY_rsaquo */
+	8217, /* KENTITY_rsquo */
+	8218, /* KENTITY_sbquo */
+	353, /* KENTITY_scaron */
+	167, /* KENTITY_sect */
+	173, /* KENTITY_shy */
+	185, /* KENTITY_sup1 */
+	178, /* KENTITY_sup2 */
+	179, /* KENTITY_sup3 */
+	223, /* KENTITY_szlig */
+	8201, /* KENTITY_thinsp */
+	254, /* KENTITY_thorn */
+	732, /* KENTITY_tilde */
+	215, /* KENTITY_times */
+	8482, /* KENTITY_trade */
+	250, /* KENTITY_uacute */
+	251, /* KENTITY_ucirc */
+	249, /* KENTITY_ugrave */
+	168, /* KENTITY_uml */
+	252, /* KENTITY_uuml */
+	253, /* KENTITY_yacute */
+	165, /* KENTITY_yen */
+	255, /* KENTITY_yuml */
+	8205, /* KENTITY_zwj */
+	8204, /* KENTITY_zwnj */
 };
 
 static	const struct tag tags[KELEM__MAX] = {
@@ -1724,13 +1847,13 @@ khtml_text(struct kreq *req, const char *cp)
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
-			khtml_entity(req, KENTITY_GT);
+			khtml_entity(req, KENTITY_gt);
 			break;
 		case ('&'):
-			khtml_entity(req, KENTITY_AMP);
+			khtml_entity(req, KENTITY_amp);
 			break;
 		case ('<'):
-			khtml_entity(req, KENTITY_LT);
+			khtml_entity(req, KENTITY_lt);
 			break;
 		default:
 			khttp_putc(req, *cp);
