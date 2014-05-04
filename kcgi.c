@@ -332,7 +332,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_VOID, "wbr" }, /* KELEM_WBR */
 };
 
-const char *const khttpresps[KRESP__MAX] = {
+const char *const kresps[KRESP__MAX] = {
 	"Access-Control-Allow-Origin", /* KRESP_ACCESS_CONTROL_ALLOW_ORIGIN */
 	"Accept-Ranges", /* KRESP_ACCEPT_RANGES */
 	"Age", /* KRESP_AGE */
