@@ -306,7 +306,7 @@ main(void)
 
 	/* Set up our main HTTP context. */
 	khttp_parse(&r, keys, KEY__MAX, 
-		pages, PAGE__MAX, PAGE_INDEX);
+		pages, PAGE__MAX, PAGE_INDEX, NULL);
 
 	if (PAGE__MAX == r.page || KMIME__MAX == r.mime) {
 		/*
