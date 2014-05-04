@@ -79,6 +79,7 @@
 .Fa "size_t keysz"
 .Fa "const char *const *pages"
 .Fa "size_t pagesz"
+.Fa "void *arg"
 .Fc
 .Ft void
 .Fo khttp_putc
@@ -148,17 +149,17 @@
 .Fa "const char *fname"
 .Fc
 .Ft int
-.Fn kvalid_double "struct kpair *kp"
+.Fn kvalid_double "struct kreq *r" "struct kpair *kp"
 .Ft int
-.Fn kvalid_email "struct kpair *kp"
+.Fn kvalid_email "struct kreq *r" "struct kpair *kp"
 .Ft int
-.Fn kvalid_int "struct kpair *kp"
+.Fn kvalid_int "struct kreq *r" "struct kpair *kp"
 .Ft int
-.Fn kvalid_string "struct kpair *kp"
+.Fn kvalid_string "struct kreq *r" "struct kpair *kp"
 .Ft int
-.Fn kvalid_udouble "struct kpair *kp"
+.Fn kvalid_udouble "struct kreq *r" "struct kpair *kp"
 .Ft int
-.Fn kvalid_uint "struct kpair *kp"
+.Fn kvalid_uint "struct kreq *r" "struct kpair *kp"
 .Ft "void *"
 .Fn kasprintf "const char *fmt" "..."
 .Ft "void *"
@@ -290,6 +291,11 @@ They are as follows:
 An array of common file suffixes mapped to
 .Vt "enum kmime"
 MIME types.
+.It Va kresps
+HTTP response headers.
+These may be indexed via
+.Vt "enum kresp"
+fields.
 .It Va kmimetypes
 An array of common MIME type IANA names used when populating the
 .Li Content-Type
@@ -304,7 +310,7 @@ from the
 field of
 .Vt "struct kreq" .
 .It Va khttps
-An array of HTTP/1.0 and HTTP/1.1 status code strings looked up using
+An array of HTTP status code strings looked up using
 .Vt "enum khttp" .
 .El
 .Ss Types
@@ -314,6 +320,10 @@ type is central to
 .Nm kcgi .
 It consists of the following fields:
 .Bl -ohang -offset indent
+.It Va arg
+Private application data.
+This is set during
+.Fn khttp_parse .
 .It Va method
 The
 .Dv KMETHOD_GET
@@ -455,7 +465,7 @@ as an array of
 .Vt "struct kvalid" ,
 which consists of the following:
 .Bl -ohang -offset indent
-.It Va "int (*valid)(struct kpair *)"
+.It Va "int (*valid)(struct kreq *r, struct kpair *kp)"
 Validating function.
 This can be
 .Dv NULL
@@ -589,11 +599,15 @@ You may not invoke
 .Fn khttp_head
 subsequent to
 .Fn khttp_body .
+Most HTTP response headers are included in the
+.Va kresps
+global array.
 .It Fn khttp_parse "struct kreq *req" \
 "const struct kvalid *keys" \
 "size_t keysz" \
 "const char *const *pages" \
-"size_t pagesz"
+"size_t pagesz" \
+"void *arg"
 Fill a request
 .Fa req
 with input fields from the CGI environment.
@@ -606,6 +620,11 @@ consists of input and validation fields, while
 of size
 .Fa pagesz
 is for page mapping.
+The
+.Fa arg
+pointer is private application data.
+It is not touched by
+.Nm kcgi .
 .El
 .Pp
 The following functions create an HTML tree.
@@ -721,18 +740,18 @@ The following functions are provided for the global
 .Va keys
 array.
 .Bl -ohang -offset indent
-.It Fn kvalid_double "struct kpair *kp"
+.It Fn kvalid_double "struct kreq *r" "struct kpair *kp"
 Validate a double-precision floating-point number.
 .Em Note :
 this uses the current locale via
 .Xr strtod 3 .
-.It Fn kvalid_email "struct kpair *kp"
+.It Fn kvalid_email "struct kreq *r" "struct kpair *kp"
 Validate an e-mail address.
 .Em Note :
 this is a heuristic validation, not a formal one.
-.It Fn kvalid_int "struct kpair *kp"
+.It Fn kvalid_int "struct kreq *r" "struct kpair *kp"
 Validate a signed 64-bit integer.
-.It Fn kvalid_string "struct kpair *kp"
+.It Fn kvalid_string "struct kreq *r" "struct kpair *kp"
 Validate a nil-terminated string.
 This is also used by the
 .Fn kvalid_double ,
@@ -742,12 +761,12 @@ This is also used by the
 and
 .Fn kvalid_uint
 to make sure the string representation of their data is sane.
-.It Fn kvalid_udouble "struct kpair *kp"
+.It Fn kvalid_udouble "struct kreq *r" "struct kpair *kp"
 Validate a positive non-zero double-precision floating-point number.
 .Em Note :
 this uses the current locale via
 .Xr strtod 3 .
-.It Fn kvalid_uint "struct kpair *kp"
+.It Fn kvalid_uint "struct kreq *r" "struct kpair *kp"
 Validate an unsigned 64-bit natural number.
 .El
 .Pp
@@ -864,6 +883,10 @@ which is further defined by RFCs 2045 and 2046,
 MIME type names are registered with IANA.
 URLs are formatted according to RFC 1630,
 .Qq Universal Resource Identifiers in WWW .
+HTTP response headers are standardised in RFC 2616,
+.Qq HTTP/1.1
+and further in RFC 4229,
+.Qq HTTP Header Field Registrations .
 .Sh AUTHORS
 The
 .Nm
