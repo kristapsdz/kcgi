@@ -50,6 +50,7 @@ struct	kdata {
 #ifdef	HAVE_ZLIB
 	gzFile		 gz;
 #endif
+	int		 newln;
 };
 
 struct	mimemap {
@@ -699,6 +700,46 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 	return(p);
 }
 
+/*
+ * Open a tag.
+ * If we're a flow tag, emit a newline (unless already omitted). 
+ * Then if we're at a newline regardless of tag type, indent properly to
+ * the point where we'll omit the tag name.
+ */
+static void
+khtml_flow_open(struct kreq *req, enum kelem elem)
+{
+	size_t		 i;
+
+	if (TAG_FLOW == tags[elem].flags)
+		if ( ! req->kdata->newln) {
+			khttp_putc(req, '\n');
+			req->kdata->newln = 1;
+		}
+
+	if (req->kdata->newln)
+		for (i = 0; i < req->kdata->elemsz; i++) 
+			khttp_puts(req, "  ");
+
+	req->kdata->newln = 0;
+}
+
+/*
+ * If we're closing a flow or instruction tag, emit a newline.
+ * Otherwise do nothing.
+ */
+static void
+khtml_flow_close(struct kreq *req, enum kelem elem)
+{
+
+	if (TAG_FLOW == tags[elem].flags ||
+		TAG_INSTRUCTION == tags[elem].flags) {
+		khttp_putc(req, '\n');
+		req->kdata->newln = 1;
+	} else
+		req->kdata->newln = 0;
+}
+
 void
 khtml_attrx(struct kreq *req, enum kelem elem, ...)
 {
@@ -707,6 +748,7 @@ khtml_attrx(struct kreq *req, enum kelem elem, ...)
 	struct kdata	*k = req->kdata;
 
 	assert(KSTATE_BODY == req->kdata->state);
+	khtml_flow_open(req, elem);
 	KPRINTF(req, "<%s", tags[elem].name);
 
 	va_start(ap, elem);
@@ -732,10 +774,7 @@ khtml_attrx(struct kreq *req, enum kelem elem, ...)
 	if (TAG_VOID == tags[elem].flags)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
-
-	if (TAG_FLOW == tags[elem].flags ||
-		TAG_INSTRUCTION == tags[elem].flags)
-		khttp_putc(req, '\n');
+	khtml_flow_close(req, elem);
 
 	if (TAG_VOID != tags[elem].flags &&
 		TAG_INSTRUCTION != tags[elem].flags)
@@ -752,6 +791,7 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	const char	*cp;
 
 	assert(KSTATE_BODY == req->kdata->state);
+	khtml_flow_open(req, elem);
 	KPRINTF(req, "<%s", tags[elem].name);
 
 	va_start(ap, elem);
@@ -771,10 +811,7 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	if (TAG_VOID == tags[elem].flags)
 		khttp_putc(req, '/');
 	khttp_putc(req, '>');
-
-	if (TAG_FLOW == tags[elem].flags ||
-		TAG_INSTRUCTION == tags[elem].flags)
-		khttp_putc(req, '\n');
+	khtml_flow_close(req, elem);
 
 	if (TAG_VOID != tags[elem].flags &&
 		TAG_INSTRUCTION != tags[elem].flags)
@@ -796,9 +833,9 @@ khtml_close(struct kreq *req, size_t sz)
 	for (i = 0; i < sz; i++) {
 		assert(k->elemsz > 0);
 		k->elemsz--;
+		khtml_flow_open(req, k->elems[k->elemsz]);
 		KPRINTF(req, "</%s>", tags[k->elems[k->elemsz]].name);
-		if (TAG_FLOW & tags[k->elems[k->elemsz]].flags) 
-			khttp_putc(req, '\n');
+		khtml_flow_close(req, k->elems[k->elemsz]);
 	}
 }
 
@@ -1683,6 +1720,7 @@ khtml_text(struct kreq *req, const char *cp)
 
 	/* TODO: speed up with strcspn. */
 	assert(KSTATE_BODY == req->kdata->state);
+	req->kdata->newln = 0;
 	for ( ; NULL != cp && '\0' != *cp; cp++)
 		switch (*cp) {
 		case ('>'):
