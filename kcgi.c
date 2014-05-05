@@ -332,6 +332,95 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_VOID, "wbr" }, /* KELEM_WBR */
 };
 
+static const char *const kschemes[KSCHEME__MAX] = {
+	"aaa", /* KSCHEME_AAA */
+	"aaas", /* KSCHEME_AAAS */
+	"about", /* KSCHEME_ABOUT */
+	"acap", /* KSCHEME_ACAP */
+	"acct", /* KSCHEME_ACCT */
+	"cap", /* KSCHEME_CAP */
+	"cid", /* KSCHEME_CID */
+	"coap", /* KSCHEME_COAP */
+	"coaps", /* KSCHEME_COAPS */
+	"crid", /* KSCHEME_CRID */
+	"data", /* KSCHEME_DATA */
+	"dav", /* KSCHEME_DAV */
+	"dict", /* KSCHEME_DICT */
+	"dns", /* KSCHEME_DNS */
+	"file", /* KSCHEME_FILE */
+	"ftp", /* KSCHEME_FTP */
+	"geo", /* KSCHEME_GEO */
+	"go", /* KSCHEME_GO */
+	"gopher", /* KSCHEME_GOPHER */
+	"h323", /* KSCHEME_H323 */
+	"http", /* KSCHEME_HTTP */
+	"https", /* KSCHEME_HTTPS */
+	"iax", /* KSCHEME_IAX */
+	"icap", /* KSCHEME_ICAP */
+	"im", /* KSCHEME_IM */
+	"imap", /* KSCHEME_IMAP */
+	"info", /* KSCHEME_INFO */
+	"ipp", /* KSCHEME_IPP */
+	"iris", /* KSCHEME_IRIS */
+	"iris.beep", /* KSCHEME_IRIS_BEEP */
+	"iris.xpc", /* KSCHEME_IRIS_XPC */
+	"iris.xpcs", /* KSCHEME_IRIS_XPCS */
+	"iris.lwz", /* KSCHEME_IRIS_LWZ */
+	"jabber", /* KSCHEME_JABBER */
+	"ldap", /* KSCHEME_LDAP */
+	"mailto", /* KSCHEME_MAILTO */
+	"mid", /* KSCHEME_MID */
+	"msrp", /* KSCHEME_MSRP */
+	"msrps", /* KSCHEME_MSRPS */
+	"mtqp", /* KSCHEME_MTQP */
+	"mupdate", /* KSCHEME_MUPDATE */
+	"news", /* KSCHEME_NEWS */
+	"nfs", /* KSCHEME_NFS */
+	"ni", /* KSCHEME_NI */
+	"nih", /* KSCHEME_NIH */
+	"nntp", /* KSCHEME_NNTP */
+	"opaquelocktoken", /* KSCHEME_OPAQUELOCKTOKEN */
+	"pop", /* KSCHEME_POP */
+	"pres", /* KSCHEME_PRES */
+	"reload", /* KSCHEME_RELOAD */
+	"rtsp", /* KSCHEME_RTSP */
+	"rtsps", /* KSCHEME_RTSPS */
+	"rtspu", /* KSCHEME_RTSPU */
+	"service", /* KSCHEME_SERVICE */
+	"session", /* KSCHEME_SESSION */
+	"shttp", /* KSCHEME_SHTTP */
+	"sieve", /* KSCHEME_SIEVE */
+	"sip", /* KSCHEME_SIP */
+	"sips", /* KSCHEME_SIPS */
+	"sms", /* KSCHEME_SMS */
+	"snmp", /* KSCHEME_SNMP */
+	"soap.beep", /* KSCHEME_SOAP_BEEP */
+	"soap.beeps", /* KSCHEME_SOAP_BEEPS */
+	"stun", /* KSCHEME_STUN */
+	"stuns", /* KSCHEME_STUNS */
+	"tag", /* KSCHEME_TAG */
+	"tel", /* KSCHEME_TEL */
+	"telnet", /* KSCHEME_TELNET */
+	"tftp", /* KSCHEME_TFTP */
+	"thismessage", /* KSCHEME_THISMESSAGE */
+	"tn3270", /* KSCHEME_TN3270 */
+	"tip", /* KSCHEME_TIP */
+	"turn", /* KSCHEME_TURN */
+	"turns", /* KSCHEME_TURNS */
+	"tv", /* KSCHEME_TV */
+	"urn", /* KSCHEME_URN */
+	"vemmi", /* KSCHEME_VEMMI */
+	"ws", /* KSCHEME_WS */
+	"wss", /* KSCHEME_WSS */
+	"xcon", /* KSCHEME_XCON */
+	"xcon-userid", /* KSCHEME_XCON_USERID */
+	"xmlrpc.beep", /* KSCHEME_XMLRPC_BEEP */
+	"xmlrpc.beeps", /* KSCHEME_XMLRPC_BEEPS */
+	"xmpp", /* KSCHEME_XMPP */
+	"z39.50r", /* KSCHEME_Z39_50R */
+	"z39.50s", /* KSCHEME_Z39_50S */
+};
+
 const char *const kresps[KRESP__MAX] = {
 	"Access-Control-Allow-Origin", /* KRESP_ACCESS_CONTROL_ALLOW_ORIGIN */
 	"Accept-Ranges", /* KRESP_ACCEPT_RANGES */
@@ -822,6 +911,15 @@ kutil_urlencode(const char *cp)
 	}
 
 	return(p);
+}
+
+char *
+kutil_urlabs(enum kscheme scheme, 
+	const char *host, uint16_t port, const char *path)
+{
+
+	return(kasprintf("%s://%s:%" PRIu16 "%s", 
+		kschemes[scheme], host, port, path));
 }
 
 char *
@@ -1544,6 +1642,17 @@ khttp_parse(struct kreq *req,
 	else
 		req->remote = kstrdup(cp);
 
+	/* Never supposed to be NULL, but to be sure... */
+	if (NULL == (cp = getenv("HTTP_HOST")))
+		req->host = kstrdup("localhost");
+	else
+		req->host = kstrdup(cp);
+
+	req->port = 80;
+	if (NULL != (cp = getenv("SERVER_PORT")))
+		req->port = strtonum(cp, 0, 80, NULL);
+
+
 	/* RFC 3875, 4.1.12. */
 	/* Note that we assume GET, POST being explicit. */
 	req->method = KMETHOD_GET;
@@ -1780,6 +1889,7 @@ khttp_free(struct kreq *req)
 	free(req->path);
 	free(req->fullpath);
 	free(req->remote);
+	free(req->host);
 	free(req->cookiemap);
 	free(req->cookienmap);
 	free(req->fieldmap);

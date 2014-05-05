@@ -44,6 +44,7 @@
 .Nm kstrdup ,
 .Nm kxrealloc ,
 .Nm kutil_invalidate ,
+.Nm kutil_urlabs ,
 .Nm kutil_urlpart ,
 .Nm kutil_urlencode ,
 .Nm kvalid_double ,
@@ -174,6 +175,13 @@
 .Fn kxrealloc "void *p" "size_t sz"
 .Ft void
 .Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
+.Ft "char *"
+.Fo kutil_urlabs
+.Fa "enum kscheme scheme"
+.Fa "const char *host"
+.Fa "uint16_t port"
+.Fa "const char *path"
+.Fc
 .Ft "char *"
 .Fo kutil_urlpart
 .Fa "struct kreq *req"
@@ -440,6 +448,10 @@ this would be
 .Pa /bar/baz .
 .It Va remote
 The string form of the client's IPV4 or IVP6 address.
+.It Va host
+The host-name request passed to the application.
+.It Va port
+The server's receiving TCP port.
 .It Va kdata
 Internal data.
 Should not be touched.
@@ -847,6 +859,25 @@ is
 .Dv NULL .
 The caller must free the string with
 .Xr free 3 .
+.It Fn kutil_urlabs "enum kscheme scheme" \
+"const char *host" "uint16_t port" "const char *path"
+Return a dynamically-allocated absolute URL with scheme
+.Fa scheme ,
+domain
+.Fa host ,
+port
+.Fa port ,
+and path part (including query string, etc.)
+.Fa path .
+This 
+.Em is not
+URL-encoded in any way, so make sure to use
+.Fn kutil_urlpart
+or just
+.Fn kutil_urlencode
+for the sensitive parts.
+The caller must free the string with
+.Xr free 3 .
 .It Fn kutil_urlpart "struct kreq *req" "enum kmime mime" "size_t page" "..."
 Return a dynamically-allocated partial URL, meaning just the script
 name, path, MIME suffix, and query string.
@@ -871,22 +902,31 @@ A simple example exists in
 .Pa @DATADIR@/sample.c .
 It illustrates templating, form handling, and so on.
 .Sh STANDARDS
-The
+Many standards are involved in the
 .Nm
-library partially implements the draft RFC 3875,
-.Qq The Common Gateway Interface (CGI) Version 1.1 ,
-and outputs HTML5 compatible with the draft standard of February 2014.
+library, most generally being draft RFC 3875,
+.Qq The Common Gateway Interface (CGI) Version 1.1 .
+.Bl -bullet
+.It
+HTML5 compatible with the draft standard of February 2014.
+.It
 The partial multipart form data support is defined by RFC 2388,
 .Qq Returning Values from Forms: multipart/form-data ,
 which is further defined by RFCs 2045 and 2046,
 .Qq Multipurpose Internet Mail Extensions .
+.It
 MIME type names are registered with IANA.
+.It
 URLs are formatted according to RFC 1630,
 .Qq Universal Resource Identifiers in WWW .
+.It
 HTTP response headers are standardised in RFC 2616,
 .Qq HTTP/1.1
 and further in RFC 4229,
 .Qq HTTP Header Field Registrations .
+.It
+Permanent URI schemes are registered with IANA.
+.El
 .Sh AUTHORS
 The
 .Nm
