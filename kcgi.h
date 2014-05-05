@@ -553,6 +553,96 @@ enum	kpairtype {
 	KPAIR__MAX
 };
 
+enum	kscheme {
+	KSCHEME_AAA,
+	KSCHEME_AAAS,
+	KSCHEME_ABOUT,
+	KSCHEME_ACAP,
+	KSCHEME_ACCT,
+	KSCHEME_CAP,
+	KSCHEME_CID,
+	KSCHEME_COAP,
+	KSCHEME_COAPS,
+	KSCHEME_CRID,
+	KSCHEME_DATA,
+	KSCHEME_DAV,
+	KSCHEME_DICT,
+	KSCHEME_DNS,
+	KSCHEME_FILE,
+	KSCHEME_FTP,
+	KSCHEME_GEO,
+	KSCHEME_GO,
+	KSCHEME_GOPHER,
+	KSCHEME_H323,
+	KSCHEME_HTTP,
+	KSCHEME_HTTPS,
+	KSCHEME_IAX,
+	KSCHEME_ICAP,
+	KSCHEME_IM,
+	KSCHEME_IMAP,
+	KSCHEME_INFO,
+	KSCHEME_IPP,
+	KSCHEME_IRIS,
+	KSCHEME_IRIS_BEEP,
+	KSCHEME_IRIS_XPC,
+	KSCHEME_IRIS_XPCS,
+	KSCHEME_IRIS_LWZ,
+	KSCHEME_JABBER,
+	KSCHEME_LDAP,
+	KSCHEME_MAILTO,
+	KSCHEME_MID,
+	KSCHEME_MSRP,
+	KSCHEME_MSRPS,
+	KSCHEME_MTQP,
+	KSCHEME_MUPDATE,
+	KSCHEME_NEWS,
+	KSCHEME_NFS,
+	KSCHEME_NI,
+	KSCHEME_NIH,
+	KSCHEME_NNTP,
+	KSCHEME_OPAQUELOCKTOKEN,
+	KSCHEME_POP,
+	KSCHEME_PRES,
+	KSCHEME_RELOAD,
+	KSCHEME_RTSP,
+	KSCHEME_RTSPS,
+	KSCHEME_RTSPU,
+	KSCHEME_SERVICE,
+	KSCHEME_SESSION,
+	KSCHEME_SHTTP,
+	KSCHEME_SIEVE,
+	KSCHEME_SIP,
+	KSCHEME_SIPS,
+	KSCHEME_SMS,
+	KSCHEME_SNMP,
+	KSCHEME_SOAP_BEEP,
+	KSCHEME_SOAP_BEEPS,
+	KSCHEME_STUN,
+	KSCHEME_STUNS,
+	KSCHEME_TAG,
+	KSCHEME_TEL,
+	KSCHEME_TELNET,
+	KSCHEME_TFTP,
+	KSCHEME_THISMESSAGE,
+	KSCHEME_TN3270,
+	KSCHEME_TIP,
+	KSCHEME_TURN,
+	KSCHEME_TURNS,
+	KSCHEME_TV,
+	KSCHEME_URN,
+	KSCHEME_VEMMI,
+	KSCHEME_WS,
+	KSCHEME_WSS,
+	KSCHEME_XCON,
+	KSCHEME_XCON_USERID,
+	KSCHEME_XMLRPC_BEEP,
+	KSCHEME_XMLRPC_BEEPS,
+	KSCHEME_XMPP,
+	KSCHEME_Z39_50R,
+	KSCHEME_Z39_50S,
+	KSCHEME__MAX
+};
+
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
@@ -602,6 +692,8 @@ struct	kreq {
 	char			 *suffix;
 	char			 *fullpath;
 	char			 *remote;
+	char			 *host;
+	uint16_t		  port;
 	struct kdata		 *kdata;
 	const struct kvalid	 *keys;
 	size_t			  keysz;
@@ -641,6 +733,9 @@ size_t		 khtml_elemat(struct kreq *req);
 void		 khtml_entity(struct kreq *req, enum kentity entity);
 void		 khtml_int(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
+int		 khtml_template(struct kreq *req, 
+			const struct ktemplate *t, 
+			const char *fname);
 void		 khtml_text(struct kreq *req, const char *cp);
 
 int		 kvalid_double(struct kreq *, struct kpair *);
@@ -650,10 +745,8 @@ int		 kvalid_string(struct kreq *, struct kpair *);
 int		 kvalid_udouble(struct kreq *, struct kpair *);
 int		 kvalid_uint(struct kreq *, struct kpair *);
 
-int		 khtml_template(struct kreq *req, 
-			const struct ktemplate *t, 
-			const char *fname);
-
+char		*kutil_urlabs(enum kscheme scheme, const char *host, 
+			uint16_t port, const char *path);
 char		*kutil_urlpart(struct kreq *req, 
 			enum kmime mime, size_t page, ...);
 char		*kutil_urlencode(const char *cp);

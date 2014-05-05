@@ -126,13 +126,15 @@
 			</h2>
 			<p>
 				Added all HTML5 elements, attributes, and entities (HTML5, ISO 8859-1 character and symbol) as per the <a
-					href="http://docs.webplatform.org/wiki/html">HTML5</a> specification.
-				Also added an array of standard HTTP headers.
+					href="http://docs.webplatform.org/wiki/html">HTML5</a> specification, an array of standard HTTP headers,
+				and an array of IANA schemes.
 				Removed the <code>khtml_decl</code> function in favour of a regular <code>khtml_elem</code> call.
 				Changed <code>khtml_int64</code> to <code>khtml_int</code> for consistency.
 				Add <code>khtml_attrx</code>, which accepts variable types (not just a string) for its arguments.
 				Added an application-specific argument to <code>struct kreq</code>, then made <code>kvalid</code> functions
-				accept the <code>struct kreq</code>, which has this private data, just in case.
+				accept the <code>struct kreq</code> (which has this private data).
+				Also added <code>host</code> to <code>struct kreq</code>.
+				Added <code>kutil_urlabs</code> for completion of <code>kutil_uripart</code>.
 				Finally, make sure that the HTML printing functions pretty-print properly.
 			</p>
 		</article>
