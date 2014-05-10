@@ -63,9 +63,11 @@
 					Moreover, <code>khttp_parse</code> does not exit on failure, but instead returns an error to the caller.
 					Audited all other <span class="nm">kcgi</span> internal functions so that they don't exit on failure,
 					but return an error code to the caller.
-					Finally, for consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
+					For consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
 					<code>krealloc</code> have been renamed <code>krealloc</code> and <code>kreallocarray</code>,
 					respectively.
+					Finally, <code>khtml_template</code> has been renamed to <code>khttp_template</code> as it can be used
+					in a non-HTML context just as well.
 				</p>
 			</div>
 			<p>
@@ -73,12 +75,11 @@
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li><a href="#input">input</a>: query string, cookie, and form (multipart form-data and mixed, urlencoded, and plain)</li>
-				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
-				<li>pretty-printing of HTML content</li>
-				<li>simple, callback-based template system</li>
-				<li><a href="#security">security</a>: process-separation of input data parsing</li>
-				<li><a href="#compression">compression</a>: automatic HTTP compression</li>
+				<li><a href="#input">input</a>: parse and validate query string, cookie, and form input</li>
+				<li><a href="#functions">functions</a>: pretty-print HTML5 trees, output HTTP headers, format URLs</li>
+				<li><a href="#template">templating</a>: populate file templates with callbacks</li>
+				<li><a href="#security">security</a>: process-separated parse of input</li>
+				<li><a href="#compression">compression</a>: automatically compress HTTP response</li>
 			</ul>
 			<p>
 				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
@@ -87,10 +88,9 @@
 			<ol>
 				<li>
 					Call <code>khttp_parse</code> as early as possible.  
-					This will parse input and cookie fields and set up the HTTP environment.
-					At present, <span class="nm">kcgi</span> parses (and optionally validates) cookies; query string
-					<q>GET</q> data; and the urlencoded, form-data, and plain <q>POST</q> data.
-					These use
+					This will parse forms, query, and cookie data; validate fields; set up the HTTP environment; and map
+					page and MIME requests.
+					Validation uses
 					<code>kvalid_double</code>,
 					<code>kvalid_email</code>,
 					<code>kvalid_int</code>,
@@ -98,18 +98,16 @@
 					<code>kvalid_udouble</code>,
 					<code>kvalid_uint</code>,
 					or locally-defined functions for validation.
-					It also maps page and MIME requests.
 				</li>
 				<li>
-					Process input fields by examining the <code>struct kpair</code> elements of the main <code>struct
-						kreq</code> structure.
-					This main structure contains all parsed input fields and environment information (in the interests of
-					simplicity, <span class="nm">kcgi</span> uses a single structure instead of accessor functions).
+					Examine the <code>struct kpair</code> elements of the <code>struct kreq</code> structure and potentially
+					perform high-level, database-driven revalidation.
+					This structure contains all elements parsed by <code>khttp_parse</code>.
 				</li>
 				<li>
 					Emit HTTP headers with <code>khttp_head</code>, followed by <code>khttp_body</code> to begin the HTTP
 					body.
-					The latter will automatically trigger compression, if requested by the client.
+					The latter will automatically trigger compression if requested by the client.
 				</li>
 				<li>
 					Emit HTTP body output using HTML5 tree-building functions 
@@ -125,11 +123,10 @@
 					<code>khtml_text</code>; or
 				</li>
 				<li>
-					use the <code>khtml_template</code> function to populate file templates with a mixture of HTML-building
-					functions; or
+					use the <code>khttp_template</code> function to populate file templates; or
 				</li>
 				<li>
-					use <code>khttp_putc</code> and <code>khttp_puts</code> for non-HTML media.
+					directly use <code>khttp_putc</code> and <code>khttp_puts</code>.
 				</li>
 				<li>
 					Call <code>khttp_free</code> to close the HTTP document and free all memory.
@@ -158,9 +155,9 @@
 				Compression
 			</h2>
 			<p>
-				If <code>HAVE_ZLIB</code> is enabled during compilation (via the Makefile), <span class="nm">kcgi</span> will
-				use <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
-				Compression is only enabled if the correct (<q>gzip</q>) HTTP request header is provided.
+				If <code>HAVE_ZLIB</code> is enabled during compilation (via the Makefile), <code>khttp_body</code> will signal
+				use of <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
+				Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
 			</p>
 			<h2 id="input">
 				Input
@@ -170,6 +167,25 @@
 				plain&mdash;are supported by <span class="nm">kcgi</span>.
 				As described in the <a href="#security">Security</a> section, these fields are all parsed from network data in a
 				child process.
+				Each input key-value pair can be matched (by key name) to a validator, which is run when fields are parsed.
+				You can then look up key-value pairs constant-time in a table indexed by that key.
+			</p>
+			<h2 id="functions">
+				Functions
+			</h2>
+			<p>
+				<span class="nm">kcgi</span> provides just the necessary functions for building HTML5 trees, outputting HTTP
+				headers, and building URLs to get by.  
+				As a convenience, it also provides memory allocation wrappers.
+			</p>
+			<h2 id="template">
+				Templating
+			</h2>
+			<p>
+				While you can build HTML5 trees as noted in <a href="#functions">Functions</a>, most application will want just
+				to fill in a template.
+				<span class="nm">kcgi</span> provides a simple function, <code>khttp_template</code>, to fill in flat-files
+				found in the file-system.
 			</p>
 		</article>
 		<footer>
