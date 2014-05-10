@@ -19,9 +19,9 @@ mime2c: mime2c.o
 libkcgi.a: kcgi.o compat.o input.o
 	$(AR) rs $@ kcgi.o compat.o input.o
 
-kcgi.o sample.o: kcgi.h
+kcgi.o sample.o input.o: kcgi.h
 
-kcgi.o compat.o: config.h
+kcgi.o compat.o input.o: config.h
 
 config.h: config.h.pre config.h.post configure test-memmem.c test-strtonum.c
 	rm -f config.log
