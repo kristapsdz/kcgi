@@ -41,8 +41,8 @@
 .Nm kcalloc ,
 .Nm kmalloc ,
 .Nm krealloc ,
+.Nm kreallocarray ,
 .Nm kstrdup ,
-.Nm kxrealloc ,
 .Nm kutil_invalidate ,
 .Nm kutil_urlabs ,
 .Nm kutil_urlpart ,
@@ -168,12 +168,12 @@
 .Ft "void *"
 .Fn kmalloc "size_t sz"
 .Ft "void *"
-.Fn krealloc "void *p" "size_t nm" "size_t sz"
+.Fn krealloc "void *p" "size_t sz"
+.Ft "void *"
+.Fn kreallocarray "void *p" "size_t nm" "size_t sz"
+.Ft void
 .Ft "char *"
 .Fn kstrdup "const char *cp"
-.Ft "void *"
-.Fn kxrealloc "void *p" "size_t sz"
-.Ft void
 .Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
 .Ft "char *"
 .Fo kutil_urlabs
@@ -809,16 +809,16 @@ but exit on memory exhaustion.
 Allocate as with
 .Xr malloc 3 ,
 but exit on memory exhaustion.
-.It Fn krealloc "void *p" "size_t nm" "size_t sz"
+.It Fn kreallocarray "void *p" "size_t nm" "size_t sz"
 Allocate as with
-.Xr realloc 3 ,
+.Xr reallocarray 3 ,
 but exit on memory allocation and discourage multiplication overflows
 when multipying count by type size.
 .It Fn kstrdup "const char *cp"
 Allocate as with
 .Xr strdup 3 ,
 but exit on memory exhaustion.
-.It Fn kxrealloc "void *p" "size_t sz"
+.It Fn krealloc "void *p" "size_t sz"
 Allocate as with
 .Xr realloc 3 ,
 but exit on memory exhaustion.
@@ -859,7 +859,8 @@ Return a dynamically-allocated URL-encoded string or
 if
 .Fa cp
 is
-.Dv NULL .
+.Dv NULL
+and/or memory allocation fails.
 The caller must free the string with
 .Xr free 3 .
 .It Fn kutil_urlabs "enum kscheme scheme" \
@@ -881,6 +882,9 @@ or just
 for the sensitive parts.
 The caller must free the string with
 .Xr free 3 .
+The function returns
+.Dv NULL
+if memory allocation fails.
 .It Fn kutil_urlpart "struct kreq *req" "enum kmime mime" "size_t page" "..."
 Return a dynamically-allocated partial URL, meaning just the script
 name, path, MIME suffix, and query string.
@@ -899,6 +903,9 @@ This variable array must be terminated with a
 .Dv NULL .
 The caller must free the string with
 .Xr free 3 .
+The function will return
+.Dv NULL
+if memory allocation fails.
 .El
 .Sh EXAMPLES
 A simple example exists in

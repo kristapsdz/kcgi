@@ -20,8 +20,12 @@
 			footer a { color: #000; }
 			h2 { font-size: inherit; font-weight: bolder; color: #333; }
 			.file { font-style: italic; }
+			#version { border: thin solid #ddd; background-color: #eee; padding: 0.5ex; border-radius: 1ex; }
+			#version h2 { margin: 0.25ex; font-weight: inherit; }
+			#version h2 span { font-style: italic; color: #666; }
+			#version p { margin: 0.25ex; }
 			@media only screen and (max-width: 600px), only screen and (max-device-width: 600px) {
-			header, article, footer { width: 98%; }
+				header, article, footer { width: 98%; }
 			}
 		</style>
 	</head>
@@ -38,30 +42,41 @@
 		</header>
 		<article>
 			<p>
-				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in ISO C.  
-				It was designed to be simple, <a href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a>, and
-				auditable.
+				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in <a
+					href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a> ISO C.  
+				It was designed to be secure and auditable.
 				See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a> for
 				alternatives.
 				To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make
-					install</code> into your <code>PREFIX</code> of choice (you may want to comment out
-				<code>HAVE_ZLIB</code> if your system does not support <a href="http://www.zlib.net">zlib</a> compression).
-				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents all function, variables, types, standards, and general
-				usage.
+					install</code> into your <code>PREFIX</code> of choice.
+				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents usage.
 				<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 			</p>
+			<div id="version">
+				<h2>
+					New in version <span>@VERSION@</span>...
+				</h2>
+				<p>
+					Process separation of parse context.
+					Now, <code>khttp_parse</code> forks a child process to parse input data, which returns well-defined results to
+					the parent over a <code>socketpair</code>.
+					Moreover, <code>khttp_parse</code> does not exit on failure, but instead returns an error to the caller.
+					For consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
+					<code>krealloc</code> have been renamed <code>krealloc</code> and <code>kreallocarray</code>,
+					respectively.
+				</p>
+			</div>
 			<p>
 				The following is a rough feature list of <span class="nm">kcgi</span>.
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li>query string, cookie, and form (multipart form-data and mixed, urlencoded, and plain) input</li>
+				<li><a href="#input">input</a>: query string, cookie, and form (multipart form-data and mixed, urlencoded, and plain)</li>
 				<li>lightweight functions for building HTML5 trees and HTTP headers</li>
 				<li>pretty-printing of HTML content</li>
 				<li>simple, callback-based template system</li>
-				<li>safe memory allocation functions (inspired by <a href="http://www.openssh.com">OpenSSH</a>)</li>
-				<li>input field validation and repopulation</li>
-				<li>automatic HTTP compression (via <a href="http://www.zlib.net">zlib</a>)</li>
+				<li><a href="#security">security</a>: process-separation of input data parsing</li>
+				<li><a href="#compression">compression</a>: automatic HTTP compression</li>
 			</ul>
 			<p>
 				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
@@ -122,21 +137,37 @@
 				This library is still quite new.
 				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 			</p>
-			<h2>
-				New in version @VERSION@...
+			<h2 id="security">
+				Security
 			</h2>
 			<p>
-				Added all HTML5 elements, attributes, and entities (HTML5, ISO 8859-1 character and symbol) as per the <a
-					href="http://docs.webplatform.org/wiki/html">HTML5</a> specification, an array of standard HTTP headers,
-				and an array of IANA schemes.
-				Removed the <code>khtml_decl</code> function in favour of a regular <code>khtml_elem</code> call.
-				Changed <code>khtml_int64</code> to <code>khtml_int</code> for consistency.
-				Add <code>khtml_attrx</code>, which accepts variable types (not just a string) for its arguments.
-				Added an application-specific argument to <code>struct kreq</code>, then made <code>kvalid</code> functions
-				accept the <code>struct kreq</code> (which has this private data).
-				Also added <code>host</code> to <code>struct kreq</code>.
-				Added <code>kutil_urlabs</code> for completion of <code>kutil_uripart</code>.
-				Finally, make sure that the HTML printing functions pretty-print properly.
+				As a security precaution, the <span class="nm">kcgi</span> library parses untrusted network data in a child
+				process.
+				When invoked, <code>khttp_parse</code> will fork.
+				The child process is responsible for reading and parsing form data from the web server.
+				This parsed data is returned to the parent process over a <code>socketpair</code>.
+			</p>
+			<p>
+				Originally, the <a href="http://www.openbsd.org">OpenBSD</a> <q>imsg</q> approach was used, but this is
+				constrained in message size due to the underlying <code>SOCK_DGRAM</code> usage.
+				The socket communication in <span class="nm">kcgi</span> uses <code>SOCK_STREAM</code>.
+			</p>
+			<h2 id="compression">
+				Compression
+			</h2>
+			<p>
+				If <code>HAVE_ZLIB</code> is enabled during compilation (via the Makefile), <span class="nm">kcgi</span> will
+				use <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
+				Compression is only enabled if the correct (<q>gzip</q>) HTTP request header is provided.
+			</p>
+			<h2 id="input">
+				Input
+			</h2>
+			<p>
+				All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed, urlencoded, and
+				plain&mdash;are supported by <span class="nm">kcgi</span>.
+				As described in the <a href="#security">Security</a> section, these fields are all parsed from network data in a
+				child process.
 			</p>
 		</article>
 		<footer>

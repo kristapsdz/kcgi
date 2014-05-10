@@ -768,7 +768,7 @@ kstrdup(const char *cp)
  * Safe realloc(): don't return on memory failure.
  */
 void *
-kxrealloc(void *pp, size_t sz)
+krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
@@ -784,18 +784,11 @@ kxrealloc(void *pp, size_t sz)
  * Safe realloc() with overflow-checking.
  */
 void *
-krealloc(void *pp, size_t nm, size_t sz)
+kreallocarray(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (nm && sz && SIZE_MAX / nm < sz) {
-		errno = ENOMEM;
-		perror(NULL);
-		exit(EXIT_FAILURE);
-	}
-
-	assert(nm * sz > 0);
-	if (NULL != (p = realloc(pp, nm * sz)))
+	if (NULL != (p = reallocarray(pp, nm, sz)))
 		return(p);
 
 	perror(NULL);
@@ -886,9 +879,12 @@ kutil_urlencode(const char *cp)
 	if (SIZE_MAX / 3 < sz) {
 		errno = ENOMEM;
 		perror(NULL);
-		exit(EXIT_FAILURE);
+		return(NULL);
 	}
-	p = kcalloc(sz, 3);
+	if (NULL == (p = calloc(sz, 3))) {
+		perror(NULL);
+		return(NULL);
+	}
 	sz *= 3;
 
 	for ( ; '\0' != (ch = *cp); cp++) {
@@ -910,9 +906,13 @@ char *
 kutil_urlabs(enum kscheme scheme, 
 	const char *host, uint16_t port, const char *path)
 {
+	char	*p;
 
-	return(kasprintf("%s://%s:%" PRIu16 "%s", 
-		kschemes[scheme], host, port, path));
+	(void)asprintf(&p, "%s://%s:%" PRIu16 "%s", 
+		kschemes[scheme], host, port, path);
+	if (NULL == p)
+		perror(NULL);
+	return(p);
 }
 
 char *
@@ -922,8 +922,16 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 	char		*p, *pp, *keyp, *valp;
 	size_t		 total, count;
 
-	pp = kutil_urlencode(req->pages[page]);
-	p = kasprintf("%s/%s.%s", pname, pp, ksuffixes[mime]);
+	if (NULL == (pp = kutil_urlencode(req->pages[page]))) {
+		perror(NULL);
+		return(NULL);
+	}
+	(void)asprintf(&p, "%s/%s.%s", pname, pp, ksuffixes[mime]);
+	if (NULL == p) {
+		perror(NULL);
+		free(pp);
+		return(NULL);
+	}
 	free(pp);
 	total = strlen(p) + 1;
 
@@ -931,11 +939,29 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 	count = 0;
 	while (NULL != (pp = va_arg(ap, char *))) {
 		keyp = kutil_urlencode(pp);
+		if (NULL == keyp) {
+			perror(NULL);
+			free(p);
+			return(NULL);
+		}
 		valp = kutil_urlencode(va_arg(ap, char *));
+		if (NULL == valp) {
+			perror(NULL);
+			free(p);
+			free(keyp);
+			return(NULL);
+		}
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
 		total += strlen(keyp) + strlen(valp) + 2;
-		p = kxrealloc(p, total);
+		if (NULL == (pp = realloc(p, total))) {
+			perror(NULL);
+			free(p);
+			free(keyp);
+			free(valp);
+			return(NULL);
+		}
+		p = pp;
 
 		if (count > 0)
 			(void)strlcat(p, "&", total);
