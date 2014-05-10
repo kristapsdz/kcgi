@@ -155,7 +155,7 @@ sendtemplate(struct kreq *req)
 	t.cb = template;
 
 	resp_open(req, KHTTP_200);
-	khtml_template(req, &t, "template.xml");
+	khttp_template(req, &t, "template.xml");
 }
 
 /*
@@ -304,8 +304,9 @@ main(void)
 	struct kreq	 r;
 
 	/* Set up our main HTTP context. */
-	khttp_parse(&r, keys, KEY__MAX, 
-		pages, PAGE__MAX, PAGE_INDEX, NULL);
+	if ( ! khttp_parse(&r, keys, KEY__MAX, 
+		pages, PAGE__MAX, PAGE_INDEX, NULL))
+		return(EXIT_FAILURE);
 
 	if (PAGE__MAX == r.page || KMIME__MAX == r.mime) {
 		/*

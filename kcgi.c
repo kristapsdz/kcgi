@@ -1731,7 +1731,7 @@ kvalid_uint(struct kreq *r, struct kpair *p)
  * If found, invoke the callback function with the given key.
  */
 int
-khtml_template(struct kreq *req, 
+khttp_template(struct kreq *req, 
 	const struct ktemplate *t, const char *fname)
 {
 	struct stat 	 st;
