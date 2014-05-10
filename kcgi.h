@@ -756,8 +756,8 @@ void		 kutil_invalidate(struct kreq *req,
 void		*kasprintf(const char *fmt, ...);
 void		*kcalloc(size_t nm, size_t sz);
 void		*kmalloc(size_t sz);
-void		*krealloc(void *p, size_t nm, size_t sz);
-void		*kxrealloc(void *p, size_t sz);
+void		*krealloc(void *p, size_t sz);
+void		*kreallocarray(void *p, size_t nm, size_t sz);
 char		*kstrdup(const char *cp);
 
 extern const char *const	 kmimetypes[KMIME__MAX];

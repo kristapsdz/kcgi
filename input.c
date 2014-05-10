@@ -505,7 +505,7 @@ parse_multiform(const char *name, const char *bound,
 
 	rc = 0;
 	/* Define our buffer boundary. */
-	asprintf(&bb, "\r\n--%s", bound);
+	(void)asprintf(&bb, "\r\n--%s", bound);
 	if (NULL == bb) {
 		perror("asprintf");
 		_exit(EXIT_FAILURE);
