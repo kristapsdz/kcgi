@@ -16,8 +16,8 @@ all: sample
 mime2c: mime2c.o
 	$(CC) -o $@ mime2c.o -lutil
 
-libkcgi.a: kcgi.o compat.o
-	$(AR) rs $@ kcgi.o compat.o
+libkcgi.a: kcgi.o compat.o input.o
+	$(AR) rs $@ kcgi.o compat.o input.o
 
 kcgi.o sample.o: kcgi.h
 

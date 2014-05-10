@@ -97,6 +97,7 @@
 				<li>
 					Emit HTTP body output using HTML5 tree-building functions 
 					<code>khtml_attr</code>,
+					<code>khtml_attrx</code>,
 					<code>khtml_close</code>, 
 					<code>khtml_closeto</code>, 
 					<code>khtml_elem</code>,
