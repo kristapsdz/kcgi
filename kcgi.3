@@ -73,7 +73,7 @@
 .Fa "const char *fmt"
 .Fa "..."
 .Fc
-.Ft void
+.Ft int
 .Fo khttp_parse
 .Fa "struct kreq *req"
 .Fa "const struct kvalid *keys"
@@ -637,6 +637,9 @@ The
 pointer is private application data.
 It is not touched by
 .Nm kcgi .
+If this function fails (due to lack of memory, or underlying parse
+errors), this returns 0, else it returns 1.
+If it returns 0, you should exit your application immediately.
 .El
 .Pp
 The following functions create an HTML tree.

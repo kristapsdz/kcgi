@@ -30,6 +30,7 @@ runtest() {
 cat config.h.pre
 runtest strtonum STRTONUM
 runtest memmem MEMMEM
+runtest reallocarray REALLOCARRAY
 cat config.h.post
 
 exit 0
