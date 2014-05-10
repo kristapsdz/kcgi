@@ -722,6 +722,9 @@ int		 khttp_parse(struct kreq *req,
 			size_t defpage, void *arg);
 void		 khttp_putc(struct kreq *req, int c);
 void		 khttp_puts(struct kreq *req, const char *cp);
+int		 khttp_template(struct kreq *req, 
+			const struct ktemplate *t, 
+			const char *fname);
 
 void		 khtml_attr(struct kreq *req, enum kelem elem, ...);
 void		 khtml_attrx(struct kreq *req, enum kelem elem, ...);
@@ -733,9 +736,6 @@ size_t		 khtml_elemat(struct kreq *req);
 void		 khtml_entity(struct kreq *req, enum kentity entity);
 void		 khtml_int(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
-int		 khtml_template(struct kreq *req, 
-			const struct ktemplate *t, 
-			const char *fname);
 void		 khtml_text(struct kreq *req, const char *cp);
 
 int		 kvalid_double(struct kreq *, struct kpair *);
