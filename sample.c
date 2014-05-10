@@ -253,7 +253,6 @@ sendindex(struct kreq *req)
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
 	khtml_closeto(req, sv);
-	sv = khtml_elemat(req);
 
 	/* Lastly, process a multipart POST form. */
 	khtml_attr(req, KELEM_FORM,

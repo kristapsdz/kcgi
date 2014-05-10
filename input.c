@@ -38,7 +38,8 @@
 enum	input {
 	IN_COOKIE, /* cookies (environment variable) */
 	IN_QUERY, /* query string */
-	IN_FORM /* any sort of standard input form */
+	IN_FORM, /* any sort of standard input form */
+	IN__MAX
 };
 
 /*
@@ -109,6 +110,10 @@ input(enum input *type, struct kpair *kp, int fd)
 		return(0);
 	else if (rc < 0)
 		return(-1);
+	if (*type >= IN__MAX) {
+		fprintf(stderr, "bad input type\n");
+		return(-1);
+	}
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
@@ -701,14 +706,20 @@ khttp_input_parent(int fd, struct kreq *r)
 			kpp = kpair_expand(&r->fields, &r->fieldsz);
 			break;
 		default:
-			fprintf(stderr, "bad child input type\n");
-			return(0);
+			abort();
 		}
-		if (NULL == kpp)
-			return(0);
+		if (NULL == kpp) {
+			rc = -1;
+			break;
+		}
 		*kpp = kp;
 	}
 
+	free(kp.key);
+	free(kp.val);
+	free(kp.ctype);
+	free(kp.xcode);
+	free(kp.file);
 	return(0 == rc);
 }
 
