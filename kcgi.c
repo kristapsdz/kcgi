@@ -1504,16 +1504,17 @@ khttp_body(struct kreq *req)
 	/*
 	 * If gzip is an accepted encoding, then create the "gz" stream
 	 * that will be used for all subsequent I/O operations.
+	 * Gracefully fall through on errors.
 	 */
 #ifdef HAVE_ZLIB
 	if (NULL != (cp = getenv("HTTP_ACCEPT_ENCODING")) &&
 			NULL != strstr(cp, "gzip")) {
 		req->kdata->gz = gzdopen(STDOUT_FILENO, "w");
-		if (NULL == req->kdata->gz) {
+		if (NULL == req->kdata->gz)
 			perror(NULL);
-			exit(EXIT_FAILURE);
-		}
-		khttp_head(req, "Content-Encoding", "%s", "gzip");
+		else
+			khttp_head(req, kresps[KRESP_CONTENT_ENCODING], 
+				"%s", "gzip");
 	} 
 #endif
 	/*

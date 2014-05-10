@@ -587,7 +587,8 @@ The
 function may not be called after this.
 This function will append the
 .Li Content-Encoding
-HTTP parameter with compression support if the request specifies it.
+HTTP parameter with compression support if the request specifies it,
+unless allocation of the compression space fails.
 If appended, all subsequent output will be compressed with
 .Xr zlib 3 .
 .It Fn khttp_free "struct kreq *req"
