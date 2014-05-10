@@ -716,7 +716,7 @@ void		 khttp_free(struct kreq *req);
 void		 khttp_head(struct kreq *req, const char *key, 
 			const char *fmt, ...)
 			__attribute__((format(printf, 3, 4)));
-void		 khttp_parse(struct kreq *req, 
+int		 khttp_parse(struct kreq *req, 
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage, void *arg);

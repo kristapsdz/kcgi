@@ -23,5 +23,9 @@ extern void *memmem
 	(const void *l, size_t l_len, 
  	 const void *s, size_t s_len);
 #endif
+#ifndef HAVE_REALLOCARRAY
+extern void *reallocarray
+	(void *optr, size_t nmemb, size_t size);
+#endif
 
 #endif /* CONFIG_H */
