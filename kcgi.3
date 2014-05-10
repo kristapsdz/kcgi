@@ -25,6 +25,7 @@
 .Nm khttp_parse ,
 .Nm khttp_putc ,
 .Nm khttp_puts ,
+.Nm khttp_template ,
 .Nm khtml_attr ,
 .Nm khtml_attrx ,
 .Nm khtml_close ,
@@ -36,7 +37,6 @@
 .Nm khtml_int ,
 .Nm khtml_ncr ,
 .Nm khtml_text ,
-.Nm khtml_template ,
 .Nm kasprintf ,
 .Nm kcalloc ,
 .Nm kmalloc ,
@@ -92,6 +92,12 @@
 .Fa "struct kreq *req"
 .Fa "const char *cp"
 .Fc
+.Ft int
+.Fo khttp_template
+.Fa "struct kreq *req"
+.Fa "const struct ktemplate *t"
+.Fa "const char *fname"
+.Fc
 .Ft void
 .Fo khtml_attr
 .Fa "struct kreq *req"
@@ -144,12 +150,6 @@
 .Fa "const char *cp"
 .Fc
 .Ft int
-.Fo khtml_template
-.Fa "struct kreq *req"
-.Fa "const struct ktemplate *t"
-.Fa "const char *fname"
-.Fc
-.Ft int
 .Fn kvalid_double "struct kreq *r" "struct kpair *kp"
 .Ft int
 .Fn kvalid_email "struct kreq *r" "struct kpair *kp"
@@ -171,7 +171,6 @@
 .Fn krealloc "void *p" "size_t sz"
 .Ft "void *"
 .Fn kreallocarray "void *p" "size_t nm" "size_t sz"
-.Ft void
 .Ft "char *"
 .Fn kstrdup "const char *cp"
 .Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
@@ -242,8 +241,8 @@ and
 or
 .It
 use the
-.Fn khtml_template
-system with a mixture of HTML-building functions; or
+.Fn khttp_template
+system; or
 .It
 use
 .Fn khttp_putc
@@ -547,7 +546,7 @@ floating-point number.
 .El
 .Pp
 The template system, driven by
-.Fn khtml_template ,
+.Fn khttp_template ,
 uses
 .Vt "struct ktemplate"
 for its templating.
@@ -830,7 +829,7 @@ The
 library also has a simple, light-weight template system.
 This is coordinated entirely by a single function,
 .Bl -ohang -offset indent
-.It Fn khtml_template "struct kreq *req" "struct ktemplate *t" "const char *fname"
+.It Fn khtpl_template "struct kreq *req" "struct ktemplate *t" "const char *fname"
 This function memory-maps the file
 .Fa fname
 and appends it to the output stream.
