@@ -61,7 +61,9 @@
 					Now, <code>khttp_parse</code> forks a child process to parse input data, which returns well-defined results to
 					the parent over a <code>socketpair</code>.
 					Moreover, <code>khttp_parse</code> does not exit on failure, but instead returns an error to the caller.
-					For consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
+					Audited all other <span class="nm">kcgi</span> internal functions so that they don't exit on failure,
+					but return an error code to the caller.
+					Finally, for consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
 					<code>krealloc</code> have been renamed <code>krealloc</code> and <code>kreallocarray</code>,
 					respectively.
 				</p>
