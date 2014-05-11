@@ -1721,50 +1721,13 @@ kvalid_uint(struct kreq *r, struct kpair *p)
 	return(NULL == ep);
 }
 
-/*
- * There are all sorts of ways to make this faster and more efficient.
- * For now, do it the easily-auditable way.
- * Memory-map the given file and look through it character by character
- * til we get to the key delimiter "@@".
- * Once there, scan to the matching "@@".
- * Look for the matching key within these pairs.
- * If found, invoke the callback function with the given key.
- */
 int
-khttp_template(struct kreq *req, 
-	const struct ktemplate *t, const char *fname)
+khttp_template_buf(struct kreq *req, 
+	const struct ktemplate *t, const char *buf, size_t sz)
 {
-	struct stat 	 st;
-	char		*buf;
-	size_t		 sz, i, j, len, start, end;
-	int		 fd, rc;
+	size_t		 i, j, len, start, end;
 
 	assert(KSTATE_BODY == req->kdata->state);
-
-	if (-1 == (fd = open(fname, O_RDONLY, 0)))
-		return(0);
-
-	if (-1 == fstat(fd, &st)) {
-		close(fd);
-		return(0);
-	} else if (st.st_size >= (1U << 31)) {
-		close(fd);
-		return(0);
-	} else if (0 == st.st_size) {
-		close(fd);
-		return(1);
-	}
-
-
-	sz = (size_t)st.st_size;
-	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
-
-	if (MAP_FAILED == buf) {
-		close(fd);
-		return(0);
-	}
-
-	rc = 0;
 
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
@@ -1796,7 +1759,7 @@ khttp_template(struct kreq *req,
 			else if (memcmp(&buf[start], t->key[j], len))
 				continue;
 			if ( ! (*t->cb)(j, t->arg))
-				goto out;
+				return(0);
 			break;
 		}
 
@@ -1810,8 +1773,52 @@ khttp_template(struct kreq *req,
 	if (i < sz)
 		khttp_putc(req, buf[i]);
 
-	rc = 1;
-out:
+	return(1);
+}
+
+/*
+ * There are all sorts of ways to make this faster and more efficient.
+ * For now, do it the easily-auditable way.
+ * Memory-map the given file and look through it character by character
+ * til we get to the key delimiter "@@".
+ * Once there, scan to the matching "@@".
+ * Look for the matching key within these pairs.
+ * If found, invoke the callback function with the given key.
+ */
+int
+khttp_template(struct kreq *req, 
+	const struct ktemplate *t, const char *fname)
+{
+	struct stat 	 st;
+	char		*buf;
+	size_t		 sz;
+	int		 fd, rc;
+
+	assert(KSTATE_BODY == req->kdata->state);
+
+	if (-1 == (fd = open(fname, O_RDONLY, 0)))
+		return(0);
+
+	if (-1 == fstat(fd, &st)) {
+		close(fd);
+		return(0);
+	} else if (st.st_size >= (1U << 31)) {
+		close(fd);
+		return(0);
+	} else if (0 == st.st_size) {
+		close(fd);
+		return(1);
+	}
+
+	sz = (size_t)st.st_size;
+	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
+
+	if (MAP_FAILED == buf) {
+		close(fd);
+		return(0);
+	}
+
+	rc = khttp_template_buf(req, t, buf, sz);
 	munmap(buf, sz);
 	close(fd);
 	return(rc);
