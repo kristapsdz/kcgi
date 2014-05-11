@@ -3,7 +3,7 @@
 
 __BEGIN_DECLS
 
-int	 khttp_input_parent(int fd, struct kreq *r);
+int	 khttp_input_parent(int fd, struct kreq *r, pid_t pid);
 void	 khttp_input_child(void);
 
 __END_DECLS
