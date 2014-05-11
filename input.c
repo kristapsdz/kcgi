@@ -688,7 +688,7 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
  * It spins on input from the child until 
  */
 int
-khttp_input_parent(int fd, struct kreq *r)
+khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
@@ -720,6 +720,8 @@ khttp_input_parent(int fd, struct kreq *r)
 	free(kp.ctype);
 	free(kp.xcode);
 	free(kp.file);
+	close(fd);
+	waitpid(pid, NULL, 0);
 	return(0 == rc);
 }
 
