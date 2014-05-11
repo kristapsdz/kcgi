@@ -17,6 +17,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/wait.h>
 
 #include <assert.h>
 #include <errno.h>
