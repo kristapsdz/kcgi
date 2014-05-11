@@ -1333,10 +1333,8 @@ khttp_parse(struct kreq *req,
 			goto err;
 		}
 
-	if ( ! khttp_input_parent(socks[1], req))
+	if ( ! khttp_input_parent(socks[1], req, pid))
 		goto err;
-
-	close(socks[1]);
 
 	/*
 	 * Run through all fields and sort them into named buckets.
@@ -1716,7 +1714,7 @@ kvalid_uint(struct kreq *r, struct kpair *p)
 {
 	const char	*ep;
 
-	p->parsed.i = strtonum(trim(p->val), 1, INT64_MAX, &ep);
+	p->parsed.i = strtonum(trim(p->val), 0, INT64_MAX, &ep);
 	p->type = KPAIR_INTEGER;
 	return(NULL == ep);
 }
