@@ -68,6 +68,8 @@
 					respectively.
 					Finally, <code>khtml_template</code> has been renamed to <code>khttp_template</code> as it can be used
 					in a non-HTML context just as well.
+					A related function, <code>khttp_template_buf</code>, was added to supplement <code>khttp_template</code>
+					with a buffer-input version.
 				</p>
 			</div>
 			<p>
