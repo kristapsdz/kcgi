@@ -69,15 +69,11 @@ ksandbox_rlimit_init(void)
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
-	/*
-	 * A note on this: Mac OS X (and other systems?) will fail on
-	 * the RLIMIT_NOFILE with EPERM. 
-	 */
 	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
 		perror("setrlimit-fsize");
 		return(0);
-#ifdef	HAVE_SETRLIMIT_NOFILE
-	} else if (-1 == setrlimit(RLIMIT_NOFILE, &rl_one)) {
+#if 0
+	} else if (-1 == setrlimit(RLIMIT_NOFILE, &rl_few)) {
 		perror("setrlimit-nofile");
 		return(0);
 #endif
@@ -98,9 +94,8 @@ ksandbox_init(void)
 	 * If even that fails, then we're not operating in sandbox mode
 	 * at all.
 	 */
-#ifdef HAVE_SANDBOX_INIT
-	if (ksandbox_sandbox_init())
-		return(1);
+#ifdef	HAVE_SANDBOX_INIT
+	(void)ksandbox_sandbox_init();
 #endif
 	return(ksandbox_rlimit_init());
 }

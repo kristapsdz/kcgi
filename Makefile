@@ -15,7 +15,6 @@ LIBOBJS = kcgi.o \
 	  sandbox.o
 TESTS = test-memmem.c \
 	test-reallocarray.c \
-	test-rlimit-nofile.c \
 	test-sandbox_init.c \
 	test-strtonum.c
 SRCS = compat.c \
@@ -95,5 +94,4 @@ clean:
 	rm -f test-memmem test-memmem.o 
 	rm -f test-strtonum test-strtonum.o
 	rm -f test-sandbox_init test-sandbox_init.o
-	rm -f test-rlimit-nofile test-rlimit-nofile.o
 	rm -rf *.dSYM
