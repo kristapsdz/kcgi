@@ -32,7 +32,6 @@ runtest strtonum STRTONUM
 runtest memmem MEMMEM
 runtest reallocarray REALLOCARRAY
 runtest sandbox_init SANDBOX_INIT
-runtest rlimit-nofile RLIMIT_NOFILE
 cat config.h.post
 
 exit 0
