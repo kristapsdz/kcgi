@@ -73,7 +73,13 @@ ksandbox_rlimit_init(void)
 		perror("setrlimit-fsize");
 		return(0);
 #if 0
-	} else if (-1 == setrlimit(RLIMIT_NOFILE, &rl_few)) {
+	/*
+	 * FIXME: I've taken out the RLIMIT_NOFILE setrlimit() because
+	 * it causes strange behaviour.  On Mac OS X, it fails with
+	 * EPERM no matter what (the same code runs fine when not run as
+	 * a CGI instance), while on OpenBSD, failures occur later on.
+	 */
+	} else if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero)) {
 		perror("setrlimit-nofile");
 		return(0);
 #endif
@@ -90,9 +96,8 @@ ksandbox_init(void)
 {
 	/*
 	 * First, try to do our system-specific methods.
-	 * If those fail, then fall back to setrlimit.
-	 * If even that fails, then we're not operating in sandbox mode
-	 * at all.
+	 * If those fail (or either way, really, then fall back to
+	 * setrlimit.
 	 */
 #ifdef	HAVE_SANDBOX_INIT
 	(void)ksandbox_sandbox_init();
