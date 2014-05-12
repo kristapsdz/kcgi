@@ -57,20 +57,8 @@
 					New in version <span>@VERSION@</span>...
 				</h2>
 				<p>
-					Process separation of parse context.
-					Now, <code>khttp_parse</code> forks a child process to parse input data, which returns well-defined results to
-					the parent over a <code>socketpair</code>.
-					(This required an additional parameter <code>argfree</code> to allow the child to free the contents of
-					<code>arg</code> if it's deemed insecure to have the information bleed out.)
-					Moreover, <code>khttp_parse</code> does not exit on failure (nor do any <span class="nm">kcgi</span>
-					functions, now), but instead returns an error to the caller.
-					For consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
-					<code>krealloc</code> have been renamed <code>krealloc</code> and <code>kreallocarray</code>,
-					respectively.
-					Finally, <code>khtml_template</code> has been renamed to <code>khttp_template</code> as it can be used
-					in a non-HTML context just as well.
-					A related function, <code>khttp_template_buf</code>, was added to supplement <code>khttp_template</code>
-					with a buffer-input version.
+					Sandbox input-reader using Darwin's <code>sandbox(7)</code> and/or <code>setrlimit(2)</code> tricks
+					absorbed from <a href="http://www.openssh.org">OpenSSH</a>.
 				</p>
 			</div>
 			<p>
