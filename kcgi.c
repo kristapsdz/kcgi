@@ -1181,22 +1181,34 @@ khttp_parse(struct kreq *req,
 	pid_t		 pid;
 	int		 socks[2];
 
+	/*
+	 * Establish a non-blocking socket between our child and the
+	 * parent for communicating parsed form data.
+	 */
 	if (-1 == socketpair(AF_UNIX, SOCK_STREAM, 0, socks)) {
 		perror("socketpair");
 		return(0);
-	} else if (-1 == (pid = fork())) {
+	} else if (-1 == fcntl(socks[0], F_SETFL, O_NONBLOCK)) {
+		perror("fcntl");
+		close(socks[0]);
+		close(socks[1]);
+		return(0);
+	} else if (-1 == fcntl(socks[1], F_SETFL, O_NONBLOCK)) {
+		perror("fcntl");
+		close(socks[0]);
+		close(socks[1]);
+		return(0);
+	}
+	
+	if (-1 == (pid = fork())) {
 		perror("fork");
 		return(0);
 	} else if (0 == pid) {
-		if (NULL != argfree)
+		/* Conditionally free our argument. */
+		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
-		if (-1 == dup2(socks[0], STDOUT_FILENO)) {
-			perror("dup2");
-			_exit(EXIT_FAILURE);
-		}
 		close(socks[1]);
-		close(socks[0]);
-		khttp_input_child();
+		khttp_input_child(socks[0]);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
