@@ -65,8 +65,9 @@ kcgi.3.html: kcgi.3
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
-	cp Makefile sample.c kcgi.c kcgi.h kcgi.3 template.xml .dist/kcgi-$(VERSION)
-	cp compat.c configure config.h.pre config.h.post test-memmem.c test-strtonum.c .dist/kcgi-$(VERSION)
+	cp compat.c extern.h input.c kcgi.c kcgi.h sample.c test-memmem.c test-reallocarray.c test-strtonum.c .dist/kcgi-$(VERSION)
+	cp Makefile kcgi.3 template.xml .dist/kcgi-$(VERSION)
+	cp configure config.h.pre config.h.post test-memmem.c test-strtonum.c .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
