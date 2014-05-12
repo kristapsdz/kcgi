@@ -82,6 +82,7 @@
 .Fa "const char *const *pages"
 .Fa "size_t pagesz"
 .Fa "void *arg"
+.Fa "void (*argfree)(void *arg)"
 .Fc
 .Ft void
 .Fo khttp_putc
@@ -632,7 +633,8 @@ global array.
 "size_t keysz" \
 "const char *const *pages" \
 "size_t pagesz" \
-"void *arg"
+"void *arg" \
+"void (*argfree)(void *arg)"
 Fill a request
 .Fa req
 with input fields from the CGI environment.
@@ -645,13 +647,25 @@ consists of input and validation fields, while
 of size
 .Fa pagesz
 is for page mapping.
+.Pp
 The
 .Fa arg
 pointer is private application data.
 It is not touched by
-.Nm kcgi .
-If this function fails (due to lack of memory, or underlying parse
-errors), this returns 0, else it returns 1.
+.Nm kcgi
+unless
+.Fa argfree
+is provided, in which case
+.Fa argfree
+is invoked with
+.Fa arg
+by the child process started to parse untrusted network data.
+This makes sure that no unnecessary data is leaked into the child.
+.Pp
+If
+.Fn khttp_parse
+fails (due to lack of memory, or underlying parse errors) it returns
+0, else it returns 1.
 If it returns 0, you should exit your application immediately.
 .El
 .Pp
