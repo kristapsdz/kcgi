@@ -305,7 +305,7 @@ main(void)
 
 	/* Set up our main HTTP context. */
 	if ( ! khttp_parse(&r, keys, KEY__MAX, 
-		pages, PAGE__MAX, PAGE_INDEX, NULL))
+		pages, PAGE__MAX, PAGE_INDEX, NULL, NULL))
 		return(EXIT_FAILURE);
 
 	if (PAGE__MAX == r.page || KMIME__MAX == r.mime) {
