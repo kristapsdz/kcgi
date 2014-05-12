@@ -8,7 +8,7 @@ DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
-VERSION = 0.2.2
+VERSION = 0.2.3
 LIBOBJS = kcgi.o \
 	  compat.o \
 	  input.o \
