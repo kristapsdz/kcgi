@@ -17,6 +17,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/poll.h>
 #include <sys/wait.h>
 
 #include <assert.h>
@@ -66,10 +67,18 @@ struct	mime {
 static int
 fullread(int fd, void *buf, size_t bufsz, int eofok)
 {
-	ssize_t	 ssz;
-	size_t	 sz;
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
+		if (-1 == poll(&pfd, 1, -1)) {
+			perror("poll");
+			return(-1);
+		}
 		ssz = read(fd, buf + sz, bufsz - sz);
 		if (ssz < 0) {
 			perror("read");
@@ -154,32 +163,59 @@ input(enum input *type, struct kpair *kp, int fd)
 	return(1);
 }
 
+static void
+fullwrite(int fd, const void *buf, size_t bufsz)
+{
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
+		if (-1 == poll(&pfd, 1, -1)) {
+			perror("poll");
+			_exit(EXIT_FAILURE);
+		}
+		ssz = write(fd, buf + sz, bufsz - sz);
+		if (ssz < 0) {
+			perror("write");
+			_exit(EXIT_FAILURE);
+		}
+		/* Additive overflow check. */
+		if (sz > SIZE_MAX - (size_t)ssz) {
+			fprintf(stderr, "additive overflow\n");
+			_exit(EXIT_FAILURE);
+		}
+	}
+}
+
 /*
  * Output a type, parsed key, and value to the output stream.
  */
 static void
-output(enum input type, const char *key, const char *val, 
-	size_t valsz, const char *file, const char *ctype,
-	const char *xcode)
+output(int fd, enum input type, const char *key, 
+	const char *val, size_t valsz, const char *file, 
+	const char *ctype, const char *xcode)
 {
 	size_t	 sz;
 
-	/* FIXME: use poll() to avoid blocking. */
-	write(STDOUT_FILENO, &type, sizeof(enum input));
+	fullwrite(fd, &type, sizeof(enum input));
 	sz = strlen(key);
-	write(STDOUT_FILENO, &sz, sizeof(size_t));
-	write(STDOUT_FILENO, key, sz);
-	write(STDOUT_FILENO, &valsz, sizeof(size_t));
-	write(STDOUT_FILENO, val, valsz);
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, key, sz);
+	fullwrite(fd, &valsz, sizeof(size_t));
+	fullwrite(fd, val, valsz);
 	sz = NULL != file ? strlen(file) : 0;
-	write(STDOUT_FILENO, &sz, sizeof(size_t));
-	write(STDOUT_FILENO, file, sz);
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, file, sz);
 	sz = NULL != ctype ? strlen(ctype) : 0;
-	write(STDOUT_FILENO, &sz, sizeof(size_t));
-	write(STDOUT_FILENO, ctype, sz);
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, ctype, sz);
 	sz = NULL != xcode ? strlen(xcode) : 0;
-	write(STDOUT_FILENO, &sz, sizeof(size_t));
-	write(STDOUT_FILENO, xcode, sz);
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, xcode, sz);
 }
 
 /*
@@ -226,7 +262,7 @@ scanbuf(size_t len, size_t *szp)
  * guidelines for HTML give a rough idea.
  */
 static void
-parse_pairs_text(enum input type, char *p)
+parse_pairs_text(int fd, enum input type, char *p)
 {
 	char            *key, *val;
 
@@ -258,7 +294,8 @@ parse_pairs_text(enum input type, char *p)
 
 		if ('\0' == *key || '\0' == *val)
 			continue;
-		output(type, key, val, strlen(val), NULL, NULL, NULL);
+		output(fd, type, key, val, 
+			strlen(val), NULL, NULL, NULL);
 	}
 }
 
@@ -268,12 +305,12 @@ parse_pairs_text(enum input type, char *p)
  * from the input.
  */
 static void
-parse_text(size_t len)
+parse_text(int fd, size_t len)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_text(IN_FORM, p);
+	parse_pairs_text(fd, IN_FORM, p);
 	free(p);
 }
 
@@ -318,7 +355,7 @@ urldecode(char *p)
  * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
-parse_pairs_urlenc(enum input type, char *p)
+parse_pairs_urlenc(int fd, enum input type, char *p)
 {
 	char            *key, *val;
 	size_t           sz;
@@ -354,17 +391,18 @@ parse_pairs_urlenc(enum input type, char *p)
 			break;
 		if ( ! urldecode(val))
 			break;
-		output(type, key, val, strlen(val), NULL, NULL, NULL);
+		output(fd, type, key, val, 
+			strlen(val), NULL, NULL, NULL);
 	}
 }
 
 static void
-parse_urlenc(size_t len)
+parse_urlenc(int fd, size_t len)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_urlenc(IN_FORM, p);
+	parse_pairs_urlenc(fd, IN_FORM, p);
 	free(p);
 }
 
@@ -496,7 +534,7 @@ mime_free(struct mime *mime)
  * calling parsers should bail too).
  */
 static int
-parse_multiform(const char *name, const char *bound, 
+parse_multiform(int fd, const char *name, const char *bound, 
 	char *buf, size_t len, size_t *pos)
 {
 	struct mime	 mime;
@@ -594,7 +632,7 @@ parse_multiform(const char *name, const char *bound,
 			if (NULL == mime.bound)
 				goto out;
 			if ( ! parse_multiform
-				(NULL != name ? name :
+				(fd, NULL != name ? name :
 				 mime.name, mime.bound,
 				 buf, *pos + partsz, pos))
 				goto out;
@@ -602,7 +640,7 @@ parse_multiform(const char *name, const char *bound,
 		}
 
 		/* Assign all of our key-value pair data. */
-		output(IN_FORM, NULL != name ? name : mime.name, 
+		output(fd, IN_FORM, NULL != name ? name : mime.name, 
 			&buf[*pos], partsz, mime.file, mime.ctype,
 			mime.xcode);
 	}
@@ -626,7 +664,7 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(char *line, size_t len)
+parse_multi(int fd, char *line, size_t len)
 {
 	char		*cp;
 	size_t		 sz;
@@ -668,7 +706,7 @@ parse_multi(char *line, size_t len)
 	/* Read in full file. */
 	cp = scanbuf(len, &sz);
 	len = 0;
-	parse_multiform(NULL, line, cp, sz, &len);
+	parse_multiform(fd, NULL, line, cp, sz, &len);
 	free(cp);
 }
 
@@ -733,10 +771,13 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
  * value size along with the field type.
  */
 void
-khttp_input_child(void)
+khttp_input_child(int fd)
 {
 	char	*cp;
 	size_t	 len;
+
+	if ( ! ksandbox_init())
+		fprintf(stderr, "not sandboxed\n");
 
 	/*
 	 * The CONTENT_LENGTH must be a valid integer.
@@ -759,13 +800,13 @@ khttp_input_child(void)
 	 */
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(len);
+			parse_urlenc(fd, len);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(cp + 19, len);
+			parse_multi(fd, cp + 19, len);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_text(len);
+			parse_text(fd, len);
 	} else
-		parse_text(len);
+		parse_text(fd, len);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
@@ -776,7 +817,7 @@ khttp_input_child(void)
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("QUERY_STRING")))
-		parse_pairs_urlenc(IN_QUERY, cp);
+		parse_pairs_urlenc(fd, IN_QUERY, cp);
 
 	/*
 	 * Cookies come last.
@@ -787,5 +828,5 @@ khttp_input_child(void)
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
-		parse_pairs_urlenc(IN_COOKIE, cp);
+		parse_pairs_urlenc(fd, IN_COOKIE, cp);
 }

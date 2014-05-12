@@ -9,6 +9,23 @@ MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
 VERSION = 0.2.2
+LIBOBJS = kcgi.o \
+	  compat.o \
+	  input.o \
+	  sandbox.o
+TESTS = test-memmem.c \
+	test-reallocarray.c \
+	test-rlimit-nofile.c \
+	test-sandbox_init.c \
+	test-strtonum.c
+SRCS = compat.c \
+       extern.h \
+       input.c \
+       kcgi.c \
+       kcgi.h \
+       sample.c \
+       sandbox.c \
+       $(TESTS)
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
 all: sample 
@@ -16,14 +33,14 @@ all: sample
 mime2c: mime2c.o
 	$(CC) -o $@ mime2c.o -lutil
 
-libkcgi.a: kcgi.o compat.o input.o
-	$(AR) rs $@ kcgi.o compat.o input.o
+libkcgi.a: $(LIBOBJS)
+	$(AR) rs $@ $(LIBOBJS)
 
 kcgi.o sample.o input.o: kcgi.h
 
 kcgi.o compat.o input.o: config.h
 
-config.h: config.h.pre config.h.post configure test-memmem.c test-strtonum.c
+config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
 	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
 
@@ -65,16 +82,18 @@ kcgi.3.html: kcgi.3
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
-	cp compat.c extern.h input.c kcgi.c kcgi.h sample.c test-memmem.c test-reallocarray.c test-strtonum.c .dist/kcgi-$(VERSION)
+	cp $(SRCS) .dist/kcgi-$(VERSION)
 	cp Makefile kcgi.3 template.xml .dist/kcgi-$(VERSION)
-	cp configure config.h.pre config.h.post test-memmem.c test-strtonum.c .dist/kcgi-$(VERSION)
+	cp configure config.h.pre config.h.post .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
 clean:
-	rm -f kcgi-$(VERSION).tgz index.html kcgi.3.html
-	rm -f libkcgi.a kcgi.o sample.o sample compat.o
+	rm -f kcgi-$(VERSION).tgz index.html kcgi.3.html sample
+	rm -f libkcgi.a $(LIBOBJS)
 	rm -f config.log config.h
-	rm -f test-memmem test-strtonum 
-	rm -f test-memmem.o test-strtonum.o
+	rm -f test-memmem test-memmem.o 
+	rm -f test-strtonum test-strtonum.o
+	rm -f test-sandbox_init test-sandbox_init.o
+	rm -f test-rlimit-nofile test-rlimit-nofile.o
 	rm -rf *.dSYM

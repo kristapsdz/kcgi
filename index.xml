@@ -81,7 +81,7 @@
 				<li><a href="#input">input</a>: parse and validate query string, cookie, and form input</li>
 				<li><a href="#functions">functions</a>: pretty-print HTML5 trees, output HTTP headers, format URLs</li>
 				<li><a href="#template">templating</a>: populate file templates with callbacks</li>
-				<li><a href="#security">security</a>: process-separated parse of input</li>
+				<li><a href="#security">security</a>: process-separated, sandboxed parse of input</li>
 				<li><a href="#compression">compression</a>: automatically compress HTTP response</li>
 			</ul>
 			<p>
@@ -143,17 +143,32 @@
 				Security
 			</h2>
 			<p>
-				As a security precaution, the <span class="nm">kcgi</span> library parses untrusted network data in a child
-				process.
+				As a security precaution, the <span class="nm">kcgi</span> library parses untrusted network data in a sandboxed
+				child process.
 				When invoked, <code>khttp_parse</code> will fork.
 				The child process is responsible for reading and parsing form data from the web server.
 				This parsed data is returned to the parent process over a <code>socketpair</code>.
 			</p>
 			<p>
-				Originally, the <a href="http://www.openbsd.org">OpenBSD</a> <q>imsg</q> approach was used, but this is
-				constrained in message size due to the underlying <code>SOCK_DGRAM</code> usage.
-				The socket communication in <span class="nm">kcgi</span> uses <code>SOCK_STREAM</code>.
+				The following sandbox methods supported by <span class="nm">kcgi</span>.
+				If system-specific methods fail, the default is Resource Limiting.
 			</p>
+			<dl>
+				<dt>
+					Mac OS X Sandbox
+				</dt>
+				<dd>
+					The <code>sandbox(7)</code> facility for <q>pure computation</q> provided in Mac OS X Leopard and later.
+				</dd>
+				<dt>
+					Resource Limiting
+				</dt>
+				<dd>
+					Use <a href="http://www.openssh.org">OpenSSH</a>'s method of restricting resource limits with
+					<code>setrlimit(2)</code>.
+					This limits the number of files, processes, and file-written bytes.
+				</dd>
+			</dl>
 			<h2 id="compression">
 				Compression
 			</h2>
