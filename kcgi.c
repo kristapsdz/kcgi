@@ -1171,7 +1171,8 @@ int
 khttp_parse(struct kreq *req, 
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
-	size_t defpage, void *arg)
+	size_t defpage, void *arg,
+	void (*argfree)(void *arg))
 {
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
@@ -1187,6 +1188,8 @@ khttp_parse(struct kreq *req,
 		perror("fork");
 		return(0);
 	} else if (0 == pid) {
+		if (NULL != argfree)
+			(*argfree)(arg);
 		if (-1 == dup2(socks[0], STDOUT_FILENO)) {
 			perror("dup2");
 			_exit(EXIT_FAILURE);

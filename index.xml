@@ -60,9 +60,10 @@
 					Process separation of parse context.
 					Now, <code>khttp_parse</code> forks a child process to parse input data, which returns well-defined results to
 					the parent over a <code>socketpair</code>.
-					Moreover, <code>khttp_parse</code> does not exit on failure, but instead returns an error to the caller.
-					Audited all other <span class="nm">kcgi</span> internal functions so that they don't exit on failure,
-					but return an error code to the caller.
+					(This required an additional parameter <code>argfree</code> to allow the child to free the contents of
+					<code>arg</code> if it's deemed insecure to have the information bleed out.)
+					Moreover, <code>khttp_parse</code> does not exit on failure (nor do any <span class="nm">kcgi</span>
+					functions, now), but instead returns an error to the caller.
 					For consistency with <a href="http://www.openbsd.org">OpenBSD</a>, <code>kxrealloc</code> and
 					<code>krealloc</code> have been renamed <code>krealloc</code> and <code>kreallocarray</code>,
 					respectively.
@@ -125,7 +126,7 @@
 					<code>khtml_text</code>; or
 				</li>
 				<li>
-					use the <code>khttp_template</code> function to populate file templates; or
+					use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate file templates; or
 				</li>
 				<li>
 					directly use <code>khttp_putc</code> and <code>khttp_puts</code>.
@@ -186,8 +187,8 @@
 			<p>
 				While you can build HTML5 trees as noted in <a href="#functions">Functions</a>, most application will want just
 				to fill in a template.
-				<span class="nm">kcgi</span> provides a simple function, <code>khttp_template</code>, to fill in flat-files
-				found in the file-system.
+				<span class="nm">kcgi</span> provides two simple functions, <code>khttp_template</code> and
+				<code>khttp_template_buf</code>, to fill in files or memory buffers with data.
 			</p>
 		</article>
 		<footer>

@@ -719,7 +719,8 @@ void		 khttp_head(struct kreq *req, const char *key,
 int		 khttp_parse(struct kreq *req, 
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
-			size_t defpage, void *arg);
+			size_t defpage, void *arg,
+			void (*argfree)(void *arg));
 void		 khttp_putc(struct kreq *req, int c);
 void		 khttp_puts(struct kreq *req, const char *cp);
 int		 khttp_template(struct kreq *req, 
