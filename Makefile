@@ -36,9 +36,9 @@ mime2c: mime2c.o
 libkcgi.a: $(LIBOBJS)
 	$(AR) rs $@ $(LIBOBJS)
 
-kcgi.o sample.o input.o: kcgi.h
+$(LIBOBJS) sample.o: kcgi.h
 
-kcgi.o compat.o input.o: config.h
+$(LIBOBJS): config.h
 
 config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
