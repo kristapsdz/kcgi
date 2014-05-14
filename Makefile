@@ -10,14 +10,24 @@ LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
 VERSION = 0.2.3
 LIBOBJS = kcgi.o \
-	  compat.o \
+	  compat-memmem.o \
+	  compat-reallocarray.o \
+	  compat-strlcat.o \
+	  compat-strlcpy.o \
+	  compat-strtonum.o \
 	  input.o \
 	  sandbox.o
 TESTS = test-memmem.c \
 	test-reallocarray.c \
 	test-sandbox_init.c \
+	test-strlcat.c \
+	test-strlcpy.c \
 	test-strtonum.c
-SRCS = compat.c \
+SRCS = compat-memmem.c \
+       compat-reallocarray.c \
+       compat-strlcat.c \
+       compat-strlcpy.c \
+       compat-strtonum.c \
        extern.h \
        input.c \
        kcgi.c \
