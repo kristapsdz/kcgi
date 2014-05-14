@@ -57,8 +57,8 @@
 					New in version <span>@VERSION@</span>...
 				</h2>
 				<p>
-					Sandbox input-reader using Darwin's <code>sandbox(7)</code> and/or <code>setrlimit(2)</code> tricks
-					absorbed from <a href="http://www.openssh.org">OpenSSH</a>.
+					Augment Darwin's <code>sandbox(7)</code> and/or <code>setrlimit(2)</code> sandboxing with <a
+						href="http://www.systrace.org">systrace</a>.
 				</p>
 			</div>
 			<p>
@@ -138,10 +138,17 @@
 				This parsed data is returned to the parent process over a <code>socketpair</code>.
 			</p>
 			<p>
-				The following sandbox methods supported by <span class="nm">kcgi</span>.
-				If system-specific methods fail, the default is Resource Limiting.
+				<span class="nm">kcgi</span> follows <a href="http://www.openssh.org">OpenSSH</a>'s method of sandboxing
+				the untrusted child process.
+				The default is Resource Limiting.
 			</p>
 			<dl>
+				<dt>
+					systrace
+				</dt>
+				<dd>
+					The <code>systrace(4)</code> device.
+				</dd>
 				<dt>
 					Mac OS X Sandbox
 				</dt>
@@ -152,7 +159,6 @@
 					Resource Limiting
 				</dt>
 				<dd>
-					Use <a href="http://www.openssh.org">OpenSSH</a>'s method of restricting resource limits with
 					<code>setrlimit(2)</code>.
 					This limits the number of files, processes, and file-written bytes.
 				</dd>
