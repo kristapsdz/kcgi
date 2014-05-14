@@ -776,9 +776,6 @@ khttp_input_child(int fd)
 	char	*cp;
 	size_t	 len;
 
-	if ( ! ksandbox_init())
-		fprintf(stderr, "not sandboxed\n");
-
 	/*
 	 * The CONTENT_LENGTH must be a valid integer.
 	 * Since we're storing into "len", make sure it's in size_t.

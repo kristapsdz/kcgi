@@ -1208,11 +1208,15 @@ khttp_parse(struct kreq *req,
 		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
 		close(socks[1]);
+		if ( ! ksandbox_init_child())
+			fprintf(stderr, "not sandboxed\n");
 		khttp_input_child(socks[0]);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
 	close(socks[0]);
+	if ( ! ksandbox_init_parent(pid))
+		fprintf(stderr, "failed to sandbox child\n");
 
 	memset(req, 0, sizeof(struct kreq));
 
