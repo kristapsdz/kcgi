@@ -22,7 +22,8 @@ TESTS = test-memmem.c \
 	test-sandbox_init.c \
 	test-strlcat.c \
 	test-strlcpy.c \
-	test-strtonum.c
+	test-strtonum.c \
+	test-systrace.c
 SRCS = compat-memmem.c \
        compat-reallocarray.c \
        compat-strlcat.c \
