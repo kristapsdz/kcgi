@@ -22,8 +22,13 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #ifdef HAVE_SANDBOX_INIT
 #include <sandbox.h>
+#endif
+#ifdef HAVE_SYSTRACE
+#include <ioctl.h>
+#include <dev/systrace.h>
 #endif
 
 #include "kcgi.h"
