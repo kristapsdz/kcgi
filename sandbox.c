@@ -18,24 +18,71 @@
 #include "config.h"
 #endif
 #include <sys/resource.h>
+#ifdef HAVE_SYSTRACE
+#include <sys/param.h>
+#include <sys/syscall.h>
+#include <dev/systrace.h>
+#endif
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-
 #ifdef HAVE_SANDBOX_INIT
 #include <sandbox.h>
-#endif
-#ifdef HAVE_SYSTRACE
-#include <ioctl.h>
-#include <dev/systrace.h>
 #endif
 
 #include "kcgi.h"
 #include "extern.h"
 
-#ifdef HAVE_SANDBOX_INIT
+#ifdef HAVE_SYSTRACE
+struct sandbox_policy {
+	int syscall;
+	int action;
+};
+
+/* 
+ * Permitted syscalls in preauth. 
+ * Unlisted syscalls get SYSTR_POLICY_KILL.
+ */
+static const struct sandbox_policy preauth_policy[] = {
+	{ SYS_open, SYSTR_POLICY_NEVER },
+
+	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
+	{ SYS_close, SYSTR_POLICY_PERMIT },
+	{ SYS_exit, SYSTR_POLICY_PERMIT },
+	{ SYS_getpid, SYSTR_POLICY_PERMIT },
+	{ SYS_gettimeofday, SYSTR_POLICY_PERMIT },
+	{ SYS_clock_gettime, SYSTR_POLICY_PERMIT },
+	{ SYS_madvise, SYSTR_POLICY_PERMIT },
+	{ SYS_mmap, SYSTR_POLICY_PERMIT },
+	{ SYS_mprotect, SYSTR_POLICY_PERMIT },
+	{ SYS_mquery, SYSTR_POLICY_PERMIT },
+	{ SYS_poll, SYSTR_POLICY_PERMIT },
+	{ SYS_munmap, SYSTR_POLICY_PERMIT },
+	{ SYS_read, SYSTR_POLICY_PERMIT },
+	{ SYS_select, SYSTR_POLICY_PERMIT },
+	{ SYS_shutdown, SYSTR_POLICY_PERMIT },
+	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
+	{ SYS_write, SYSTR_POLICY_PERMIT },
+	{ -1, -1 }
+};
+
+static void
+ksandbox_systrace_init_child(void)
+{
+
+}
+
 static int
+ksandbox_systrace_init_parent(pid_t child)
+{
+
+	return(1);
+}
+#endif
+
+#ifdef HAVE_SANDBOX_INIT
+static void
 ksandbox_sandbox_init(void)
 {
 	int	 rc;
@@ -45,10 +92,9 @@ ksandbox_sandbox_init(void)
 		(kSBXProfilePureComputation, 
 		 SANDBOX_NAMED, &er);
 	if (0 == rc)
-		return(1);
+		return;
 	perror(er);
 	sandbox_free_error(er);
-	return(0);
 }
 #endif
 
@@ -98,15 +144,27 @@ ksandbox_rlimit_init(void)
 }
 
 int
-ksandbox_init(void)
+ksandbox_init_parent(pid_t child)
+{
+
+#if defined(HAVE_SYSTRACE)
+	return(ksandbox_systrace_init_parent(child));
+#endif
+	return(1);
+}
+
+int
+ksandbox_init_child(void)
 {
 	/*
 	 * First, try to do our system-specific methods.
 	 * If those fail (or either way, really, then fall back to
 	 * setrlimit.
 	 */
-#ifdef	HAVE_SANDBOX_INIT
-	(void)ksandbox_sandbox_init();
+#if defined(HAVE_SANDBOX_INIT)
+	ksandbox_sandbox_init();
+#elif defined(HAVE_SYSTRACE)
+	ksandbox_systrace_init_child();
 #endif
 	return(ksandbox_rlimit_init());
 }
