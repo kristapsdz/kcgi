@@ -20,6 +20,7 @@
 #include <sys/resource.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #ifdef HAVE_SANDBOX_INIT
 #include <sandbox.h>
