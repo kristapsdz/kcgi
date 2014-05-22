@@ -76,26 +76,31 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
-			perror("poll");
+			fprintf(stderr, "%s:%d: poll: %s\n",
+				__FILE__, __LINE__, strerror(errno));
 			return(-1);
 		}
 		ssz = read(fd, buf + sz, bufsz - sz);
 		if (ssz < 0) {
-			perror("read");
+			fprintf(stderr, "%s:%d: read: %s\n",
+				__FILE__, __LINE__, strerror(errno));
 			return(-1);
 		} else if (0 == ssz && sz > 0) {
-			fprintf(stderr, "read: short read\n");
+			fprintf(stderr, "%s:%d: read: short "
+				"read\n", __FILE__, __LINE__);
 			return(-1);
 		} else if (0 == ssz && sz == 0 && ! eofok) {
-			fprintf(stderr, "read: unexpected eof\n");
+			fprintf(stderr, "%s:%d: read: unexpected "
+				"end of file\n", __FILE__, __LINE__);
 			return(-1);
 		} else if (0 == ssz && sz == 0 && eofok)
 			return(0);
 
 		/* Additive overflow check. */
 		if (sz > SIZE_MAX - (size_t)ssz) {
-			fprintf(stderr, "additive overflow\n");
-			return(0);
+			fprintf(stderr, "%s:%d: read: additive "
+				"overflow\n", __FILE__, __LINE__);
+			return(-1);
 		}
 	}
 	return(1);
@@ -121,42 +126,58 @@ input(enum input *type, struct kpair *kp, int fd)
 	else if (rc < 0)
 		return(-1);
 	if (*type >= IN__MAX) {
-		fprintf(stderr, "bad input type\n");
+		fprintf(stderr, "%s:%d: bad input "
+			"type %d\n", __FILE__, __LINE__, *type);
 		return(-1);
 	}
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->key = calloc(sz + 1, 1)))
+	if (NULL == (kp->key = calloc(sz + 1, 1))) {
+		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
+			__FILE__, __LINE__, sz + 1);
 		return(-1);
+	}
 	if (fullread(fd, kp->key, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &kp->valsz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->val = calloc(kp->valsz + 1, 1)))
+	if (NULL == (kp->val = calloc(kp->valsz + 1, 1))) {
+		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
+			__FILE__, __LINE__, sz + 1);
 		return(-1);
+	}
 	if (fullread(fd, kp->val, kp->valsz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->file = calloc(sz + 1, 1)))
+	if (NULL == (kp->file = calloc(sz + 1, 1))) {
+		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
+			__FILE__, __LINE__, sz + 1);
 		return(-1);
+	}
 	if (fullread(fd, kp->file, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->ctype = calloc(sz + 1, 1)))
+	if (NULL == (kp->ctype = calloc(sz + 1, 1))) {
+		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
+			__FILE__, __LINE__, sz + 1);
 		return(-1);
+	}
 	if (fullread(fd, kp->ctype, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->xcode = calloc(sz + 1, 1)))
+	if (NULL == (kp->xcode = calloc(sz + 1, 1))) {
+		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
+			__FILE__, __LINE__, sz + 1);
 		return(-1);
+	}
 	if (fullread(fd, kp->xcode, sz, 0) < 0)
 		return(-1);
 
@@ -175,17 +196,20 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
-			perror("poll");
+			fprintf(stderr, "%s:%d: poll: %s\n",
+				__FILE__, __LINE__, strerror(errno));
 			_exit(EXIT_FAILURE);
 		}
 		ssz = write(fd, buf + sz, bufsz - sz);
 		if (ssz < 0) {
-			perror("write");
+			fprintf(stderr, "%s:%d: write: %s\n",
+				__FILE__, __LINE__, strerror(errno));
 			_exit(EXIT_FAILURE);
 		}
 		/* Additive overflow check. */
 		if (sz > SIZE_MAX - (size_t)ssz) {
-			fprintf(stderr, "additive overflow\n");
+			fprintf(stderr, "%s:%d: write: additive "
+				"overflow\n", __FILE__, __LINE__);
 			_exit(EXIT_FAILURE);
 		}
 	}
@@ -234,7 +258,8 @@ scanbuf(size_t len, size_t *szp)
 
 	/* Allocate the entire buffer here. */
 	if (NULL == (p = malloc(len + 1))) {
-		perror("malloc");
+		fprintf(stderr, "%s:%d: malloc(%zu)\n",
+			__FILE__, __LINE__, len + 1);
 		_exit(EXIT_FAILURE);
 	}
 
@@ -243,7 +268,8 @@ scanbuf(size_t len, size_t *szp)
 	for (sz = 0; sz < len; sz += (size_t)ssz) {
 		ssz = read(STDIN_FILENO, p + sz, len - sz);
 		if (ssz < 0) {
-			perror("read");
+			fprintf(stderr, "%s:%d: read: %s\n",
+				__FILE__, __LINE__, strerror(errno));
 			_exit(EXIT_FAILURE);
 		} else if (0 == ssz)
 			break;
@@ -415,10 +441,11 @@ mime_reset(char **dst, const char *src)
 {
 
 	free(*dst);
-	if (NULL == (*dst = strdup(src))) {
-		perror("strdup");
-		_exit(EXIT_FAILURE);
-	}
+	if (NULL != (*dst = strdup(src)))
+		return;
+
+	fprintf(stderr, "%s:%d: strdup\n", __FILE__, __LINE__);
+	_exit(EXIT_FAILURE);
 }
 
 /*
@@ -546,7 +573,8 @@ parse_multiform(int fd, const char *name, const char *bound,
 	/* Define our buffer boundary. */
 	(void)asprintf(&bb, "\r\n--%s", bound);
 	if (NULL == bb) {
-		perror("asprintf");
+		fprintf(stderr, "%s:%d: "
+			"asprintf\n", __FILE__, __LINE__);
 		_exit(EXIT_FAILURE);
 	}
 	bbsz = strlen(bb);
@@ -615,7 +643,8 @@ parse_multiform(int fd, const char *name, const char *bound,
 		if (NULL == mime.ctype) {
 			mime.ctype = strdup("text/plain");
 			if (NULL == mime.ctype) {
-				perror("strdup");
+				fprintf(stderr, "%s:%d: strdup\n", 
+					__FILE__, __LINE__);
 				_exit(EXIT_FAILURE);
 			}
 		}
@@ -715,8 +744,13 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
 {
 
 	*kv = reallocarray(*kv, *kvsz + 1, sizeof(struct kpair));
-	if (NULL == *kv)
+	if (NULL == *kv) {
+		fprintf(stderr, "%s:%d: reallocarray"
+			"(%p, %zu, %zu) failed\n", 
+			__FILE__, __LINE__, *kv, 
+			*kvsz + 1, sizeof(struct kpair));
 		return(NULL);
+	}
 	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
 	(*kvsz)++;
 	return(&(*kv)[*kvsz - 1]);
@@ -760,7 +794,6 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	free(kp.xcode);
 	free(kp.file);
 	close(fd);
-	waitpid(pid, NULL, 0);
 	return(0 == rc);
 }
 
