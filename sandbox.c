@@ -19,14 +19,21 @@
 #endif
 #include <sys/resource.h>
 #ifdef HAVE_SYSTRACE
+#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
+#include <sys/wait.h>
 #include <dev/systrace.h>
 #endif
 
 #include <errno.h>
 #ifdef HAVE_SANDBOX_INIT
 #include <sandbox.h>
+#endif
+#ifdef HAVE_SYSTRACE
+#include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
 #endif
 #include <stdio.h>
 #include <stdint.h>
@@ -59,7 +66,7 @@ struct systrace_sandbox {
 	void 	(*osigchld)(int);
 };
 
-struct systrace_policy {
+struct systrace_preauth {
 	int	  syscall;
 	int	  action;
 };
@@ -68,7 +75,7 @@ struct systrace_policy {
  * Permitted syscalls in preauth. 
  * Unlisted syscalls get SYSTR_POLICY_KILL.
  */
-static const struct systrace_policy preauth_policy[] = {
+static const struct systrace_preauth preauth_policy[] = {
 	{ SYS_open, SYSTR_POLICY_NEVER },
 
 	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
@@ -114,7 +121,7 @@ ksandbox_systrace_init_child(void *arg)
 {
 	struct systrace_sandbox *box = arg;
 
-	if (NULL -= arg) {
+	if (NULL == arg) {
 		fprintf(stderr, "%s:%d: systrace child "
 			"passed null config\n", __FILE__, __LINE__);
 		return(0);
@@ -145,7 +152,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 
 	/* Wait for the child to send itself a SIGSTOP */
 	do {
-		pid = waitpid(child_pid, &status, WUNTRACED);
+		pid = waitpid(child, &status, WUNTRACED);
 	} while (pid == -1 && errno == EINTR);
 
 	signal(SIGCHLD, box->osigchld);
@@ -169,7 +176,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 		exit(EXIT_FAILURE);
 	}
 
-	box->child_pid = child_pid;
+	box->child_pid = child;
 
 	/* Set up systracing of child */
 	if ((dev = open("/dev/systrace", O_RDONLY)) == -1) {
@@ -186,10 +193,10 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 
 	close(dev);
 	
-	if (ioctl(box->systrace_fd, STRIOCATTACH, &child_pid) == -1) {
+	if (ioctl(box->systrace_fd, STRIOCATTACH, &child) == -1) {
 		fprintf(stderr, "%s:%d: ioctl(%d, STRIOCATTACH, "
 			"%d): %s\n", __FILE__, __LINE__, box->systrace_fd, 
-			child_pid, strerror(errno));
+			child, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -216,8 +223,8 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 	/* Set per-syscall policy */
 	for (i = 0; i < SYS_MAXSYSCALL; i++) {
 		found = 0;
-		for (j = 0; allowed_syscalls[j].syscall != -1; j++) {
-			if (allowed_syscalls[j].syscall == i) {
+		for (j = 0; preauth_policy[j].syscall != -1; j++) {
+			if (preauth_policy[j].syscall == i) {
 				found = 1;
 				break;
 			}
@@ -225,7 +232,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 		policy.strp_op = SYSTR_POLICY_MODIFY;
 		policy.strp_code = i;
 		policy.strp_policy = found ?
-		    allowed_syscalls[j].action : SYSTR_POLICY_KILL;
+		    preauth_policy[j].action : SYSTR_POLICY_KILL;
 		if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
 			fprintf(stderr, "%s:%d: ioctl(%d, STRIOCPOLICY "
 				"(modify)): %s\n", __FILE__, __LINE__,
@@ -354,8 +361,24 @@ ksandbox_free(void *arg)
 void
 ksandbox_close(void *arg, pid_t pid)
 {
+	pid_t	 rp;
+	int	 status;
 
-	waitpid(pid, NULL, 0);
+	/* First wait til our child exits. */
+	do
+		rp = waitpid(pid, &status, 0);
+	while (rp == -1 && errno == EINTR);
+	if (WIFEXITED(status) && 
+		EXIT_SUCCESS != WEXITSTATUS(status))
+		fprintf(stderr, "%s:%d: child exited "
+			"with status %d\n", __FILE__, 
+			__LINE__, WEXITSTATUS(status));
+	else if (WIFSIGNALED(status))
+		fprintf(stderr, "%s:%d: child exited "
+			"with signal %d\n", __FILE__, 
+			__LINE__, WTERMSIG(status));
+
+	/* Now run system-specific closure stuff. */
 #ifdef HAVE_SYSTRACE
 	ksandbox_systrace_close(arg);
 #endif
@@ -364,11 +387,7 @@ ksandbox_close(void *arg, pid_t pid)
 void
 ksandbox_init_child(void *arg)
 {
-	/*
-	 * First, try to do our system-specific methods.
-	 * If those fail (or either way, really, then fall back to
-	 * setrlimit.
-	 */
+	/* First, try to do our system-specific methods. */
 #if defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_sandbox_init())
 		fprintf(stderr, "%s:%d: darwin sandbox "
@@ -378,6 +397,10 @@ ksandbox_init_child(void *arg)
 		fprintf(stderr, "%s:%d: systrace sandbox "
 			"failed (child)\n", __FILE__, __LINE__);
 #endif
+	/*
+	 * In any case, use the most rudimentary sandboxing (rlimit) to
+	 * limit the child process.
+	 */
 	if ( ! ksandbox_rlimit_init())
 		fprintf(stderr, "%s:%d: rlimit sandbox "
 			"failed (child)\n", __FILE__, __LINE__);
