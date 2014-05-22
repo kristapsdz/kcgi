@@ -877,12 +877,13 @@ kutil_urlencode(const char *cp)
 	 */
 	sz = strlen(cp) + 1;
 	if (SIZE_MAX / 3 < sz) {
-		errno = ENOMEM;
-		perror(NULL);
+		fprintf(stderr, "%s:%d: multiplicative "
+			"overflow\n", __FILE__, __LINE__);
 		return(NULL);
 	}
 	if (NULL == (p = calloc(sz, 3))) {
-		perror(NULL);
+		fprintf(stderr, "%s:%d: calloc(%zu,3)\n",
+			__FILE__, __LINE__, sz);
 		return(NULL);
 	}
 	sz *= 3;
@@ -910,8 +911,9 @@ kutil_urlabs(enum kscheme scheme,
 
 	(void)asprintf(&p, "%s://%s:%" PRIu16 "%s", 
 		kschemes[scheme], host, port, path);
-	if (NULL == p)
+	if (NULL == p) {
 		perror(NULL);
+	}
 	return(p);
 }
 
@@ -922,10 +924,8 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 	char		*p, *pp, *keyp, *valp;
 	size_t		 total, count;
 
-	if (NULL == (pp = kutil_urlencode(req->pages[page]))) {
-		perror(NULL);
+	if (NULL == (pp = kutil_urlencode(req->pages[page])))
 		return(NULL);
-	}
 	(void)asprintf(&p, "%s/%s.%s", pname, pp, ksuffixes[mime]);
 	if (NULL == p) {
 		perror(NULL);
@@ -940,13 +940,11 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 	while (NULL != (pp = va_arg(ap, char *))) {
 		keyp = kutil_urlencode(pp);
 		if (NULL == keyp) {
-			perror(NULL);
 			free(p);
 			return(NULL);
 		}
 		valp = kutil_urlencode(va_arg(ap, char *));
 		if (NULL == valp) {
-			perror(NULL);
 			free(p);
 			free(keyp);
 			return(NULL);
@@ -1180,6 +1178,7 @@ khttp_parse(struct kreq *req,
 	size_t		 p, i, j;
 	pid_t		 pid;
 	int		 socks[2];
+	void		*sand;
 
 	/*
 	 * Establish a non-blocking socket between our child and the
@@ -1199,6 +1198,8 @@ khttp_parse(struct kreq *req,
 		close(socks[1]);
 		return(0);
 	}
+
+	sand = ksandbox_alloc();
 	
 	if (-1 == (pid = fork())) {
 		perror("fork");
@@ -1208,15 +1209,14 @@ khttp_parse(struct kreq *req,
 		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
 		close(socks[1]);
-		if ( ! ksandbox_init_child())
-			fprintf(stderr, "not sandboxed\n");
+		ksandbox_init_child(sand);
 		khttp_input_child(socks[0]);
+		ksandbox_free(sand);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
 	close(socks[0]);
-	if ( ! ksandbox_init_parent(pid))
-		fprintf(stderr, "failed to sandbox child\n");
+	ksandbox_init_parent(sand, pid);
 
 	memset(req, 0, sizeof(struct kreq));
 
@@ -1272,7 +1272,8 @@ khttp_parse(struct kreq *req,
 		req->remote = strdup(cp);
 
 	if (NULL == req->remote) {
-		perror(NULL);
+		fprintf(stderr, "%s:%d: strdup\n", 
+			__FILE__, __LINE__);
 		goto err;
 	}
 
@@ -1283,7 +1284,8 @@ khttp_parse(struct kreq *req,
 		req->host = strdup(cp);
 
 	if (NULL == req->host) {
-		perror(NULL);
+		fprintf(stderr, "%s:%d: strdup\n", 
+			__FILE__, __LINE__);
 		goto err;
 	}
 
@@ -1307,7 +1309,8 @@ khttp_parse(struct kreq *req,
 	 */
 	if (NULL != (cp = getenv("PATH_INFO")))
 		if (NULL == (req->fullpath = strdup(cp))) {
-			perror(NULL);
+			fprintf(stderr, "%s:%d: strdup\n", 
+				__FILE__, __LINE__);
 			goto err;
 		}
 
@@ -1323,7 +1326,8 @@ khttp_parse(struct kreq *req,
 		if ('.' == *ep) {
 			*ep++ = '\0';
 			if (NULL == (req->suffix = strdup(ep))) {
-				perror(NULL);
+				fprintf(stderr, "%s:%d: strdup\n", 
+					__FILE__, __LINE__);
 				goto err;
 			}
 			for (mm = suffixmap; NULL != mm->name; mm++)
@@ -1348,12 +1352,15 @@ khttp_parse(struct kreq *req,
 	/* Assign subpath to remaining parts. */
 	if (NULL != sub)
 		if (NULL == (req->path = strdup(sub))) {
-			perror(NULL);
+			fprintf(stderr, "%s:%d: strdup\n", 
+				__FILE__, __LINE__);
 			goto err;
 		}
 
 	if ( ! khttp_input_parent(socks[1], req, pid))
 		goto err;
+	ksandbox_close(sand, pid);
+	ksandbox_free(sand);
 
 	/*
 	 * Run through all fields and sort them into named buckets.
@@ -1528,7 +1535,8 @@ khttp_body(struct kreq *req)
 			NULL != strstr(cp, "gzip")) {
 		req->kdata->gz = gzdopen(STDOUT_FILENO, "w");
 		if (NULL == req->kdata->gz)
-			perror(NULL);
+			fprintf(stderr, "%s:%d: gzdopen\n", 
+				__FILE__, __LINE__);
 		else
 			khttp_head(req, kresps[KRESP_CONTENT_ENCODING], 
 				"%s", "gzip");
