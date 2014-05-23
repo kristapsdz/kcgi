@@ -35,6 +35,7 @@
 #include <signal.h>
 #include <unistd.h>
 #endif
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -91,8 +92,6 @@ static const struct systrace_preauth preauth_policy[] = {
 	{ SYS_poll, SYSTR_POLICY_PERMIT },
 	{ SYS_munmap, SYSTR_POLICY_PERMIT },
 	{ SYS_read, SYSTR_POLICY_PERMIT },
-	{ SYS_select, SYSTR_POLICY_PERMIT },
-	{ SYS_shutdown, SYSTR_POLICY_PERMIT },
 	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
 	{ SYS_write, SYSTR_POLICY_PERMIT },
 	{ -1, -1 }
@@ -134,9 +133,11 @@ static int
 ksandbox_systrace_init_parent(void *arg, pid_t child)
 {
 	struct systrace_sandbox *box = arg;
-	int		dev, i, j, found, st;
+	int		dev, i, j, found, st, rc;
 	pid_t		pid;
 	struct systrace_policy policy;
+
+	rc = 0;
 
 	if (NULL == arg) {
 		XWARNX("systrace parent passed null config");
@@ -150,7 +151,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 
 	if (-1 == pid) {
 		XWARN("waitpid");
-		return(0);
+		exit(EXIT_FAILURE);
 	}
 
 	signal(SIGCHLD, box->osigchld);
@@ -172,19 +173,20 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 	/* Set up systracing of child */
 	if ((dev = open("/dev/systrace", O_RDONLY)) == -1) {
 		XWARN("open: /dev/systrace");
-		exit(EXIT_FAILURE);
+		goto out;
 	}
 
 	if (ioctl(dev, STRIOCCLONE, &box->systrace_fd) == -1) {
 		XWARN("ioctl: STRIOCCLONE");
-		exit(EXIT_FAILURE);
+		close(dev);
+		goto out;
 	}
 
 	close(dev);
 	
 	if (ioctl(box->systrace_fd, STRIOCATTACH, &child) == -1) {
 		XWARN("ioctl: STRIOCATTACH");
-		exit(EXIT_FAILURE);
+		goto out;
 	}
 
 	/* Allocate and assign policy */
@@ -193,14 +195,14 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 	policy.strp_maxents = SYS_MAXSYSCALL;
 	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
 		XWARN("ioctl: STRIOCPOLICY (new)");
-		exit(EXIT_FAILURE);
+		goto out;
 	}
 
 	policy.strp_op = SYSTR_POLICY_ASSIGN;
 	policy.strp_pid = box->child_pid;
 	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
 		XWARN("ioctl: STRIOCPOLICY (assign)");
-		exit(EXIT_FAILURE);
+		goto out;
 	}
 
 	/* Set per-syscall policy */
@@ -218,13 +220,15 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 		    preauth_policy[j].action : SYSTR_POLICY_KILL;
 		if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
 			XWARN("ioctl: STRIOCPOLICY (modify)");
-			exit(EXIT_FAILURE);
+			goto out;
 		}
 	}
 
+	rc = 1;
+out:
 	/* Signal the child to start running */
 	if (kill(box->child_pid, SIGCONT) == 0)
-		return(1);
+		return(rc);
 
 	XWARN("kill: SIGCONT");
 	exit(EXIT_FAILURE);
@@ -236,7 +240,10 @@ ksandbox_systrace_close(void *arg)
 	struct systrace_sandbox *box = arg;
 
 	/* Closing this before the child exits will terminate it */
-	close(box->systrace_fd);
+	if (-1 != box->systrace_fd) 
+		close(box->systrace_fd);
+	else
+		XWARNX("systrace fd not opened");
 }
 #endif
 
@@ -258,6 +265,7 @@ ksandbox_sandbox_init(void)
 }
 #endif
 
+#ifndef HAVE_SYSTRACE
 /* $OpenBSD$ */
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
@@ -281,9 +289,8 @@ ksandbox_rlimit_init(void)
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
-	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
+	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero))
 		XWARN("setrlimit: rlimit_fsize");
-		return(0);
 #if 0
 	/*
 	 * FIXME: I've taken out the RLIMIT_NOFILE setrlimit() because
@@ -291,17 +298,15 @@ ksandbox_rlimit_init(void)
 	 * EPERM no matter what (the same code runs fine when not run as
 	 * a CGI instance), while on OpenBSD, failures occur later on.
 	 */
-	} else if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero)) {
-		perror("setrlimit-nofile");
-		return(0);
+	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero))
+		XWARN("setrlimit: rlimit_fsize");
 #endif
-	} else if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero)) {
+	if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero))
 		XWARN("setrlimit: rlimit_nproc");
-		return(0);
-	}
 
 	return(1);
 }
+#endif
 
 void
 ksandbox_init_parent(void *arg, pid_t child)
@@ -364,14 +369,13 @@ ksandbox_init_child(void *arg)
 #if defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_sandbox_init())
 		XWARNX("darwin sandbox failed (child)");
+	if ( ! ksandbox_rlimit_init())
+		XWARNX("rlimit sandbox failed (child)");
 #elif defined(HAVE_SYSTRACE)
 	if ( ! ksandbox_systrace_init_child(arg))
 		XWARNX("systrace sandbox failed (child)");
-#endif
-	/*
-	 * In any case, use the most rudimentary sandboxing (rlimit) to
-	 * limit the child process.
-	 */
+#else
 	if ( ! ksandbox_rlimit_init())
 		XWARNX("rlimit sandbox failed (child)");
+#endif
 }
