@@ -76,30 +76,29 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
-			fprintf(stderr, "%s:%d: poll: %s\n",
-				__FILE__, __LINE__, strerror(errno));
+			XWARN("poll: %d, POLLIN", fd);
 			return(-1);
 		}
 		ssz = read(fd, buf + sz, bufsz - sz);
-		if (ssz < 0) {
-			fprintf(stderr, "%s:%d: read: %s\n",
-				__FILE__, __LINE__, strerror(errno));
+		if (ssz < 0 && EAGAIN == errno) {
+			XWARN("read: trying again");
+			ssz = 0;
+			continue;
+		} else if (ssz < 0) {
+			XWARN("read: %d, %zu", fd, bufsz - sz);
 			return(-1);
 		} else if (0 == ssz && sz > 0) {
-			fprintf(stderr, "%s:%d: read: short "
-				"read\n", __FILE__, __LINE__);
+			XWARN("read: short read");
 			return(-1);
 		} else if (0 == ssz && sz == 0 && ! eofok) {
-			fprintf(stderr, "%s:%d: read: unexpected "
-				"end of file\n", __FILE__, __LINE__);
+			XWARNX("read: unexpected eof");
 			return(-1);
 		} else if (0 == ssz && sz == 0 && eofok)
 			return(0);
 
 		/* Additive overflow check. */
 		if (sz > SIZE_MAX - (size_t)ssz) {
-			fprintf(stderr, "%s:%d: read: additive "
-				"overflow\n", __FILE__, __LINE__);
+			XWARNX("read: overflow: %zu, %zd", sz, ssz);
 			return(-1);
 		}
 	}
@@ -126,58 +125,42 @@ input(enum input *type, struct kpair *kp, int fd)
 	else if (rc < 0)
 		return(-1);
 	if (*type >= IN__MAX) {
-		fprintf(stderr, "%s:%d: bad input "
-			"type %d\n", __FILE__, __LINE__, *type);
+		XWARNX("unknown input type %d", *type);
 		return(-1);
 	}
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->key = calloc(sz + 1, 1))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
-			__FILE__, __LINE__, sz + 1);
+	if (NULL == (kp->key = XCALLOC(sz + 1, 1))) 
 		return(-1);
-	}
 	if (fullread(fd, kp->key, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &kp->valsz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->val = calloc(kp->valsz + 1, 1))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
-			__FILE__, __LINE__, sz + 1);
+	if (NULL == (kp->val = XCALLOC(kp->valsz + 1, 1)))
 		return(-1);
-	}
 	if (fullread(fd, kp->val, kp->valsz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->file = calloc(sz + 1, 1))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
-			__FILE__, __LINE__, sz + 1);
+	if (NULL == (kp->file = XCALLOC(sz + 1, 1)))
 		return(-1);
-	}
 	if (fullread(fd, kp->file, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->ctype = calloc(sz + 1, 1))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
-			__FILE__, __LINE__, sz + 1);
+	if (NULL == (kp->ctype = XCALLOC(sz + 1, 1)))
 		return(-1);
-	}
 	if (fullread(fd, kp->ctype, sz, 0) < 0)
 		return(-1);
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
 	/* TODO: check additive overflow. */
-	if (NULL == (kp->xcode = calloc(sz + 1, 1))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,1)\n",
-			__FILE__, __LINE__, sz + 1);
+	if (NULL == (kp->xcode = XCALLOC(sz + 1, 1))) 
 		return(-1);
-	}
 	if (fullread(fd, kp->xcode, sz, 0) < 0)
 		return(-1);
 
@@ -196,20 +179,22 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
-			fprintf(stderr, "%s:%d: poll: %s\n",
-				__FILE__, __LINE__, strerror(errno));
+			XWARN("poll: %d, POLLOUT", fd);
 			_exit(EXIT_FAILURE);
 		}
+
 		ssz = write(fd, buf + sz, bufsz - sz);
-		if (ssz < 0) {
-			fprintf(stderr, "%s:%d: write: %s\n",
-				__FILE__, __LINE__, strerror(errno));
+		if (ssz < 0 && EAGAIN == errno) {
+			XWARN("write: trying again");
+			ssz = 0;
+			continue;
+		} else if (ssz < 0) {
+			XWARN("write: %d, %zu", fd, bufsz - sz);
 			_exit(EXIT_FAILURE);
 		}
 		/* Additive overflow check. */
 		if (sz > SIZE_MAX - (size_t)ssz) {
-			fprintf(stderr, "%s:%d: write: additive "
-				"overflow\n", __FILE__, __LINE__);
+			XWARNX("write: overflow: %zu, %zd", sz, ssz);
 			_exit(EXIT_FAILURE);
 		}
 	}
@@ -255,21 +240,28 @@ scanbuf(size_t len, size_t *szp)
 	ssize_t		 ssz;
 	size_t		 sz;
 	char		*p;
+	struct pollfd	 pfd;
+
+	pfd.fd = STDIN_FILENO;
+	pfd.events = POLLIN;
 
 	/* Allocate the entire buffer here. */
-	if (NULL == (p = malloc(len + 1))) {
-		fprintf(stderr, "%s:%d: malloc(%zu)\n",
-			__FILE__, __LINE__, len + 1);
+	if (NULL == (p = XMALLOC(len + 1)))
 		_exit(EXIT_FAILURE);
-	}
 
 	/* Keep reading til we get all the data. */
-	/* FIXME: use poll() to avoid blocking. */
 	for (sz = 0; sz < len; sz += (size_t)ssz) {
+		if (-1 == poll(&pfd, 1, -1)) {
+			XWARN("poll: POLLIN");
+			_exit(EXIT_FAILURE);
+		}
 		ssz = read(STDIN_FILENO, p + sz, len - sz);
-		if (ssz < 0) {
-			fprintf(stderr, "%s:%d: read: %s\n",
-				__FILE__, __LINE__, strerror(errno));
+		if (ssz < 0 && EAGAIN == errno) {
+			XWARN("read: trying again");
+			ssz = 0;
+			continue;
+		} else if (ssz < 0) {
+			XWARN("read: %d, %zu", STDIN_FILENO, len - sz);
 			_exit(EXIT_FAILURE);
 		} else if (0 == ssz)
 			break;
@@ -315,11 +307,14 @@ parse_pairs_text(int fd, enum input type, char *p)
 				*p = '\0';
 				p += 2;
 			}
+			XWARNX("text key: no value");
 			continue;
 		}
 
-		if ('\0' == *key || '\0' == *val)
+		if ('\0' == *key) {
+			XWARNX("text key: zero-length");
 			continue;
+		}
 		output(fd, type, key, val, 
 			strlen(val), NULL, NULL, NULL);
 	}
@@ -355,14 +350,19 @@ urldecode(char *p)
 
 	for ( ; '\0' != *p; p++) {
 		if ('%' == *p) {
-			if ('\0' == (hex[0] = *(p + 1)))
+			if ('\0' == (hex[0] = *(p + 1))) {
+				XWARNX("urldecode: short hex");
 				return(0);
-			if ('\0' == (hex[1] = *(p + 2)))
+			} else if ('\0' == (hex[1] = *(p + 2))) {
+				XWARNX("urldecode: short hex");
 				return(0);
-			if (1 != sscanf(hex, "%x", &c))
+			} else if (1 != sscanf(hex, "%x", &c)) {
+				XWARN("urldecode: bad hex");
 				return(0);
-			if ('\0' == c)
+			} else if ('\0' == c) {
+				XWARN("urldecode: nil byte");
 				return(0);
+			}
 
 			*p = (char)c;
 			memmove(p + 1, p + 3, strlen(p + 3) + 1);
@@ -408,15 +408,21 @@ parse_pairs_urlenc(int fd, enum input type, char *p)
 			p += sz;
 			if ('\0' != *p)
 				p++;
+			XWARNX("url key: no value");
 			continue;
 		}
 
-		if ('\0' == *key || '\0' == *val)
+		if ('\0' == *key) {
+			XWARNX("url key: zero length");
 			continue;
-		if ( ! urldecode(key))
+		} else if ( ! urldecode(key)) {
+			XWARNX("url key: key decode");
 			break;
-		if ( ! urldecode(val))
+		} else if ( ! urldecode(val)) {
+			XWARNX("url key: val decode");
 			break;
+		}
+
 		output(fd, type, key, val, 
 			strlen(val), NULL, NULL, NULL);
 	}
@@ -436,23 +442,20 @@ parse_urlenc(int fd, size_t len)
  * Reset a particular mime component.
  * We can get duplicates, so reallocate.
  */
-static void
+static int
 mime_reset(char **dst, const char *src)
 {
 
 	free(*dst);
-	if (NULL != (*dst = strdup(src)))
-		return;
-
-	fprintf(stderr, "%s:%d: strdup\n", __FILE__, __LINE__);
-	_exit(EXIT_FAILURE);
+	return(NULL != (*dst = XSTRDUP(src)));
 }
 
 /*
  * Parse out all MIME headers.
  * This is defined by RFC 2045.
  * This returns TRUE if we've parsed up to (and including) the last
- * empty CRLF line, or FALSE if something has gone wrong.
+ * empty CRLF line, or FALSE if something has gone wrong (e.g., parse
+ * error, out of memory).
  * If FALSE, parsing should stop immediately.
  */
 static int
@@ -466,8 +469,10 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 		/* Each MIME line ends with a CRLF. */
 		start = &buf[*pos];
 		end = memmem(start, len - *pos, "\r\n", 2);
-		if (NULL == end)
+		if (NULL == end) {
+			XWARNX("MIME header without CRLF");
 			return(0);
+		}
 		/* Nil-terminate to make a nice line. */
 		*end = '\0';
 		/* Re-set our starting position. */
@@ -479,8 +484,11 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 
 		/* Find end of MIME statement name. */
 		key = start;
-		if (NULL == (val = strchr(key, ':')))
+		if (NULL == (val = strchr(key, ':'))) {
+			XWARNX("MIME header without key-value colon");
 			return(0);
+		}
+
 		*val++ = '\0';
 		while (' ' == *val)
 			val++;
@@ -492,13 +500,16 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 		 * Allow these specific MIME header statements.
 		 * Ignore all others.
 		 */
-		if (0 == strcasecmp(key, "content-transfer-encoding"))
-			mime_reset(&mime->xcode, val);
-		else if (0 == strcasecmp(key, "content-disposition"))
-			mime_reset(&mime->disp, val);
-		else if (0 == strcasecmp(key, "content-type"))
-			mime_reset(&mime->ctype, val);
-		else
+		if (0 == strcasecmp(key, "content-transfer-encoding")) {
+			if ( ! mime_reset(&mime->xcode, val))
+				return(0);
+		} else if (0 == strcasecmp(key, "content-disposition")) {
+			if ( ! mime_reset(&mime->disp, val))
+				return(0);
+		} else if (0 == strcasecmp(key, "content-type")) {
+			if ( ! mime_reset(&mime->ctype, val))
+				return(0);
+		} else
 			continue;
 
 		/* Now process any familiar MIME components. */
@@ -507,14 +518,20 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 				key++;
 			if ('\0' == *key)
 				break;
-			if (NULL == (val = strchr(key, '=')))
+			if (NULL == (val = strchr(key, '='))) {
+				XWARNX("MIME header without "
+					"subpart separator");
 				return(0);
+			}
 			*val++ = '\0';
 
 			if ('"' == *val) {
 				val++;
-				if (NULL == (line = strchr(val, '"')))
+				if (NULL == (line = strchr(val, '"'))) {
+					XWARNX("MIME header quote "
+						"not terminated");
 					return(0);
+				}
 				*line++ = '\0';
 				if (';' == *line)
 					line++;
@@ -522,17 +539,21 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 				*line++ = '\0';
 
 			/* White-listed sub-commands. */
-			if (0 == strcasecmp(key, "filename"))
-				mime_reset(&mime->file, val);
-			else if (0 == strcasecmp(key, "name"))
-				mime_reset(&mime->name, val);
-			else if (0 == strcasecmp(key, "boundary"))
-				mime_reset(&mime->bound, val);
-			else
+			if (0 == strcasecmp(key, "filename")) {
+				if ( ! mime_reset(&mime->file, val))
+					return(0);
+			} else if (0 == strcasecmp(key, "name")) {
+				if ( ! mime_reset(&mime->name, val))
+					return(0);
+			} else if (0 == strcasecmp(key, "boundary")) {
+				if ( ! mime_reset(&mime->bound, val))
+					return(0);
+			} else
 				continue;
 		}
 	} 
 
+	XWARNX("MIME header unexpected EOF");
 	return(0);
 }
 
@@ -571,13 +592,12 @@ parse_multiform(int fd, const char *name, const char *bound,
 
 	rc = 0;
 	/* Define our buffer boundary. */
-	(void)asprintf(&bb, "\r\n--%s", bound);
+	bbsz = asprintf(&bb, "\r\n--%s", bound);
 	if (NULL == bb) {
-		fprintf(stderr, "%s:%d: "
-			"asprintf\n", __FILE__, __LINE__);
+		XWARN("asprintf");
 		_exit(EXIT_FAILURE);
 	}
-	bbsz = strlen(bb);
+	assert(bbsz > 0);
 	memset(&mime, 0, sizeof(struct mime));
 
 	/* Read to the next instance of a buffer boundary. */
@@ -592,8 +612,10 @@ parse_multiform(int fd, const char *name, const char *bound,
 			bb + (first ? 2 : 0), bbsz - (first ? 2 : 0));
 
 		/* Unexpected EOF for this part. */
-		if (NULL == ln)
+		if (NULL == ln) {
+			XWARNX("multiform: unexpected eof");
 			goto out;
+		}
 
 		/* 
 		 * Set "endpos" to point to the beginning of the next
@@ -601,18 +623,23 @@ parse_multiform(int fd, const char *name, const char *bound,
 		 * We set "endpos" to be at the very end if the
 		 * terminating boundary buffer occurs.
 		 */
-		endpos = *pos + (ln - &buf[*pos]) + bbsz - (first ? 2 : 0);
+		endpos = *pos + (ln - &buf[*pos]) + 
+			bbsz - (first ? 2 : 0);
 		/* Check buffer space... */
-		if (endpos > len - 2)
+		if (endpos > len - 2) {
+			XWARNX("multiform: end position out of bounds");
 			goto out;
+		}
 
 		/* Terminating boundary or not... */
 		if (memcmp(&buf[endpos], "--", 2)) {
 			while (endpos < len && ' ' == buf[endpos])
 				endpos++;
 			/* We need the CRLF... */
-			if (memcmp(&buf[endpos], "\r\n", 2))
+			if (memcmp(&buf[endpos], "\r\n", 2)) {
+				XWARNX("multiform: missing crlf");
 				goto out;
+			}
 			endpos += 2;
 		} else
 			endpos = len;
@@ -628,25 +655,28 @@ parse_multiform(int fd, const char *name, const char *bound,
 
 		/* We now read our MIME headers, bailing on error. */
 		mime_free(&mime);
-		if ( ! mime_parse(&mime, buf, *pos + partsz, pos))
+		if ( ! mime_parse(&mime, buf, *pos + partsz, pos)) {
+			XWARNX("multiform: bad MIME headers");
 			goto out;
+		}
 		/* 
 		 * As per RFC 2388, we need a name and disposition. 
 		 * Note that multipart/mixed bodies will inherit the
 		 * name of their parent, so the mime.name is ignored.
 		 */
-		if (NULL == mime.name && NULL == name)
+		if (NULL == mime.name && NULL == name) {
+			XWARNX("multiform: no MIME name");
 			continue;
-		else if (NULL == mime.disp) 
+		} else if (NULL == mime.disp) {
+			XWARNX("multiform: no MIME disposition");
 			continue;
+		}
+
 		/* As per RFC 2045, we default to text/plain. */
 		if (NULL == mime.ctype) {
-			mime.ctype = strdup("text/plain");
-			if (NULL == mime.ctype) {
-				fprintf(stderr, "%s:%d: strdup\n", 
-					__FILE__, __LINE__);
+			mime.ctype = XSTRDUP("text/plain");
+			if (NULL == mime.ctype)
 				_exit(EXIT_FAILURE);
-			}
 		}
 
 		partsz = ln - &buf[*pos];
@@ -658,13 +688,17 @@ parse_multiform(int fd, const char *name, const char *bound,
 		 * current name for content.
 		 */
 		if (0 == strcasecmp(mime.ctype, "multipart/mixed")) {
-			if (NULL == mime.bound)
+			if (NULL == mime.bound) {
+				XWARNX("multiform: missing boundary");
 				goto out;
+			}
 			if ( ! parse_multiform
 				(fd, NULL != name ? name :
 				 mime.name, mime.bound,
-				 buf, *pos + partsz, pos))
+				 buf, *pos + partsz, pos)) {
+				XWARNX("multiform: mixed part error");
 				goto out;
+			}
 			continue;
 		}
 
@@ -706,8 +740,10 @@ parse_multi(int fd, char *line, size_t len)
 		line++;
 
 	/* We absolutely need the boundary marker. */
-	if (strncmp(line, "boundary", 8)) 
+	if (strncmp(line, "boundary", 8)) {
+		XWARNX("multiform: missing boundary");
 		return;
+	}
 	line += 8;
 	while (' ' == *line)
 		line++;
@@ -718,8 +754,10 @@ parse_multi(int fd, char *line, size_t len)
 
 	/* Make sure the line is terminated in the right place .*/
 	if ('"' == *line) {
-		if (NULL == (cp = strchr(++line, '"')))
+		if (NULL == (cp = strchr(++line, '"'))) {
+			XWARNX("multiform: unterminated quote");
 			return;
+		}
 		*cp = '\0';
 	} else {
 		/*
@@ -743,14 +781,7 @@ static struct kpair *
 kpair_expand(struct kpair **kv, size_t *kvsz)
 {
 
-	*kv = reallocarray(*kv, *kvsz + 1, sizeof(struct kpair));
-	if (NULL == *kv) {
-		fprintf(stderr, "%s:%d: reallocarray"
-			"(%p, %zu, %zu) failed\n", 
-			__FILE__, __LINE__, *kv, 
-			*kvsz + 1, sizeof(struct kpair));
-		return(NULL);
-	}
+	*kv = XREALLOCARRAY(*kv, *kvsz + 1, sizeof(struct kpair));
 	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
 	(*kvsz)++;
 	return(&(*kv)[*kvsz - 1]);
