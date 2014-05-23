@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 11 2014 $
+.Dd $Mdocdate: May 12 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -170,8 +170,8 @@
 .Fn kvalid_udouble "struct kreq *r" "struct kpair *kp"
 .Ft int
 .Fn kvalid_uint "struct kreq *r" "struct kpair *kp"
-.Ft "void *"
-.Fn kasprintf "const char *fmt" "..."
+.Ft int
+.Fn kasprintf "char **p" "const char *fmt" "..."
 .Ft "void *"
 .Fn kcalloc "size_t nm" "size_t sz"
 .Ft "void *"
@@ -824,7 +824,7 @@ manage its own memory!
 These functions never return
 .Dv NULL .
 .Bl -ohang -offset indent
-.It Fn kasprintf "const char *fmt" "..."
+.It Fn kasprintf "char **p" "const char *fmt" "..."
 Allocate as with
 .Xr asprintf 3 ,
 but exit on memory exhaustion.

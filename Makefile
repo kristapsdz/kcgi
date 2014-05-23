@@ -16,7 +16,8 @@ LIBOBJS = kcgi.o \
 	  compat-strlcpy.o \
 	  compat-strtonum.o \
 	  input.o \
-	  sandbox.o
+	  sandbox.o \
+	  wrappers.o
 TESTS = test-memmem.c \
 	test-reallocarray.c \
 	test-sandbox_init.c \
@@ -35,6 +36,7 @@ SRCS = compat-memmem.c \
        kcgi.h \
        sample.c \
        sandbox.c \
+       wrappers.c \
        $(TESTS)
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
@@ -48,7 +50,7 @@ libkcgi.a: $(LIBOBJS)
 
 $(LIBOBJS) sample.o: kcgi.h
 
-$(LIBOBJS): config.h
+$(LIBOBJS): config.h extern.h
 
 config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log

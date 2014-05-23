@@ -103,13 +103,9 @@ ksandbox_systrace_alloc(void)
 {
 	struct systrace_sandbox *box;
 
-	box = calloc(1, sizeof(struct systrace_sandbox));
-	if (NULL == box) {
-		fprintf(stderr, "%s:%d: calloc(1, %zu)\n",
-			__FILE__, __LINE__, 
-			sizeof(struct systrace_sandbox));
+	box = XCALLOC(1, sizeof(struct systrace_sandbox));
+	if (NULL == box)
 		return(NULL);
-	}
 	box->systrace_fd = -1;
 	box->child_pid = 0;
 	box->osigchld = signal(SIGCHLD, SIG_IGN);
@@ -122,8 +118,7 @@ ksandbox_systrace_init_child(void *arg)
 	struct systrace_sandbox *box = arg;
 
 	if (NULL == arg) {
-		fprintf(stderr, "%s:%d: systrace child "
-			"passed null config\n", __FILE__, __LINE__);
+		XWARNX("systrace child passed null config");
 		return(0);
 	}
 
@@ -131,8 +126,7 @@ ksandbox_systrace_init_child(void *arg)
 	if (kill(getpid(), SIGSTOP) == 0) 
 		return(1);
 
-	fprintf(stderr, "%s:%d: sigstop: %s\n", 
-		__FILE__, __LINE__, strerror(errno));
+	XWARN("kill: SIGSTOP");
 	_exit(EXIT_FAILURE);
 }
 
@@ -140,39 +134,36 @@ static int
 ksandbox_systrace_init_parent(void *arg, pid_t child)
 {
 	struct systrace_sandbox *box = arg;
-	int		dev, i, j, found, status;
+	int		dev, i, j, found, st;
 	pid_t		pid;
 	struct systrace_policy policy;
 
 	if (NULL == arg) {
-		fprintf(stderr, "%s:%d: systrace parent "
-			"passed null config\n", __FILE__, __LINE__);
+		XWARNX("systrace parent passed null config");
 		return(0);
 	}
 
 	/* Wait for the child to send itself a SIGSTOP */
 	do {
-		pid = waitpid(child, &status, WUNTRACED);
+		pid = waitpid(child, &st, WUNTRACED);
 	} while (pid == -1 && errno == EINTR);
+
+	if (-1 == pid) {
+		XWARN("waitpid");
+		return(0);
+	}
 
 	signal(SIGCHLD, box->osigchld);
 
-	if (!WIFSTOPPED(status)) {
-		if (WIFSIGNALED(status)) {
-			fprintf(stderr, "%s:%d: child "
-				"stopped with signal %d\n", 
-				__FILE__, __LINE__, WTERMSIG(status));
+	if ( ! WIFSTOPPED(st)) {
+		if (WIFSIGNALED(st)) {
+			XWARNX("child signal %d", WTERMSIG(st));
+			exit(EXIT_FAILURE);
+		} else if (WIFEXITED(st)) {
+			XWARNX("child exit %d", WEXITSTATUS(st));
 			exit(EXIT_FAILURE);
 		}
-		if (WIFEXITED(status)) {
-			fprintf(stderr, "%s:%d: child "
-				"stopped with status %d\n", 
-				__FILE__, __LINE__, WEXITSTATUS(status));
-			exit(EXIT_FAILURE);
-		}
-		fprintf(stderr, "%s:%d: child "
-			"not stopped\n", __FILE__, __LINE__);
-		return(0);
+		XWARNX("child not stopped");
 		exit(EXIT_FAILURE);
 	}
 
@@ -180,23 +171,19 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 
 	/* Set up systracing of child */
 	if ((dev = open("/dev/systrace", O_RDONLY)) == -1) {
-		fprintf(stderr, "%s:%d open(\"/dev/systrace\"): %s\n", 
-			__FILE__, __LINE__, strerror(errno));
+		XWARN("open: /dev/systrace");
 		exit(EXIT_FAILURE);
 	}
 
 	if (ioctl(dev, STRIOCCLONE, &box->systrace_fd) == -1) {
-		fprintf(stderr, "%s:%d: ioctl(STRIOCCLONE, %d): %s\n", 
-			__FILE__, __LINE__, dev, strerror(errno));
+		XWARN("ioctl: STRIOCCLONE");
 		exit(EXIT_FAILURE);
 	}
 
 	close(dev);
 	
 	if (ioctl(box->systrace_fd, STRIOCATTACH, &child) == -1) {
-		fprintf(stderr, "%s:%d: ioctl(%d, STRIOCATTACH, "
-			"%d): %s\n", __FILE__, __LINE__, box->systrace_fd, 
-			child, strerror(errno));
+		XWARN("ioctl: STRIOCATTACH");
 		exit(EXIT_FAILURE);
 	}
 
@@ -205,18 +192,14 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 	policy.strp_op = SYSTR_POLICY_NEW;
 	policy.strp_maxents = SYS_MAXSYSCALL;
 	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
-		fprintf(stderr, "%s:%d: ioctl(%d, STRIOCPOLICY "
-			"(new)): %s\n", __FILE__, __LINE__,
-			box->systrace_fd, strerror(errno));
+		XWARN("ioctl: STRIOCPOLICY (new)");
 		exit(EXIT_FAILURE);
 	}
 
 	policy.strp_op = SYSTR_POLICY_ASSIGN;
 	policy.strp_pid = box->child_pid;
 	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
-		fprintf(stderr, "%s:%d: ioctl(%d, STRIOCPOLICY "
-			"(assign)): %s\n", __FILE__, __LINE__,
-			box->systrace_fd, strerror(errno));
+		XWARN("ioctl: STRIOCPOLICY (assign)");
 		exit(EXIT_FAILURE);
 	}
 
@@ -234,9 +217,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 		policy.strp_policy = found ?
 		    preauth_policy[j].action : SYSTR_POLICY_KILL;
 		if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
-			fprintf(stderr, "%s:%d: ioctl(%d, STRIOCPOLICY "
-				"(modify)): %s\n", __FILE__, __LINE__,
-				box->systrace_fd, strerror(errno));
+			XWARN("ioctl: STRIOCPOLICY (modify)");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -245,8 +226,7 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 	if (kill(box->child_pid, SIGCONT) == 0)
 		return(1);
 
-	fprintf(stderr, "%s:%d: kill(%d, SIGCONT)\n", 
-		__FILE__, __LINE__, box->child_pid);
+	XWARN("kill: SIGCONT");
 	exit(EXIT_FAILURE);
 }
 
@@ -272,8 +252,7 @@ ksandbox_sandbox_init(void)
 		 SANDBOX_NAMED, &er);
 	if (0 == rc)
 		return(1);
-	fprintf(stderr, "%s:%d: sandbox_init: %s\n",
-		__FILE__, __LINE__, er);
+	XWARNX("sandbox_init: %s", er);
 	sandbox_free_error(er);
 	return(0);
 }
@@ -303,8 +282,7 @@ ksandbox_rlimit_init(void)
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
 	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
-		fprintf(stderr, "%s:%d: setrlimit-fsize: %s\n", 
-			__FILE__, __LINE__, strerror(errno));
+		XWARN("setrlimit: rlimit_fsize");
 		return(0);
 #if 0
 	/*
@@ -318,8 +296,7 @@ ksandbox_rlimit_init(void)
 		return(0);
 #endif
 	} else if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero)) {
-		fprintf(stderr, "%s:%d: setrlimit-nproc: %s\n", 
-			__FILE__, __LINE__, strerror(errno));
+		XWARN("setrlimit: rlimit_nproc");
 		return(0);
 	}
 
@@ -332,21 +309,18 @@ ksandbox_init_parent(void *arg, pid_t child)
 
 #if defined(HAVE_SYSTRACE)
 	if ( ! ksandbox_systrace_init_parent(arg, child))
-		fprintf(stderr, "%s:%d: systrace sandbox "
-			"failed (parent)\n", __FILE__, __LINE__);
+		XWARNX("systrace sandbox failed (parent)");
 #endif
 }
 
 void *
 ksandbox_alloc(void)
 {
-	void	*p;
+	void	*p = NULL;
 
-	p = NULL;
 #ifdef HAVE_SYSTRACE
 	if (NULL == (p = (ksandbox_systrace_alloc())))
-		fprintf(stderr, "%s:%d: systrace alloc "
-			"failed\n", __FILE__, __LINE__);
+		XWARNX("systrace alloc failed");
 #endif
 	return(p);
 }
@@ -355,6 +329,7 @@ void
 ksandbox_free(void *arg)
 {
 	
+	/* This is either NULL of something allocated. */
 	free(arg);
 }
 
@@ -362,21 +337,19 @@ void
 ksandbox_close(void *arg, pid_t pid)
 {
 	pid_t	 rp;
-	int	 status;
+	int	 st;
 
 	/* First wait til our child exits. */
 	do
-		rp = waitpid(pid, &status, 0);
+		rp = waitpid(pid, &st, 0);
 	while (rp == -1 && errno == EINTR);
-	if (WIFEXITED(status) && 
-		EXIT_SUCCESS != WEXITSTATUS(status))
-		fprintf(stderr, "%s:%d: child exited "
-			"with status %d\n", __FILE__, 
-			__LINE__, WEXITSTATUS(status));
-	else if (WIFSIGNALED(status))
-		fprintf(stderr, "%s:%d: child exited "
-			"with signal %d\n", __FILE__, 
-			__LINE__, WTERMSIG(status));
+
+	if (-1 == rp)
+		XWARN("waiting for child");
+	else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st))
+		XWARNX("child status %d", WEXITSTATUS(st));
+	else if (WIFSIGNALED(st))
+		XWARNX("child signal %d", WTERMSIG(st));
 
 	/* Now run system-specific closure stuff. */
 #ifdef HAVE_SYSTRACE
@@ -390,18 +363,15 @@ ksandbox_init_child(void *arg)
 	/* First, try to do our system-specific methods. */
 #if defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_sandbox_init())
-		fprintf(stderr, "%s:%d: darwin sandbox "
-			"failed (child)\n", __FILE__, __LINE__);
+		XWARNX("darwin sandbox failed (child)");
 #elif defined(HAVE_SYSTRACE)
 	if ( ! ksandbox_systrace_init_child(arg))
-		fprintf(stderr, "%s:%d: systrace sandbox "
-			"failed (child)\n", __FILE__, __LINE__);
+		XWARNX("systrace sandbox failed (child)");
 #endif
 	/*
 	 * In any case, use the most rudimentary sandboxing (rlimit) to
 	 * limit the child process.
 	 */
 	if ( ! ksandbox_rlimit_init())
-		fprintf(stderr, "%s:%d: rlimit sandbox "
-			"failed (child)\n", __FILE__, __LINE__);
+		XWARNX("rlimit sandbox failed (child)");
 }

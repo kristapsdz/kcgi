@@ -170,7 +170,7 @@ sendindex(struct kreq *req)
 	const char	*cp;
 	int64_t		 num;
 
-	page = kasprintf("%s/%s", pname, pages[PAGE_INDEX]);
+	kasprintf(&page, "%s/%s", pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
 	khtml_elem(req, KELEM_DOCTYPE);
 	khtml_elem(req, KELEM_HTML);
