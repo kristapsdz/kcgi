@@ -1182,7 +1182,9 @@ khttp_parse(struct kreq *req,
 	size_t		 p, i, j;
 	pid_t		 pid;
 	int		 socks[2];
+	int 		 sndbuf;
 	void		*sand;
+	socklen_t	 sndbufsz = sizeof(sndbuf);
 
 	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
@@ -1208,6 +1210,28 @@ khttp_parse(struct kreq *req,
 		return(0);
 	}
 
+	/*
+	 * Now we try to make our inter-process communication buffer as
+	 * large as possible.
+	 * To do so, try with a huge buffer, then gradually make it
+	 * smaller.
+	 */
+	for (i = 200; i > 0; i--) {
+		sndbuf = (i + 1) * 1024;
+		if (-1 != setsockopt(socks[1], 
+			SOL_SOCKET, SO_SNDBUF, &sndbuf, sndbufsz))
+			break;
+	}
+	for (i = 200; i > 0; i--) {
+		sndbuf = (i + 1) * 1024;
+		if (-1 != setsockopt(socks[0], 
+			SOL_SOCKET, SO_SNDBUF, &sndbuf, sndbufsz)) 
+			break;
+	}
+
+	/*
+	 * Initialise our sandbox then fork the child.
+	 */
 	sand = ksandbox_alloc();
 	
 	if (-1 == (pid = fork())) {

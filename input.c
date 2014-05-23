@@ -80,6 +80,7 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 			return(-1);
 		}
 		ssz = read(fd, buf + sz, bufsz - sz);
+		fprintf(stderr, "read: %zd\n", ssz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
@@ -184,6 +185,7 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 		}
 
 		ssz = write(fd, buf + sz, bufsz - sz);
+		fprintf(stderr, "write: %zd\n", ssz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("write: trying again");
 			ssz = 0;
@@ -256,6 +258,7 @@ scanbuf(size_t len, size_t *szp)
 			_exit(EXIT_FAILURE);
 		}
 		ssz = read(STDIN_FILENO, p + sz, len - sz);
+		fprintf(stderr, "buf-read: %zd\n", ssz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
