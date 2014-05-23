@@ -17,12 +17,12 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/wait.h>
 #include <sys/resource.h>
 #ifdef HAVE_SYSTRACE
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
-#include <sys/wait.h>
 #include <dev/systrace.h>
 #endif
 
