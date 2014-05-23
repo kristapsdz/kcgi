@@ -40,13 +40,30 @@
 #include "kcgi.h"
 #include "extern.h"
 
+/*
+ * Maximum size of printing a signed 64-bit integer.
+ */
+#define	INT_MAXSZ	 22
+
+/*
+ * The state of our HTTP response.
+ * We can be in KSTATE_HEAD, where we're printing HTTP headers; or
+ * KSTATE_BODY, where we're printing the body parts.
+ * So if we try to print a header when we're supposed to be in the body,
+ * this will be caught.
+ */
 enum	kstate {
 	KSTATE_HEAD = 0,
 	KSTATE_BODY
 };
 
+/*
+ * Interior data.
+ * This is used for pretty-printing and managing HTTP compression.
+ */
 struct	kdata {
-	enum kelem	 elems[128];
+#define	KDATA_MAXELEMSZ	 128
+	enum kelem	 elems[KDATA_MAXELEMSZ];
 	size_t		 elemsz;
 	enum kstate	 state;
 #ifdef	HAVE_ZLIB
@@ -55,6 +72,11 @@ struct	kdata {
 	int		 newln;
 };
 
+/*
+ * Manage suffix to MIME mapping.
+ * This is required because the same MIME (e.g., text/html) can have
+ * multiple suffixes (e.g., html and htm).
+ */
 struct	mimemap {
 	const char	*name;
 	enum kmime	 mime;
@@ -74,6 +96,11 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
+/*
+ * A type of HTML5 element.
+ * Note: we don't list transitoinal elements, though I do note them in
+ * the tag array.
+ */
 enum	htype {
 	TAG_FLOW, /* flow (block) element */
 	TAG_PHRASE,/* phrasing (inline) element */
@@ -82,11 +109,11 @@ enum	htype {
 };
 
 /*
- * A tag describes an HTML element.
+ * A tag describes an HTML element and its properties.
  */
 struct	tag {
 	enum htype	 flags; 
-	const char	*name; /* name of element */
+	const char	*name;
 };
 
 static	const uint16_t entities[KENTITY__MAX] = {
@@ -749,66 +776,53 @@ khttp_putc(struct kreq *req, int c)
 		putchar(c);
 }
 
-/* 
- * Safe strdup(): don't return on memory failure.
- */
 char *
 kstrdup(const char *cp)
 {
 	char	*p;
 
-	if (NULL != (p = strdup(cp)))
+	if (NULL != (p = XSTRDUP(cp)))
 		return(p);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
-/*
- * Safe realloc(): don't return on memory failure.
- */
 void *
 krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
 	assert(sz > 0);
-	if (NULL != (p = realloc(pp, sz)))
+	if (NULL != (p = XREALLOC(pp, sz)))
 		return(p);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
-/*
- * Safe realloc() with overflow-checking.
- */
 void *
 kreallocarray(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = reallocarray(pp, nm, sz)))
+	if (NULL != (p = XREALLOCARRAY(pp, nm, sz)))
 		return(p);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
-void *
-kasprintf(const char *fmt, ...)
+int
+kasprintf(char **p, const char *fmt, ...)
 {
-	char	*p;
 	va_list	 ap;
+	int	 len;
 
 	va_start(ap, fmt);
-	vasprintf(&p, fmt, ap);
+	len = XVASPRINTF(p, fmt, ap);
 	va_end(ap);
 
-	if (NULL != p)
-		return(p);
+	if (-1 != len)
+		return(len);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
@@ -820,10 +834,9 @@ kcalloc(size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = calloc(nm, sz)))
+	if (NULL != (p = XCALLOC(nm, sz)))
 		return(p);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
@@ -835,10 +848,9 @@ kmalloc(size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = malloc(sz)))
+	if (NULL != (p = XMALLOC(sz)))
 		return(p);
 
-	perror(NULL);
 	exit(EXIT_FAILURE);
 }
 
@@ -877,15 +889,11 @@ kutil_urlencode(const char *cp)
 	 */
 	sz = strlen(cp) + 1;
 	if (SIZE_MAX / 3 < sz) {
-		fprintf(stderr, "%s:%d: multiplicative "
-			"overflow\n", __FILE__, __LINE__);
+		XWARNX("multiplicative overflow: %zu", sz);
 		return(NULL);
 	}
-	if (NULL == (p = calloc(sz, 3))) {
-		fprintf(stderr, "%s:%d: calloc(%zu,3)\n",
-			__FILE__, __LINE__, sz);
+	if (NULL == (p = XCALLOC(sz, 3)))
 		return(NULL);
-	}
 	sz *= 3;
 
 	for ( ; '\0' != (ch = *cp); cp++) {
@@ -909,11 +917,9 @@ kutil_urlabs(enum kscheme scheme,
 {
 	char	*p;
 
-	(void)asprintf(&p, "%s://%s:%" PRIu16 "%s", 
+	(void)XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
 		kschemes[scheme], host, port, path);
-	if (NULL == p) {
-		perror(NULL);
-	}
+
 	return(p);
 }
 
@@ -926,13 +932,12 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 
 	if (NULL == (pp = kutil_urlencode(req->pages[page])))
 		return(NULL);
-	(void)asprintf(&p, "%s/%s.%s", pname, pp, ksuffixes[mime]);
-	if (NULL == p) {
-		perror(NULL);
-		free(pp);
-		return(NULL);
-	}
+	(void)XASPRINTF(&p, "%s/%s.%s", pname, pp, ksuffixes[mime]);
 	free(pp);
+
+	if (NULL == p)
+		return(NULL);
+
 	total = strlen(p) + 1;
 
 	va_start(ap, page);
@@ -952,8 +957,7 @@ kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
 		total += strlen(keyp) + strlen(valp) + 2;
-		if (NULL == (pp = realloc(p, total))) {
-			perror(NULL);
+		if (NULL == (pp = XREALLOC(p, total))) {
 			free(p);
 			free(keyp);
 			free(valp);
@@ -1057,7 +1061,7 @@ khtml_attrx(struct kreq *req, enum kelem elem, ...)
 	if (TAG_VOID != tags[elem].flags &&
 		TAG_INSTRUCTION != tags[elem].flags)
 		k->elems[k->elemsz++] = elem;
-	assert(k->elemsz < 128);
+	assert(k->elemsz < KDATA_MAXELEMSZ);
 }
 
 void
@@ -1094,7 +1098,7 @@ khtml_attr(struct kreq *req, enum kelem elem, ...)
 	if (TAG_VOID != tags[elem].flags &&
 		TAG_INSTRUCTION != tags[elem].flags)
 		k->elems[k->elemsz++] = elem;
-	assert(k->elemsz < 128);
+	assert(k->elemsz < KDATA_MAXELEMSZ);
 }
 
 void
@@ -1180,20 +1184,25 @@ khttp_parse(struct kreq *req,
 	int		 socks[2];
 	void		*sand;
 
+	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
+		XWARN("fcntl: O_NONBLOCK");
+		return(0);
+	}
+
 	/*
 	 * Establish a non-blocking socket between our child and the
 	 * parent for communicating parsed form data.
 	 */
 	if (-1 == socketpair(AF_UNIX, SOCK_STREAM, 0, socks)) {
-		perror("socketpair");
+		XWARN("socketpair");
 		return(0);
 	} else if (-1 == fcntl(socks[0], F_SETFL, O_NONBLOCK)) {
-		perror("fcntl");
+		XWARN("fcntl: O_NONBLOCK");
 		close(socks[0]);
 		close(socks[1]);
 		return(0);
 	} else if (-1 == fcntl(socks[1], F_SETFL, O_NONBLOCK)) {
-		perror("fcntl");
+		XWARN("fcntl: O_NONBLOCK");
 		close(socks[0]);
 		close(socks[1]);
 		return(0);
@@ -1230,20 +1239,11 @@ khttp_parse(struct kreq *req,
 	req->keysz = keysz;
 	req->pages = pages;
 	req->pagesz = pagesz;
-	req->kdata = calloc(1, sizeof(struct kdata));
-	req->cookiemap = calloc(keysz, sizeof(struct kpair *));
-	req->cookienmap = calloc(keysz, sizeof(struct kpair *));
-	req->fieldmap = calloc(keysz, sizeof(struct kpair *));
-	req->fieldnmap = calloc(keysz, sizeof(struct kpair *));
-
-	if (NULL == req->kdata ||
-		NULL == req->cookienmap ||
-		NULL == req->cookiemap ||
-		NULL == req->fieldmap ||
-		NULL == req->fieldnmap) {
-		perror("calloc");
-		goto err;
-	}
+	req->kdata = XCALLOC(1, sizeof(struct kdata));
+	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
+	req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
+	req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
+	req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
 
 	/* Used in referring to ourselves. */
 	/* TODO: move into struct kreq. */
@@ -1267,27 +1267,21 @@ khttp_parse(struct kreq *req,
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
 	if (NULL == (cp = getenv("REMOTE_ADDR")))
-		req->remote = strdup("127.0.0.1");
+		req->remote = XSTRDUP("127.0.0.1");
 	else
-		req->remote = strdup(cp);
+		req->remote = XSTRDUP(cp);
 
-	if (NULL == req->remote) {
-		fprintf(stderr, "%s:%d: strdup\n", 
-			__FILE__, __LINE__);
+	if (NULL == req->remote)
 		goto err;
-	}
 
 	/* Never supposed to be NULL, but to be sure... */
 	if (NULL == (cp = getenv("HTTP_HOST")))
-		req->host = strdup("localhost");
+		req->host = XSTRDUP("localhost");
 	else
-		req->host = strdup(cp);
+		req->host = XSTRDUP(cp);
 
-	if (NULL == req->host) {
-		fprintf(stderr, "%s:%d: strdup\n", 
-			__FILE__, __LINE__);
+	if (NULL == req->host)
 		goto err;
-	}
 
 	req->port = 80;
 	if (NULL != (cp = getenv("SERVER_PORT")))
@@ -1308,11 +1302,8 @@ khttp_parse(struct kreq *req,
 	 * inline.
 	 */
 	if (NULL != (cp = getenv("PATH_INFO")))
-		if (NULL == (req->fullpath = strdup(cp))) {
-			fprintf(stderr, "%s:%d: strdup\n", 
-				__FILE__, __LINE__);
+		if (NULL == (req->fullpath = XSTRDUP(cp)))
 			goto err;
-		}
 
 	/* This isn't possible in the real world. */
 	if (NULL != cp && '/' == *cp)
@@ -1325,11 +1316,8 @@ khttp_parse(struct kreq *req,
 			ep--;
 		if ('.' == *ep) {
 			*ep++ = '\0';
-			if (NULL == (req->suffix = strdup(ep))) {
-				fprintf(stderr, "%s:%d: strdup\n", 
-					__FILE__, __LINE__);
+			if (NULL == (req->suffix = XSTRDUP(ep)))
 				goto err;
-			}
 			for (mm = suffixmap; NULL != mm->name; mm++)
 				if (0 == strcasecmp(mm->name, ep)) {
 					m = mm->mime;
@@ -1351,11 +1339,8 @@ khttp_parse(struct kreq *req,
 
 	/* Assign subpath to remaining parts. */
 	if (NULL != sub)
-		if (NULL == (req->path = strdup(sub))) {
-			fprintf(stderr, "%s:%d: strdup\n", 
-				__FILE__, __LINE__);
+		if (NULL == (req->path = XSTRDUP(sub)))
 			goto err;
-		}
 
 	if ( ! khttp_input_parent(socks[1], req, pid))
 		goto err;
@@ -1535,8 +1520,7 @@ khttp_body(struct kreq *req)
 			NULL != strstr(cp, "gzip")) {
 		req->kdata->gz = gzdopen(STDOUT_FILENO, "w");
 		if (NULL == req->kdata->gz)
-			fprintf(stderr, "%s:%d: gzdopen\n", 
-				__FILE__, __LINE__);
+			XWARN("gzdopen");
 		else
 			khttp_head(req, kresps[KRESP_CONTENT_ENCODING], 
 				"%s", "gzip");
@@ -1567,7 +1551,7 @@ khtml_double(struct kreq *req, double val)
 void
 khtml_int(struct kreq *req, int64_t val)
 {
-	char	 buf[22];
+	char	 buf[INT_MAXSZ];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
 	khtml_text(req, buf);
@@ -1783,8 +1767,10 @@ khttp_template_buf(struct kreq *req,
 				continue;
 			else if (memcmp(&buf[start], t->key[j], len))
 				continue;
-			if ( ! (*t->cb)(j, t->arg))
+			if ( ! (*t->cb)(j, t->arg)) {
+				XWARNX("template error");
 				return(0);
+			}
 			break;
 		}
 
@@ -1821,16 +1807,19 @@ khttp_template(struct kreq *req,
 
 	assert(KSTATE_BODY == req->kdata->state);
 
-	if (-1 == (fd = open(fname, O_RDONLY, 0)))
+	if (-1 == (fd = open(fname, O_RDONLY, 0))) {
+		XWARN("open: %s", fname);
 		return(0);
-
-	if (-1 == fstat(fd, &st)) {
+	} else if (-1 == fstat(fd, &st)) {
+		XWARN("fstat: %s", fname);
 		close(fd);
 		return(0);
 	} else if (st.st_size >= (1U << 31)) {
+		XWARNX("size overflow: %s", fname);
 		close(fd);
 		return(0);
 	} else if (0 == st.st_size) {
+		XWARNX("zero-length: %s", fname);
 		close(fd);
 		return(1);
 	}
@@ -1839,6 +1828,7 @@ khttp_template(struct kreq *req,
 	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
 
 	if (MAP_FAILED == buf) {
+		XWARN("mmap: %s", fname);
 		close(fd);
 		return(0);
 	}

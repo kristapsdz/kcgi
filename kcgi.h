@@ -757,7 +757,7 @@ char		*kutil_urlencode(const char *cp);
 void		 kutil_invalidate(struct kreq *req,
 			struct kpair *pair);
 
-void		*kasprintf(const char *fmt, ...);
+int		 kasprintf(char **p, const char *fmt, ...);
 void		*kcalloc(size_t nm, size_t sz);
 void		*kmalloc(size_t sz);
 void		*krealloc(void *p, size_t sz);
