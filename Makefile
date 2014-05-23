@@ -2,7 +2,7 @@ CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings 
 # Comment this if you don't want zlib.
 CFLAGS += -DHAVE_ZLIB
 # Uncomment if you need statically linked.
-STATIC = -static
+#STATIC = -static
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
