@@ -57,8 +57,12 @@
 					New in version <span>@VERSION@</span>...
 				</h2>
 				<p>
-					Augment Darwin's <code>sandbox(7)</code> and/or <code>setrlimit(2)</code> sandboxing with <a
-						href="http://www.systrace.org">systrace</a>.
+					Tested and working sandbox code using Darwin's <code>sandbox(7)</code> with <code>setrlimit(2)</code> or
+					<a href="http://www.systrace.org">systrace</a>.
+					This machinery draws significantly from portable <a href="http://www.openssh.org">OpenSSH</a>.
+					The library is now much more careful to log any and all error conditions.
+					It's also much faster by way of expanded send and receive buffers between the untrusted network-parsing
+					child and the parent.
 				</p>
 			</div>
 			<p>
@@ -140,27 +144,24 @@
 			<p>
 				<span class="nm">kcgi</span> follows <a href="http://www.openssh.org">OpenSSH</a>'s method of sandboxing
 				the untrusted child process.
-				The default is Resource Limiting.
+				This requires special handling for each operating system.
+				For now, only two methods are supported.
 			</p>
 			<dl>
 				<dt>
 					systrace
 				</dt>
 				<dd>
-					The <code>systrace(4)</code> device.
+					The <code>systrace(4)</code> device as found on <a href="http://www.openbsd.org">OpenBSD</a> and other
+					operating systems.
+					This requires the existence of <code>/dev/systrace</code> if running in a <code>chroot(2)</code>.
 				</dd>
 				<dt>
 					Mac OS X Sandbox
 				</dt>
 				<dd>
 					The <code>sandbox(7)</code> facility for <q>pure computation</q> provided in Mac OS X Leopard and later.
-				</dd>
-				<dt>
-					Resource Limiting
-				</dt>
-				<dd>
-					<code>setrlimit(2)</code>.
-					This limits the number of files, processes, and file-written bytes.
+					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 				</dd>
 			</dl>
 			<h2 id="compression">
