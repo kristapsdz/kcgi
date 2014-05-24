@@ -37,10 +37,18 @@ ksandbox_darwin_init_child(void *arg)
 	char		*er;
 	struct rlimit	 rl_zero;
 
-	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+	rc = sandbox_init
+		(kSBXProfilePureComputation, 
+		 SANDBOX_NAMED, &er);
 
-	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero))
-		XWARN("setrlimit: rlimit_fsize");
+	if (0 != rc) {
+		XWARNX("sandbox_init: %s", er);
+		sandbox_free_error(er);
+		rc = 0;
+	} else
+		rc = 1;
+
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 #if 0
 	/*
 	 * FIXME: I've taken out the RLIMIT_NOFILE setrlimit() because
@@ -51,19 +59,12 @@ ksandbox_darwin_init_child(void *arg)
 	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero))
 		XWARN("setrlimit: rlimit_fsize");
 #endif
+	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero))
+		XWARN("setrlimit: rlimit_fsize");
 	if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero))
 		XWARN("setrlimit: rlimit_nproc");
 
-	rc = sandbox_init
-		(kSBXProfilePureComputation, 
-		 SANDBOX_NAMED, &er);
-
-	if (0 == rc)
-		return(1);
-
-	XWARNX("sandbox_init: %s", er);
-	sandbox_free_error(er);
-	return(0);
+	return(rc);
 }
 
 #else
