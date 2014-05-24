@@ -28,6 +28,16 @@ void	 ksandbox_close(void *arg, pid_t pid);
 void	 ksandbox_init_child(void *arg);
 void	 ksandbox_init_parent(void *arg, pid_t pid);
 
+#ifdef HAVE_SANDBOX_INIT
+int	 ksandbox_darwin_init_child(void *arg);
+#endif
+#ifdef HAVE_SYSTRACE
+void	*ksandbox_systrace_alloc(void);
+void	 ksandbox_systrace_close(void *arg);
+void	 ksandbox_systrace_init_child(void *arg);
+int	 ksandbox_systrace_init_parent(void *arg, pid_t child);
+#endif
+
 /*
  * These are just wrappers over the native functions that report when
  * failure has occured.

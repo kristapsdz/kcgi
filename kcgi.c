@@ -1219,7 +1219,7 @@ khttp_parse(struct kreq *req,
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
 		if (-1 != setsockopt(socks[1], 
-			SOL_SOCKET, SO_SNDBUF, &sndbuf, sndbufsz))
+			SOL_SOCKET, SO_RCVBUF, &sndbuf, sndbufsz))
 			break;
 		XWARN("sockopt");
 	}
