@@ -70,11 +70,11 @@
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li><a href="#input">input</a>: parse and validate query string, cookie, and form input</li>
-				<li><a href="#functions">functions</a>: pretty-print HTML5 trees, output HTTP headers, format URLs</li>
-				<li><a href="#template">templating</a>: populate file templates with callbacks</li>
-				<li><a href="#security">security</a>: process-separated, sandboxed parse of input</li>
-				<li><a href="#compression">compression</a>: automatically compress HTTP response</li>
+				<li><a href="#input">input</a>: parses and validates query string, cookie, and form input</li>
+				<li><a href="#functions">functions</a>: pretty-prints HTML5 trees, outputs HTTP headers, formats URLs</li>
+				<li><a href="#template">templating</a>: populates file templates with callbacks</li>
+				<li><a href="#security">security</a>: process-separated, sandboxed parsing of input</li>
+				<li><a href="#compression">compression</a>: automatically compresses HTTP response</li>
 			</ul>
 			<p>
 				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
