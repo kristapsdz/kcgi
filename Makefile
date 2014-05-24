@@ -17,6 +17,8 @@ LIBOBJS = kcgi.o \
 	  compat-strtonum.o \
 	  input.o \
 	  sandbox.o \
+	  sandbox-darwin.o \
+	  sandbox-systrace.o \
 	  wrappers.o
 TESTS = test-memmem.c \
 	test-reallocarray.c \
@@ -36,6 +38,8 @@ SRCS = compat-memmem.c \
        kcgi.h \
        sample.c \
        sandbox.c \
+       sandbox-darwin.c \
+       sandbox-systrace.c \
        wrappers.c \
        $(TESTS)
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
