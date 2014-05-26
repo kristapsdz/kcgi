@@ -729,6 +729,8 @@ int		 khttp_template(struct kreq *req,
 int		 khttp_template_buf(struct kreq *req, 
 			const struct ktemplate *t, 
 			const char *buf, size_t sz);
+void		 khttp_write(struct kreq *req, const void *buf, 
+			size_t sz);
 
 void		 khtml_attr(struct kreq *req, enum kelem elem, ...);
 void		 khtml_attrx(struct kreq *req, enum kelem elem, ...);
