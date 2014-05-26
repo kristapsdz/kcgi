@@ -23,6 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
+#include <sys/wait.h>
 #include <dev/systrace.h>
 
 #include <errno.h>
