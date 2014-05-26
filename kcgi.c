@@ -753,6 +753,18 @@ const char	*pname = NULL;
 #endif
 
 void
+khttp_write(struct kreq *req, const void *buf, size_t sz)
+{
+
+#ifdef HAVE_ZLIB
+	if (NULL != req->kdata->gz)
+		gzwrite(req->kdata->gz, buf, sz);
+	else 
+#endif
+		fwrite(buf, 1, sz, stdout);
+}
+
+void
 khttp_puts(struct kreq *req, const char *cp)
 {
 

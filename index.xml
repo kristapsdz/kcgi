@@ -63,6 +63,7 @@
 					The library is now much more careful to log any and all error conditions.
 					It's also much faster by way of expanded send and receive buffers between the untrusted network-parsing
 					child and the parent.
+					Also added <code>khttp_write</code> for binary output.
 				</p>
 			</div>
 			<p>
@@ -121,7 +122,7 @@
 					use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate file templates; or
 				</li>
 				<li>
-					directly use <code>khttp_putc</code> and <code>khttp_puts</code>.
+					directly use <code>khttp_putc</code>, <code>khttp_puts</code>, and <code>khttp_write</code>.
 				</li>
 				<li>
 					Call <code>khttp_free</code> to close the HTTP document and free all memory.

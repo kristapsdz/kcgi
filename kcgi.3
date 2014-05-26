@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 12 2014 $
+.Dd $Mdocdate: May 23 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -27,6 +27,7 @@
 .Nm khttp_puts ,
 .Nm khttp_template ,
 .Nm khttp_template_buf ,
+.Nm khttp_write ,
 .Nm khtml_attr ,
 .Nm khtml_attrx ,
 .Nm khtml_close ,
@@ -105,6 +106,12 @@
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
+.Fa "size_t sz"
+.Fc
+.Ft void
+.Fo khttp_write
+.Fa "struct kreq *req"
+.Fa "const void *buf"
 .Fa "size_t sz"
 .Fc
 .Ft void
@@ -257,9 +264,10 @@ or
 system; or
 .It
 use
-.Fn khttp_putc
+.Fn khttp_putc ,
+.Fn khttp_puts ,
 and
-.Fn khttp_puts
+.Fn khttp_write
 for non-HTML media.
 .Em \&Do not
 use
@@ -775,6 +783,12 @@ to the output stream.
 .It Fn khttp_puts "struct kreq *req" "const char *cp"
 Append a nil-terminated string
 .Fa cp
+to the output stream.
+.It Fn khttp_write "struct kreq *req" "const void *buf" "size_t sz"
+Append a (possibly) binary buffer
+.Fa buf
+of length
+.Fa sz
 to the output stream.
 .El
 .Pp
