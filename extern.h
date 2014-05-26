@@ -34,7 +34,7 @@ int	 ksandbox_darwin_init_child(void *arg);
 #ifdef HAVE_SYSTRACE
 void	*ksandbox_systrace_alloc(void);
 void	 ksandbox_systrace_close(void *arg);
-void	 ksandbox_systrace_init_child(void *arg);
+int	 ksandbox_systrace_init_child(void *arg);
 int	 ksandbox_systrace_init_parent(void *arg, pid_t child);
 #endif
 
