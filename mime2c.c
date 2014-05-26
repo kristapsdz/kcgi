@@ -88,6 +88,9 @@ xmalloc(size_t nm)
  *    -k: print "kmimetypes[KMIME__MAX]"
  *    -K: print "ksuffixes[KMIME__MAX]"
  *    -m: print "suffixmap[]"
+ *
+ * It accepts, on stdin, the same mime.types format used by Apache to
+ * store its MIME database.
  */
 int
 main(int argc, char *argv[])
