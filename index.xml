@@ -58,7 +58,7 @@
 				</h2>
 				<p>
 					Tested and working sandbox code using Darwin's <code>sandbox(7)</code> with <code>setrlimit(2)</code> or
-					<a href="http://www.systrace.org">systrace</a>.
+					<a href="http://www.systrace.org">systrace</a> on <a href="http://www.openbsd.org">OpenBSD</a> (and others?).
 					This machinery draws significantly from portable <a href="http://www.openssh.org">OpenSSH</a>.
 					The library is now much more careful to log any and all error conditions.
 					It's also much faster by way of expanded send and receive buffers between the untrusted network-parsing
@@ -137,7 +137,7 @@
 			</h2>
 			<p>
 				As a security precaution, the <span class="nm">kcgi</span> library parses untrusted network data in a sandboxed
-				child process.
+				child process as follows.
 				When invoked, <code>khttp_parse</code> will fork.
 				The child process is responsible for reading and parsing form data from the web server.
 				This parsed data is returned to the parent process over a <code>socketpair</code>.
