@@ -57,13 +57,16 @@
 					New in version <span>@VERSION@</span>...
 				</h2>
 				<p>
-					Tested and working sandbox code using Darwin's <code>sandbox(7)</code> with <code>setrlimit(2)</code> or
-					<a href="http://www.systrace.org">systrace</a> on <a href="http://www.openbsd.org">OpenBSD</a> (and others?).
-					This machinery draws significantly from portable <a href="http://www.openssh.org">OpenSSH</a>.
-					The library is now much more careful to log any and all error conditions.
-					It's also much faster by way of expanded send and receive buffers between the untrusted network-parsing
-					child and the parent.
-					Also added <code>khttp_write</code> for binary output.
+					IN PROGRESS
+
+					Remove <code>pages</code> and <code>pagesz</code> from <code>struct kreq</code>.
+					Then have <code>kutil_urlpart</code> accept strings (instead of indexing values) for its filename and MIME suffix.
+					This allows the function to be general.
+					Then export the MIME symbols with a reasonable default of MIME types that can be extended by calling applications.
+					Lastly, have <code>khttp_parse</code> accept a MIME array instead of using an internal one.
+				</p>
+				<p>
+					While here, move <code>pname</code> to <code>struct kreq</code>.
 				</p>
 			</div>
 			<p>
