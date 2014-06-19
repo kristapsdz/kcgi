@@ -697,8 +697,6 @@ struct	kreq {
 	struct kdata		 *kdata;
 	const struct kvalid	 *keys;
 	size_t			  keysz;
-	const char *const	 *pages;
-	size_t			  pagesz;
 	void			 *arg; 
 };
 
@@ -753,8 +751,8 @@ int		 kvalid_uint(struct kreq *, struct kpair *);
 
 char		*kutil_urlabs(enum kscheme scheme, const char *host, 
 			uint16_t port, const char *path);
-char		*kutil_urlpart(struct kreq *req, 
-			enum kmime mime, size_t page, ...);
+char		*kutil_urlpart(struct kreq *req, const char *path,
+			const char *mime, const char *page, ...);
 char		*kutil_urlencode(const char *cp);
 void		 kutil_invalidate(struct kreq *req,
 			struct kpair *pair);

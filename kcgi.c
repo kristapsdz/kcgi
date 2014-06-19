@@ -929,53 +929,41 @@ kutil_urlabs(enum kscheme scheme,
 {
 	char	*p;
 
-	(void)XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
+	(void)kasprintf(&p, "%s://%s:%" PRIu16 "%s", 
 		kschemes[scheme], host, port, path);
 
 	return(p);
 }
 
 char *
-kutil_urlpart(struct kreq *req, enum kmime mime, size_t page, ...)
+kutil_urlpart(struct kreq *req, const char *path,
+	const char *mime, const char *page, ...)
 {
 	va_list		 ap;
 	char		*p, *pp, *keyp, *valp;
 	size_t		 total, count;
 
-	if (NULL == (pp = kutil_urlencode(req->pages[page])))
-		return(NULL);
-	(void)XASPRINTF(&p, "%s/%s.%s", pname, pp, ksuffixes[mime]);
+	if (NULL == (pp = kutil_urlencode(page)))
+		exit(EXIT_FAILURE);
+
+	(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+
 	free(pp);
-
-	if (NULL == p)
-		return(NULL);
-
 	total = strlen(p) + 1;
-
 	va_start(ap, page);
 	count = 0;
 	while (NULL != (pp = va_arg(ap, char *))) {
 		keyp = kutil_urlencode(pp);
-		if (NULL == keyp) {
-			free(p);
-			return(NULL);
-		}
+		if (NULL == keyp)
+			exit(EXIT_FAILURE);
 		valp = kutil_urlencode(va_arg(ap, char *));
-		if (NULL == valp) {
-			free(p);
-			free(keyp);
-			return(NULL);
-		}
+		if (NULL == valp) 
+			exit(EXIT_FAILURE);
+
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
 		total += strlen(keyp) + strlen(valp) + 2;
-		if (NULL == (pp = XREALLOC(p, total))) {
-			free(p);
-			free(keyp);
-			free(valp);
-			return(NULL);
-		}
-		p = pp;
+		p = krealloc(p, total);
 
 		if (count > 0)
 			(void)strlcat(p, "&", total);
@@ -1275,8 +1263,6 @@ khttp_parse(struct kreq *req,
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
-	req->pages = pages;
-	req->pagesz = pagesz;
 	req->kdata = XCALLOC(1, sizeof(struct kdata));
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
 	req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
