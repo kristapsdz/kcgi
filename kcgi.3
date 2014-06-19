@@ -201,8 +201,9 @@
 .Ft "char *"
 .Fo kutil_urlpart
 .Fa "struct kreq *req"
-.Fa "enum kmime mime"
-.Fa "size_t page"
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
 .Fa "..."
 .Fc
 .Ft "char *"
@@ -478,12 +479,6 @@ Should not be touched.
 Value passed to
 .Fn khttp_parse .
 .It Va keysz
-Value passed to
-.Fn khttp_parse .
-.It Va pages
-Value passed to
-.Fn khttp_parse .
-.It Va pagesz
 Value passed to
 .Fn khttp_parse .
 .El
@@ -928,30 +923,18 @@ or just
 for the sensitive parts.
 The caller must free the string with
 .Xr free 3 .
-The function returns
-.Dv NULL
-if memory allocation fails.
-.It Fn kutil_urlpart "struct kreq *req" "enum kmime mime" "size_t page" "..."
-Return a dynamically-allocated partial URL, meaning just the script
-name, path, MIME suffix, and query string.
-The
-.Fa page
-refers to a page within the
-.Va pages
-array of
-.Vt "struct kreq" ,
-while
-.Va mime
-is a MIME type.
+The function will exit on memory exhaustion.
+.It Fn kutil_urlpart "struct kreq *req" "const char *path" \
+"const char *mime" "const char *page" "..."
+Return a dynamically-allocated partial URL, meaning just the path component,
+filename, MIME suffix, and optionally key-value query string pairs.
 The variable arguments refer to input keys and values, both
 nil-terminated character pointers.
 This variable array must be terminated with a
 .Dv NULL .
 The caller must free the string with
 .Xr free 3 .
-The function will return
-.Dv NULL
-if memory allocation fails.
+The function will exit on memory exhaustion.
 .El
 .Sh EXAMPLES
 A simple example exists in
