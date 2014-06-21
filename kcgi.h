@@ -697,6 +697,7 @@ struct	kreq {
 	struct kdata		 *kdata;
 	const struct kvalid	 *keys;
 	size_t			  keysz;
+	char			 *pname;
 	void			 *arg; 
 };
 
@@ -768,7 +769,6 @@ extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
 extern const char *const	 ksuffixes[KMIME__MAX];
 extern const char *const	 kresps[KRESP__MAX];
-extern const char		*pname;
 
 __END_DECLS
 
