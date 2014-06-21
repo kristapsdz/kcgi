@@ -1161,6 +1161,7 @@ kreq_free(struct kreq *req)
 	free(req->fieldnmap);
 	free(req->kdata);
 	free(req->suffix);
+	free(req->pname);
 }
 
 
@@ -1264,15 +1265,28 @@ khttp_parse(struct kreq *req,
 	req->keys = keys;
 	req->keysz = keysz;
 	req->kdata = XCALLOC(1, sizeof(struct kdata));
+	if (NULL == req->kdata)
+		goto err;
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
+	if (keysz && NULL == req->cookiemap)
+		goto err;
 	req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
+	if (keysz && NULL == req->cookienmap)
+		goto err;
 	req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
+	if (keysz && NULL == req->fieldmap)
+		goto err;
 	req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
+	if (keysz && NULL == req->fieldnmap)
+		goto err;
 
-	/* Used in referring to ourselves. */
-	/* TODO: move into struct kreq. */
-	if (NULL == (pname = getenv("SCRIPT_NAME")))
-		pname = "";
+	if (NULL == (cp = getenv("SCRIPT_NAME")))
+		req->pname = XSTRDUP("");
+	else
+		req->pname = XSTRDUP(cp);
+
+	if (NULL == req->pname)
+		goto err;
 
 	/* Determine authenticaiton: RFC 3875, 4.1.1. */
 	if (NULL != (cp = getenv("AUTH_TYPE"))) {
