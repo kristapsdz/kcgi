@@ -74,11 +74,12 @@
 				See the <a href="kcgi.3.html">manual</a> for details.
 			</p>
 			<ul>
-				<li><a href="#input">input</a>: parses and validates query string, cookie, and form input</li>
-				<li><a href="#functions">functions</a>: pretty-prints HTML5 trees, outputs HTTP headers, formats URLs</li>
+				<li><a href="#input">input processing</a>: parses and validates query string, cookie, and form input</li>
+				<li><a href="#functions">output processing</a>: pretty-prints HTML5 trees, outputs HTTP headers, formats URLs</li>
 				<li><a href="#template">templating</a>: populates file templates with callbacks</li>
 				<li><a href="#security">security</a>: process-separated, sandboxed parsing of input</li>
 				<li><a href="#compression">compression</a>: automatically compresses HTTP response</li>
+				<li><a href="#extending">extensibility</a>: extensible MIME types, HTTP headers, etc. with reasonable defaults</li>
 			</ul>
 			<p>
 				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
@@ -168,6 +169,14 @@
 					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 				</dd>
 			</dl>
+			<h2 id="extending">
+				Extensibility
+			</h2>
+			<p>
+				While page maps and input validation are entirely driven by the interfacing application,
+				<span class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME types, and so on.
+				A reasonable default has been provided as part of the library.
+			</p>
 			<h2 id="compression">
 				Compression
 			</h2>
@@ -177,7 +186,7 @@
 				Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
 			</p>
 			<h2 id="input">
-				Input
+				Input Processing
 			</h2>
 			<p>
 				All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed, urlencoded, and
@@ -188,7 +197,7 @@
 				You can then look up key-value pairs constant-time in a table indexed by that key.
 			</p>
 			<h2 id="functions">
-				Functions
+				Output Processing
 			</h2>
 			<p>
 				<span class="nm">kcgi</span> provides just the necessary functions for building HTML5 trees, outputting HTTP

@@ -78,6 +78,8 @@
 .Ft int
 .Fo khttp_parse
 .Fa "struct kreq *req"
+.Fa "const struct kmimemap *suffixes"
+.Fa "size_t mimemax"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keysz"
 .Fa "const char *const *pages"
@@ -315,6 +317,15 @@ There are several convenience variables defined in
 .Pa kcgi.h .
 They are as follows:
 .Bl -ohang -offset indent
+.It Va ksuffixmap
+A reverse map of all suffixes mapped to a particular
+.Vt "enum kmime" .
+This, like
+.Va ksuffixes
+and
+.Va kmimetypes ,
+provide a set of default MIME entries for use by interfacing
+applications.
 .It Va ksuffixes
 An array of common file suffixes mapped to
 .Vt "enum kmime"
@@ -406,14 +417,16 @@ argument to
 .Fn khttp_parse .
 .It Va mime
 The MIME type of the requested file as determined by its
-.Pa suffix .
-This defaults to
-.Dv MIME_HTML
-if no suffix is specified or
-.Dv MIME__MAX
-if the suffix is specified but not known.
-In the interests of simplicity, only the most common MIME types are
-recognised.
+.Pa suffix
+matched to the
+.Fa mimemap
+map passed to
+.Fn khttp_parse .
+This defaults to the
+.Va mimemax
+value passed to
+.Fn khttp_parse
+if no suffix is specified or if the suffix is specified but not known.
 .It Va page
 The page index as defined by the
 .Va pages
@@ -426,7 +439,7 @@ path component!
 The default page provided to
 .Fn khttp_parse
 is used if no path was specified or
-.Dv PATH__MAX
+.Fa pagesz
 if the path failed lookup.
 .It Va path
 The path (or
@@ -481,6 +494,8 @@ Value passed to
 .It Va keysz
 Value passed to
 .Fn khttp_parse .
+.It Va pname
+The script name (which may be an empty string in degenerate cases).
 .El
 .Pp
 The application must define the
@@ -632,6 +647,8 @@ Most HTTP response headers are included in the
 .Va kresps
 global array.
 .It Fn khttp_parse "struct kreq *req" \
+"const struct kmimemap *suffixes" \
+"size_t mimemax" \
 "const struct kvalid *keys" \
 "size_t keysz" \
 "const char *const *pages" \
@@ -649,7 +666,10 @@ consists of input and validation fields, while
 .Fa pages
 of size
 .Fa pagesz
-is for page mapping.
+is for page mapping and
+.Fa suffixes
+for MIME type (suffix) mapping with unknown MIME type
+.Fa maxmime .
 .Pp
 The
 .Fa arg
@@ -914,7 +934,7 @@ port
 .Fa port ,
 and path part (including query string, etc.)
 .Fa path .
-This 
+This
 .Em is not
 URL-encoded in any way, so make sure to use
 .Fn kutil_urlpart
