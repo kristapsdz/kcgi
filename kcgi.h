@@ -17,7 +17,17 @@
 #ifndef KCGI_H
 #define KCGI_H
 
-/* Version of the header. */
+/*
+ * All of the public functions, variables, and structures in this header
+ * file are described in kcgi(3).
+ * If you don't see something in kcgi(3) and see it here instead, it
+ * shouldn't be used.
+ */
+
+/* 
+ * Version of the library installed with this header.
+ * (If not installed, it will just read @VERSION@.)
+ */
 #define	VERSION		"@VERSION@"
 
 enum	khttp {
@@ -422,13 +432,6 @@ enum	kattr {
 	KATTR__MAX
 };
 
-enum	kmime {
-	KMIME_HTML,
-	KMIME_CSV,
-	KMIME_PNG,
-	KMIME__MAX
-};
-
 enum	kelem {
 	KELEM_A,
 	KELEM_ABBR,
@@ -643,6 +646,18 @@ enum	kscheme {
 	KSCHEME__MAX
 };
 
+enum	kmime {
+	KMIME_HTML,
+	KMIME_CSV,
+	KMIME_PNG,
+	KMIME__MAX
+};
+
+struct	kmimemap {
+	const char	*name;
+	size_t		 mime;
+};
+
 struct	kpair {
 	char		*key; /* key name */
 	char		*val; /*  key value */
@@ -686,7 +701,7 @@ struct	kreq {
 	struct kpair		**fieldmap;
 	struct kpair		**fieldnmap;
 	size_t			  fieldsz;
-	enum kmime		  mime;
+	size_t			  mime;
 	size_t			  page;
 	char			 *path;
 	char			 *suffix;
@@ -716,6 +731,7 @@ void		 khttp_head(struct kreq *req, const char *key,
 			const char *fmt, ...)
 			__attribute__((format(printf, 3, 4)));
 int		 khttp_parse(struct kreq *req, 
+			const struct kmimemap *suffixes, size_t maxmime,
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage, void *arg,
@@ -767,6 +783,8 @@ char		*kstrdup(const char *cp);
 
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
+extern const char *const	 kresps[KRESP__MAX];
+extern const struct kmimemap	 ksuffixmap[];
 extern const char *const	 ksuffixes[KMIME__MAX];
 extern const char *const	 kresps[KRESP__MAX];
 

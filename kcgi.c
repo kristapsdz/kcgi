@@ -73,16 +73,6 @@ struct	kdata {
 };
 
 /*
- * Manage suffix to MIME mapping.
- * This is required because the same MIME (e.g., text/html) can have
- * multiple suffixes (e.g., html and htm).
- */
-struct	mimemap {
-	const char	*name;
-	enum kmime	 mime;
-};
-
-/*
  * For handling HTTP multipart forms.
  * This consists of data for a single multipart form entry.
  */
@@ -542,7 +532,7 @@ const char *const khttps[KHTTP__MAX] = {
 	"511 Network Authentication Required",
 };
 
-static 	const struct mimemap suffixmap[] = {
+const struct kmimemap ksuffixmap[] = {
 	{ "html", KMIME_HTML },
 	{ "htm", KMIME_HTML },
 	{ "csv", KMIME_CSV },
@@ -1172,6 +1162,8 @@ kreq_free(struct kreq *req)
  */
 int
 khttp_parse(struct kreq *req, 
+	const struct kmimemap *suffixmap,
+	size_t mimemax,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defpage, void *arg,
@@ -1179,7 +1171,7 @@ khttp_parse(struct kreq *req,
 {
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
-	const struct mimemap *mm;
+	const struct kmimemap *mm;
 	size_t		 p, i, j;
 	pid_t		 pid;
 	int		 socks[2];
@@ -1362,7 +1354,7 @@ khttp_parse(struct kreq *req,
 					break;
 				}
 			if (NULL == mm)
-				m = KMIME__MAX;
+				m = mimemax;
 		}
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
