@@ -1170,8 +1170,8 @@ kreq_free(struct kreq *req)
  */
 int
 khttp_parse(struct kreq *req, 
-	const struct kmimemap *suffixmap,
-	size_t mimemax,
+	const struct kmimemap *suffixmap, 
+	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defpage, void *arg,
@@ -1246,7 +1246,7 @@ khttp_parse(struct kreq *req,
 			(*argfree)(arg);
 		close(socks[1]);
 		ksandbox_init_child(sand);
-		khttp_input_child(socks[0], keys, keysz);
+		khttp_input_child(socks[0], keys, keysz, mimes, mimesz);
 		ksandbox_free(sand);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
@@ -1362,7 +1362,7 @@ khttp_parse(struct kreq *req,
 					break;
 				}
 			if (NULL == mm)
-				m = mimemax;
+				m = mimesz;
 		}
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
