@@ -166,6 +166,10 @@ ksandbox_systrace_init_parent(void *arg, pid_t child)
 
 	/* Set up systracing of child */
 	if ((dev = open("/dev/systrace", O_RDONLY)) == -1) {
+		if (ENXIO == errno) {
+			XWARN("open: /dev/systrace (mounted nodev?)");
+			goto out;
+		}
 		XWARN("open: /dev/systrace");
 		goto out;
 	}
