@@ -75,20 +75,6 @@ struct	kdata {
 };
 
 /*
- * For handling HTTP multipart forms.
- * This consists of data for a single multipart form entry.
- */
-struct	mime {
-	char	 *disp; /* content disposition */
-	char	 *name; /* name of form entry */
-	size_t	  namesz; /* size of "name" string */
-	char	 *file; /* whether a file was specified */
-	char	 *ctype; /* content type */
-	char	 *xcode; /* encoding type */
-	char	 *bound; /* form entry boundary */
-};
-
-/*
  * A type of HTML5 element.
  * Note: we don't list transitoinal elements, though I do note them in
  * the tag array.
