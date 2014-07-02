@@ -2,13 +2,13 @@ CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings 
 # Comment this if you don't want zlib.
 CFLAGS += -DHAVE_ZLIB
 # Uncomment if you need statically linked.
-#STATIC = -static
+STATIC = -static
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
 MANDIR = $(PREFIX)/man/man3
 LIBDIR = $(PREFIX)/lib
 INCLUDEDIR = $(PREFIX)/include
-VERSION = 0.2.6
+VERSION = 0.3.1
 LIBOBJS = kcgi.o \
 	  compat-memmem.o \
 	  compat-reallocarray.o \

@@ -664,14 +664,22 @@ struct	kmimemap {
 	size_t		 mime;
 };
 
+enum	kpairstate {
+	KPAIR_UNCHECKED = 0,
+	KPAIR_VALID,
+	KPAIR_INVALID
+};
+
 struct	kpair {
 	char		*key; /* key name */
+	size_t		 keypos; /* bucket (if assigned) */
 	char		*val; /*  key value */
 	size_t		 valsz; /* length of "val" */
 	char		*file; /* content filename (or NULL) */
 	char		*ctype; /* content type (or NULL) */
 	char		*xcode; /* content xfer encoding (or NULL) */
 	struct kpair	*next; /* next in map entry */
+	enum kpairstate	 state; /* parse state */
 	enum kpairtype	 type; /* if parsed, the parse type */
 	union parsed {
 		int64_t i; /* validated integer */

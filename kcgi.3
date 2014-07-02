@@ -168,17 +168,17 @@
 .Fa "const char *cp"
 .Fc
 .Ft int
-.Fn kvalid_double "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_double "struct kpair *kp"
 .Ft int
-.Fn kvalid_email "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_email "struct kpair *kp"
 .Ft int
-.Fn kvalid_int "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_int "struct kpair *kp"
 .Ft int
-.Fn kvalid_string "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_string "struct kpair *kp"
 .Ft int
-.Fn kvalid_udouble "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_udouble "struct kpair *kp"
 .Ft int
-.Fn kvalid_uint "struct kreq *r" "struct kpair *kp"
+.Fn kvalid_uint "struct kpair *kp"
 .Ft int
 .Fn kasprintf "char **p" "const char *fmt" "..."
 .Ft "void *"
@@ -233,9 +233,9 @@ It also sets up the HTTP environment: compression, paths, and so on.
 Process input fields by examining the
 .Vt "struct kpair"
 elements.
-If you want to perform a high-level revalidation, as
+If you want to perform a high-level or un-sandboxed revalidation, as
 .Fn khttp_parse
-usually only validates the field type, use
+operates within a sandbox, use
 .Fn kutil_invalidate
 to keep parsed fields properly set.
 .It
@@ -290,11 +290,11 @@ The
 .Nm
 library is built around the
 .Fn khttp_parse
-parsers for HTTP form data (cookies, GET, and POST) with support for
+sandboxed parsers for HTTP form data (cookies, GET, and POST) with
+support for
 multipart (mixed and form-data), url-encoded, and plain forms.
-The multipart parsing is still somewhat experimental in terms of
-features, though all parsing is rigorously checked for security (e.g.,
-integer overflow, binary data, etc.).
+All parsing is rigorously checked for security (e.g., integer overflow,
+binary data, etc.).
 .Pp
 To compile applications with
 .Nm ,
@@ -506,7 +506,7 @@ as an array of
 .Vt "struct kvalid" ,
 which consists of the following:
 .Bl -ohang -offset indent
-.It Va "int (*valid)(struct kreq *r, struct kpair *kp)"
+.It Va "int (*valid)(struct kpair *kp)"
 Validating function.
 This can be
 .Dv NULL
@@ -518,6 +518,12 @@ function, it must set the
 and
 .Fa parsed
 variables in the key-value pair.
+.Em Note :
+these functions are invoked from within a system-specific sandbox.
+You should assume that you cannot invoke any
+.Qq invasive
+system calls such as opening files, sockets, etc.
+In other words, these must be pure computation.
 .It Va "const char *name"
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
@@ -563,7 +569,18 @@ In a cookie or field map,
 points to the next parsed key-value pair with the same
 .Fa key
 name.
-.It Va field
+.It Va keypos
+If looked up in the
+.Fa keys
+variable passed to
+.Fn khttp_parse ,
+the index of the looked-up key.
+Otherwise
+.Fa keysz .
+.It Va state
+The validation state: whether validated by a parse, invalidated by a
+parse, or non-validated (unparsed).
+.It Va type
 If parsed, the type of data in
 .Fa parsed ,
 otherwise
@@ -811,18 +828,18 @@ The following functions are provided for the global
 .Va keys
 array.
 .Bl -ohang -offset indent
-.It Fn kvalid_double "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_double "struct kpair *kp"
 Validate a double-precision floating-point number.
 .Em Note :
 this uses the current locale via
 .Xr strtod 3 .
-.It Fn kvalid_email "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_email "struct kpair *kp"
 Validate an e-mail address.
 .Em Note :
 this is a heuristic validation, not a formal one.
-.It Fn kvalid_int "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_int "struct kpair *kp"
 Validate a signed 64-bit integer.
-.It Fn kvalid_string "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_string "struct kpair *kp"
 Validate a nil-terminated string.
 This is also used by the
 .Fn kvalid_double ,
@@ -832,12 +849,12 @@ This is also used by the
 and
 .Fn kvalid_uint
 to make sure the string representation of their data is sane.
-.It Fn kvalid_udouble "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_udouble "struct kpair *kp"
 Validate a positive non-zero double-precision floating-point number.
 .Em Note :
 this uses the current locale via
 .Xr strtod 3 .
-.It Fn kvalid_uint "struct kreq *r" "struct kpair *kp"
+.It Fn kvalid_uint "struct kpair *kp"
 Validate an unsigned 64-bit natural number greater than or equal to 0.
 .El
 .Pp
