@@ -233,13 +233,13 @@ main(void)
 		KEY__MAX, pages, PAGE__MAX, PAGE_INDEX, NULL, NULL))
 		return(EXIT_FAILURE);
 
-	if (PAGE__MAX == r.page || KMIME_HTML != r.mime) {
+	if (PAGE__MAX == r.page || KMIME_TEXT_HTML != r.mime) {
 		/*
 		 * We've been asked for an unknown page or something
 		 * with an unknown extension.
 		 */
 		resp_open(&r, KHTTP_404);
-		if (KMIME_HTML == r.mime)
+		if (KMIME_TEXT_HTML == r.mime)
 			khtml_text(&r, "Page not found.");
 	} else
 		(*disps[r.page])(&r);

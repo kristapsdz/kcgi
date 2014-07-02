@@ -481,9 +481,15 @@ const char *const kresps[KRESP__MAX] = {
 };
 
 const char *const kmimetypes[KMIME__MAX] = {
-	"text/html", /* KMIME_HTML */
-	"text/csv", /* KMIME_CSV */
-	"image/png", /* KMIME_PNG */
+	"application/x-javascript", /* KMIME_APP_JAVASCRIPT */
+	"image/gif", /* KMIME_IMAGE_GIF */
+	"image/jpeg", /* KMIME_IMAGE_JPEG */
+	"image/png", /* KMIME_IMAGE_PNG */
+	"image/svg+xml", /* KMIME_IMAGE_SVG_XML */
+	"text/css", /* KMIME_TEXT_CSS */
+	"text/csv", /* KMIME_TEXT_CSV */
+	"text/html", /* KMIME_TEXT_HTML */
+	"text/plain", /* KMIME_TEXT_PLAIN */
 };
 
 const char *const khttps[KHTTP__MAX] = {
@@ -533,10 +539,18 @@ const char *const khttps[KHTTP__MAX] = {
 };
 
 const struct kmimemap ksuffixmap[] = {
-	{ "html", KMIME_HTML },
-	{ "htm", KMIME_HTML },
-	{ "csv", KMIME_CSV },
-	{ "png", KMIME_PNG },
+	{ "css", KMIME_TEXT_CSS },
+	{ "csv", KMIME_TEXT_CSV },
+	{ "gif", KMIME_IMAGE_GIF },
+	{ "htm", KMIME_TEXT_HTML },
+	{ "html", KMIME_TEXT_HTML },
+	{ "jpg", KMIME_IMAGE_JPEG },
+	{ "jpeg", KMIME_IMAGE_JPEG },
+	{ "js", KMIME_APP_JAVASCRIPT },
+	{ "png", KMIME_IMAGE_PNG },
+	{ "shtml", KMIME_TEXT_HTML },
+	{ "svg", KMIME_IMAGE_SVG_XML },
+	{ "svgz", KMIME_IMAGE_SVG_XML },
 	{ NULL, KMIME__MAX },
 };
 
@@ -544,9 +558,15 @@ const struct kmimemap ksuffixmap[] = {
  * Default MIME suffix per type.
  */
 const char *const ksuffixes[KMIME__MAX] = {
-	"html", /* KMIME_HTML */
-	"csv", /* KMIME_CSV */
-	"png", /* KIME_PNG */
+	"js", /* KMIME_APP_JAVASCRIPT */
+	"gif", /* KMIME_IMAGE_GIF */
+	"jpg", /* KMIME_IMAGE_JPEG */
+	"png", /* KMIME_IMAGE_PNG */
+	"svg", /* KMIME_IMAGE_PNG */
+	"css", /* KMIME_TEXT_CSS */
+	"csv", /* KMIME_TEXT_CSV */
+	"html", /* KMIME_TEXT_HTML */
+	"txt", /* KMIME_TEXT_PLAIN */
 };
 
 static	const char *const attrs[KATTR__MAX] = {
@@ -1292,7 +1312,7 @@ khttp_parse(struct kreq *req,
 
 	sub = NULL;
 	p = defpage;
-	m = KMIME_HTML;
+	m = KMIME_TEXT_HTML;
 
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
@@ -1387,7 +1407,7 @@ khttp_parse(struct kreq *req,
 			if (strcmp(req->fields[j].key, keys[i].name))
 				continue;
 			if (NULL != keys[i].valid && ! keys[i].valid
-					(req, &req->fields[j])) {
+					(&req->fields[j])) {
 				req->fields[j].type = KPAIR__MAX;
 				req->fields[j].next = req->fieldnmap[i];
 				req->fieldnmap[i] = &req->fields[j];
@@ -1402,7 +1422,7 @@ khttp_parse(struct kreq *req,
 			if (strcmp(req->cookies[j].key, keys[i].name))
 				continue;
 			if (NULL != keys[i].valid && ! keys[i].valid
-					(req, &req->cookies[j])) {
+					(&req->cookies[j])) {
 				req->cookies[j].type = KPAIR__MAX;
 				req->cookies[j].next = req->cookienmap[i];
 				req->cookienmap[i] = &req->cookies[j];
@@ -1684,7 +1704,7 @@ valid_email(char *p)
 }
 
 int
-kvalid_string(struct kreq *r, struct kpair *p)
+kvalid_string(struct kpair *p)
 {
 
 	/*
@@ -1699,31 +1719,31 @@ kvalid_string(struct kreq *r, struct kpair *p)
 }
 
 int
-kvalid_email(struct kreq *r, struct kpair *p)
+kvalid_email(struct kpair *p)
 {
 
-	if ( ! kvalid_string(r, p))
+	if ( ! kvalid_string(p))
 		return(0);
 	return(NULL != (p->parsed.s = valid_email(p->val)));
 }
 
 int
-kvalid_udouble(struct kreq *r, struct kpair *p)
+kvalid_udouble(struct kpair *p)
 {
 
-	if ( ! kvalid_double(r, p))
+	if ( ! kvalid_double(p))
 		return(0);
 	p->type = KPAIR_DOUBLE;
 	return(p->parsed.d > 0.0);
 }
 
 int
-kvalid_double(struct kreq *r, struct kpair *p)
+kvalid_double(struct kpair *p)
 {
 	char		*ep;
 	double		 lval;
 
-	if ( ! kvalid_string(r, p))
+	if ( ! kvalid_string(p))
 		return(0);
 
 	errno = 0;
@@ -1738,11 +1758,11 @@ kvalid_double(struct kreq *r, struct kpair *p)
 }
 
 int
-kvalid_int(struct kreq *r, struct kpair *p)
+kvalid_int(struct kpair *p)
 {
 	const char	*ep;
 
-	if ( ! kvalid_string(r, p))
+	if ( ! kvalid_string(p))
 		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
@@ -1751,7 +1771,7 @@ kvalid_int(struct kreq *r, struct kpair *p)
 }
 
 int
-kvalid_uint(struct kreq *r, struct kpair *p)
+kvalid_uint(struct kpair *p)
 {
 	const char	*ep;
 
