@@ -1192,7 +1192,7 @@ khttp_parse(struct kreq *req,
 	char		*cp, *ep, *sub;
 	enum kmime	 m;
 	const struct kmimemap *mm;
-	size_t		 p, i, j;
+	size_t		 p, i;
 	pid_t		 pid;
 	int		 socks[2];
 	int 		 sndbuf;
@@ -1392,50 +1392,17 @@ khttp_parse(struct kreq *req,
 		if (NULL == (req->path = XSTRDUP(sub)))
 			goto err;
 
+	/*
+	 * Now read the input fields from the child and conditionally
+	 * assign them to our lookup table.
+	 */
 	if ( ! khttp_input_parent(socks[1], req, pid))
 		goto err;
+
+	/* FIXME: do this after err handler? */
 	ksandbox_close(sand, pid);
 	ksandbox_free(sand);
-
-	/*
-	 * Run through all fields and sort them into named buckets.
-	 * This will let us do constant-time lookups within the
-	 * application itself.  Niiiice.
-	 */
-	for (i = 0; i < keysz; i++) {
-		for (j = 0; j < req->fieldsz; j++) {
-			if (strcmp(req->fields[j].key, keys[i].name))
-				continue;
-			if (NULL != keys[i].valid && ! keys[i].valid
-					(&req->fields[j])) {
-				req->fields[j].type = KPAIR__MAX;
-				req->fields[j].next = req->fieldnmap[i];
-				req->fieldnmap[i] = &req->fields[j];
-				continue;
-			}
-			assert(NULL == keys[i].valid ||
-				KPAIR__MAX != req->fields[j].type);
-			req->fields[j].next = req->fieldmap[i];
-			req->fieldmap[i] = &req->fields[j];
-		}
-		for (j = 0; j < req->cookiesz; j++) {
-			if (strcmp(req->cookies[j].key, keys[i].name))
-				continue;
-			if (NULL != keys[i].valid && ! keys[i].valid
-					(&req->cookies[j])) {
-				req->cookies[j].type = KPAIR__MAX;
-				req->cookies[j].next = req->cookienmap[i];
-				req->cookienmap[i] = &req->cookies[j];
-				continue;
-			}
-			assert(NULL == keys[i].valid ||
-				KPAIR__MAX != req->cookies[j].type);
-			req->cookies[j].next = req->cookiemap[i];
-			req->cookiemap[i] = &req->cookies[j];
-		}
-	}
 	return(1);
-
 err:
 	kreq_free(req);
 	close(socks[1]);
@@ -1445,6 +1412,7 @@ err:
 /*
  * This entire function would be two lines if we were using the
  * sys/queue macros.h.
+ * FIXME: this can be simplified with the new "keypos" value.
  */
 void
 kutil_invalidate(struct kreq *r, struct kpair *kp)
