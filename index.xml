@@ -56,25 +56,10 @@
 				<h2>
 					New in version <span>@VERSION@</span>...
 				</h2>
+				<p>XXX</p>
 				<p>
-					Validation is now performed within the sandboxed child.
-					This requires validation functions to be written carefully so as not to invoke their environment (e.g.,
-					via <code>strptime</code>, which accesses the file-system).
-				</p>
-				<p>
-					The test for <code>zlib</code> now occurs within the portability framework.
-				</p>
-				<p>
-					Remove <code>pages</code> and <code>pagesz</code> from <code>struct kreq</code>.
-					Then have <code>kutil_urlpart</code> accept strings (instead of indexing values) for its filename and
-					MIME suffix.
-					This allows the function to be general.
-					Then export the MIME symbols with a reasonable default of MIME types that can be extended by calling
-					applications.
-					Lastly, have <code>khttp_parse</code> accept a MIME array instead of using an internal one.
-				</p>
-				<p>
-					While here, move <code>pname</code> to <code>struct kreq</code>.
+					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
+					found, record the index as <code>ctypepos</code>.
 				</p>
 			</div>
 			<p>
