@@ -647,9 +647,15 @@ enum	kscheme {
 };
 
 enum	kmime {
-	KMIME_HTML,
-	KMIME_CSV,
-	KMIME_PNG,
+	KMIME_APP_JAVASCRIPT,
+	KMIME_IMAGE_GIF,
+	KMIME_IMAGE_JPEG,
+	KMIME_IMAGE_PNG,
+	KMIME_IMAGE_SVG_XML,
+	KMIME_TEXT_CSS,
+	KMIME_TEXT_CSV,
+	KMIME_TEXT_HTML,
+	KMIME_TEXT_PLAIN,
 	KMIME__MAX
 };
 
@@ -677,7 +683,7 @@ struct	kpair {
 struct	kreq; /* forward declaration */
 
 struct	kvalid {
-	int		(*valid)(struct kreq *r, struct kpair *kp);
+	int		(*valid)(struct kpair *kp);
 	const char	 *name;
 };
 
@@ -759,12 +765,12 @@ void		 khtml_int(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
 void		 khtml_text(struct kreq *req, const char *cp);
 
-int		 kvalid_double(struct kreq *, struct kpair *);
-int		 kvalid_email(struct kreq *, struct kpair *);
-int		 kvalid_int(struct kreq *, struct kpair *);
-int		 kvalid_string(struct kreq *, struct kpair *);
-int		 kvalid_udouble(struct kreq *, struct kpair *);
-int		 kvalid_uint(struct kreq *, struct kpair *);
+int		 kvalid_double(struct kpair *);
+int		 kvalid_email(struct kpair *);
+int		 kvalid_int(struct kpair *);
+int		 kvalid_string(struct kpair *);
+int		 kvalid_udouble(struct kpair *);
+int		 kvalid_uint(struct kpair *);
 
 char		*kutil_urlabs(enum kscheme scheme, const char *host, 
 			uint16_t port, const char *path);

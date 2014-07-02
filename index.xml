@@ -80,6 +80,7 @@
 				<li><a href="#security">security</a>: process-separated, sandboxed parsing of input</li>
 				<li><a href="#compression">compression</a>: automatically compresses HTTP response</li>
 				<li><a href="#extending">extensibility</a>: extensible MIME types, HTTP headers, etc. with reasonable defaults</li>
+				<li><a href="#portable">portability</a>: compatibility across UNIX systems and web servers</li>
 			</ul>
 			<p>
 				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
@@ -160,6 +161,8 @@
 					The <code>systrace(4)</code> device as found on <a href="http://www.openbsd.org">OpenBSD</a> and other
 					operating systems.
 					This requires the existence of <code>/dev/systrace</code> if running in a <code>chroot(2)</code>.
+					<emph>Note</emph>: if you're using a stock <a href="http://www.openbsd.org">OpenBSD</a>, make sure that
+					the mount-point of the <code>/dev/systrace</code> isn't mounted <code>nodev</code>!
 				</dd>
 				<dt>
 					Mac OS X Sandbox
@@ -169,6 +172,12 @@
 					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 				</dd>
 			</dl>
+			<h2 id="portability">
+				Portability
+			</h2>
+			<p>
+				TODO: configure script, apache/nginx, OSs, etc.
+			</p>
 			<h2 id="extending">
 				Extensibility
 			</h2>
