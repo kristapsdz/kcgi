@@ -207,9 +207,10 @@ fullwrite(int fd, const void *buf, size_t bufsz)
  * Output a type, parsed key, and value to the output stream.
  */
 static void
-output(int fd, enum input type, const char *key, 
-	const char *val, size_t valsz, const char *file, 
-	const char *ctype, const char *xcode)
+output(int fd, const struct kvalid *keys, size_t keysz, 
+	enum input type, const char *key, const char *val, 
+	size_t valsz, const char *file, const char *ctype, 
+	const char *xcode)
 {
 	size_t	 sz;
 
@@ -284,7 +285,8 @@ scanbuf(size_t len, size_t *szp)
  * guidelines for HTML give a rough idea.
  */
 static void
-parse_pairs_text(int fd, enum input type, char *p)
+parse_pairs_text(int fd, enum input type, 
+	char *p, const struct kvalid *keys, size_t keysz)
 {
 	char            *key, *val;
 
@@ -319,8 +321,8 @@ parse_pairs_text(int fd, enum input type, char *p)
 			XWARNX("text key: zero-length");
 			continue;
 		}
-		output(fd, type, key, val, 
-			strlen(val), NULL, NULL, NULL);
+		output(fd, keys, keysz, type, key, 
+			val, strlen(val), NULL, NULL, NULL);
 	}
 }
 
@@ -330,12 +332,12 @@ parse_pairs_text(int fd, enum input type, char *p)
  * from the input.
  */
 static void
-parse_text(int fd, size_t len)
+parse_text(int fd, size_t len, const struct kvalid *keys, size_t keysz)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_text(fd, IN_FORM, p);
+	parse_pairs_text(fd, IN_FORM, p, keys, keysz);
 	free(p);
 }
 
@@ -385,7 +387,8 @@ urldecode(char *p)
  * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
-parse_pairs_urlenc(int fd, enum input type, char *p)
+parse_pairs_urlenc(int fd, enum input type, 
+	char *p, const struct kvalid *keys, size_t keysz)
 {
 	char            *key, *val;
 	size_t           sz;
@@ -427,18 +430,19 @@ parse_pairs_urlenc(int fd, enum input type, char *p)
 			break;
 		}
 
-		output(fd, type, key, val, 
-			strlen(val), NULL, NULL, NULL);
+		output(fd, keys, keysz, type, key, 
+			val, strlen(val), NULL, NULL, NULL);
 	}
 }
 
 static void
-parse_urlenc(int fd, size_t len)
+parse_urlenc(int fd, size_t len, 
+	const struct kvalid *keys, size_t keysz)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_urlenc(fd, IN_FORM, p);
+	parse_pairs_urlenc(fd, IN_FORM, p, keys, keysz);
 	free(p);
 }
 
@@ -587,7 +591,8 @@ mime_free(struct mime *mime)
  */
 static int
 parse_multiform(int fd, const char *name, const char *bound, 
-	char *buf, size_t len, size_t *pos)
+	char *buf, size_t len, size_t *pos,
+	const struct kvalid *keys, size_t keysz)
 {
 	struct mime	 mime;
 	size_t		 endpos, bbsz, partsz;
@@ -698,8 +703,8 @@ parse_multiform(int fd, const char *name, const char *bound,
 			}
 			if ( ! parse_multiform
 				(fd, NULL != name ? name :
-				 mime.name, mime.bound,
-				 buf, *pos + partsz, pos)) {
+				 mime.name, mime.bound, buf, 
+				 *pos + partsz, pos, keys, keysz)) {
 				XWARNX("multiform: mixed part error");
 				goto out;
 			}
@@ -707,9 +712,9 @@ parse_multiform(int fd, const char *name, const char *bound,
 		}
 
 		/* Assign all of our key-value pair data. */
-		output(fd, IN_FORM, NULL != name ? name : mime.name, 
-			&buf[*pos], partsz, mime.file, mime.ctype,
-			mime.xcode);
+		output(fd, keys, keysz, IN_FORM, 
+			NULL != name ? name : mime.name, &buf[*pos], 
+			partsz, mime.file, mime.ctype, mime.xcode);
 	}
 
 	/*
@@ -731,7 +736,8 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(int fd, char *line, size_t len)
+parse_multi(int fd, char *line, size_t len, 
+	const struct kvalid *keys, size_t keysz)
 {
 	char		*cp;
 	size_t		 sz;
@@ -777,7 +783,7 @@ parse_multi(int fd, char *line, size_t len)
 	/* Read in full file. */
 	cp = scanbuf(len, &sz);
 	len = 0;
-	parse_multiform(fd, NULL, line, cp, sz, &len);
+	parse_multiform(fd, NULL, line, cp, sz, &len, keys, keysz);
 	free(cp);
 }
 
@@ -839,7 +845,7 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
  * value size along with the field type.
  */
 void
-khttp_input_child(int fd)
+khttp_input_child(int fd, const struct kvalid *keys, size_t keysz)
 {
 	char	*cp;
 	size_t	 len;
@@ -865,13 +871,13 @@ khttp_input_child(int fd)
 	 */
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(fd, len);
+			parse_urlenc(fd, len, keys, keysz);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(fd, cp + 19, len);
+			parse_multi(fd, cp + 19, len, keys, keysz);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_text(fd, len);
+			parse_text(fd, len, keys, keysz);
 	} else
-		parse_text(fd, len);
+		parse_text(fd, len, keys, keysz);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
@@ -882,7 +888,7 @@ khttp_input_child(int fd)
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("QUERY_STRING")))
-		parse_pairs_urlenc(fd, IN_QUERY, cp);
+		parse_pairs_urlenc(fd, IN_QUERY, cp, keys, keysz);
 
 	/*
 	 * Cookies come last.
@@ -893,5 +899,5 @@ khttp_input_child(int fd)
 	 * nil-terminated.
 	 */
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
-		parse_pairs_urlenc(fd, IN_COOKIE, cp);
+		parse_pairs_urlenc(fd, IN_COOKIE, cp, keys, keysz);
 }

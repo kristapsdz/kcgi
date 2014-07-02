@@ -1258,7 +1258,7 @@ khttp_parse(struct kreq *req,
 			(*argfree)(arg);
 		close(socks[1]);
 		ksandbox_init_child(sand);
-		khttp_input_child(socks[0]);
+		khttp_input_child(socks[0], keys, keysz);
 		ksandbox_free(sand);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
