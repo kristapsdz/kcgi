@@ -557,6 +557,18 @@ The value's content type (e.g.,
 or
 .Dv NULL
 if not defined.
+.It Va ctypepos
+If
+.Va ctype
+is not
+.Dv NULL ,
+it is looked up in the
+.Fa mimes
+parameter passed to
+.Fn khttp_parse .
+If found, it is set to the appropriate index.
+Otherwise, it's
+.Fa mimesz .
 .It Va xcode
 The value's content transfer encoding (e.g.,
 .Li base64 ) ,
