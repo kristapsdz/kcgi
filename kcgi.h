@@ -677,6 +677,7 @@ struct	kpair {
 	size_t		 valsz; /* length of "val" */
 	char		*file; /* content filename (or NULL) */
 	char		*ctype; /* content type (or NULL) */
+	size_t		 ctypepos; /* content type index */
 	char		*xcode; /* content xfer encoding (or NULL) */
 	struct kpair	*next; /* next in map entry */
 	enum kpairstate	 state; /* parse state */
@@ -745,7 +746,8 @@ void		 khttp_head(struct kreq *req, const char *key,
 			const char *fmt, ...)
 			__attribute__((format(printf, 3, 4)));
 int		 khttp_parse(struct kreq *req, 
-			const struct kmimemap *suffixes, size_t maxmime,
+			const struct kmimemap *suffixes, 
+			const char *const *mimes, size_t mimemax,
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
 			size_t defpage, void *arg,
