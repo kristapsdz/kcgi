@@ -130,37 +130,68 @@ input(enum input *type, struct kpair *kp, int fd)
 		XWARNX("unknown input type %d", *type);
 		return(-1);
 	}
+
+	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
-	/* TODO: check additive overflow. */
 	if (NULL == (kp->key = XCALLOC(sz + 1, 1))) 
 		return(-1);
 	if (fullread(fd, kp->key, sz, 0) < 0)
 		return(-1);
+
+	/* TODO: check additive overflow. */
 	if (fullread(fd, &kp->valsz, sizeof(size_t), 0) < 0)
 		return(-1);
-	/* TODO: check additive overflow. */
 	if (NULL == (kp->val = XCALLOC(kp->valsz + 1, 1)))
 		return(-1);
 	if (fullread(fd, kp->val, kp->valsz, 0) < 0)
 		return(-1);
+
+	if (fullread(fd, &kp->state, sizeof(enum kpairstate), 0) < 0)
+		return(-1);
+	if (fullread(fd, &kp->type, sizeof(enum kpairtype), 0) < 0)
+		return(-1);
+	if (fullread(fd, &kp->keypos, sizeof(size_t), 0) < 0)
+		return(-1);
+
+	switch (kp->type) {
+	case (KPAIR_DOUBLE):
+		if (fullread(fd, &kp->parsed.d, sizeof(double), 0) < 0)
+			return(-1);
+		break;
+	case (KPAIR_INTEGER):
+		if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0) < 0)
+			return(-1);
+		break;
+	case (KPAIR_STRING):
+		if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
+			return(-1);
+		assert(sz < kp->valsz);
+		kp->parsed.s = kp->val + sz;
+		break;
+	default:
+		break;
+	}
+
+	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
-	/* TODO: check additive overflow. */
 	if (NULL == (kp->file = XCALLOC(sz + 1, 1)))
 		return(-1);
 	if (fullread(fd, kp->file, sz, 0) < 0)
 		return(-1);
+
+	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
-	/* TODO: check additive overflow. */
 	if (NULL == (kp->ctype = XCALLOC(sz + 1, 1)))
 		return(-1);
 	if (fullread(fd, kp->ctype, sz, 0) < 0)
 		return(-1);
+
+	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 		return(-1);
-	/* TODO: check additive overflow. */
 	if (NULL == (kp->xcode = XCALLOC(sz + 1, 1))) 
 		return(-1);
 	if (fullread(fd, kp->xcode, sz, 0) < 0)
@@ -204,31 +235,85 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 }
 
 /*
- * Output a type, parsed key, and value to the output stream.
+ * Given a parsed field, first try to look it up and conditionally
+ * validate any looked-up fields.
+ * Then output the type, parse status (key, type, etc.), and values to
+ * the output stream.
+ * This is read by the parent's input() function.
  */
 static void
 output(int fd, const struct kvalid *keys, size_t keysz, 
-	enum input type, const char *key, const char *val, 
-	size_t valsz, const char *file, const char *ctype, 
-	const char *xcode)
+	enum input type, char *key, char *val, size_t valsz, 
+	char *file, char *ctype, char *xcode)
 {
-	size_t	 sz;
+	size_t	 	diff, sz;
+	struct kpair	pair;
+
+	memset(&pair, 0, sizeof(struct kpair));
+	pair.key = key;
+	pair.val = val;
+	pair.valsz = valsz;
+	pair.file = file;
+	pair.ctype = ctype;
+	pair.xcode = xcode;
+
+	/*
+	 * Look up the key name in our key table.
+	 * If we find it and it has a validator, then run the validator
+	 * and record the output.
+	 * Either way, the keypos parameter is going to be the key
+	 * identifier or keysz if none is found.
+	 */
+	for (pair.keypos = 0; pair.keypos < keysz; pair.keypos++) {
+		if (strcmp(keys[pair.keypos].name, pair.key)) 
+			continue;
+		if (NULL != keys[pair.keypos].valid)
+			pair.state = keys[pair.keypos].valid(&pair) ?
+				KPAIR_VALID : KPAIR_INVALID;
+		break;
+	}
 
 	fullwrite(fd, &type, sizeof(enum input));
+
 	sz = strlen(key);
 	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, key, sz);
-	fullwrite(fd, &valsz, sizeof(size_t));
-	fullwrite(fd, val, valsz);
-	sz = NULL != file ? strlen(file) : 0;
+	fullwrite(fd, pair.key, sz);
+
+	fullwrite(fd, &pair.valsz, sizeof(size_t));
+	fullwrite(fd, pair.val, pair.valsz);
+
+	fullwrite(fd, &pair.state, sizeof(enum kpairstate));
+	fullwrite(fd, &pair.type, sizeof(enum kpairtype));
+	fullwrite(fd, &pair.keypos, sizeof(size_t));
+
+	switch (pair.type) {
+	case (KPAIR_DOUBLE):
+		fullwrite(fd, &pair.parsed.d, sizeof(double));
+		break;
+	case (KPAIR_INTEGER):
+		fullwrite(fd, &pair.parsed.i, sizeof(int64_t));
+		break;
+	case (KPAIR_STRING):
+		assert(pair.parsed.s >= pair.val);
+		assert(pair.parsed.s < pair.val + pair.valsz);
+		diff = pair.val - pair.parsed.s;
+		fullwrite(fd, &diff, sizeof(size_t));
+		break;
+	default:
+		break;
+	}
+
+	sz = NULL != pair.file ? strlen(pair.file) : 0;
 	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, file, sz);
-	sz = NULL != ctype ? strlen(ctype) : 0;
+	fullwrite(fd, pair.file, sz);
+
+	sz = NULL != pair.ctype ? strlen(pair.ctype) : 0;
 	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, ctype, sz);
-	sz = NULL != xcode ? strlen(xcode) : 0;
+	fullwrite(fd, pair.ctype, sz);
+
+	sz = NULL != pair.xcode ? strlen(pair.xcode) : 0;
 	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, xcode, sz);
+	fullwrite(fd, pair.xcode, sz);
 }
 
 /*
@@ -590,7 +675,7 @@ mime_free(struct mime *mime)
  * calling parsers should bail too).
  */
 static int
-parse_multiform(int fd, const char *name, const char *bound, 
+parse_multiform(int fd, char *name, const char *bound, 
 	char *buf, size_t len, size_t *pos,
 	const struct kvalid *keys, size_t keysz)
 {
@@ -711,6 +796,11 @@ parse_multiform(int fd, const char *name, const char *bound,
 			continue;
 		}
 
+		assert('\r' == buf[*pos + partsz] || '\0' == buf[*pos + partsz]);
+
+		if ('\0' != buf[*pos + partsz])
+			buf[*pos + partsz] = '\0';
+
 		/* Assign all of our key-value pair data. */
 		output(fd, keys, keysz, IN_FORM, 
 			NULL != name ? name : mime.name, &buf[*pos], 
@@ -799,7 +889,11 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
 
 /*
  * This is the parent kcgi process.
- * It spins on input from the child until 
+ * It spins on input from the child until all fields have been received.
+ * These fields are sent from the child's output() function.
+ * Each input field consists of the data and its validation state.
+ * We build up the kpair arrays here with this data, then assign the
+ * kpairs into named buckets.
  */
 int
 khttp_input_parent(int fd, struct kreq *r, pid_t pid)
@@ -808,32 +902,69 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	struct kpair	*kpp;
 	enum input	 type;
 	int		 rc;
+	size_t		 i;
 
 	while ((rc = input(&type, &kp, fd)) > 0) {
-		switch (type) {
-		case (IN_COOKIE):
-			kpp = kpair_expand(&r->cookies, &r->cookiesz);
-			break;
-		case (IN_QUERY):
-			/* FALLTHROUGH */
-		case (IN_FORM):
-			kpp = kpair_expand(&r->fields, &r->fieldsz);
-			break;
-		default:
-			abort();
-		}
+		/*
+		 * We have a parsed field from the child process.
+		 * Begin by expanding the number of parsed fields
+		 * depending on whether we have a cookie or form input.
+		 * Then copy the new data.
+		 */
+		kpp = IN_COOKIE == type ?
+			kpair_expand(&r->cookies, &r->cookiesz) :
+			kpair_expand(&r->fields, &r->fieldsz);
+
 		if (NULL == kpp) {
 			rc = -1;
 			break;
 		}
+
 		*kpp = kp;
 	}
 
+	/*
+	 * Now that the field and cookie arrays are fixed and not going
+	 * to be reallocated any more, we run through both arrays and
+	 * assign the named fields into buckets.
+	 */
+	for (i = 0; i < r->fieldsz; i++) {
+		kpp = &r->fields[i];
+		if (kpp->keypos == r->keysz)
+			continue;
+		if (KPAIR_INVALID != kpp->state) {
+			kpp->next = r->fieldmap[kpp->keypos];
+			r->fieldmap[kpp->keypos] = kpp;
+		} else {
+			kpp->next = r->fieldnmap[kpp->keypos];
+			r->fieldnmap[kpp->keypos] = kpp;
+		}
+	}
+	for (i = 0; i < r->cookiesz; i++) {
+		kpp = &r->cookies[i];
+		if (kpp->keypos == r->keysz)
+			continue;
+		if (KPAIR_INVALID != kpp->state) {
+			kpp->next = r->cookiemap[kpp->keypos];
+			r->cookiemap[kpp->keypos] = kpp;
+		} else {
+			kpp->next = r->cookienmap[kpp->keypos];
+			r->cookienmap[kpp->keypos] = kpp;
+		}
+	}
+
+	/*
+	 * Usually, "kp" would be zeroed after its memory is copied into
+	 * one of the form-input arrays.
+	 * However, in the case of error, these may still have
+	 * allocations, so free them now.
+	 */
 	free(kp.key);
 	free(kp.val);
+	free(kp.file);
 	free(kp.ctype);
 	free(kp.xcode);
-	free(kp.file);
+
 	close(fd);
 	return(0 == rc);
 }
