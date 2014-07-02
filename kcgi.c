@@ -35,7 +35,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef HAVE_ZLIB
 #include <zlib.h>
+#endif
 
 #include "kcgi.h"
 #include "extern.h"

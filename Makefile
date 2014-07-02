@@ -1,7 +1,5 @@
 CFLAGS += -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
-# Comment this if you don't want zlib.
-CFLAGS += -DHAVE_ZLIB
-# Uncomment if you need statically linked.
+# Comment if you don't need statically linked.
 STATIC = -static
 PREFIX = /usr/local
 DATADIR = $(PREFIX)/share/kcgi
@@ -44,7 +42,7 @@ SRCS = compat-memmem.c \
        $(TESTS)
 WWWDIR = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
 
-all: sample 
+all: libkcgi.a
 
 mime2c: mime2c.o
 	$(CC) -o $@ mime2c.o -lutil

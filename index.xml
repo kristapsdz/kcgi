@@ -57,12 +57,20 @@
 					New in version <span>@VERSION@</span>...
 				</h2>
 				<p>
-					IN PROGRESS
-
+					Validation is now performed within the sandboxed child.
+					This requires validation functions to be written carefully so as not to invoke their environment (e.g.,
+					via <code>strptime</code>, which accesses the file-system).
+				</p>
+				<p>
+					The test for <code>zlib</code> now occurs within the portability framework.
+				</p>
+				<p>
 					Remove <code>pages</code> and <code>pagesz</code> from <code>struct kreq</code>.
-					Then have <code>kutil_urlpart</code> accept strings (instead of indexing values) for its filename and MIME suffix.
+					Then have <code>kutil_urlpart</code> accept strings (instead of indexing values) for its filename and
+					MIME suffix.
 					This allows the function to be general.
-					Then export the MIME symbols with a reasonable default of MIME types that can be extended by calling applications.
+					Then export the MIME symbols with a reasonable default of MIME types that can be extended by calling
+					applications.
 					Lastly, have <code>khttp_parse</code> accept a MIME array instead of using an internal one.
 				</p>
 				<p>
@@ -124,7 +132,8 @@
 					<code>khtml_text</code>; or
 				</li>
 				<li>
-					use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate file templates; or
+					use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate file
+					templates; or
 				</li>
 				<li>
 					directly use <code>khttp_putc</code>, <code>khttp_puts</code>, and <code>khttp_write</code>.
@@ -141,8 +150,8 @@
 				Security
 			</h2>
 			<p>
-				As a security precaution, the <span class="nm">kcgi</span> library parses untrusted network data in a sandboxed
-				child process as follows.
+				As a security precaution, the <span class="nm">kcgi</span> library parses and validates untrusted network data
+				in a sandboxed child process as follows.
 				When invoked, <code>khttp_parse</code> will fork.
 				The child process is responsible for reading and parsing form data from the web server.
 				This parsed data is returned to the parent process over a <code>socketpair</code>.
@@ -172,11 +181,25 @@
 					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 				</dd>
 			</dl>
+			<p>
+				Since validation occurs within the sandbox, special care must be taken that validation routines don't access the
+				environment (e.g., by opening files), as the child will be abruptly killed.
+			</p>
 			<h2 id="portability">
 				Portability
 			</h2>
 			<p>
-				TODO: configure script, apache/nginx, OSs, etc.
+				<span class="nm">kcgi</span> should run on any modern UNIX systems and with any web server.
+				To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
+					href="http://www.openbsd.org">OpenBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a> (Snow
+				Leopard, Lion) on i386 and AMD64.
+				It has been deployed under <a href="https://httpd.apache.org/">Apache</a> and <a
+					href="http://nginx.org">nginx</a> (via the <code>slowcgi</code> wrapper).
+			</p>
+			<p>
+				Portability across UNIX systems is made possible by a small <code>configure</code> script that checks for minor
+				inconsistencies such as <code>strlcpy</code>, the <a href="#security">Security</a> mechanisms, and for <a
+					href="#compression">Compression</a> support.
 			</p>
 			<h2 id="extending">
 				Extensibility
@@ -184,14 +207,15 @@
 			<p>
 				While page maps and input validation are entirely driven by the interfacing application,
 				<span class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME types, and so on.
-				A reasonable default has been provided as part of the library.
+				A reasonable default has been provided for convenience.
 			</p>
 			<h2 id="compression">
 				Compression
 			</h2>
 			<p>
-				If <code>HAVE_ZLIB</code> is enabled during compilation (via the Makefile), <code>khttp_body</code> will signal
-				use of <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
+				If <code>HAVE_ZLIB</code> is enabled during compilation (via the <a href="#portability">Portability</a>
+				mechanism), <code>khttp_body</code>
+				will signal use of <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
 				Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
 			</p>
 			<h2 id="input">
@@ -200,7 +224,8 @@
 			<p>
 				All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed, urlencoded, and
 				plain&mdash;are supported by <span class="nm">kcgi</span>.
-				As described in the <a href="#security">Security</a> section, these fields are all parsed from network data in a
+				As described in the <a href="#security">Security</a> section, these fields are all parsed and validated from
+				network data in a
 				child process.
 				Each input key-value pair can be matched (by key name) to a validator, which is run when fields are parsed.
 				You can then look up key-value pairs constant-time in a table indexed by that key.
