@@ -39,7 +39,7 @@
  * particular field.
  */
 enum	input {
-	IN_COOKIE, /* cookies (environment variable) */
+	IN_COOKIE = 0, /* cookies (environment variable) */
 	IN_QUERY, /* query string */
 	IN_FORM, /* any sort of standard input form */
 	IN__MAX
@@ -55,8 +55,18 @@ struct	mime {
 	size_t	  namesz; /* size of "name" string */
 	char	 *file; /* whether a file was specified */
 	char	 *ctype; /* content type */
+	size_t	  ctypepos; /* position of ctype in mimes */
 	char	 *xcode; /* encoding type */
 	char	 *bound; /* form entry boundary */
+};
+
+struct	parms {
+	int	 		 fd;
+	const char *const	*mimes;
+	size_t			 mimesz;
+	const struct kvalid	*keys;
+	size_t			 keysz;
+	enum input		 type;
 };
 
 /*
@@ -81,7 +91,6 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 			return(-1);
 		}
 		ssz = read(fd, buf + sz, bufsz - sz);
-		/*fprintf(stderr, "read: %zd\n", ssz);*/
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
@@ -188,6 +197,8 @@ input(enum input *type, struct kpair *kp, int fd)
 		return(-1);
 	if (fullread(fd, kp->ctype, sz, 0) < 0)
 		return(-1);
+	if (fullread(fd, &kp->ctypepos, sizeof(size_t), 0) < 0)
+		return(-1);
 
 	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
@@ -217,7 +228,6 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 		}
 
 		ssz = write(fd, buf + sz, bufsz - sz);
-		/*fprintf(stderr, "write: %zd\n", ssz);*/
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("write: trying again");
 			ssz = 0;
@@ -242,20 +252,20 @@ fullwrite(int fd, const void *buf, size_t bufsz)
  * This is read by the parent's input() function.
  */
 static void
-output(int fd, const struct kvalid *keys, size_t keysz, 
-	enum input type, char *key, char *val, size_t valsz, 
-	char *file, char *ctype, char *xcode)
+output(const struct parms *pp, char *key, 
+	char *val, size_t valsz, struct mime *mime)
 {
-	size_t	 	diff, sz;
+	size_t	 	i, diff, sz;
 	struct kpair	pair;
 
 	memset(&pair, 0, sizeof(struct kpair));
 	pair.key = key;
 	pair.val = val;
 	pair.valsz = valsz;
-	pair.file = file;
-	pair.ctype = ctype;
-	pair.xcode = xcode;
+	pair.file = NULL == mime ? NULL : mime->file;
+	pair.ctype = NULL == mime ? NULL : mime->ctype;
+	pair.xcode = NULL == mime ? NULL : mime->xcode;
+	pair.ctypepos = NULL == mime ? pp->mimesz : mime->ctypepos;
 
 	/*
 	 * Look up the key name in our key table.
@@ -264,56 +274,58 @@ output(int fd, const struct kvalid *keys, size_t keysz,
 	 * Either way, the keypos parameter is going to be the key
 	 * identifier or keysz if none is found.
 	 */
-	for (pair.keypos = 0; pair.keypos < keysz; pair.keypos++) {
-		if (strcmp(keys[pair.keypos].name, pair.key)) 
+	for (i = 0; i < pp->keysz; i++) {
+		if (strcmp(pp->keys[i].name, pair.key)) 
 			continue;
-		if (NULL != keys[pair.keypos].valid)
-			pair.state = keys[pair.keypos].valid(&pair) ?
+		if (NULL != pp->keys[i].valid)
+			pair.state = pp->keys[i].valid(&pair) ?
 				KPAIR_VALID : KPAIR_INVALID;
 		break;
 	}
+	pair.keypos = i;
 
-	fullwrite(fd, &type, sizeof(enum input));
+	fullwrite(pp->fd, &pp->type, sizeof(enum input));
 
 	sz = strlen(key);
-	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, pair.key, sz);
+	fullwrite(pp->fd, &sz, sizeof(size_t));
+	fullwrite(pp->fd, pair.key, sz);
 
-	fullwrite(fd, &pair.valsz, sizeof(size_t));
-	fullwrite(fd, pair.val, pair.valsz);
+	fullwrite(pp->fd, &pair.valsz, sizeof(size_t));
+	fullwrite(pp->fd, pair.val, pair.valsz);
 
-	fullwrite(fd, &pair.state, sizeof(enum kpairstate));
-	fullwrite(fd, &pair.type, sizeof(enum kpairtype));
-	fullwrite(fd, &pair.keypos, sizeof(size_t));
+	fullwrite(pp->fd, &pair.state, sizeof(enum kpairstate));
+	fullwrite(pp->fd, &pair.type, sizeof(enum kpairtype));
+	fullwrite(pp->fd, &pair.keypos, sizeof(size_t));
 
 	switch (pair.type) {
 	case (KPAIR_DOUBLE):
-		fullwrite(fd, &pair.parsed.d, sizeof(double));
+		fullwrite(pp->fd, &pair.parsed.d, sizeof(double));
 		break;
 	case (KPAIR_INTEGER):
-		fullwrite(fd, &pair.parsed.i, sizeof(int64_t));
+		fullwrite(pp->fd, &pair.parsed.i, sizeof(int64_t));
 		break;
 	case (KPAIR_STRING):
 		assert(pair.parsed.s >= pair.val);
 		assert(pair.parsed.s < pair.val + pair.valsz);
 		diff = pair.val - pair.parsed.s;
-		fullwrite(fd, &diff, sizeof(size_t));
+		fullwrite(pp->fd, &diff, sizeof(size_t));
 		break;
 	default:
 		break;
 	}
 
 	sz = NULL != pair.file ? strlen(pair.file) : 0;
-	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, pair.file, sz);
+	fullwrite(pp->fd, &sz, sizeof(size_t));
+	fullwrite(pp->fd, pair.file, sz);
 
 	sz = NULL != pair.ctype ? strlen(pair.ctype) : 0;
-	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, pair.ctype, sz);
+	fullwrite(pp->fd, &sz, sizeof(size_t));
+	fullwrite(pp->fd, pair.ctype, sz);
+	fullwrite(pp->fd, &pair.ctypepos, sizeof(size_t));
 
 	sz = NULL != pair.xcode ? strlen(pair.xcode) : 0;
-	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, pair.xcode, sz);
+	fullwrite(pp->fd, &sz, sizeof(size_t));
+	fullwrite(pp->fd, pair.xcode, sz);
 }
 
 /*
@@ -345,7 +357,6 @@ scanbuf(size_t len, size_t *szp)
 			_exit(EXIT_FAILURE);
 		}
 		ssz = read(STDIN_FILENO, p + sz, len - sz);
-		/*fprintf(stderr, "buf-read: %zd\n", ssz);*/
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
@@ -370,8 +381,7 @@ scanbuf(size_t len, size_t *szp)
  * guidelines for HTML give a rough idea.
  */
 static void
-parse_pairs_text(int fd, enum input type, 
-	char *p, const struct kvalid *keys, size_t keysz)
+parse_pairs_text(const struct parms *pp, char *p)
 {
 	char            *key, *val;
 
@@ -406,8 +416,7 @@ parse_pairs_text(int fd, enum input type,
 			XWARNX("text key: zero-length");
 			continue;
 		}
-		output(fd, keys, keysz, type, key, 
-			val, strlen(val), NULL, NULL, NULL);
+		output(pp, key, val, strlen(val), NULL);
 	}
 }
 
@@ -417,12 +426,12 @@ parse_pairs_text(int fd, enum input type,
  * from the input.
  */
 static void
-parse_text(int fd, size_t len, const struct kvalid *keys, size_t keysz)
+parse_text(const struct parms *pp, size_t len)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_text(fd, IN_FORM, p, keys, keysz);
+	parse_pairs_text(pp, p);
 	free(p);
 }
 
@@ -472,8 +481,7 @@ urldecode(char *p)
  * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
-parse_pairs_urlenc(int fd, enum input type, 
-	char *p, const struct kvalid *keys, size_t keysz)
+parse_pairs_urlenc(const struct parms *pp, char *p)
 {
 	char            *key, *val;
 	size_t           sz;
@@ -515,19 +523,17 @@ parse_pairs_urlenc(int fd, enum input type,
 			break;
 		}
 
-		output(fd, keys, keysz, type, key, 
-			val, strlen(val), NULL, NULL, NULL);
+		output(pp, key, val, strlen(val), NULL);
 	}
 }
 
 static void
-parse_urlenc(int fd, size_t len, 
-	const struct kvalid *keys, size_t keysz)
+parse_urlenc(const struct parms *pp, size_t len)
 {
 	char	*p;
 
 	p = scanbuf(len, NULL);
-	parse_pairs_urlenc(fd, IN_FORM, p, keys, keysz);
+	parse_pairs_urlenc(pp, p);
 	free(p);
 }
 
@@ -552,9 +558,12 @@ mime_reset(char **dst, const char *src)
  * If FALSE, parsing should stop immediately.
  */
 static int
-mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
+mime_parse(const struct parms *pp, struct mime *mime, 
+	char *buf, size_t len, size_t *pos)
 {
 	char		*key, *val, *end, *start, *line;
+	size_t		 i;
+	int		 rc = 0;
 
 	memset(mime, 0, sizeof(struct mime));
 
@@ -572,8 +581,10 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 		*pos += (end - start) + 2;
 
 		/* Empty line: we're done here! */
-		if ('\0' == *start)
-			return(1);
+		if ('\0' == *start) {
+			rc = 1;
+			break;
+		}
 
 		/* Find end of MIME statement name. */
 		key = start;
@@ -646,8 +657,23 @@ mime_parse(struct mime *mime, char *buf, size_t len, size_t *pos)
 		}
 	} 
 
-	XWARNX("MIME header unexpected EOF");
-	return(0);
+	/* 
+	 * Try to cast the content-type, if any, into a recognisable
+	 * form.
+	 * This is a convenience for the calling application.
+	 */
+	if (NULL != mime->ctype) {
+		for (i = 0; i < pp->mimesz; i++)
+			if (0 == strcasecmp(pp->mimes[i], mime->ctype))
+				break;
+		mime->ctypepos = i;
+	} else
+		mime->ctypepos = pp->mimesz;
+
+	if ( ! rc)
+		XWARNX("MIME header unexpected EOF");
+
+	return(rc);
 }
 
 /*
@@ -675,9 +701,8 @@ mime_free(struct mime *mime)
  * calling parsers should bail too).
  */
 static int
-parse_multiform(int fd, char *name, const char *bound, 
-	char *buf, size_t len, size_t *pos,
-	const struct kvalid *keys, size_t keysz)
+parse_multiform(const struct parms *pp, char *name, 
+	const char *bound, char *buf, size_t len, size_t *pos)
 {
 	struct mime	 mime;
 	size_t		 endpos, bbsz, partsz;
@@ -749,7 +774,7 @@ parse_multiform(int fd, char *name, const char *bound,
 
 		/* We now read our MIME headers, bailing on error. */
 		mime_free(&mime);
-		if ( ! mime_parse(&mime, buf, *pos + partsz, pos)) {
+		if ( ! mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
 			XWARNX("multiform: bad MIME headers");
 			goto out;
 		}
@@ -787,9 +812,9 @@ parse_multiform(int fd, char *name, const char *bound,
 				goto out;
 			}
 			if ( ! parse_multiform
-				(fd, NULL != name ? name :
+				(pp, NULL != name ? name :
 				 mime.name, mime.bound, buf, 
-				 *pos + partsz, pos, keys, keysz)) {
+				 *pos + partsz, pos)) {
 				XWARNX("multiform: mixed part error");
 				goto out;
 			}
@@ -802,9 +827,8 @@ parse_multiform(int fd, char *name, const char *bound,
 			buf[*pos + partsz] = '\0';
 
 		/* Assign all of our key-value pair data. */
-		output(fd, keys, keysz, IN_FORM, 
-			NULL != name ? name : mime.name, &buf[*pos], 
-			partsz, mime.file, mime.ctype, mime.xcode);
+		output(pp, NULL != name ? name : 
+			mime.name, &buf[*pos], partsz, &mime);
 	}
 
 	/*
@@ -826,8 +850,7 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(int fd, char *line, size_t len, 
-	const struct kvalid *keys, size_t keysz)
+parse_multi(const struct parms *pp, char *line, size_t len)
 {
 	char		*cp;
 	size_t		 sz;
@@ -873,7 +896,7 @@ parse_multi(int fd, char *line, size_t len,
 	/* Read in full file. */
 	cp = scanbuf(len, &sz);
 	len = 0;
-	parse_multiform(fd, NULL, line, cp, sz, &len, keys, keysz);
+	parse_multiform(pp, NULL, line, cp, sz, &len);
 	free(cp);
 }
 
@@ -976,10 +999,18 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
  * value size along with the field type.
  */
 void
-khttp_input_child(int fd, const struct kvalid *keys, size_t keysz)
+khttp_input_child(int fd, const struct kvalid *keys, 
+	size_t keysz, const char *const *mimes, size_t mimesz)
 {
-	char	*cp;
-	size_t	 len;
+	struct parms	 pp;
+	char		*cp;
+	size_t	 	 len;
+
+	pp.fd = fd;
+	pp.keys = keys;
+	pp.keysz = keysz;
+	pp.mimes = mimes;
+	pp.mimesz = mimesz;
 
 	/*
 	 * The CONTENT_LENGTH must be a valid integer.
@@ -1000,15 +1031,16 @@ khttp_input_child(int fd, const struct kvalid *keys, size_t keysz)
 	 * HTML5, 4.10.
 	 * We only support the main three content types.
 	 */
+	pp.type = IN_FORM;
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(fd, len, keys, keysz);
+			parse_urlenc(&pp, len);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(fd, cp + 19, len, keys, keysz);
+			parse_multi(&pp, cp + 19, len);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_text(fd, len, keys, keysz);
+			parse_text(&pp, len);
 	} else
-		parse_text(fd, len, keys, keysz);
+		parse_text(&pp, len);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
@@ -1018,8 +1050,9 @@ khttp_input_child(int fd, const struct kvalid *keys, size_t keysz)
 	 * Since this is a getenv(), we know the returned value is
 	 * nil-terminated.
 	 */
+	pp.type = IN_QUERY;
 	if (NULL != (cp = getenv("QUERY_STRING")))
-		parse_pairs_urlenc(fd, IN_QUERY, cp, keys, keysz);
+		parse_pairs_urlenc(&pp, cp);
 
 	/*
 	 * Cookies come last.
@@ -1029,6 +1062,7 @@ khttp_input_child(int fd, const struct kvalid *keys, size_t keysz)
 	 * Since this is a getenv(), we know the returned value is
 	 * nil-terminated.
 	 */
+	pp.type = IN_COOKIE;
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
-		parse_pairs_urlenc(fd, IN_COOKIE, cp, keys, keysz);
+		parse_pairs_urlenc(&pp, cp);
 }
