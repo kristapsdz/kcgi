@@ -23,6 +23,7 @@
 .Nm khttp_free ,
 .Nm khttp_head ,
 .Nm khttp_parse ,
+.Nm khttp_parsex ,
 .Nm khttp_putc ,
 .Nm khttp_puts ,
 .Nm khttp_template ,
@@ -77,6 +78,14 @@
 .Fc
 .Ft int
 .Fo khttp_parse
+.Fa "struct kreq *req"
+.Fa "const struct kvalid *keys"
+.Fa "size_t keysz"
+.Fa "const char *const *pages"
+.Fa "size_t pagesz"
+.Fc
+.Ft int
+.Fo khttp_parsex
 .Fa "struct kreq *req"
 .Fa "const struct kmimemap *suffixes"
 .Fa "size_t mimemax"
@@ -421,12 +430,20 @@ The MIME type of the requested file as determined by its
 matched to the
 .Fa mimemap
 map passed to
+.Fn khttp_parsex
+or the default
+.Va kmimemap
+if using
 .Fn khttp_parse .
 This defaults to the
 .Va mimemax
 value passed to
-.Fn khttp_parse
-if no suffix is specified or if the suffix is specified but not known.
+.Fn khttp_parsex
+or the default
+.Dv KMIME__MAX
+if using
+.Fn khttp_parse .
+when no suffix is specified or when the suffix is specified but not known.
 .It Va page
 The page index as defined by the
 .Va pages
@@ -565,6 +582,10 @@ is not
 it is looked up in the
 .Fa mimes
 parameter passed to
+.Fn khttp_parsex
+or
+.Va ksuffixmap
+if using
 .Fn khttp_parse .
 If found, it is set to the appropriate index.
 Otherwise, it's
@@ -676,6 +697,21 @@ Most HTTP response headers are included in the
 .Va kresps
 global array.
 .It Fn khttp_parse "struct kreq *req" \
+"const struct kvalid *keys" \
+"size_t keysz" \
+"const char *const *pages" \
+"size_t pagesz"
+A shortened version of
+.Fn khttp_parsex
+defaulting to
+.Va ksuffixmap ,
+.Va kmimetypes ,
+and
+.Dv KMIME__MAX .
+It also passes
+.Dv NULL
+arguments for the private data and free function.
+.It Fn khttp_parsex "struct kreq *req" \
 "const struct kmimemap *suffixes" \
 "size_t mimemax" \
 "const struct kvalid *keys" \
