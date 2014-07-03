@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 2 2014 $
+.Dd $Mdocdate: July 3 2014 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -531,10 +531,19 @@ if anything goes.
 If you provide your own
 .Fa valid
 function, it must set the
-.Fa field
+.Va field
 and
-.Fa parsed
+.Va parsed
 variables in the key-value pair.
+You can also allocate new memory for the
+.Va val
+and thus
+.Va valsz :
+if the value of
+.Va val
+changes during your validation, the new value will be freed with
+.Xr free 3
+after being passed out of the sandbox.
 .Em Note :
 these functions are invoked from within a system-specific sandbox.
 You should assume that you cannot invoke any
