@@ -1162,6 +1162,16 @@ kreq_free(struct kreq *req)
 	free(req->pname);
 }
 
+int
+khttp_parse(struct kreq *req, 
+	const struct kvalid *keys, size_t keysz,
+	const char *const *pages, size_t pagesz,
+	size_t defpage)
+{
+
+	return(khttp_parsex(req, ksuffixmap, kmimetypes, KMIME__MAX, 
+		keys, keysz, pages, pagesz, defpage, NULL, NULL));
+}
 
 /*
  * Parse a request from an HTTP request.
@@ -1169,7 +1179,7 @@ kreq_free(struct kreq *req)
  * pasred query string, cookie, and form data.
  */
 int
-khttp_parse(struct kreq *req, 
+khttp_parsex(struct kreq *req, 
 	const struct kmimemap *suffixmap, 
 	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz,

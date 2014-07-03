@@ -746,6 +746,10 @@ void		 khttp_head(struct kreq *req, const char *key,
 			const char *fmt, ...)
 			__attribute__((format(printf, 3, 4)));
 int		 khttp_parse(struct kreq *req, 
+			const struct kvalid *keys, size_t keymax,
+			const char *const *pages, size_t pagemax,
+			size_t defpage);
+int		 khttp_parsex(struct kreq *req, 
 			const struct kmimemap *suffixes, 
 			const char *const *mimes, size_t mimemax,
 			const struct kvalid *keys, size_t keymax,

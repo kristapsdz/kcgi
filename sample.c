@@ -229,9 +229,8 @@ main(void)
 	struct kreq	 r;
 
 	/* Set up our main HTTP context. */
-	if ( ! khttp_parse(&r, ksuffixmap, kmimetypes, 
-		KMIME__MAX, keys, KEY__MAX, pages, 
-		PAGE__MAX, PAGE_INDEX, NULL, NULL))
+	if ( ! khttp_parse(&r, keys, KEY__MAX, 
+		pages, PAGE__MAX, PAGE_INDEX))
 		return(EXIT_FAILURE);
 
 	if (PAGE__MAX == r.page || KMIME_TEXT_HTML != r.mime) {

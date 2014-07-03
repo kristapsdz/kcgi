@@ -58,6 +58,8 @@
 				</h2>
 				<p>XXX</p>
 				<p>
+					Rename <code>khttp_parse</code> to <code>khttp_parsex</code> and use simplified arguments for the
+					original <code>khttp_parse</code>.
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
 				</p>
