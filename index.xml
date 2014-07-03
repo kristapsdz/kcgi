@@ -4,236 +4,242 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
 		<title>kcgi | minimal CGI library for C</title>
-		<style>
-			html, body { margin: 0; padding: 0; }
-			header { margin-top: 1em; }
-			header span.nm { font-size: 16pt; }
-			header span.nd { font-size: 14pt; }
-			article span.nm, article a.nm { font-style: italic; }
-			header, article, footer { width: 80%; margin-left: auto; margin-right: auto; }
-			body { color: #333; font-family: Times,serif; line-height: 120%; }
-			nav { color: #666; margin-top: 0.5ex; }
-			nav span { border-left: thin solid silver; margin-left: 0.25ex; padding-left: 0.5ex; }
-			nav span:first-child { border: 0; padding: 0; margin: 0; }
-			a { text-decoration: none; }
-			footer { margin-top: 1em; font-size: smaller; color: #666; }
-			footer a { color: #000; }
-			h2 { font-size: inherit; font-weight: bolder; color: #333; }
-			.file { font-style: italic; }
-			#version { border: thin solid #ddd; background-color: #eee; padding: 0.5ex; border-radius: 1ex; }
-			#version h2 { margin: 0.25ex; font-weight: inherit; }
-			#version h2 span { font-style: italic; color: #666; }
-			#version p { margin: 0.25ex; }
-			@media only screen and (max-width: 600px), only screen and (max-device-width: 600px) {
-				header, article, footer { width: 98%; }
-			}
-		</style>
+		<link rel="stylesheet" href="index.css" type="text/css" />
 	</head>
 	<body>
 		<header>
-			<span class="nm">kcgi</span>
-			&#8212;
-			<span class="nd">minimal CGI library for C</span>
+			<h1>
+				<span class="nm">kcgi</span>&#8212;<span class="nd">minimal CGI library in C</span>
+			</h1>
 			<nav>
-				<span>version <span>@VERSION@</span></span>
 				<span><a href="snapshots/kcgi.tgz">Sources</a></span>
 				<span><a href="snapshots">Archives</a></span>
 			</nav>
-		</header>
-		<article>
-			<p>
-				<span class="nm">kcgi</span> is a minimal CGI library for web applications (HTML and HTTP) in <a
-					href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a> ISO C.  
-				It was designed to be secure and auditable.
-				See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a> for
-				alternatives.
-				To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make
-					install</code> into your <code>PREFIX</code> of choice.
-				The <a href="kcgi.3.html">kcgi(3)</a> manpage documents usage.
-				<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
-			</p>
-			<div id="version">
-				<h2>
-					New in version <span>@VERSION@</span>...
-				</h2>
-				<p>XXX</p>
+			<section id="version">
 				<p>
-					Rename <code>khttp_parse</code> to <code>khttp_parsex</code> and use simplified arguments for the
-					original <code>khttp_parse</code>.
+					<i>Version @VERSION@</i>: rename <code>khttp_parse</code> to <code>khttp_parsex</code> and use simplified
+					arguments
+					for the original <code>khttp_parse</code>.
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
 				</p>
-			</div>
-			<p>
-				The following is a rough feature list of <span class="nm">kcgi</span>.
-				See the <a href="kcgi.3.html">manual</a> for details.
-			</p>
-			<ul>
-				<li><a href="#input">input processing</a>: parses and validates query string, cookie, and form input</li>
-				<li><a href="#functions">output processing</a>: pretty-prints HTML5 trees, outputs HTTP headers, formats URLs</li>
-				<li><a href="#template">templating</a>: populates file templates with callbacks</li>
-				<li><a href="#security">security</a>: process-separated, sandboxed parsing of input</li>
-				<li><a href="#compression">compression</a>: automatically compresses HTTP response</li>
-				<li><a href="#extending">extensibility</a>: extensible MIME types, HTTP headers, etc. with reasonable defaults</li>
-				<li><a href="#portable">portability</a>: compatibility across UNIX systems and web servers</li>
-			</ul>
-			<p>
-				Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a> file
-				distributed in the source consists of a full working example):
-			</p>
-			<ol>
-				<li>
-					Call <code>khttp_parse</code> as early as possible.  
-					This will parse forms, query, and cookie data; validate fields; set up the HTTP environment; and map
-					page and MIME requests.
-					Validation uses
-					<code>kvalid_double</code>,
-					<code>kvalid_email</code>,
-					<code>kvalid_int</code>,
-					<code>kvalid_string</code>,
-					<code>kvalid_udouble</code>,
-					<code>kvalid_uint</code>,
-					or locally-defined functions for validation.
-				</li>
-				<li>
-					Examine the <code>struct kpair</code> elements of the <code>struct kreq</code> structure and potentially
-					perform high-level, database-driven revalidation.
-					This structure contains all elements parsed by <code>khttp_parse</code>.
-				</li>
-				<li>
-					Emit HTTP headers with <code>khttp_head</code>, followed by <code>khttp_body</code> to begin the HTTP
-					body.
-					The latter will automatically trigger compression if requested by the client.
-				</li>
-				<li>
-					Emit HTTP body output using HTML5 tree-building functions 
-					<code>khtml_attr</code>,
-					<code>khtml_attrx</code>,
-					<code>khtml_close</code>, 
-					<code>khtml_closeto</code>, 
-					<code>khtml_elem</code>,
-					<code>khtml_elemat</code>, 
-					<code>khtml_entity</code>, 
-					<code>khtml_int</code>,
-					<code>khtml_ncr</code>, or
-					<code>khtml_text</code>; or
-				</li>
-				<li>
-					use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate file
-					templates; or
-				</li>
-				<li>
-					directly use <code>khttp_putc</code>, <code>khttp_puts</code>, and <code>khttp_write</code>.
-				</li>
-				<li>
-					Call <code>khttp_free</code> to close the HTTP document and free all memory.
-				</li>
-			</ol>
-			<p>
-				This library is still quite new.
-				Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
-			</p>
-			<h2 id="security">
-				Security
-			</h2>
-			<p>
-				As a security precaution, the <span class="nm">kcgi</span> library parses and validates untrusted network data
-				in a sandboxed child process as follows.
-				When invoked, <code>khttp_parse</code> will fork.
-				The child process is responsible for reading and parsing form data from the web server.
-				This parsed data is returned to the parent process over a <code>socketpair</code>.
-			</p>
-			<p>
-				<span class="nm">kcgi</span> follows <a href="http://www.openssh.org">OpenSSH</a>'s method of sandboxing
-				the untrusted child process.
-				This requires special handling for each operating system.
-				For now, only two methods are supported.
-			</p>
-			<dl>
-				<dt>
-					systrace
-				</dt>
-				<dd>
-					The <code>systrace(4)</code> device as found on <a href="http://www.openbsd.org">OpenBSD</a> and other
-					operating systems.
-					This requires the existence of <code>/dev/systrace</code> if running in a <code>chroot(2)</code>.
-					<emph>Note</emph>: if you're using a stock <a href="http://www.openbsd.org">OpenBSD</a>, make sure that
-					the mount-point of the <code>/dev/systrace</code> isn't mounted <code>nodev</code>!
-				</dd>
-				<dt>
-					Mac OS X Sandbox
-				</dt>
-				<dd>
-					The <code>sandbox(7)</code> facility for <q>pure computation</q> provided in Mac OS X Leopard and later.
-					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
-				</dd>
-			</dl>
-			<p>
-				Since validation occurs within the sandbox, special care must be taken that validation routines don't access the
-				environment (e.g., by opening files), as the child will be abruptly killed.
-			</p>
-			<h2 id="portability">
-				Portability
-			</h2>
-			<p>
-				<span class="nm">kcgi</span> should run on any modern UNIX systems and with any web server.
-				To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
-					href="http://www.openbsd.org">OpenBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a> (Snow
-				Leopard, Lion) on i386 and AMD64.
-				It has been deployed under <a href="https://httpd.apache.org/">Apache</a> and <a
-					href="http://nginx.org">nginx</a> (via the <code>slowcgi</code> wrapper).
-			</p>
-			<p>
-				Portability across UNIX systems is made possible by a small <code>configure</code> script that checks for minor
-				inconsistencies such as <code>strlcpy</code>, the <a href="#security">Security</a> mechanisms, and for <a
-					href="#compression">Compression</a> support.
-			</p>
-			<h2 id="extending">
-				Extensibility
-			</h2>
-			<p>
-				While page maps and input validation are entirely driven by the interfacing application,
-				<span class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME types, and so on.
-				A reasonable default has been provided for convenience.
-			</p>
-			<h2 id="compression">
-				Compression
-			</h2>
-			<p>
-				If <code>HAVE_ZLIB</code> is enabled during compilation (via the <a href="#portability">Portability</a>
-				mechanism), <code>khttp_body</code>
-				will signal use of <a href="http://www.zlib.net">zlib</a> to compress the HTTP body.
-				Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
-			</p>
-			<h2 id="input">
-				Input Processing
-			</h2>
-			<p>
-				All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed, urlencoded, and
-				plain&mdash;are supported by <span class="nm">kcgi</span>.
-				As described in the <a href="#security">Security</a> section, these fields are all parsed and validated from
-				network data in a
-				child process.
-				Each input key-value pair can be matched (by key name) to a validator, which is run when fields are parsed.
-				You can then look up key-value pairs constant-time in a table indexed by that key.
-			</p>
-			<h2 id="functions">
-				Output Processing
-			</h2>
-			<p>
-				<span class="nm">kcgi</span> provides just the necessary functions for building HTML5 trees, outputting HTTP
-				headers, and building URLs to get by.  
-				As a convenience, it also provides memory allocation wrappers.
-			</p>
-			<h2 id="template">
-				Templating
-			</h2>
-			<p>
-				While you can build HTML5 trees as noted in <a href="#functions">Functions</a>, most application will want just
-				to fill in a template.
-				<span class="nm">kcgi</span> provides two simple functions, <code>khttp_template</code> and
-				<code>khttp_template_buf</code>, to fill in files or memory buffers with data.
-			</p>
+			</section>
+		</header>
+		<article>
+			<section id="intro">
+				<p>
+					<span class="nm">kcgi</span> is a minimal CGI library for web applications in <a
+						href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a> ISO C.  
+					It was designed to be secure and auditable.
+					See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a>
+					for alternatives.
+					To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into your
+					<code>PREFIX</code> of choice.
+					The <a href="kcgi.3.html">kcgi(3)</a> manpage documents usage.
+					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
+				</p>
+			</section>
+			<section id="sample">int main(void) {
+	struct <a href="kcgi.3.html#x5479706573">kreq</a> r;
+	struct kvalid key = { kvalid_int, "integer" };
+	const char *page = "index";
+	if ( ! <a href="kcgi.3.html#x46756e6374696f6e73">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+		return(EXIT_FAILURE);
+	khttp_head(&amp;r, <a href="kcgi.3.html#x476c6f62616c73">kresps</a>[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+	khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
+	khttp_body(&amp;r);
+	return(EXIT_SUCCESS);
+}</section>
+			<section id="features">
+				<p>
+					Most <span class="nm">kcgi</span> applications work as follows (the <a href="sample.c.txt">sample.c</a>
+					file distributed in the source consists of a full working example):
+				</p>
+				<ol>
+					<li>
+						Call <code>khttp_parse</code> as early as possible.  
+						This will parse forms, query, and cookie data; validate fields; set up the HTTP environment; and
+						map page and MIME requests.
+						Validation uses
+						<code>kvalid_double</code>,
+						<code>kvalid_email</code>,
+						<code>kvalid_int</code>,
+						<code>kvalid_string</code>,
+						<code>kvalid_udouble</code>,
+						<code>kvalid_uint</code>,
+						or locally-defined functions for validation.
+					</li>
+					<li>
+						Examine the <code>struct kpair</code> elements of the <code>struct kreq</code> structure and
+						potentially perform high-level, database-driven revalidation.
+						This structure contains all elements parsed by <code>khttp_parse</code>.
+					</li>
+					<li>
+						Emit HTTP headers with <code>khttp_head</code>, followed by <code>khttp_body</code> to begin the
+						HTTP body.
+						The latter will automatically trigger compression if requested by the client.
+					</li>
+					<li>
+						Emit HTTP body output using HTML5 tree-building functions 
+						<code>khtml_attr</code>,
+						<code>khtml_attrx</code>,
+						<code>khtml_close</code>, 
+						<code>khtml_closeto</code>, 
+						<code>khtml_elem</code>,
+						<code>khtml_elemat</code>, 
+						<code>khtml_entity</code>, 
+						<code>khtml_int</code>,
+						<code>khtml_ncr</code>, or
+						<code>khtml_text</code>; or
+					</li>
+					<li>
+						use the <code>khttp_template</code> or <code>khttp_template_buf</code> functions to populate
+						file templates; or
+					</li>
+					<li>
+						directly use <code>khttp_putc</code>, <code>khttp_puts</code>, and <code>khttp_write</code>.
+					</li>
+					<li>
+						Call <code>khttp_free</code> to close the HTTP document and free all memory.
+					</li>
+				</ol>
+				<p>
+					This library is still quite new.
+					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
+				</p>
+				<p>
+					The following is a rough feature list of <span class="nm">kcgi</span>.
+					See the <a href="kcgi.3.html">manual</a> for details.
+				</p>
+				<ul>
+					<li>
+						<a href="#input">input processing</a>: parses and validates query string, cookie, and form input
+					</li>
+					<li>
+						<a href="#functions">output processing</a>: pretty-prints HTML5 trees, outputs HTTP headers,
+						formats URLs
+					</li>
+					<li>
+						<a href="#template">templating</a>: populates file templates with callbacks
+					</li>
+					<li>
+						<a href="#security">security</a>: process-separated, sandboxed parsing of input
+					</li>
+					<li>
+						<a href="#compression">compression</a>: automatically compresses HTTP response
+					</li>
+					<li>
+						<a href="#extending">extensibility</a>: extensible MIME types, HTTP headers, etc. with
+						reasonable defaults
+					</li>
+					<li>
+						<a href="#portable">portability</a>: compatibility across UNIX systems and web servers
+					</li>
+				</ul>
+				<h2 id="security">
+					Security
+				</h2>
+				<p>
+					As a security precaution, the <span class="nm">kcgi</span> library parses and validates untrusted
+					network data in a sandboxed child process as follows.
+					When invoked, <code>khttp_parse</code> will fork.
+					The child process is responsible for reading and parsing form data from the web server.
+					This parsed data is returned to the parent process over a <code>socketpair</code>.
+				</p>
+				<p>
+					<span class="nm">kcgi</span> follows <a href="http://www.openssh.org">OpenSSH</a>'s method of sandboxing
+					the untrusted child process.
+					This requires special handling for each operating system.
+					For now, only two methods are supported.
+				</p>
+				<dl>
+					<dt>
+						systrace
+					</dt>
+					<dd>
+						The <code>systrace(4)</code> device as found on <a href="http://www.openbsd.org">OpenBSD</a> and
+						other operating systems.
+						This requires the existence of <code>/dev/systrace</code> if running in a <code>chroot(2)</code>.
+						<emph>Note</emph>: if you're using a stock <a href="http://www.openbsd.org">OpenBSD</a>, make
+						sure that the mount-point of the <code>/dev/systrace</code> isn't mounted <code>nodev</code>!
+					</dd>
+					<dt>
+						Mac OS X Sandbox
+					</dt>
+					<dd>
+						The <code>sandbox(7)</code> facility for <q>pure computation</q> provided in Mac OS X Leopard
+						and later.
+						This is supplemented by resource limiting with <code>setrlimit(2)</code>.
+					</dd>
+				</dl>
+				<p>
+					Since validation occurs within the sandbox, special care must be taken that validation routines don't
+					access the environment (e.g., by opening files), as the child will be abruptly killed.
+				</p>
+				<h2 id="portability">
+					Portability
+				</h2>
+				<p>
+					<span class="nm">kcgi</span> should run on any modern UNIX systems and with any web server.
+					To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
+						href="http://www.openbsd.org">OpenBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a>
+					(Snow Leopard, Lion) on i386 and AMD64.
+					It has been deployed under <a href="https://httpd.apache.org/">Apache</a> and <a
+						href="http://nginx.org">nginx</a> (via the <code>slowcgi</code> wrapper).
+				</p>
+				<p>
+					Portability across UNIX systems is made possible by a small <code>configure</code> script that checks
+					for minor inconsistencies such as <code>strlcpy</code>, the <a href="#security">Security</a> mechanisms,
+					and for <a href="#compression">Compression</a> support.
+				</p>
+				<h2 id="extending">
+					Extensibility
+				</h2>
+				<p>
+					While page maps and input validation are entirely driven by the interfacing application, <span
+						class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME
+					types, and so on.
+					A reasonable default has been provided for convenience.
+				</p>
+				<h2 id="compression">
+					Compression
+				</h2>
+				<p>
+					If <code>HAVE_ZLIB</code> is enabled during compilation (via the <a href="#portability">Portability</a>
+					mechanism), <code>khttp_body</code> will signal use of <a href="http://www.zlib.net">zlib</a> to
+					compress the HTTP body.
+					Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
+				</p>
+				<h2 id="input">
+					Input Processing
+				</h2>
+				<p>
+					All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed,
+					urlencoded, and plain&mdash;are supported by <span class="nm">kcgi</span>.
+					As described in the <a href="#security">Security</a> section, these fields are all parsed and validated
+					from network data in a child process.
+					Each input key-value pair can be matched (by key name) to a validator, which is run when fields are
+					parsed.
+					You can then look up key-value pairs constant-time in a table indexed by that key.
+				</p>
+				<h2 id="functions">
+					Output Processing
+				</h2>
+				<p>
+					<span class="nm">kcgi</span> provides just the necessary functions for building HTML5 trees, outputting
+					HTTP headers, and building URLs to get by.  
+					As a convenience, it also provides memory allocation wrappers.
+				</p>
+				<h2 id="template">
+					Templating
+				</h2>
+				<p>
+					While you can build HTML5 trees as noted in <a href="#functions">Functions</a>, most application will
+					want just to fill in a template.
+					<span class="nm">kcgi</span> provides two simple functions, <code>khttp_template</code> and
+					<code>khttp_template_buf</code>, to fill in files or memory buffers with data.
+				</p>
+			</section>
 		</article>
 		<footer>
 			&#169; 2014 <a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a>,
