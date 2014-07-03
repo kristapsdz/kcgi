@@ -255,12 +255,13 @@ static void
 output(const struct parms *pp, char *key, 
 	char *val, size_t valsz, struct mime *mime)
 {
-	size_t	 	i, diff, sz;
-	struct kpair	pair;
+	size_t	 	 i, diff, sz;
+	char		*save;
+	struct kpair	 pair;
 
 	memset(&pair, 0, sizeof(struct kpair));
 	pair.key = key;
-	pair.val = val;
+	pair.val = save = val;
 	pair.valsz = valsz;
 	pair.file = NULL == mime ? NULL : mime->file;
 	pair.ctype = NULL == mime ? NULL : mime->ctype;
@@ -326,6 +327,14 @@ output(const struct parms *pp, char *key,
 	sz = NULL != pair.xcode ? strlen(pair.xcode) : 0;
 	fullwrite(pp->fd, &sz, sizeof(size_t));
 	fullwrite(pp->fd, pair.xcode, sz);
+
+	/*
+	 * We can write a new "val" in the validator allocated on the
+	 * heap.
+	 * If we do, free it here.
+	 */
+	if (save != pair.val)
+		free(pair.val);
 }
 
 /*
