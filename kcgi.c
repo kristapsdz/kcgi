@@ -911,7 +911,8 @@ kutil_urlencode(const char *cp)
 		memset(buf, 0, sizeof(buf));
 		if (' ' == ch) 
 			buf[0] = '+';
-		else if (isalnum((int)ch))
+		else if (isalnum((int)ch) || ch == '-' || 
+			ch == '_' || ch == '.' || ch == '~') 
 			buf[0] = ch;
 		else
 			(void)snprintf(buf, sizeof(buf), "%%%.2x", ch);

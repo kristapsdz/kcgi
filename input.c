@@ -476,8 +476,7 @@ urldecode(char *p)
 			*p = (char)c;
 			memmove(p + 1, p + 3, strlen(p + 3) + 1);
 		} else
-			*p = /* LINTED */
-				'+' == *p ? ' ' : *p;
+			*p = '+' == *p ? ' ' : *p;
 	}
 
 	*p = '\0';
