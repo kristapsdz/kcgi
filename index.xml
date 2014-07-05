@@ -22,7 +22,8 @@
 					for the original <code>khttp_parse</code>.
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
-					Lastly, remove some overly-restrictive assertions on empty input fields.
+					Lastly, remove some overly-restrictive assertions on empty input fields and added the
+					<code>kvalid_stringne</code> validator for non-empty strings.
 				</p>
 			</section>
 		</header>
@@ -66,6 +67,7 @@
 						<code>kvalid_email</code>,
 						<code>kvalid_int</code>,
 						<code>kvalid_string</code>,
+						<code>kvalid_stringne</code>,
 						<code>kvalid_udouble</code>,
 						<code>kvalid_uint</code>,
 						or locally-defined functions for validation.

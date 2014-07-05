@@ -1671,6 +1671,21 @@ valid_email(char *p)
 }
 
 int
+kvalid_stringne(struct kpair *p)
+{
+
+	/*
+	 * To check if we're a valid string, simply make sure that the
+	 * nil pointer is where we expect it to be.
+	 */
+	if (strlen(p->val) != p->valsz || 0 == p->valsz)
+		return(0);
+	p->type = KPAIR_STRING;
+	p->parsed.s = p->val;
+	return(1);
+}
+
+int
 kvalid_string(struct kpair *p)
 {
 
@@ -1689,7 +1704,7 @@ int
 kvalid_email(struct kpair *p)
 {
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_stringne(p))
 		return(0);
 	return(NULL != (p->parsed.s = valid_email(p->val)));
 }
@@ -1710,7 +1725,7 @@ kvalid_double(struct kpair *p)
 	char		*ep;
 	double		 lval;
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_stringne(p))
 		return(0);
 
 	errno = 0;
@@ -1729,7 +1744,7 @@ kvalid_int(struct kpair *p)
 {
 	const char	*ep;
 
-	if ( ! kvalid_string(p))
+	if ( ! kvalid_stringne(p))
 		return(0);
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
