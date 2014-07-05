@@ -22,6 +22,7 @@
 					for the original <code>khttp_parse</code>.
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
+					Lastly, remove some overly-restrictive assertions on empty input fields.
 				</p>
 			</section>
 		</header>
