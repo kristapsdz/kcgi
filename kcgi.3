@@ -54,6 +54,7 @@
 .Nm kvalid_email ,
 .Nm kvalid_int ,
 .Nm kvalid_string ,
+.Nm kvalid_stringne ,
 .Nm kvalid_udouble ,
 .Nm kvalid_uint
 .Nd minimal CGI library in C
@@ -185,6 +186,8 @@
 .Ft int
 .Fn kvalid_string "struct kpair *kp"
 .Ft int
+.Fn kvalid_stringne "struct kpair *kp"
+.Ft int
 .Fn kvalid_udouble "struct kpair *kp"
 .Ft int
 .Fn kvalid_uint "struct kpair *kp"
@@ -234,6 +237,7 @@ This will parse and validate input fields and cookies with
 .Fn kvalid_email ,
 .Fn kvalid_int ,
 .Fn kvalid_string ,
+.Fn kvalid_stringne ,
 .Fn kvalid_udouble ,
 .Fn kvalid_uint ,
 and/or those provided by the implementing system.
@@ -898,7 +902,13 @@ this is a heuristic validation, not a formal one.
 Validate a signed 64-bit integer.
 .It Fn kvalid_string "struct kpair *kp"
 Validate a nil-terminated string.
-This is also used by the
+.Em Note :
+the string may be zero-length!
+.It Fn kvalid_stringne "struct kpair *kp"
+Same as
+.Fn kvalid_string ,
+but ensures that the string is non-empty.
+This is used by
 .Fn kvalid_double ,
 .Fn kvalid_email ,
 .Fn kvalid_int ,
@@ -906,8 +916,6 @@ This is also used by the
 and
 .Fn kvalid_uint
 to make sure the string representation of their data is sane.
-.Em Note :
-the string may be zero-length!
 .It Fn kvalid_udouble "struct kpair *kp"
 Validate a positive non-zero double-precision floating-point number.
 .Em Note :
