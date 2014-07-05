@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -127,6 +128,7 @@ input(enum input *type, struct kpair *kp, int fd)
 {
 	size_t		 sz;
 	int		 rc;
+	ptrdiff_t	 diff;
 
 	memset(kp, 0, sizeof(struct kpair));
 
@@ -163,24 +165,25 @@ input(enum input *type, struct kpair *kp, int fd)
 	if (fullread(fd, &kp->keypos, sizeof(size_t), 0) < 0)
 		return(-1);
 
-	switch (kp->type) {
-	case (KPAIR_DOUBLE):
-		if (fullread(fd, &kp->parsed.d, sizeof(double), 0) < 0)
-			return(-1);
-		break;
-	case (KPAIR_INTEGER):
-		if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0) < 0)
-			return(-1);
-		break;
-	case (KPAIR_STRING):
-		if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
-			return(-1);
-		assert(sz <= kp->valsz);
-		kp->parsed.s = kp->val + sz;
-		break;
-	default:
-		break;
-	}
+	if (KPAIR_VALID == kp->state)
+		switch (kp->type) {
+		case (KPAIR_DOUBLE):
+			if (fullread(fd, &kp->parsed.d, sizeof(double), 0) < 0)
+				return(-1);
+			break;
+		case (KPAIR_INTEGER):
+			if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0) < 0)
+				return(-1);
+			break;
+		case (KPAIR_STRING):
+			if (fullread(fd, &diff, sizeof(ptrdiff_t), 0) < 0)
+				return(-1);
+			assert(diff <= (ssize_t)kp->valsz);
+			kp->parsed.s = kp->val + diff;
+			break;
+		default:
+			break;
+		}
 
 	/* TODO: check additive overflow. */
 	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
@@ -255,11 +258,13 @@ static void
 output(const struct parms *pp, char *key, 
 	char *val, size_t valsz, struct mime *mime)
 {
-	size_t	 	 i, diff, sz;
+	size_t	 	 i, sz;
+	ptrdiff_t	 diff;
 	char		*save;
 	struct kpair	 pair;
 
 	memset(&pair, 0, sizeof(struct kpair));
+
 	pair.key = key;
 	pair.val = save = val;
 	pair.valsz = valsz;
@@ -298,22 +303,23 @@ output(const struct parms *pp, char *key,
 	fullwrite(pp->fd, &pair.type, sizeof(enum kpairtype));
 	fullwrite(pp->fd, &pair.keypos, sizeof(size_t));
 
-	switch (pair.type) {
-	case (KPAIR_DOUBLE):
-		fullwrite(pp->fd, &pair.parsed.d, sizeof(double));
-		break;
-	case (KPAIR_INTEGER):
-		fullwrite(pp->fd, &pair.parsed.i, sizeof(int64_t));
-		break;
-	case (KPAIR_STRING):
-		assert(pair.parsed.s >= pair.val);
-		assert(pair.parsed.s <= pair.val + pair.valsz);
-		diff = pair.val - pair.parsed.s;
-		fullwrite(pp->fd, &diff, sizeof(size_t));
-		break;
-	default:
-		break;
-	}
+	if (KPAIR_VALID == pair.state) 
+		switch (pair.type) {
+		case (KPAIR_DOUBLE):
+			fullwrite(pp->fd, &pair.parsed.d, sizeof(double));
+			break;
+		case (KPAIR_INTEGER):
+			fullwrite(pp->fd, &pair.parsed.i, sizeof(int64_t));
+			break;
+		case (KPAIR_STRING):
+			assert(pair.parsed.s >= pair.val);
+			assert(pair.parsed.s <= pair.val + pair.valsz);
+			diff = pair.val - pair.parsed.s;
+			fullwrite(pp->fd, &diff, sizeof(ptrdiff_t));
+			break;
+		default:
+			break;
+		}
 
 	sz = NULL != pair.file ? strlen(pair.file) : 0;
 	fullwrite(pp->fd, &sz, sizeof(size_t));
