@@ -175,7 +175,7 @@ input(enum input *type, struct kpair *kp, int fd)
 	case (KPAIR_STRING):
 		if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
 			return(-1);
-		assert(sz < kp->valsz);
+		assert(sz <= kp->valsz);
 		kp->parsed.s = kp->val + sz;
 		break;
 	default:
@@ -307,7 +307,7 @@ output(const struct parms *pp, char *key,
 		break;
 	case (KPAIR_STRING):
 		assert(pair.parsed.s >= pair.val);
-		assert(pair.parsed.s < pair.val + pair.valsz);
+		assert(pair.parsed.s <= pair.val + pair.valsz);
 		diff = pair.val - pair.parsed.s;
 		fullwrite(pp->fd, &diff, sizeof(size_t));
 		break;
