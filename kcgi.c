@@ -1670,6 +1670,47 @@ valid_email(char *p)
 	return(start);
 }
 
+static long
+mkdate(int d, int m, int y)
+{
+
+	m = (m + 9) % 12;
+	y = y - m / 10;
+	return(365 * y + y / 4 - y / 100 + 
+		y / 400 + (m * 306 + 5) / 10 + (d - 1));
+}
+
+int
+kvalid_date(struct kpair *kp)
+{
+	int		 mday, mon, year;
+	long		 v;
+
+	if ( ! kvalid_stringne(kp))
+		return(0);
+	else if (kp->valsz != 10)
+		return(0);
+	else if ( ! isdigit((int)kp->val[0]) ||
+		! isdigit((int)kp->val[1]) ||
+		! isdigit((int)kp->val[2]) ||
+		! isdigit((int)kp->val[3]) ||
+		'-' != kp->val[4] || 
+		! isdigit((int)kp->val[5]) ||
+		! isdigit((int)kp->val[6]) ||
+		'-' != kp->val[7] || 
+		! isdigit((int)kp->val[8]) ||
+		! isdigit((int)kp->val[9]))
+		return(0);
+
+	year = atoi(&kp->val[0]);
+	mon = atoi(&kp->val[4]);
+	mday = atoi(&kp->val[8]);
+
+	v = mkdate(mday, mon, year) * 86400;
+	kp->parsed.i = v - mkdate(1, 1, 1970) * 86400;
+	return(1);
+}
+
 int
 kvalid_stringne(struct kpair *p)
 {
