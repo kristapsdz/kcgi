@@ -50,6 +50,7 @@
 .Nm kutil_urlabs ,
 .Nm kutil_urlpart ,
 .Nm kutil_urlencode ,
+.Nm kvalid_date ,
 .Nm kvalid_double ,
 .Nm kvalid_email ,
 .Nm kvalid_int ,
@@ -178,6 +179,8 @@
 .Fa "const char *cp"
 .Fc
 .Ft int
+.Fn kvalid_date "struct kpair *kp"
+.Ft int
 .Fn kvalid_double "struct kpair *kp"
 .Ft int
 .Fn kvalid_email "struct kpair *kp"
@@ -233,6 +236,7 @@ Call
 .Fn khttp_parse
 as early as possible.
 This will parse and validate input fields and cookies with
+.Fn kvalid_date ,
 .Fn kvalid_double ,
 .Fn kvalid_email ,
 .Fn kvalid_int ,
@@ -889,6 +893,11 @@ The following functions are provided for the global
 .Va keys
 array.
 .Bl -ohang -offset indent
+.It Fn kvalid_date "struct kpair *kp"
+Validate a date in ISO 8601
+.Li YYYY-MM-DD
+format.
+Returned as the number of seconds since the UNIX epoch, 1970-01-01.
 .It Fn kvalid_double "struct kpair *kp"
 Validate a double-precision floating-point number.
 .Em Note :
@@ -908,14 +917,6 @@ the string may be zero-length!
 Same as
 .Fn kvalid_string ,
 but ensures that the string is non-empty.
-This is used by
-.Fn kvalid_double ,
-.Fn kvalid_email ,
-.Fn kvalid_int ,
-.Fn kvalid_udouble ,
-and
-.Fn kvalid_uint
-to make sure the string representation of their data is sane.
 .It Fn kvalid_udouble "struct kpair *kp"
 Validate a positive non-zero double-precision floating-point number.
 .Em Note :

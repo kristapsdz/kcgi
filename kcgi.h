@@ -779,6 +779,7 @@ void		 khtml_int(struct kreq *req, int64_t val);
 void		 khtml_ncr(struct kreq *req, uint16_t ncr);
 void		 khtml_text(struct kreq *req, const char *cp);
 
+int		 kvalid_date(struct kpair *);
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
 int		 kvalid_int(struct kpair *);

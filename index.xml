@@ -23,7 +23,8 @@
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
 					Lastly, remove some overly-restrictive assertions on empty input fields and added the
-					<code>kvalid_stringne</code> validator for non-empty strings.
+					<code>kvalid_stringne</code> and <code>kvalid_date</code> validators for non-empty strings and ISO 8601
+					dates, respectively (the latter to avoid <code>strptime</code>, which violates the sandbox).
 				</p>
 			</section>
 		</header>
@@ -63,6 +64,7 @@
 						This will parse forms, query, and cookie data; validate fields; set up the HTTP environment; and
 						map page and MIME requests.
 						Validation uses
+						<code>kvalid_date</code>,
 						<code>kvalid_double</code>,
 						<code>kvalid_email</code>,
 						<code>kvalid_int</code>,
