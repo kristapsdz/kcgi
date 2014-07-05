@@ -783,6 +783,7 @@ int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
 int		 kvalid_int(struct kpair *);
 int		 kvalid_string(struct kpair *);
+int		 kvalid_stringne(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
