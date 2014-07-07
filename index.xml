@@ -205,7 +205,9 @@
 					While page maps and input validation are entirely driven by the interfacing application, <span
 						class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME
 					types, and so on.
-					A reasonable default has been provided for convenience.
+					Reasonable default have been provided for convenience.
+					For specifics, see the <code>khttp_parse</code> and <code>khttp_parsex</code> in <a
+						href="kcgi.3.html">kcgi(3)</a>.
 				</p>
 				<h2 id="compression">
 					Compression
@@ -234,7 +236,10 @@
 				<p>
 					<span class="nm">kcgi</span> provides just the necessary functions for building HTML5 trees, outputting
 					HTTP headers, and building URLs to get by.  
-					As a convenience, it also provides memory allocation wrappers.
+					Many of these functions have both a basic and an extended calling style (with the function name ending
+					in <code>x</code>, such as <code>khtml_attrx</code>).
+					As a convenience, it also provides memory allocation wrappers, but these can be safely disregarded or
+					mixed with the standard UNIX memory allocation routines.
 				</p>
 				<h2 id="template">
 					Templating
@@ -244,6 +249,8 @@
 					want just to fill in a template.
 					<span class="nm">kcgi</span> provides two simple functions, <code>khttp_template</code> and
 					<code>khttp_template_buf</code>, to fill in files or memory buffers with data.
+					Templates are the most common usage of <span class="nm">kcgi</span>, as they allow for a strong
+					disconnect between prsentation and logic.
 				</p>
 			</section>
 		</article>
