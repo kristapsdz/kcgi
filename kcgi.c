@@ -935,6 +935,72 @@ kutil_urlabs(enum kscheme scheme,
 }
 
 char *
+kutil_urlpartx(struct kreq *req, const char *path,
+	const char *mime, const char *page, ...)
+{
+	va_list		 ap;
+	char		*p, *pp, *keyp, *valp;
+	size_t		 total, count;
+	char	 	 buf[256]; /* max double/int64_t */
+
+	if (NULL == (pp = kutil_urlencode(page)))
+		exit(EXIT_FAILURE);
+
+	(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+
+	free(pp);
+	total = strlen(p) + 1;
+	va_start(ap, page);
+	count = 0;
+	while (NULL != (pp = va_arg(ap, char *))) {
+		keyp = kutil_urlencode(pp);
+		if (NULL == keyp)
+			exit(EXIT_FAILURE);
+
+		valp = NULL;
+		switch (va_arg(ap, enum kattrx)) {
+		case (KATTRX_STRING):
+			valp = kutil_urlencode(va_arg(ap, char *));
+			break;
+		case (KATTRX_INT):
+			(void)snprintf(buf, sizeof(buf),
+				"%" PRId64, va_arg(ap, int64_t));
+			valp = buf;
+			break;
+		case (KATTRX_DOUBLE):
+			(void)snprintf(buf, sizeof(buf),
+				"%g", va_arg(ap, double));
+			valp = buf;
+			break;
+		}
+
+		if (NULL == valp) 
+			exit(EXIT_FAILURE);
+
+		/* Size for key, value, ? or &, and =. */
+		/* FIXME: check for overflow! */
+		total += strlen(keyp) + strlen(valp) + 2;
+		p = krealloc(p, total);
+
+		if (count > 0)
+			(void)strlcat(p, "&", total);
+		else
+			(void)strlcat(p, "?", total);
+
+		(void)strlcat(p, keyp, total);
+		(void)strlcat(p, "=", total);
+		(void)strlcat(p, valp, total);
+
+		free(keyp);
+		if (valp != buf)
+			free(valp);
+		count++;
+	}
+	va_end(ap);
+	return(p);
+}
+
+char *
 kutil_urlpart(struct kreq *req, const char *path,
 	const char *mime, const char *page, ...)
 {
@@ -1708,6 +1774,7 @@ kvalid_date(struct kpair *kp)
 
 	v = mkdate(mday, mon, year) * 86400;
 	kp->parsed.i = v - mkdate(1, 1, 1970) * 86400;
+	kp->type = KPAIR_INTEGER;
 	return(1);
 }
 
