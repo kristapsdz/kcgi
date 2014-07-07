@@ -1022,7 +1022,8 @@ and path part (including query string, etc.)
 This
 .Em is not
 URL-encoded in any way, so make sure to use
-.Fn kutil_urlpart
+.Fn kutil_urlpart ,
+.Fn kutil_urlpartx ,
 or just
 .Fn kutil_urlencode
 for the sensitive parts.
@@ -1040,6 +1041,13 @@ This variable array must be terminated with a
 The caller must free the string with
 .Xr free 3 .
 The function will exit on memory exhaustion.
+.It Fn kutil_urlpartx "struct kreq *req" "const char *path" \
+"const char *mime" "const char *page" "..."
+Like
+.Fn kutil_urlpart ,
+but accepting key, an
+.Vt "enum kattrx"
+value type, and the typed value itself.
 .El
 .Sh EXAMPLES
 A simple example exists in

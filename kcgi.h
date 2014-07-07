@@ -792,6 +792,8 @@ char		*kutil_urlabs(enum kscheme scheme, const char *host,
 			uint16_t port, const char *path);
 char		*kutil_urlpart(struct kreq *req, const char *path,
 			const char *mime, const char *page, ...);
+char		*kutil_urlpartx(struct kreq *req, const char *path,
+			const char *mime, const char *page, ...);
 char		*kutil_urlencode(const char *cp);
 void		 kutil_invalidate(struct kreq *req,
 			struct kpair *pair);

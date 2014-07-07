@@ -22,9 +22,10 @@
 					for the original <code>khttp_parse</code>.
 					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
 					found, record the index as <code>ctypepos</code>.
-					Lastly, remove some overly-restrictive assertions on empty input fields and added the
+					Remove some overly-restrictive assertions on empty input fields and added the
 					<code>kvalid_stringne</code> and <code>kvalid_date</code> validators for non-empty strings and ISO 8601
 					dates, respectively (the latter to avoid <code>strptime</code>, which violates the sandbox).
+					Lastly, add <code>kutil_urlpartx</code> for typed arguments.
 				</p>
 			</section>
 		</header>
