@@ -1663,6 +1663,12 @@ khtml_text(struct kreq *req, const char *cp)
 		case ('<'):
 			khtml_entity(req, KENTITY_lt);
 			break;
+		case ('"'):
+			khtml_entity(req, KENTITY_quot);
+			break;
+		case ('\''):
+			khtml_ncr(req, 39);
+			break;
 		default:
 			khttp_putc(req, *cp);
 			break;
