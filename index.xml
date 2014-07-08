@@ -17,15 +17,7 @@
 			</nav>
 			<section id="version">
 				<p>
-					<i>Version @VERSION@</i>: rename <code>khttp_parse</code> to <code>khttp_parsex</code> and use simplified
-					arguments
-					for the original <code>khttp_parse</code>.
-					Have content-types passed into <code>struct kpair</code> be looked up in the MIME type database and, if
-					found, record the index as <code>ctypepos</code>.
-					Remove some overly-restrictive assertions on empty input fields and added the
-					<code>kvalid_stringne</code> and <code>kvalid_date</code> validators for non-empty strings and ISO 8601
-					dates, respectively (the latter to avoid <code>strptime</code>, which violates the sandbox).
-					Lastly, add <code>kutil_urlpartx</code> for typed arguments.
+					<i>Version @VERSION@</i> (TODO): small fix to escape quotes in HTML text.
 				</p>
 			</section>
 		</header>
