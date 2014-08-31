@@ -41,10 +41,12 @@ struct	ksandbox {
 	pid_t	 pid; /* pid of sandbox */
 };
 
+#if 0
 union cmsgbuf {
 	struct cmsghdr	 hdr;
 	unsigned char	 buf[CMSG_SPACE(sizeof(int))];
 };
+#endif
 
 /*
  * Perform system-specific initialisation for the parent.

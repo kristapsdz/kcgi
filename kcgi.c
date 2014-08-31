@@ -470,6 +470,7 @@ const char *const kresps[KRESP__MAX] = {
 
 const char *const kmimetypes[KMIME__MAX] = {
 	"application/x-javascript", /* KMIME_APP_JAVASCRIPT */
+	"application/json", /* KMIME_APP_JSON */
 	"image/gif", /* KMIME_IMAGE_GIF */
 	"image/jpeg", /* KMIME_IMAGE_JPEG */
 	"image/png", /* KMIME_IMAGE_PNG */
@@ -535,6 +536,7 @@ const struct kmimemap ksuffixmap[] = {
 	{ "jpg", KMIME_IMAGE_JPEG },
 	{ "jpeg", KMIME_IMAGE_JPEG },
 	{ "js", KMIME_APP_JAVASCRIPT },
+	{ "json", KMIME_APP_JSON },
 	{ "png", KMIME_IMAGE_PNG },
 	{ "shtml", KMIME_TEXT_HTML },
 	{ "svg", KMIME_IMAGE_SVG_XML },
@@ -547,6 +549,7 @@ const struct kmimemap ksuffixmap[] = {
  */
 const char *const ksuffixes[KMIME__MAX] = {
 	"js", /* KMIME_APP_JAVASCRIPT */
+	"json", /* KMIME_APP_JSON */
 	"gif", /* KMIME_IMAGE_GIF */
 	"jpg", /* KMIME_IMAGE_JPEG */
 	"png", /* KMIME_IMAGE_PNG */
