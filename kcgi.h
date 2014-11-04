@@ -743,6 +743,7 @@ __BEGIN_DECLS
 
 void		 khttp_body(struct kreq *req);
 void		 khttp_free(struct kreq *req);
+void		 khttp_child_free(struct kreq *req);
 void		 khttp_head(struct kreq *req, const char *key, 
 			const char *fmt, ...)
 			__attribute__((format(printf, 3, 4)));

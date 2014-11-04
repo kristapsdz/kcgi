@@ -20,6 +20,7 @@
 .Sh NAME
 .Nm kcgi ,
 .Nm khttp_body ,
+.Nm khttp_child_free ,
 .Nm khttp_free ,
 .Nm khttp_head ,
 .Nm khttp_parse ,
@@ -65,6 +66,10 @@
 .In kcgi.h
 .Ft void
 .Fo khttp_body
+.Fa "struct kreq *req"
+.Fc
+.Ft void
+.Fo khttp_child_free
 .Fa "struct kreq *req"
 .Fc
 .Ft void
@@ -689,6 +694,16 @@ HTTP parameter with compression support if the request specifies it,
 unless allocation of the compression space fails.
 If appended, all subsequent output will be compressed with
 .Xr zlib 3 .
+.It Fn khttp_child_free "struct kreq *req"
+Like
+.Fn khttp_free ,
+but meant to be invoked in a child of the CGI process.
+This does everything that
+.Fn khttp_free
+does, but closes the standard output without flushing.
+Subsequent uses of
+.Dv stdout
+will fail.
 .It Fn khttp_free "struct kreq *req"
 Free the memory of a context created by
 .Fn khttp_parse

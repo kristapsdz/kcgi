@@ -1545,6 +1545,21 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 }
 
 void
+khttp_child_free(struct kreq *req)
+{
+
+	close(STDOUT_FILENO);
+	close(STDIN_FILENO);
+
+#ifdef HAVE_ZLIB
+	if (NULL != req->kdata->gz)
+		gzclose(req->kdata->gz);
+#endif
+	kreq_free(req);
+}
+
+
+void
 khttp_free(struct kreq *req)
 {
 
@@ -1778,7 +1793,7 @@ kvalid_date(struct kpair *kp)
 		return(0);
 
 	year = atoi(&kp->val[0]);
-	mon = atoi(&kp->val[4]);
+	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
 	v = mkdate(mday, mon, year) * 86400;
