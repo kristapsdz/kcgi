@@ -17,7 +17,9 @@
 			</nav>
 			<section id="version">
 				<p>
-					<i>Version @VERSION@</i> (TODO): small fix to escape quotes in HTML text.
+					<i>Version @VERSION@</i>: small fix to escape quotes in HTML text and <code>kvalid_date</code> month calculator.
+					Add <code>khttp_child_free</code> for closing the HTTP in a child of the CGI process.
+					Add more media types.
 				</p>
 			</section>
 		</header>
