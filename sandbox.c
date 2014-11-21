@@ -122,10 +122,13 @@ ksandbox_close(void *arg, pid_t pid)
  * child context is sandboxed properly.
  */
 void
-ksandbox_init_child(void *arg)
+ksandbox_init_child(void *arg, int fd __unused)
 {
 
-#if defined(HAVE_SANDBOX_INIT)
+#if defined(HAVE_CAPSICUM)
+	if ( ! ksandbox_capsicum_init_child(arg, fd))
+		XWARNX("capsicum sandbox failed (child)");
+#elif defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_darwin_init_child(arg))
 		XWARNX("darwin sandbox failed (child)");
 #elif defined(HAVE_SYSTRACE)

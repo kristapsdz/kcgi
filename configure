@@ -36,6 +36,7 @@ runtest reallocarray REALLOCARRAY ""
 runtest sandbox_init SANDBOX_INIT ""
 runtest systrace SYSTRACE ""
 runtest zlib ZLIB "-lz"
+runtest capsicum CAPSICUM ""
 cat config.h.post
 
 exit 0
