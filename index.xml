@@ -20,6 +20,7 @@
 					<i>Version @VERSION@</i>: small fix to escape quotes in HTML text and <code>kvalid_date</code> month calculator.
 					Add <code>khttp_child_free</code> for closing the HTTP in a child of the CGI process.
 					Add more media types.
+					Allow <a href="http://www.freebsd.org">FreeBSD</a> ports integration.
 				</p>
 			</section>
 		</header>
@@ -170,6 +171,12 @@
 						The <code>sandbox(7)</code> facility for <q>pure computation</q> provided in Mac OS X Leopard
 						and later.
 						This is supplemented by resource limiting with <code>setrlimit(2)</code>.
+					</dd>
+					<dt>
+						Capsicum
+					</dt>
+					<dd>
+						Integration with...
 					</dd>
 				</dl>
 				<p>

@@ -15,12 +15,14 @@ LIBOBJS = kcgi.o \
 	  compat-strtonum.o \
 	  input.o \
 	  sandbox.o \
+	  sandbox-capsicum.o \
 	  sandbox-darwin.o \
 	  sandbox-systrace.o \
 	  wrappers.o
 TESTS = test-memmem.c \
 	test-reallocarray.c \
 	test-sandbox_init.c \
+	test-capsicum.c \
 	test-strlcat.c \
 	test-strlcpy.c \
 	test-strtonum.c \
@@ -37,6 +39,7 @@ SRCS = compat-memmem.c \
        kcgi.h \
        sample.c \
        sandbox.c \
+       sandbox-capsicum.c \
        sandbox-darwin.c \
        sandbox-systrace.c \
        wrappers.c \
@@ -115,4 +118,5 @@ clean:
 	rm -f test-strtonum test-strtonum.o
 	rm -f test-systrace test-systrace.o
 	rm -f test-zlib test-zlib.o 
+	rm -f test-capsicum test-capsicum.o
 	rm -rf *.dSYM

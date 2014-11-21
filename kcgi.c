@@ -1325,7 +1325,7 @@ khttp_parsex(struct kreq *req,
 		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
 		close(socks[1]);
-		ksandbox_init_child(sand);
+		ksandbox_init_child(sand, socks[0]);
 		khttp_input_child(socks[0], keys, keysz, mimes, mimesz);
 		ksandbox_free(sand);
 		_exit(EXIT_SUCCESS);

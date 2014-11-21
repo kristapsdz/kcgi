@@ -26,9 +26,12 @@ void	 khttp_input_child(int fd, const struct kvalid *keys,
 void	 ksandbox_free(void *arg);
 void	*ksandbox_alloc(void);
 void	 ksandbox_close(void *arg, pid_t pid);
-void	 ksandbox_init_child(void *arg);
+void	 ksandbox_init_child(void *arg, int fd);
 void	 ksandbox_init_parent(void *arg, pid_t pid);
 
+#ifdef HAVE_CAPSICUM
+int	 ksandbox_capsicum_init_child(void *arg, int fd);
+#endif
 #ifdef HAVE_SANDBOX_INIT
 int	 ksandbox_darwin_init_child(void *arg);
 #endif
