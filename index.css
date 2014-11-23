@@ -2,7 +2,7 @@ html, body 		{ margin: 0;
 			  padding: 0; }
 body 			{ color: #333; 
 			  font-family: Times,serif; 
-			  font-size: 14pt;
+			  font-size: 13pt;
 		  	  line-height: 120%; }
 header > *		{ padding-left: 1ex; 
 			  padding-right: 1ex; }
@@ -35,13 +35,13 @@ article h2 		{ font-size: inherit;
 #version 		{ background-color: #eee; 
 			  padding: 1em 1ex 1ex 1ex; }
 #version p:first-child	{ margin-top: 0; }
-code			{ font-size: 12pt; }
+code			{ font-size: 10pt; }
 #sample			{ background-color: #333;
 			  color: #fff;
 			  line-height: 125%;
 			  padding: 1ex 1ex;
 			  white-space: pre; 
-			  font-size: 12pt;
+			  font-size: 10pt;
 			  font-family: monospace; }
 #sample a		{ color: #66f; }
 #sample a:hover		{ color: #f6f; }
