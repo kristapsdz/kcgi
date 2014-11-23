@@ -54,17 +54,12 @@ followed by
 .Xr khttp_body 3
 to begin the HTTP body.
 .It
-Emit HTTP body output using HTML-building functions
-.Xr khtml_attr 3
-and family;
-.It
-the
+Emit HTTP body output using the
 .Xr khttp_template 3
-system; or
-.It
-use
+templating system, the
 .Xr khttp_write 3
-and family for general HTTP content.
+and family for general HTTP content, and/or an external library such as
+.Xr kcgihtml 3 .
 .Em \&Do not
 use
 .Xr printf 3
@@ -101,8 +96,6 @@ Many standards are involved in the
 library, most generally being draft RFC 3875,
 .Qq The Common Gateway Interface (CGI) Version 1.1 .
 .Bl -bullet
-.It
-HTML5 compatible with the draft standard of February 2014.
 .It
 The partial multipart form data support is defined by RFC 2388,
 .Qq Returning Values from Forms: multipart/form-data ,
