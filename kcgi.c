@@ -608,6 +608,7 @@ kreq_free(struct kreq *req)
 	free(req->fieldnmap);
 	free(req->kdata);
 	free(req->suffix);
+	free(req->pagename);
 	free(req->pname);
 }
 
@@ -618,8 +619,9 @@ khttp_parse(struct kreq *req,
 	size_t defpage)
 {
 
-	return(khttp_parsex(req, ksuffixmap, kmimetypes, KMIME__MAX, 
-		keys, keysz, pages, pagesz, defpage, NULL, NULL));
+	return(khttp_parsex(req, ksuffixmap, kmimetypes, 
+		KMIME__MAX, keys, keysz, pages, pagesz, 
+		KMIME_TEXT_HTML, defpage, NULL, NULL));
 }
 
 /*
@@ -633,13 +635,12 @@ khttp_parsex(struct kreq *req,
 	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
-	size_t defpage, void *arg,
+	size_t defmime, size_t defpage, void *arg,
 	void (*argfree)(void *arg))
 {
-	char		*cp, *ep, *sub;
-	enum kmime	 m;
+	char		*cp;
 	const struct kmimemap *mm;
-	size_t		 p, i;
+	size_t		 i;
 	pid_t		 pid;
 	int		 socks[2];
 	int 		 sndbuf, rc;
@@ -755,20 +756,6 @@ khttp_parsex(struct kreq *req,
 	if (NULL == req->pname)
 		goto err;
 
-	/* Determine authenticaiton: RFC 3875, 4.1.1. */
-	if (NULL != (cp = getenv("AUTH_TYPE"))) {
-		if (0 == strcasecmp(cp, "basic"))
-			req->auth = KAUTH_BASIC;
-		else if (0 == strcasecmp(cp, "digest"))
-			req->auth = KAUTH_DIGEST;
-		else
-			req->auth = KAUTH_UNKNOWN;
-	}
-
-	sub = NULL;
-	p = defpage;
-	m = KMIME_TEXT_HTML;
-
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
 	if (NULL == (cp = getenv("REMOTE_ADDR")))
@@ -792,67 +779,32 @@ khttp_parsex(struct kreq *req,
 	if (NULL != (cp = getenv("SERVER_PORT")))
 		req->port = strtonum(cp, 0, 80, NULL);
 
-
-	/* RFC 3875, 4.1.12. */
-	/* Note that we assume GET, POST being explicit. */
-	req->method = KMETHOD_GET;
-	if (NULL != (cp = getenv("REQUEST_METHOD")))
-		if (0 == strcmp(cp, "POST"))
-			req->method = KMETHOD_POST;
-
-	/*
-	 * First, parse the first path element (the page we want to
-	 * access), subsequent path information, and the file suffix.
-	 * We convert suffix and path element into the respective enum's
-	 * inline.
-	 */
-	if (NULL != (cp = getenv("PATH_INFO")))
-		if (NULL == (req->fullpath = XSTRDUP(cp)))
-			goto err;
-
-	/* This isn't possible in the real world. */
-	if (NULL != cp && '/' == *cp)
-		cp++;
-
-	if (NULL != cp && '\0' != *cp) {
-		ep = cp + strlen(cp) - 1;
-		/* Look up mime type from suffix. */
-		while (ep > cp && '/' != *ep && '.' != *ep)
-			ep--;
-		if ('.' == *ep) {
-			*ep++ = '\0';
-			if (NULL == (req->suffix = XSTRDUP(ep)))
-				goto err;
-			for (mm = suffixmap; NULL != mm->name; mm++)
-				if (0 == strcasecmp(mm->name, ep)) {
-					m = mm->mime;
-					break;
-				}
-			if (NULL == mm)
-				m = mimesz;
-		}
-		if (NULL != (sub = strchr(cp, '/')))
-			*sub++ = '\0';
-		/* Look up page type from component. */
-		for (p = 0; p < pagesz; p++)
-			if (0 == strcasecmp(pages[p], cp))
-				break;
-	}
-
-	req->mime = m;
-	req->page = p;
-
-	/* Assign subpath to remaining parts. */
-	if (NULL != sub)
-		if (NULL == (req->path = XSTRDUP(sub)))
-			goto err;
-
 	/*
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
 	if ( ! khttp_input_parent(socks[1], req, pid))
 		goto err;
+
+	/* Look up page type from component. */
+	req->page = defpage;
+	if ('\0' != *req->pagename)
+		for (req->page = 0; req->page < pagesz; req->page++)
+			if (0 == strcasecmp(pages[req->page], req->pagename))
+				break;
+
+	/* Start with the default. */
+	req->mime = defmime;
+	if ('\0' != *req->suffix) {
+		for (mm = suffixmap; NULL != mm->name; mm++)
+			if (0 == strcasecmp(mm->name, req->suffix)) {
+				req->mime = mm->mime;
+				break;
+			}
+		/* Could not find this mime type! */
+		if (NULL == mm->name)
+			req->mime = mimesz;
+	}
 
 	/* FIXME: do this after err handler? */
 	ksandbox_close(sand, pid);
