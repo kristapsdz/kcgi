@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>@@TITLE@@</title>
+		<title>@@title@@</title>
 	</head>
 	<body>
 		<header>
-			<h1>@@NAME@@</h1>
+			<h1>@@name@@</h1>
 		</header>
 		<article>
 			Hello, world.

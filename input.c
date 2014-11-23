@@ -70,6 +70,17 @@ struct	parms {
 	enum input		 type;
 };
 
+static	const char *const kmethods[KMETHOD__MAX] = {
+	"POST",
+	"GET",
+};
+
+static	const char *const kauths[KAUTH_UNKNOWN] = {
+	NULL,
+	"basic",
+	"digest"
+};
+
 /*
  * Read the contents of buf, size bufsz, entirely.
  * This will exit with -1 on fatal errors (the child didn't return
@@ -114,6 +125,23 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 			return(-1);
 		}
 	}
+	return(1);
+}
+
+static int
+fullreadword(int fd, char **cp)
+{
+	size_t	 sz;
+
+	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
+		return(-1);
+	*cp = kmalloc(sz + 1);
+	(*cp)[sz] = '\0';
+	if (0 == sz)
+		return(1);
+	if (fullread(fd, *cp, sz, 0) < 0)
+		return(-1);
+
 	return(1);
 }
 
@@ -941,6 +969,32 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	int		 rc;
 	size_t		 i;
 
+	/*
+	 * First read all of our parsed parameters.
+	 * Each parsed parameter is handled a little differently.
+	 * This list will end with META__MAX.
+	 */
+	rc = -1;
+	if (fullread(fd, &r->method, sizeof(enum kmethod), 0) < 0) {
+		XWARNX("failed to read request method");
+		goto out;
+	} else if (fullread(fd, &r->auth, sizeof(enum kauth), 0) < 0) {
+		XWARNX("failed to read authorisation type");
+		goto out;
+	} if (fullreadword(fd, &r->fullpath) < 0) {
+		XWARNX("failed to read fullpath");
+		goto out;
+	} else if (fullreadword(fd, &r->suffix) < 0) {
+		XWARNX("failed to read suffix");
+		goto out;
+	} else if (fullreadword(fd, &r->pagename) < 0) {
+		XWARNX("failed to read page part");
+		goto out;
+	} else if (fullreadword(fd, &r->path) < 0) {
+		XWARNX("failed to read path part");
+		goto out;
+	}
+
 	while ((rc = input(&type, &kp, fd)) > 0) {
 		/*
 		 * We have a parsed field from the child process.
@@ -996,6 +1050,7 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	 * However, in the case of error, these may still have
 	 * allocations, so free them now.
 	 */
+out:
 	free(kp.key);
 	free(kp.val);
 	free(kp.file);
@@ -1017,7 +1072,9 @@ khttp_input_child(int fd, const struct kvalid *keys,
 	size_t keysz, const char *const *mimes, size_t mimesz)
 {
 	struct parms	 pp;
-	char		*cp;
+	char		*cp, *ep, *sub;
+	enum kmethod	 meth;
+	enum kauth	 auth;
 	size_t	 	 len;
 
 	pp.fd = fd;
@@ -1025,6 +1082,88 @@ khttp_input_child(int fd, const struct kvalid *keys,
 	pp.keysz = keysz;
 	pp.mimes = mimes;
 	pp.mimesz = mimesz;
+
+	/* RFC 3875, 4.1.12. */
+	/* We assume GET if not supplied. */
+	meth = KMETHOD_GET;
+	if (NULL != (cp = getenv("REQUEST_METHOD")))
+		for (meth = 0; meth < KMETHOD__MAX; meth++)
+			if (0 == strcmp(kmethods[meth], cp))
+				break;
+	fullwrite(fd, &meth, sizeof(enum kmethod));
+
+	/* Determine authenticaiton: RFC 3875, 4.1.1. */
+	auth = KAUTH_NONE;
+	if (NULL != (cp = getenv("AUTH_TYPE"))) 
+		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {
+			if (NULL == kauths[auth])
+				continue;
+			if (0 == strcmp(kauths[auth], cp))
+				break;
+		}
+
+	fullwrite(fd, &auth, sizeof(enum kauth));
+
+	/*
+	 * Now parse the first path element (the page we want to
+	 * access), subsequent path information, and the file suffix.
+	 * We convert suffix and path element into the respective enum's
+	 * inline.
+	 */
+	if (NULL != (cp = getenv("PATH_INFO"))) {
+		len = strlen(cp);
+		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(fd, cp, len);
+	} else {
+		len = 0;
+		fullwrite(fd, &len, sizeof(size_t));
+	}
+
+	/* This isn't possible in the real world. */
+	if (NULL != cp && '/' == *cp)
+		cp++;
+
+	if (NULL != cp && '\0' != *cp) {
+		ep = cp + strlen(cp) - 1;
+		while (ep > cp && '/' != *ep && '.' != *ep)
+			ep--;
+
+		/* Start with writing our suffix. */
+		if ('.' == *ep) {
+			*ep++ = '\0';
+			len = strlen(ep);
+			fullwrite(fd, &len, sizeof(size_t));
+			fullwrite(fd, ep, len);
+		} else {
+			len = 0;
+			fullwrite(fd, &len, sizeof(size_t));
+		}
+
+		/* Now find the top-most path part. */
+		if (NULL != (sub = strchr(cp, '/')))
+			*sub++ = '\0';
+
+		/* Send the base path. */
+		len = strlen(cp);
+		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(fd, cp, len);
+
+		/* Send the path part. */
+		if (NULL != sub) {
+			len = strlen(sub);
+			fullwrite(fd, &len, sizeof(size_t));
+			fullwrite(fd, sub, len);
+		} else {
+			len = 0;
+			fullwrite(fd, &len, sizeof(size_t));
+		}
+	} else {
+		len = 0;
+		/* Suffix, base path, and path part. */
+		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(fd, &len, sizeof(size_t));
+	}
 
 	/*
 	 * The CONTENT_LENGTH must be a valid integer.
