@@ -120,7 +120,8 @@ enum	kattrx {
 
 enum	kmethod {
 	KMETHOD_POST,
-	KMETHOD_GET
+	KMETHOD_GET,
+	KMETHOD__MAX
 };
 
 enum	kpairtype {
@@ -296,6 +297,7 @@ struct	kreq {
 	char			 *path;
 	char			 *suffix;
 	char			 *fullpath;
+	char			 *pagename;
 	char			 *remote;
 	char			 *host;
 	uint16_t		  port;
@@ -330,7 +332,7 @@ int		 khttp_parsex(struct kreq *req,
 			const char *const *mimes, size_t mimemax,
 			const struct kvalid *keys, size_t keymax,
 			const char *const *pages, size_t pagemax,
-			size_t defpage, void *arg,
+			size_t defmime, size_t defpage, void *arg,
 			void (*argfree)(void *arg));
 void		 khttp_putc(struct kreq *req, int c);
 void		 khttp_puts(struct kreq *req, const char *cp);

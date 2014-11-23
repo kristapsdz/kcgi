@@ -38,11 +38,13 @@
 .Fo khttp_parsex
 .Fa "struct kreq *req"
 .Fa "const struct kmimemap *suffixes"
+.Fa "const char *const *mimes"
 .Fa "size_t mimemax"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keysz"
 .Fa "const char *const *pages"
 .Fa "size_t pagesz"
+.Fa "size_t defmime"
 .Fa "size_t defpage"
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
@@ -77,6 +79,11 @@ The number of pages in
 .Fa pages .
 Also used if the requested page was not in
 .Fa pages .
+.It Fa defmime
+If no MIME type is specified (that is, there's no suffix to the
+page request), use this index in the
+.Fa mimes
+array.
 .It Fa defpage
 If no page was specified (e.g., the default landing page), this is
 provided as the requested page index.
@@ -131,7 +138,11 @@ The
 or
 .Dv KMETHOD_POST
 submission method.
-Note that other methods aren't supported.
+If the method was not understand,
+.Dv KMETHOD__MAX
+is used.
+If no method was used, the default is
+.Dv KMETHOD_GET .
 .It Va auth
 Type of HTTP authorisation, if any.
 If an authorisation is specified but with unknown type (i.e., not digest
@@ -211,11 +222,12 @@ The default page provided to
 is used if no path was specified or
 .Fa pagesz
 if the path failed lookup.
+.It Va pagename
+The string corresponding to
+.Va page .
 .It Va path
-The path (or
-.Dv NULL )
-following the parsed component regardless of whether it was located in
-the path array provided to
+The path (or empty string) following the parsed component regardless of
+whether it was located in the path array provided to
 .Fn khttp_parse .
 For example, if the
 .Dv PATH_INFO

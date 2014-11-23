@@ -2,7 +2,7 @@
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Comment if you don't need statically linked.
-STATIC 		 = -static
+#STATIC 		 = -static
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 MANDIR 	 	 = $(PREFIX)/man/man3
@@ -111,7 +111,7 @@ install: all
 	rm -f kcgi.h~
 
 sample: sample.o libkcgi.a libkcgihtml.a
-	$(CC) -o $@ $(STATIC) sample.o -L. -lkcgihtml -lkcgi -lz
+	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
 www: index.html kcgi-$(VERSION).tgz $(HTMLS)
 
