@@ -20,36 +20,6 @@
 					<i>Version @VERSION@</i> is a minor-number bump due to a significantly changing API.
 					Not much has changed in the back-end of the system (with one significant exception!); most of these changes are organisational.
 				</p>
-				<ul>
-					<li>
-						Add a <a href="http://www.cl.cam.ac.uk/research/security/capsicum/freebsd.html">Capsicum</a>
-						sandbox on <a href="http://www.freebsd.org">FreeBSD</a>.
-					</li>
-					<li>
-						Split <span class="file">libkcgi</span>, <a href="kcgi.3.html">kcgi(3)</a>, into
-						<span class="file">libkcgihtml</span>, <a href="kcgihtml.3.html">kcgihtml(3)</a>.
-						This simplifies the system dramatically and allows for more extensions (e.g., JSON) outside of
-						the main body of code.
-					</li>
-					<li>
-						Split <a href="kcgi.3.html">kcgi(3)</a> into per-function manpages, e.g., <a
-							href="khttp_parse.3.html">khttp_parse(3)</a>.
-						This makes system reading documentation much easier.
-					</li>
-					<li>
-						Merge small fix to escape quotes in HTML text and <a
-							href="kvalid_string.3.html">kvalid_date(3)</a> month calculator.
-					</li>
-					<li>
-						Add <a href="khttp_free.3.html">khttp_child_free(3)</a> for closing the HTTP in a child of the
-						CGI process.
-						This is useful if your web application forks to perform some long-running function (e.g.,
-						mailing).
-					</li>
-					<li>
-						Add a few more commonly-used media types.
-					</li>
-				</p>
 			</section>
 		</header>
 		<article>

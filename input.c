@@ -981,6 +981,9 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	} else if (fullread(fd, &r->auth, sizeof(enum kauth), 0) < 0) {
 		XWARNX("failed to read authorisation type");
 		goto out;
+	} if (fullreadword(fd, &r->remote) < 0) {
+		XWARNX("failed to read fullpath");
+		goto out;
 	} if (fullreadword(fd, &r->fullpath) < 0) {
 		XWARNX("failed to read fullpath");
 		goto out;
@@ -1073,6 +1076,7 @@ khttp_input_child(int fd, const struct kvalid *keys,
 {
 	struct parms	 pp;
 	char		*cp, *ep, *sub;
+	const char	*ccp;
 	enum kmethod	 meth;
 	enum kauth	 auth;
 	size_t	 	 len;
@@ -1086,23 +1090,30 @@ khttp_input_child(int fd, const struct kvalid *keys,
 	/* RFC 3875, 4.1.12. */
 	/* We assume GET if not supplied. */
 	meth = KMETHOD_GET;
-	if (NULL != (cp = getenv("REQUEST_METHOD")))
+	if (NULL != (ccp = getenv("REQUEST_METHOD")))
 		for (meth = 0; meth < KMETHOD__MAX; meth++)
-			if (0 == strcmp(kmethods[meth], cp))
+			if (0 == strcmp(kmethods[meth], ccp))
 				break;
 	fullwrite(fd, &meth, sizeof(enum kmethod));
 
 	/* Determine authenticaiton: RFC 3875, 4.1.1. */
 	auth = KAUTH_NONE;
-	if (NULL != (cp = getenv("AUTH_TYPE"))) 
+	if (NULL != (ccp = getenv("AUTH_TYPE"))) 
 		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {
 			if (NULL == kauths[auth])
 				continue;
-			if (0 == strcmp(kauths[auth], cp))
+			if (0 == strcmp(kauths[auth], ccp))
 				break;
 		}
-
 	fullwrite(fd, &auth, sizeof(enum kauth));
+
+	/* RFC 3875, 4.1.8. */
+	/* Never supposed to be NULL, but to be sure... */
+	if (NULL == (ccp = getenv("REMOTE_ADDR")))
+		ccp = "127.0.0.1";
+	len = strlen(ccp);
+	fullwrite(fd, &len, sizeof(size_t));
+	fullwrite(fd, ccp, len);
 
 	/*
 	 * Now parse the first path element (the page we want to
