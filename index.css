@@ -2,7 +2,7 @@ html, body 		{ margin: 0;
 			  padding: 0; }
 body 			{ color: #333; 
 			  font-family: Times,serif; 
-			  font-size: 13pt;
+			  font-size: 12pt;
 		  	  line-height: 120%; }
 header > *		{ padding-left: 1ex; 
 			  padding-right: 1ex; }
