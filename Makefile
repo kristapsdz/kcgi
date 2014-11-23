@@ -8,7 +8,7 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.1
+VERSION 	 = 0.4.0
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -72,7 +72,7 @@ SRCS 		 = compat-memmem.c \
      		   $(MANS) \
      		   $(TESTS)
 # Only for local installation.
-WWWDIR 		 = /usr/vhosts/kristaps.bsd.lv/www/htdocs/kcgi
+WWWDIR 		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 
 all: libkcgi.a libkcgihtml.a
 
