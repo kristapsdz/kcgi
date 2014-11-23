@@ -8,7 +8,7 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.3.3
+VERSION 	 = 0.4.1
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -60,7 +60,9 @@ SRCS 		 = compat-memmem.c \
      		   extern.h \
      		   input.c \
      		   kcgi.c \
+     		   kcgihtml.c \
      		   kcgi.h \
+     		   kcgihtml.h \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
@@ -97,13 +99,12 @@ installcgi: sample
 	install -m 0444 template.xml $(PREFIX)
 
 install: all
-	sed -e "s!@VERSION@!$(VERSION)!g" -e "s!@DATADIR@!$(DATADIR)!g" kcgi.h >kcgi.h~
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
 	mkdir -p $(DESTDIR)$(MANDIR)
 	install -m 0444 libkcgi.a libkcgihtml.a $(DESTDIR)$(LIBDIR)
-	install -m 0444 kcgi.h~ $(DESTDIR)$(INCLUDEDIR)/kcgi.h
+	install -m 0444 kcgi.h kcgihtml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 kcgihtml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MANS) $(DESTDIR)$(MANDIR)
 	install -m 0444 template.xml sample.c $(DESTDIR)$(DATADIR)
@@ -129,8 +130,10 @@ index.html: index.xml
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
+	mkdir -p .dist/kcgi-$(VERSION)/man
 	cp $(SRCS) .dist/kcgi-$(VERSION)
-	cp Makefile kcgi.3 template.xml .dist/kcgi-$(VERSION)
+	cp Makefile template.xml .dist/kcgi-$(VERSION)
+	cp $(MANS) .dist/kcgi-$(VERSION)/man
 	cp configure config.h.pre config.h.post .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
