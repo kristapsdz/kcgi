@@ -59,6 +59,7 @@ enum	key {
 enum	templ {
 	TEMPL_TITLE,
 	TEMPL_NAME,
+	TEMPL_REMOTE_ADDR,
 	TEMPL__MAX
 };
 
@@ -87,7 +88,8 @@ static const struct kvalid keys[KEY__MAX] = {
  */
 static const char *const templs[TEMPL__MAX] = {
 	"title", /* TEMPL_TITLE */
-	"name" /* TEMPL_NAME */
+	"name", /* TEMPL_NAME */
+	"remote_addr", /* TEMPL_REMOTE_ADDR */
 };
 
 /* 
@@ -127,6 +129,9 @@ template(size_t key, void *arg)
 		break;
 	case (TEMPL_NAME):
 		khtml_text(req, "name");
+		break;
+	case (TEMPL_REMOTE_ADDR):
+		khtml_text(req, req->req->remote);
 		break;
 	default:
 		abort();
