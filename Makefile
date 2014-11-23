@@ -22,7 +22,7 @@ LIBOBJS 	 = kcgi.o \
 		   sandbox-systrace.o \
 		   wrappers.o
 HTMLS		 = man/kcgi.3.html \
-		   man/khtml_attr.3.html \
+		   man/kcgihtml.3.html \
 		   man/khttp_body.3.html \
 		   man/khttp_free.3.html \
 		   man/khttp_head.3.html \
@@ -42,7 +42,7 @@ TESTS 		 = test-memmem.c \
       		   test-systrace.c \
       		   test-zlib.c
 MANS		 = man/kcgi.3 \
-		   man/khtml_attr.3 \
+		   man/kcgihtml.3 \
 		   man/khttp_body.3 \
 		   man/khttp_free.3 \
 		   man/khttp_head.3 \
