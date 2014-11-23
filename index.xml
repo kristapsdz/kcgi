@@ -61,9 +61,9 @@
 					See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a>
 					for alternatives.
 					To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into your
-					<code>PREFIX</code> of choice.
-					The <a href="kcgi.3.html">kcgi(3)</a> manpage documents usage.
-					The installed system also includes <a href="kcgihtml.3.html">kcgihtml(3)</a> for HTML output.
+					<code>PREFIX</code> of choice, then read the <a href="kcgi.3.html">kcgi(3)</a> and <a
+						href="kcgihtml.3.html">kcgihtml(3)</a> manuals for usage.
+					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 				</p>
 			</section>
@@ -84,12 +84,6 @@ int main(void) {
   return(EXIT_SUCCESS);
 }</section>
 			<section id="features">
-				<p>
-					The <a href="kcgi.3.html">kcgi(3)</a> and <a href="kcgihtml.3.html">kcgihtml(3)</a> libraries are still
-					quite new.
-					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
-					The following sections define some features of the system.
-				</p>
 				<h2 id="security">
 					Security
 				</h2>
@@ -161,7 +155,7 @@ int main(void) {
 						class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME
 					types, and so on.
 					Reasonable default have been provided for convenience.
-					For specifics, see <a href="khttp_parse.3.html">khttp_parse</a>.
+					For specifics, see <a href="khttp_parse.3.html">khttp_parse(3)</a>.
 				</p>
 				<p>
 					The library can also be extended for different output modes.
@@ -174,7 +168,7 @@ int main(void) {
 				</h2>
 				<p>
 					If <code>HAVE_ZLIB</code> is enabled during compilation (via the <a href="#portability">Portability</a>
-					mechanism), <a href="khttp_body.3.html">khttp_body</a> will signal use of <a
+					mechanism), <a href="khttp_body.3.html">khttp_body(3)</a> will signal use of <a
 						href="http://www.zlib.net">zlib</a> to compress the HTTP body.
 					Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
 				</p>

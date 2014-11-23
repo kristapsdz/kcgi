@@ -642,9 +642,16 @@ khttp_parsex(struct kreq *req,
 	size_t		 p, i;
 	pid_t		 pid;
 	int		 socks[2];
-	int 		 sndbuf;
+	int 		 sndbuf, rc;
 	void		*sand;
-	socklen_t	 sndbufsz = sizeof(sndbuf);
+	socklen_t	 socksz;
+
+	socksz = 0;
+	rc = getpeername(STDIN_FILENO, NULL, &socksz);
+	if (-1 == rc && ENOTCONN == errno) {
+		XWARNX("running as FastCGI?");
+		return(0);
+	}
 
 	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
@@ -676,17 +683,18 @@ khttp_parsex(struct kreq *req,
 	 * To do so, try with a huge buffer, then gradually make it
 	 * smaller.
 	 */
+	socksz = sizeof(sndbuf);
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
 		if (-1 != setsockopt(socks[1], 
-			SOL_SOCKET, SO_RCVBUF, &sndbuf, sndbufsz))
+			SOL_SOCKET, SO_RCVBUF, &sndbuf, socksz))
 			break;
 		XWARN("sockopt");
 	}
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
 		if (-1 != setsockopt(socks[0], 
-			SOL_SOCKET, SO_SNDBUF, &sndbuf, sndbufsz))
+			SOL_SOCKET, SO_SNDBUF, &sndbuf, socksz))
 			break;
 		XWARN("sockopt");
 	}
