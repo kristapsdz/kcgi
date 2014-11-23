@@ -756,16 +756,6 @@ khttp_parsex(struct kreq *req,
 	if (NULL == req->pname)
 		goto err;
 
-	/* RFC 3875, 4.1.8. */
-	/* Never supposed to be NULL, but to be sure... */
-	if (NULL == (cp = getenv("REMOTE_ADDR")))
-		req->remote = XSTRDUP("127.0.0.1");
-	else
-		req->remote = XSTRDUP(cp);
-
-	if (NULL == req->remote)
-		goto err;
-
 	/* Never supposed to be NULL, but to be sure... */
 	if (NULL == (cp = getenv("HTTP_HOST")))
 		req->host = XSTRDUP("localhost");
