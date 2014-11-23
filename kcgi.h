@@ -24,12 +24,6 @@
  * shouldn't be used.
  */
 
-/* 
- * Version of the library installed with this header.
- * (If not installed, it will just read @VERSION@.)
- */
-#define	VERSION		"@VERSION@"
-
 enum	khttp {
 	KHTTP_100,
 	KHTTP_101,
