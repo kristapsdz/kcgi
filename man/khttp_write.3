@@ -1,0 +1,80 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: November 4 2014 $
+.Dt KHTTP_WRITE 3
+.Os
+.Sh NAME
+.Nm khttp_putc ,
+.Nm khttp_puts ,
+.Nm khttp_write
+.Nd write HTTP content data for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft void
+.Fo khttp_putc
+.Fa "struct kreq *req"
+.Fa "int c"
+.Fc
+.Ft void
+.Fo khttp_puts
+.Fa "struct kreq *req"
+.Fa "const char *cp"
+.Fc
+.Ft void
+.Fo khttp_write
+.Fa "struct kreq *req"
+.Fa "const void *buf"
+.Fa "size_t sz"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm khttp_putc ,
+.Nm khttp_puts ,
+and
+.Nm khttp_write
+functions write HTTP content for a
+.Xr kcgi 3
+context allocated with
+.Xr khttp_parse 3 .
+These functions may only be invoked after
+.Xr khttp_body 3 ,
+else their behaviour is undefined.
+.Nm khttp_putc
+emits a single character;
+.Nm khttp_puts
+emits a nil-terminated character string
+.Po
+note, this does not append a newline like
+.Xr puts 3
+.Pc ,
+and
+.Nm khttp_write
+emits a binary buffer
+.Fa buf
+of size
+.Fa sz .
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_body 3 ,
+.Xr khttp_parse 3
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

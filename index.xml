@@ -20,7 +20,9 @@
 					<i>Version @VERSION@</i>: small fix to escape quotes in HTML text and <code>kvalid_date</code> month calculator.
 					Add <code>khttp_child_free</code> for closing the HTTP in a child of the CGI process.
 					Add more media types.
-					Allow <a href="http://www.freebsd.org">FreeBSD</a> ports integration.
+					Importantly, <span class="name">kcgi</span> now supports <a
+						href="http://www.cl.cam.ac.uk/research/security/capsicum/freebsd.html">Capsicum</a> on <a
+						href="http://www.freebsd.org">FreeBSD</a>.
 				</p>
 			</section>
 		</header>
@@ -39,12 +41,12 @@
 				</p>
 			</section>
 			<section id="sample">int main(void) {
-	struct <a href="kcgi.3.html#x5479706573">kreq</a> r;
+	struct kreq r;
 	struct kvalid key = { kvalid_int, "integer" };
 	const char *page = "index";
-	if ( ! <a href="kcgi.3.html#x46756e6374696f6e73">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+	if ( ! khttp_parse(&amp;r, &amp;key, 1, &amp;page, 1, 0))
 		return(EXIT_FAILURE);
-	khttp_head(&amp;r, <a href="kcgi.3.html#x476c6f62616c73">kresps</a>[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+	khttp_head(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
 	khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
 	khttp_body(&amp;r);
 	return(EXIT_SUCCESS);
@@ -176,7 +178,9 @@
 						Capsicum
 					</dt>
 					<dd>
-						Integration with...
+						The <code>capsicum(4)</code> facility on <a href="http://www.freebsd.org">FreeBSD</a> 10 and
+						later.
+						This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 					</dd>
 				</dl>
 				<p>

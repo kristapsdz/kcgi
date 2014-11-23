@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "kcgi.h"
+#include "kcgihtml.h"
 
 /*
  * All of the pages we're going to display.
@@ -118,7 +119,7 @@ resp_open(struct kreq *req, enum khttp http)
 static int
 template(size_t key, void *arg)
 {
-	struct kreq	*req = arg;
+	struct khtmlreq	*req = arg;
 
 	switch (key) {
 	case (TEMPL_TITLE):
@@ -145,12 +146,15 @@ static void
 sendtemplate(struct kreq *req)
 {
 	struct ktemplate t;
+	struct khtmlreq	 r;
 
 	memset(&t, 0, sizeof(struct ktemplate));
+	memset(&r, 0, sizeof(struct khtmlreq));
 
+	r.req = req;
 	t.key = templs;
 	t.keysz = TEMPL__MAX;
-	t.arg = req;
+	t.arg = &r;
 	t.cb = template;
 
 	resp_open(req, KHTTP_200);
@@ -167,59 +171,63 @@ static void
 sendindex(struct kreq *req)
 {
 	char		*page;
+	struct khtmlreq	 r;
 	const char	*cp;
+
+	memset(&r, 0, sizeof(struct khtmlreq));
+	r.req = req;
 
 	(void)kasprintf(&page, "%s/%s", 
 		req->pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
-	khtml_elem(req, KELEM_DOCTYPE);
-	khtml_elem(req, KELEM_HTML);
-	khtml_elem(req, KELEM_HEAD);
-	khtml_elem(req, KELEM_TITLE);
-	khtml_text(req, "Welcome!");
-	khtml_close(req, 2);
-	khtml_elem(req, KELEM_BODY);
-	khtml_text(req, "Welcome!");
-	khtml_attr(req, KELEM_FORM,
+	khtml_elem(&r, KELEM_DOCTYPE);
+	khtml_elem(&r, KELEM_HTML);
+	khtml_elem(&r, KELEM_HEAD);
+	khtml_elem(&r, KELEM_TITLE);
+	khtml_text(&r, "Welcome!");
+	khtml_close(&r, 2);
+	khtml_elem(&r, KELEM_BODY);
+	khtml_text(&r, "Welcome!");
+	khtml_attr(&r, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ENCTYPE, "multipart/form-data",
 		KATTR_ACTION, page,
 		KATTR__MAX);
-	khtml_elem(req, KELEM_FIELDSET);
-	khtml_elem(req, KELEM_LEGEND);
-	khtml_text(req, "Post (multipart)");
-	khtml_close(req, 1);
-	khtml_elem(req, KELEM_P);
+	khtml_elem(&r, KELEM_FIELDSET);
+	khtml_elem(&r, KELEM_LEGEND);
+	khtml_text(&r, "Post (multipart)");
+	khtml_close(&r, 1);
+	khtml_elem(&r, KELEM_P);
 	cp = NULL == req->fieldmap[KEY_INTEGER] ?
 		"" : req->fieldmap[KEY_INTEGER]->val;
-	khtml_attr(req, KELEM_INPUT,
+	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "number",
 		KATTR_NAME, keys[KEY_INTEGER].name,
 		KATTR_VALUE, cp, KATTR__MAX);
-	khtml_close(req, 1);
-	khtml_elem(req, KELEM_P);
-	khtml_attr(req, KELEM_INPUT,
+	khtml_close(&r, 1);
+	khtml_elem(&r, KELEM_P);
+	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "file",
 		KATTR_MULTIPLE, "",
 		KATTR_NAME, keys[KEY_FILE].name,
 		KATTR__MAX);
 	if (NULL != req->fieldmap[KEY_FILE]) {
 		if (NULL != req->fieldmap[KEY_FILE]->file) {
-			khtml_text(req, "file: ");
-			khtml_text(req, req->fieldmap[KEY_FILE]->file);
-			khtml_text(req, " ");
+			khtml_text(&r, "file: ");
+			khtml_text(&r, req->fieldmap[KEY_FILE]->file);
+			khtml_text(&r, " ");
 		} 
 		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
-			khtml_text(req, "ctype: ");
-			khtml_text(req, req->fieldmap[KEY_FILE]->ctype);
+			khtml_text(&r, "ctype: ");
+			khtml_text(&r, req->fieldmap[KEY_FILE]->ctype);
 		} 
 	}
-	khtml_close(req, 1);
-	khtml_elem(req, KELEM_P);
-	khtml_attr(req, KELEM_INPUT,
+	khtml_close(&r, 1);
+	khtml_elem(&r, KELEM_P);
+	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	khtml_close(req, 0);
+	khtml_close(&r, 0);
 	free(page);
 }
 
@@ -239,8 +247,7 @@ main(void)
 		 * with an unknown extension.
 		 */
 		resp_open(&r, KHTTP_404);
-		if (KMIME_TEXT_HTML == r.mime)
-			khtml_text(&r, "Page not found.");
+		khttp_puts(&r, "Page not found.");
 	} else
 		(*disps[r.page])(&r);
 
