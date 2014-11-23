@@ -1,0 +1,113 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_TEMPLATE 3
+.Os
+.Sh NAME
+.Nm khttp_template ,
+.Nm khttp_template_buf
+.Nd emit filled-in templates for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft int
+.Fo khttp_template
+.Fa "struct kreq *req"
+.Fa "const struct ktemplate *t"
+.Fa "const char *fname"
+.Fc
+.Ft int
+.Fo khttp_template_buf
+.Fa "struct kreq *req"
+.Fa "const struct ktemplate *t"
+.Fa "const char *buf"
+.Fa "size_t sz"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm khttp_template
+and
+.Nm khttp_template_buf
+are template functions for a
+.Xr kcgi 3
+context allocated with
+.Xr khttp_parse 3 .
+It may only come after
+.Xr khttp_body 3
+is invoked, else its behaviour is undefined.
+.Pp
+The
+.Nm khttp_template
+function memory-maps the regular file
+.Fa fname
+and passes the string into
+.Nm khttp_template_buf .
+.Pp
+The
+.Nm khttp_template_buf
+function emits the buffer with
+.Xr khttp_write 3
+and friends until it reaches a
+.Li @@foo@@
+sequence (two
+.Qq at
+signs followed by a key, followed by a trailing pair of
+.Qq at
+signs).
+The key is then looked up in the
+.Fa t
+argument's
+.Va key
+array of size
+.Va keysz .
+If found, the callback
+.Va cb
+is invoked with the key index and the optional
+argument
+.Va arg .
+Callbacks may continue to process, emit HTML trees, and so on.
+If it returns 0,
+.Nm khttp_template_buf
+fails.
+If the key is not found, it is emitted as opaque text via
+.Xr khttp_write 3
+and friends.
+.Sh RETURN VALUES
+.Nm khttp_template
+returns 0 if the
+.Xr fstat 2 ,
+.Xr open 2 ,
+or
+.Xr mmap 2
+functions fail on the file, or the file is too large to map.
+.Pp
+Both
+.Nm khttp_template
+and
+.Nm khttp_template_buf
+fail if the callback function returns 0.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_body 3 ,
+.Xr khttp_parse 3 ,
+.Xr khttp_write 3
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

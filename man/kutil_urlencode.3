@@ -1,0 +1,145 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KUTIL_URLENCODE 3
+.Os
+.Sh NAME
+.Nm kutil_urlabs ,
+.Nm kutil_urlpart ,
+.Nm kutil_urlpartx ,
+.Nm kutil_urlencode
+.Nd URL functions for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft "char *"
+.Fo kutil_urlabs
+.Fa "enum kscheme scheme"
+.Fa "const char *host"
+.Fa "uint16_t port"
+.Fa "const char *path"
+.Fc
+.Ft "char *"
+.Fo kutil_urlpart
+.Fa "struct kreq *req"
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fo kutil_urlpartx
+.Fa "struct kreq *req"
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fn kutil_urlencode "const char *cp"
+.Sh DESCRIPTION
+The
+.Nm kutil_urlpart ,
+and
+.Nm kutil_urlpartx
+functions format a partial HTTP URL from variable-length query string
+keys and values.
+The
+.Nm kutil_urlabs
+forms an absolute URL from a scheme, domain, and path component.
+The
+.Nm kutil_urlencode
+function encodes a string for embedding in a URL.
+All functions return newly-allocated string of the encoded contents.
+.Pp
+.Nm kutil_urlpart
+and
+.Nm kutil_urlpartx
+accept variable-length arguments terminated with a
+.Dv NULL
+value.
+.Nm kutil_urlpart
+accepts key-value string pairs.
+.Nm kutil_urlpartx
+accepts string keys, then a
+.Vt "enum kattrx"
+of the value type, then a pointer to the value corresponding to that
+type:
+.Dv KATTRX_STRING
+for strings,
+.Dv KATTRX_INT
+for
+.Vt int64_t
+64-bit signed integers, and
+.Dv KATTRX_DOUBLE
+for
+.Vt double
+double-precision floating-point numbers.
+.Nm kutil_urlpart ,
+thus, is as if
+.Nm kutil_urlpartx
+were invoked with
+.Dv KATTRX_STRING
+for all values.
+.Pp
+.Nm kutil_urlabs
+formats schema, host, port, and path component into a URL.
+This is
+.Em not
+URL-encoded in any way, so make sure to use
+.Fn kutil_urlpart ,
+.Fn kutil_urlpartx ,
+or just
+.Fn kutil_urlencode
+for the sensitive parts.
+.Sh RETURN VALUES
+.Nm kutil_urlabs ,
+.Nm kutil_urlpart ,
+.Nm kutil_urlpartx ,
+and
+.Nm kutil_urlencode
+return a newly-allocated string that must be freed with
+.Xr free 3 .
+.Nm kutil_urlencode
+will return
+.Dv NULL
+if its input argument is
+.Dv NULL
+or if allocation fails.
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+The
+.Nm kutil_urlabs
+function accepts schemas via
+.Vt "enum kscheme"
+that aren't URLs.
+.Pp
+Also, the fact that
+.Nm kutil_urlencode
+will return
+.Dv NULL
+on allocation failure but
+.Nm kutil_urlabs ,
+.Nm kutil_urlpart ,
+and
+.Nm kutil_urlpartx
+will abort is wrong.

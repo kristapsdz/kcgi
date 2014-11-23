@@ -1,0 +1,183 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KVALID_STRING 3
+.Os
+.Sh NAME
+.Nm kutil_invalidate ,
+.Nm kvalid_date ,
+.Nm kvalid_double ,
+.Nm kvalid_email ,
+.Nm kvalid_int ,
+.Nm kvalid_string ,
+.Nm kvalid_stringne ,
+.Nm kvalid_udouble ,
+.Nm kvalid_uint
+.Nd basic validation functions for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft void
+.Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
+.Ft int
+.Fn kvalid_date "struct kpair *kp"
+.Ft int
+.Fn kvalid_double "struct kpair *kp"
+.Ft int
+.Fn kvalid_email "struct kpair *kp"
+.Ft int
+.Fn kvalid_int "struct kpair *kp"
+.Ft int
+.Fn kvalid_string "struct kpair *kp"
+.Ft int
+.Fn kvalid_stringne "struct kpair *kp"
+.Ft int
+.Fn kvalid_udouble "struct kpair *kp"
+.Ft int
+.Fn kvalid_uint "struct kpair *kp"
+.Sh DESCRIPTION
+The
+.Nm kvalid_date ,
+.Nm kvalid_double ,
+.Nm kvalid_email ,
+.Nm kvalid_int ,
+.Nm kvalid_string ,
+.Nm kvalid_stringne ,
+.Nm kvalid_udouble
+and
+.Nm kvalid_uint ,
+functions are basic validators for
+.Xr kcgi 3
+and are passed into the
+.Xr khttp_parse 3
+function to validate input data.
+If a field is checked for validation during parse, it will first be
+noted in
+.Va fields
+of
+.Vt "struct kreq" .
+If validated, the pair will be bucketed into the field-corresponding
+index of
+.Va cookiemap
+or
+.Va fieldmap ,
+depending on the input source.
+If not, it will be bucketed into
+.Va cookienmap
+or
+.Va fieldnmap .
+Thus, a (e.g., cookie) field that appears in the input stream will
+appear in either
+.Va cookiemap
+or
+.Va cookienmap
+of
+.Vt "struct kreq"
+after parse.
+.Pp
+The
+.Nm kutil_invalidate
+marks a validated input pair as invalid, moving it from the
+.Va cookiemap
+or
+.Va fieldmap
+buckte into the appropriate
+.Va cookienmap
+or
+.Va fieldnmap
+bucket of
+.Vt "struct kreq" .
+If the field is not valid to begin with, this fuction does nothing.
+.Pp
+The validators perform the following validations:
+.Bl -tag -width Ds
+.It Fn kvalid_date
+An ISO 8601
+.Li YYYY-MM-DD
+date.
+Set as a
+.Dv KPAIR_INTEGER
+in the number of seconds since the UNIX epoch.
+.It Fn kvalid_double
+A signed double-precision floating-point number.
+See
+.Xr strtod 3 .
+.Em Note :
+this might use the locale and should be re-written.
+It sets as
+.Dv KPAIR_DOUBLE .
+.It Fn kvalid_email
+A loosely-validated e-mail address consisting of at most 254 characters,
+with a user part (at least one character) and domain part (at least 4
+characters).
+The validated string is trimmed for white-space and lowercased.
+It sets as
+.Dv KPAIR_STRING .
+.It Fn kvalid_int
+A 64-bit signed integer.
+Sets
+.Dv KPAIR_INTEGER .
+.It Fn kvalid_string
+A nil-terminated (possibly-empty) string.
+.Po
+Since all field entries are binary, this checks whether the binary
+length is the same as the nil-terminated string, so no truncation
+occurs.
+.Pc
+This sets
+.Dv KPAIR_STRING .
+.It Fn kvalid_stringne
+A non-empty string via
+.Fn kvalid_string .
+.It Fn kvalid_udouble
+A double-precision floating-point number via
+.Fn kvalid_double
+that's strictly greater than zero.
+.It Fn kvalid_uint
+A 64-bit integer via
+.Fn kvalid_int
+that's weakly greater than zero.
+.El
+.Sh RETURN VALUES
+.Nm kvalid_date ,
+.Nm kvalid_double ,
+.Nm kvalid_email ,
+.Nm kvalid_int ,
+.Nm kvalid_string ,
+.Nm kvalid_stringne ,
+.Nm kvalid_udouble ,
+and
+.Nm kvalid_uint
+return 0 if validation fails.
+If validation succeeds, the pair's
+.Va parsed
+and
+.Va type
+fields are set accordingly.
+.Sh AUTHORS
+The
+.Nm kutil_invalidate ,
+.Nm kvalid_date ,
+.Nm kvalid_double ,
+.Nm kvalid_email ,
+.Nm kvalid_int ,
+.Nm kvalid_string ,
+.Nm kvalid_stringne ,
+.Nm kvalid_udouble ,
+functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

@@ -1,0 +1,128 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGI 3
+.Os
+.Sh NAME
+.Nm kcgi
+.Nd minimal CGI library in C
+.Sh LIBRARY
+.Lb libkcgi
+.Sh DESCRIPTION
+The
+.Nm kcgi
+library handles the CGI environment for C web applications.
+Interfacing applications generally work as follows:
+.Bl -enum
+.It
+Call
+.Xr khttp_parse 3
+as early as possible.
+This will parse and validate input fields and cookies with
+.Xr kvalid_date 3 ,
+.Xr kvalid_double 3 ,
+.Xr kvalid_email 3 ,
+.Xr kvalid_int 3 ,
+.Xr kvalid_string 3 ,
+.Xr kvalid_stringne 3 ,
+.Xr kvalid_udouble 3 ,
+.Xr kvalid_uint 3 ,
+and/or those provided by the implementing system.
+It also sets up the HTTP environment: compression, paths, and so on.
+.It
+Process input fields by examining the
+.Vt "struct kpair"
+elements.
+.It
+Emit HTTP headers with
+.Xr khttp_head 3 ,
+followed by
+.Xr khttp_body 3
+to begin the HTTP body.
+.It
+Emit HTTP body output using HTML-building functions
+.Xr khtml_attr 3
+and family;
+.It
+the
+.Xr khttp_template 3
+system; or
+.It
+use
+.Xr khttp_write 3
+and family for general HTTP content.
+.Em \&Do not
+use
+.Xr printf 3
+or other functions to append to standard output:
+.Nm kcgi
+will automatically compress output if requested by the client, and
+overriding the output stream will circumvent this behaviour and might
+mix compressed and uncompressed data.
+.It
+Call
+.Xr khttp_free 3
+to clean up.
+.El
+.Pp
+To compile applications with
+.Nm ,
+make sure
+.Pa kcgi.h
+is in the header path and
+.Pa libkcgi.a
+in the library path, then link with
+.Fl Ar lkcgi
+and
+.Fl Ar lz
+.Pq unless compression has been disabled at compile-time .
+For example,
+.Bd -literal
+% cc -I/usr/local/include -c -o sample.o sample.c
+% cc -L/usr/local/lib -o sample -lkcgi -lz
+.Ed
+.Sh STANDARDS
+Many standards are involved in the
+.Nm
+library, most generally being draft RFC 3875,
+.Qq The Common Gateway Interface (CGI) Version 1.1 .
+.Bl -bullet
+.It
+HTML5 compatible with the draft standard of February 2014.
+.It
+The partial multipart form data support is defined by RFC 2388,
+.Qq Returning Values from Forms: multipart/form-data ,
+which is further defined by RFCs 2045 and 2046,
+.Qq Multipurpose Internet Mail Extensions .
+.It
+MIME type names are registered with IANA.
+.It
+URLs are formatted according to RFC 1630,
+.Qq Universal Resource Identifiers in WWW .
+.It
+HTTP response headers are standardised in RFC 2616,
+.Qq HTTP/1.1
+and further in RFC 4229,
+.Qq HTTP Header Field Registrations .
+.It
+Permanent URI schemes are registered with IANA.
+.El
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
