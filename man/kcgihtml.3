@@ -35,6 +35,7 @@
 .Lb libkcgi
 .Sh SYNOPSIS
 .In kcgi.h
+.In kcgihtml.h
 .Ft void
 .Fo khtml_attr
 .Fa "struct khtmlreq *req"
@@ -96,7 +97,19 @@ output with HTML elements, attributes, and text for contexts allocated with
 None of these functions may be called before
 .Xr khttp_body 3 .
 .Pp
-All of these functions accept a
+To use these functions, you must include the
+.In kcgihtml.h
+header and compile with
+.Lb kcgihtml ,
+for example,
+.Bd -literal
+% cc -I/usr/local/include -c -o sample.o sample.c
+% cc -L/usr/local/lib -o sample -lkcgihtml -lkcgi -lz
+.Ed
+.Pp
+All of the
+.Nm kcgihtml
+functions accept a
 .Vt "struct khtmlreq"
 object.
 To use this properly, simply zero the function and set its
