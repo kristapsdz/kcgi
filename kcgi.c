@@ -296,22 +296,6 @@ const char *const ksuffixes[KMIME__MAX] = {
  */
 const char	*pname = NULL;
 
-/*
- * Wrapper for printing data to the standard output.
- * This switches depending on compression support and whether our system
- * supports zlib compression at all.
- */
-#ifdef HAVE_ZLIB
-#define	KPRINTF(_req, ...) \
-	do if (NULL != (_req)->kdata->gz) \
-		gzprintf((_req)->kdata->gz, __VA_ARGS__); \
-	else \
-		printf(__VA_ARGS__); \
-	while (0)
-#else
-#define	KPRINTF(_req, ...) printf(__VA_ARGS__)
-#endif
-
 void
 khttp_write(struct kreq *req, const void *buf, size_t sz)
 {

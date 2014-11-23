@@ -1,0 +1,203 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGIHTML 3
+.Os
+.Sh NAME
+.Nm kcgihtml 3 ,
+.Nm khtml_attr ,
+.Nm khtml_attrx ,
+.Nm khtml_close ,
+.Nm khtml_closeto ,
+.Nm khtml_double ,
+.Nm khtml_elem ,
+.Nm khtml_elemat ,
+.Nm khtml_entity ,
+.Nm khtml_int ,
+.Nm khtml_ncr ,
+.Nm khtml_text
+.Nd HTML handling functions for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In kcgi.h
+.Ft void
+.Fo khtml_attr
+.Fa "struct khtmlreq *req"
+.Fa "enum kelem elem"
+.Fa "..."
+.Fc
+.Ft void
+.Fo khtml_attrx
+.Fa "struct khtmlreq *req"
+.Fa "enum kelem elem"
+.Fa "..."
+.Fc
+.Ft void
+.Fo khtml_close
+.Fa "struct khtmlreq *req"
+.Fa "size_t count"
+.Fc
+.Ft void
+.Fo khtml_closeto
+.Fa "struct khtmlreq *req"
+.Fa "size_t pos"
+.Fc
+.Ft void
+.Fo khtml_double
+.Fa "struct khtmlreq *req"
+.Fa "double val"
+.Fc
+.Ft size_t
+.Fo khtml_elemat
+.Fa "struct khtmlreq *req"
+.Fc
+.Ft void
+.Fo khtml_entity
+.Fa "struct khtmlreq *req"
+.Fa "enum entity entity"
+.Fc
+.Ft void
+.Fo khtml_int
+.Fa "struct khtmlreq *req"
+.Fa "int64_t val"
+.Fc
+.Ft void
+.Fo khtml_ncr
+.Fa "struct khtmlreq *req"
+.Fa "uint16_t ncr"
+.Fc
+.Ft void
+.Fo khtml_text
+.Fa "struct khtmlreq *req"
+.Fa "const char *cp"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm
+functions extend
+.Xr kcgi 3
+output with HTML elements, attributes, and text for contexts allocated with
+.Xr khttp_parse 3 .
+None of these functions may be called before
+.Xr khttp_body 3 .
+.Pp
+All of these functions accept a
+.Vt "struct khtmlreq"
+object.
+To use this properly, simply zero the function and set its
+.Va req
+member to the current
+.Vt "struct kreq"
+object.
+.Bl -tag -width Ds
+.It Fn khtml_attr
+Open the scope of element
+.Fa elem
+with matching key-value pairs in the varargs for its attributes.
+The maximum number of nested scopes is fixed at 128.
+The terminating attribute key must be
+.Dv ATTR__MAX.
+.It Fn khtml_attrx
+Like
+.Fn khtml_attr ,
+but accepts an addition parameter
+.Ft "enum attrx"
+following the
+.Ft "enum attr"
+that specifies the attribute type.
+This is useful for non-string attributes, for example, invoking with
+.Dv KATTR_WIDTH ,
+.Dv KATTRX_INT ,
+and
+.Li 100
+will properly render the integer type.
+The types route through to
+.Fn khtml_text
+for
+.Dv KATTRX_STRING ,
+.Fn khtml_int
+for
+.Dv KATTRX_INT ,
+.Fn khtml_double
+for
+.Dv KATTRX_DOUBLE .
+.It Fn khtml_close
+Close the last
+.Fa count
+scopes.
+This will call
+.Xr abort 3
+if
+.Fa count
+exceeds the number of open scopes.
+If
+.Fa count
+is zero, this will close all scopes.
+.Em \&Do not
+close HTML
+.Qq void
+elements such as
+.Aq meta .
+.It Fn khtml_closeto
+Close until a certain level
+.Fa pos
+in the HTML tree, which must be at or above the current level.
+Usually used with
+.Fn khtml_elemat .
+.It Fn khtml_double
+Wrapper over
+.Fn khtml_text
+for formatting a double-precision floating point.
+This uses a buffer of size
+.Li 256
+and the
+.Li %g
+to
+.Xr snprintf 3 ,
+which may not be what you want.
+.It Fn khtml_elem
+Invokes
+.Fn khtml_attr
+with no attributes.
+.It Fn khtml_elemat
+Save the current point in the HTML tree.
+Useful for saving a
+.Fn khtml_closeto
+rollback point.
+.It Fn khtml_entity
+Emit the numeric character reference for
+.Va entity .
+.It Fn khtml_int
+Wrapper over
+.Fn khtml_text
+for formatting a 64-bit signed integer.
+.It Fn khtml_ncr
+Emit the numeric character reference
+.Va ncr .
+.It Fn khtml_text
+Emit the text
+.Va cp ,
+escaping it (e.g.,
+.Sq \&> )
+for HTML if necessary.
+.El
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
