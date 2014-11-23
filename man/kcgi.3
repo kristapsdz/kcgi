@@ -32,17 +32,13 @@ Interfacing applications generally work as follows:
 Call
 .Xr khttp_parse 3
 as early as possible.
-This will parse and validate input fields and cookies with
-.Xr kvalid_date 3 ,
-.Xr kvalid_double 3 ,
-.Xr kvalid_email 3 ,
-.Xr kvalid_int 3 ,
-.Xr kvalid_string 3 ,
-.Xr kvalid_stringne 3 ,
-.Xr kvalid_udouble 3 ,
-.Xr kvalid_uint 3 ,
-and/or those provided by the implementing system.
-It also sets up the HTTP environment: compression, paths, and so on.
+This will parse and validate input fields and cookies with the
+.Xr kvalid_string 3
+family of functions or those provided by the calling application.
+It will do so
+.Em in memory ,
+so enormous requests (e.g., files) will occur entirely in memory!
+It also sets up the HTTP environment: compression, paths, MIME types, and so on.
 .It
 Process input fields by examining the
 .Vt "struct kpair"
@@ -58,7 +54,7 @@ Emit HTTP body output using the
 .Xr khttp_template 3
 templating system, the
 .Xr khttp_write 3
-and family for general HTTP content, and/or an external library such as
+family for general HTTP content, and/or an external library such as
 .Xr kcgihtml 3 .
 .Em \&Do not
 use
