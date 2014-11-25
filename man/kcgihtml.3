@@ -18,7 +18,7 @@
 .Dt KCGIHTML 3
 .Os
 .Sh NAME
-.Nm kcgihtml 3 ,
+.Nm kcgihtml ,
 .Nm khtml_attr ,
 .Nm khtml_attrx ,
 .Nm khtml_close ,
@@ -32,7 +32,7 @@
 .Nm khtml_text
 .Nd HTML handling functions for kcgi
 .Sh LIBRARY
-.Lb libkcgi
+.Lb libkcgihtml
 .Sh SYNOPSIS
 .In kcgi.h
 .In kcgihtml.h
@@ -89,7 +89,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm
+.Nm kcgihtml
 functions extend
 .Xr kcgi 3
 output with HTML elements, attributes, and text for contexts allocated with
@@ -213,6 +213,6 @@ for HTML if necessary.
 HTML5 compatible with the draft standard of February 2014.
 .Sh AUTHORS
 The
-.Nm
+.Nm kcgihtml
 library was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
