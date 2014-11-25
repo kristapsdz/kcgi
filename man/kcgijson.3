@@ -1,0 +1,207 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: November 23 2014 $
+.Dt KCGIJSON 3
+.Os
+.Sh NAME
+.Nm kcgijson ,
+.Nm kjson_open ,
+.Nm kjson_close ,
+.Nm kjson_putint ,
+.Nm kjson_putintp ,
+.Nm kjson_putdouble ,
+.Nm kjson_putdoublep ,
+.Nm kjson_putstring ,
+.Nm kjson_putstringp ,
+.Nm kjson_obj_open ,
+.Nm kjson_objp_open ,
+.Nm kjson_obj_close ,
+.Nm kjson_array_open ,
+.Nm kjson_arrayp_open ,
+.Nm kjson_array_close
+.Nd JSON handling functions for kcgi
+.Sh LIBRARY
+.Lb libkcgijson
+.Sh SYNOPSIS
+.In kcgi.h
+.In kcgijson.h
+.Ft void
+.Fo kjson_open
+.Fa "struct kjsonreq *r"
+.Fa "struct kreq *req"
+.Fc
+.Ft int
+.Fo kjson_close
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_putdouble
+.Fa "struct kjsonreq *r"
+.Fa "double val"
+.Fc
+.Ft int
+.Fo kjson_putdoublep
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "double val"
+.Fc
+.Ft int
+.Fo kjson_putstring
+.Fa "struct kjsonreq *r"
+.Fa "const char *val"
+.Fc
+.Ft int
+.Fo kjson_putstringp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "const char *val"
+.Fc
+.Ft int
+.Fo kjson_putint
+.Fa "struct kjsonreq *r"
+.Fa "int64_t val"
+.Fc
+.Ft int
+.Fo kjson_putintp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "int64_t val"
+.Fc
+.Ft int
+.Fo kjson_obj_open
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_objp_open
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fc
+.Ft int
+.Fo kjson_obj_close
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_array_open
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_arrayp_open
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fc
+.Ft int
+.Fo kjson_array_close
+.Fa "struct kjsonreq *r"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm kcgijson
+functions extend
+.Xr kcgi 3
+output with JSON objects and arrays for contexts allocated with
+.Xr khttp_parse 3 .
+None of these functions may be called before
+.Xr khttp_body 3 .
+.Pp
+All
+.Nm kcgijson
+sequences begin and end with
+.Nm kjson_open
+and
+.Nm kjson_close ,
+respectively.
+This is followed by either an standalone array or standalone object
+context,
+.Nm kjson_array_open
+or
+.Nm kjson_obj_open ,
+respectively.
+Key-value pairs or standalone values are separated internally, as are
+characters escaped.
+.Pp
+In general,
+.Nm kcgijson
+functions follow the convention of either being part of key-value
+pair (ending in
+.Qq p )
+or a standalone value.
+Standalone values are used in arrays;
+key-value pairs are used in objects.
+.Pp
+To use these functions, you must include the
+.In kcgijson.h
+header and compile with
+.Lb kcgijson ,
+for example,
+.Bd -literal
+% cc -I/usr/local/include -c -o sample.o sample.c
+% cc -L/usr/local/lib -o sample -lkcgijson -lkcgi -lz
+.Ed
+.Bl -tag -width Ds
+.It Fn kjson_open
+Initialise a JSON context.
+.It Fn kjson_close
+Close a JSON context.
+.It Fn kjson_arrayp_open
+This and
+.Fn kjson_array_open
+start an array context with or without a name.
+.It Fn kjson_objp_open
+This and
+.It Fn kjson_array_close
+Close an array context with or without a name.
+.Fn kjson_obj_open
+start an object context with or without a name.
+.It Fn kjson_obj_close
+Close an object context with or without a name.
+.It Fn kjson_putstringp
+This and
+.Fn kjson_putstring
+emit a string value with or without a name.
+Note that it is
+.Em not
+checked for character encoding, only character legality.
+.It Fn kjson_putintp
+This and
+.Fn kjson_putint
+emit a 64-bit signed integer value with or without a name.
+.It Fn kjson_putdoublep
+This and
+.Fn kjson_putdouble
+emit a double-precision floating point value with or without a name.
+This is formatted as with the
+.Li %g
+argument to
+.Xr printf 3 .
+.El
+.Sh RETURN VALUES
+Functions returning an
+.Vt int
+indicate 0 on failure.
+This occurs if the requested statement occurs out of context, for
+example, emitting a key-value pair in an array context (or the root
+context), or emitting a standalone value in an object.
+On failure, the request is ignored.
+.Sh STANDARDS
+The
+.Nm kcgijson
+functions conform to the ECMA-404 The JSON Data Interchange Standard.
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
