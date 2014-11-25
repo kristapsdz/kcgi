@@ -61,8 +61,10 @@ SRCS 		 = compat-memmem.c \
      		   input.c \
      		   kcgi.c \
      		   kcgihtml.c \
+		   kcgijson.c \
      		   kcgi.h \
      		   kcgihtml.h \
+		   kcgijson.h \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
@@ -74,7 +76,7 @@ SRCS 		 = compat-memmem.c \
 # Only for local installation.
 WWWDIR 		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 
-all: libkcgi.a libkcgihtml.a
+all: libkcgi.a libkcgihtml.a libkcgijson.a
 
 mime2c: mime2c.o
 	$(CC) -o $@ mime2c.o -lutil
@@ -85,7 +87,10 @@ libkcgi.a: $(LIBOBJS)
 libkcgihtml.a: kcgihtml.o
 	$(AR) rs $@ kcgihtml.o
 
-$(LIBOBJS) sample.o kcgihtml.o: kcgi.h
+libkcgijson.a: kcgijson.o
+	$(AR) rs $@ kcgijson.o
+
+$(LIBOBJS) sample.o kcgihtml.o kcgijson.o: kcgi.h
 
 $(LIBOBJS): config.h extern.h
 
@@ -103,9 +108,8 @@ install: all
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
 	mkdir -p $(DESTDIR)$(MANDIR)
-	install -m 0444 libkcgi.a libkcgihtml.a $(DESTDIR)$(LIBDIR)
-	install -m 0444 kcgi.h kcgihtml.h $(DESTDIR)$(INCLUDEDIR)
-	install -m 0444 kcgihtml.h $(DESTDIR)$(INCLUDEDIR)
+	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a $(DESTDIR)$(LIBDIR)
+	install -m 0444 kcgi.h kcgihtml.h kcgijson.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MANS) $(DESTDIR)$(MANDIR)
 	install -m 0444 template.xml sample.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
@@ -140,7 +144,9 @@ kcgi-$(VERSION).tgz:
 
 clean:
 	rm -f kcgi-$(VERSION).tgz index.html $(HTMLS) sample
-	rm -f libkcgi.a libkcgihtml.a $(LIBOBJS) kcgihtml.o
+	rm -f libkcgi.a $(LIBOBJS)
+	rm -f libkcgihtml.a kcgihtml.o
+	rm -f libkcgijson.a kcgijson.o
 	rm -f config.log config.h
 	rm -f test-memmem test-memmem.o 
 	rm -f test-reallocarray test-reallocarray.o 
