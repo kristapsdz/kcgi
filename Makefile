@@ -8,7 +8,7 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.0
+VERSION 	 = 0.4.1
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -23,6 +23,7 @@ LIBOBJS 	 = kcgi.o \
 		   wrappers.o
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
+		   man/kcgijson.3.html \
 		   man/khttp_body.3.html \
 		   man/khttp_free.3.html \
 		   man/khttp_head.3.html \
@@ -43,6 +44,7 @@ TESTS 		 = test-memmem.c \
       		   test-zlib.c
 MANS		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
+		   man/kcgijson.3 \
 		   man/khttp_body.3 \
 		   man/khttp_free.3 \
 		   man/khttp_head.3 \

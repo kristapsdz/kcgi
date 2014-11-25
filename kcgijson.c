@@ -67,6 +67,12 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 		switch (c) {
 		case ('"'):
 		case ('\\'):
+		case ('/'):
+		case ('\b'):
+		case ('\f'):
+		case ('\n'):
+		case ('\r'):
+		case ('\t'):
 			khttp_putc(r->req, '\\');
 			/* FALLTHROUGH */
 		default:
