@@ -17,8 +17,7 @@
 			</nav>
 			<section id="version">
 				<p>
-					<i>Version @VERSION@</i> is a minor-number bump due to a significantly changing API.
-					Not much has changed in the back-end of the system (with one significant exception!); most of these changes are organisational.
+					<i>Version @VERSION@</i> adds the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions.
 				</p>
 			</section>
 		</header>
@@ -31,8 +30,9 @@
 					See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a>
 					for alternatives.
 					To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into your
-					<code>PREFIX</code> of choice, then read the <a href="kcgi.3.html">kcgi(3)</a> and <a
-						href="kcgihtml.3.html">kcgihtml(3)</a> manuals for usage.
+					<code>PREFIX</code> of choice, then read the <a href="kcgi.3.html">kcgi(3)</a>,<a
+						href="kcgihtml.3.html">kcgihtml(3)</a>, and <a
+						href="kcgijson.3.html">kcgijson(3)</a> manuals for usage.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 				</p>
@@ -129,7 +129,8 @@ int main(void) {
 				</p>
 				<p>
 					The library can also be extended for different output modes.
-					One such mode, <a href="kcgihtml.3.html">kcgihtml(3)</a>, is bundled with the system.
+					Two such modes, <a href="kcgihtml.3.html">kcgihtml(3)</a> and <a href="kcgijson.3.html">kcgijson(3)</a>,
+					are bundled with the system.
 					It allows a mechanism for building HTML5 trees around the usual
 					<a href="khttp_write.3.html">khttp_write(3)</a> family of functions.
 				</p>
