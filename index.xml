@@ -4,21 +4,50 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
 		<title>kcgi | minimal CGI library for C</title>
+		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
 		<link rel="stylesheet" href="index.css" type="text/css" />
+		<script>
+			function showComments() 
+			{
+				var show, nshow;
+
+				show = document.getElementById('comments');
+				noshow = document.getElementById('nocomments');
+
+				console.log('maxheight = ' + show.style.maxHeight);
+
+				if (show.style.maxHeight == '' || show.style.maxHeight == '0px') {
+					show.style.maxHeight = '100em';
+					show.style.padding = '1em';
+					noshow.style.maxHeight = 0;
+					noshow.style.padding = 0;
+				} else {
+					show.style.maxHeight = 0;
+					show.style.padding = 0;
+					noshow.style.maxHeight = '100em';
+					noshow.style.padding = '1em';
+				}
+			}
+		</script>
 	</head>
-	<body>
+	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
-			<h1>
-				<span class="nm">kcgi</span>&#8212;<span class="nd">minimal CGI library in C</span>
-			</h1>
-			<nav>
-				<span><a href="snapshots/kcgi.tgz">Sources</a></span>
-				<span><a href="snapshots">Archives</a></span>
-			</nav>
+			<section id="header">
+				<h1>
+					<span class="nm">kcgi</span> &#8211; <span class="nd">minimal CGI library in C</span>
+				</h1>
+				<nav>
+					<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
+					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				</nav>
+			</section>
 			<section id="version">
-				<p>
-					<i>Version @VERSION@</i> adds the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions.
-				</p>
+				<div>
+					Version <span class="version">@VERSION@</span>:
+					implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions.
+				</div>
 			</section>
 		</header>
 		<article>
@@ -30,14 +59,19 @@
 					See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a>
 					for alternatives.
 					To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into your
-					<code>PREFIX</code> of choice, then read the <a href="kcgi.3.html">kcgi(3)</a>,<a
+					<code>PREFIX</code> of choice, then read the <a href="kcgi.3.html">kcgi(3)</a>, <a
 						href="kcgihtml.3.html">kcgihtml(3)</a>, and <a
 						href="kcgijson.3.html">kcgijson(3)</a> manuals for usage.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 				</p>
 			</section>
-			<section id="sample">#include &lt;stdint.h&gt;
+			<figure id="sample">
+				<figcaption>
+					<span>Figure</span>: this simple example implements a server that just echoes <q>Hello, World!</q> as an HTTP
+					response.
+				</figcaption>
+				<pre id="nocomments" class="prettyprint linenums">#include &lt;stdint.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
@@ -51,12 +85,69 @@ int main(void) {
   khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
   <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
   <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+  <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
   return(EXIT_SUCCESS);
-}</section>
+}</pre>
+				<pre id="comments" class="prettyprint linenums">#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
+
+int main(void) {
+  struct kreq r;
+  struct kvalid key = { kvalid_int, "integer" };
+  const char *page = "index";
+
+  /*
+   * Parse the HTTP environment.
+   * Allow our single form-value pair.
+   * We only know a single page, "index", which is also
+   * the default page if none is supplied.
+   */
+  if ( ! <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+    return(EXIT_FAILURE);
+
+  /* Emit the HTTP status 200 header: everything's ok. */
+  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+  /* Echo our content-type, defaulting to HTML if none was specified. */
+  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
+  /* No more HTTP headers: start the HTTP document body. */
+  <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
+  
+  /*
+   * We can put any content below here: JSON, HTML, etc.
+   * Usually we'd switch on our MIME type.
+   * However, we're just going to put the literal string as noted...
+   */
+  <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+  /* Flush the document and free resources. */
+  <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
+  return(EXIT_SUCCESS);
+}</pre>
+				<nav>
+					<a href="#" onclick="showComments(); return false;"><i class="fa fa-comments"></i> Toggle comments</a>
+				</nav>
+			</figure>
 			<section id="features">
-				<h2 id="security">
-					Security
+				<h2>
+					How does it work?
 				</h2>
+				<p>
+					The meat of <span class="nm">kcgi</span> lies in the <a href="khttp_parse.3.html">khttp_parse(3)</a>
+					function, which parses key-value input pairs from the HTTP request as well as determing the page
+					request itself, MIME type, and so on.
+					Application developers must invoke this function before all others.
+					As mentioned in <a href="#security">security</a> section, the subroutines of 
+					<a href="khttp_parse.3.html">khttp_parse(3)</a> are invoked inside of a sandboxed child process &#8211;
+					this isolates unvalidated, adversarial input.
+					It must be matched by an <a href="khttp_free.3.html">khttp_free(3)</a>.
+				</p>
+				<p>
+					Once <a href="khttp_parse.3.html">khttp_parse(3)</a> has been successfully invoked, the calling
+					application is free to respond to the parsed and validated request.
+				</p>
+				<h3 id="security">
+					Security
+				</h3>
 				<p>
 					As a security precaution, the <span class="nm">kcgi</span> library parses and validates untrusted
 					network data in a sandboxed child process by forking within <a
@@ -72,10 +163,10 @@ int main(void) {
 						(<a href="http://www.openbsd.org">OpenBSD</a>)
 					</dt>
 					<dd>
-						This requires the existence of <span class="file">/dev/systrace</span> if running in a
+						This requires the existence of <i>/dev/systrace</i> if running in a
 						<code>chroot(2)</code>, which is strongly suggested.
 						If you're using a stock <a href="http://www.openbsd.org">OpenBSD</a>, make sure that the
-						mount-point of <span class="file">/dev/systrace</span> isn't mounted <code>nodev</code>!
+						mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
 					</dd>
 					<dt>
 						<a href="https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man3/sandbox_init.3.html">sandbox_init(3)</a>
@@ -101,9 +192,9 @@ int main(void) {
 					abruptly killed by the sandbox facility.
 					If required, this kind of validation can take place after the parse validation sequence.
 				</p>
-				<h2 id="portability">
+				<h3 id="portability">
 					Portability
-				</h2>
+				</h3>
 				<p>
 					<span class="nm">kcgi</span> should run on any modern UNIX systems and with any web server.
 					To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
@@ -117,9 +208,9 @@ int main(void) {
 					for minor inconsistencies such as <code>strlcpy(3)</code>, the <a href="#security">Security</a> mechanisms,
 					and for <a href="#compression">Compression</a> support.
 				</p>
-				<h2 id="extending">
+				<h3 id="extending">
 					Extensibility
-				</h2>
+				</h3>
 				<p>
 					While page maps and input validation are entirely driven by the interfacing application, <span
 						class="nm">kcgi</span> also allows for extension of the default HTTP headers, schemas, MIME
@@ -134,18 +225,18 @@ int main(void) {
 					It allows a mechanism for building HTML5 trees around the usual
 					<a href="khttp_write.3.html">khttp_write(3)</a> family of functions.
 				</p>
-				<h2 id="compression">
+				<h3 id="compression">
 					Compression
-				</h2>
+				</h3>
 				<p>
 					If <code>HAVE_ZLIB</code> is enabled during compilation (via the <a href="#portability">Portability</a>
 					mechanism), <a href="khttp_body.3.html">khttp_body(3)</a> will signal use of <a
 						href="http://www.zlib.net">zlib</a> to compress the HTTP body.
 					Compression is only enabled if the client provides the correct (<q>gzip</q>) HTTP request header.
 				</p>
-				<h2 id="input">
+				<h3 id="input">
 					Input Processing
-				</h2>
+				</h3>
 				<p>
 					All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed,
 					urlencoded, and plain&mdash;are supported by <span class="nm">kcgi</span>.
@@ -155,9 +246,9 @@ int main(void) {
 					parsed.
 					You can then look up key-value pairs constant-time in a table indexed by that key.
 				</p>
-				<h2 id="template">
+				<h3 id="template">
 					Templating
-				</h2>
+				</h3>
 				<p>
 					Many application will want just to fill in an output template instead of creating complex output trees
 					(relegating most work to JavaScript and JSON).
@@ -169,8 +260,13 @@ int main(void) {
 			</section>
 		</article>
 		<footer>
-			&#169; 2014 <a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a>,
-			$Date$
+			<div>&#169; 2014 <a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>
+				<i class="fa fa-clock-o"></i> $Date$
+				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
+				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+			</div>
 		</footer>
 	</body>
 </html>

@@ -317,33 +317,26 @@ struct	ktemplate {
 
 __BEGIN_DECLS
 
-void		 khttp_body(struct kreq *req);
-void		 khttp_free(struct kreq *req);
-void		 khttp_child_free(struct kreq *req);
-void		 khttp_head(struct kreq *req, const char *key, 
-			const char *fmt, ...)
-			__attribute__((format(printf, 3, 4)));
-int		 khttp_parse(struct kreq *req, 
-			const struct kvalid *keys, size_t keymax,
-			const char *const *pages, size_t pagemax,
-			size_t defpage);
-int		 khttp_parsex(struct kreq *req, 
-			const struct kmimemap *suffixes, 
-			const char *const *mimes, size_t mimemax,
-			const struct kvalid *keys, size_t keymax,
-			const char *const *pages, size_t pagemax,
-			size_t defmime, size_t defpage, void *arg,
-			void (*argfree)(void *arg));
-void		 khttp_putc(struct kreq *req, int c);
-void		 khttp_puts(struct kreq *req, const char *cp);
-int		 khttp_template(struct kreq *req, 
-			const struct ktemplate *t, 
-			const char *fname);
-int		 khttp_template_buf(struct kreq *req, 
-			const struct ktemplate *t, 
-			const char *buf, size_t sz);
-void		 khttp_write(struct kreq *req, const void *buf, 
-			size_t sz);
+void		 khttp_body(struct kreq *);
+void		 khttp_free(struct kreq *);
+void		 khttp_child_free(struct kreq *);
+void		 khttp_head(struct kreq *, const char *, const char *,
+			...) __attribute__((format(printf, 3, 4)));
+int		 khttp_parse(struct kreq *, 
+			const struct kvalid *, size_t,
+			const char *const *, size_t, size_t);
+int		 khttp_parsex(struct kreq *, const struct kmimemap *, 
+			const char *const *, size_t, 
+			const struct kvalid *, size_t,
+			const char *const *, size_t,
+			size_t, size_t, void *, void (*)(void *));
+void		 khttp_putc(struct kreq *, int);
+void		 khttp_puts(struct kreq *, const char *);
+int		 khttp_template(struct kreq *, 
+			const struct ktemplate *, const char *);
+int		 khttp_template_buf(struct kreq *, 
+			const struct ktemplate *, const char *, size_t);
+void		 khttp_write(struct kreq *, const void *, size_t);
 
 int		 kvalid_date(struct kpair *);
 int		 kvalid_double(struct kpair *);
@@ -354,22 +347,21 @@ int		 kvalid_stringne(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
-char		*kutil_urlabs(enum kscheme scheme, const char *host, 
-			uint16_t port, const char *path);
-char		*kutil_urlpart(struct kreq *req, const char *path,
-			const char *mime, const char *page, ...);
-char		*kutil_urlpartx(struct kreq *req, const char *path,
-			const char *mime, const char *page, ...);
-char		*kutil_urlencode(const char *cp);
-void		 kutil_invalidate(struct kreq *req,
-			struct kpair *pair);
+char		*kutil_urlabs(enum kscheme, const char *, 
+			uint16_t, const char *);
+char		*kutil_urlpart(struct kreq *, const char *,
+			const char *, const char *, ...);
+char		*kutil_urlpartx(struct kreq *, const char *,
+			const char *, const char *, ...);
+char		*kutil_urlencode(const char *);
+void		 kutil_invalidate(struct kreq *, struct kpair *);
 
-int		 kasprintf(char **p, const char *fmt, ...);
-void		*kcalloc(size_t nm, size_t sz);
-void		*kmalloc(size_t sz);
-void		*krealloc(void *p, size_t sz);
-void		*kreallocarray(void *p, size_t nm, size_t sz);
-char		*kstrdup(const char *cp);
+int		 kasprintf(char **, const char *, ...);
+void		*kcalloc(size_t, size_t);
+void		*kmalloc(size_t);
+void		*krealloc(void *, size_t);
+void		*kreallocarray(void *, size_t, size_t);
+char		*kstrdup(const char *);
 
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
