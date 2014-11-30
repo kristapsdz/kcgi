@@ -8,7 +8,7 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.1
+VERSION 	 = 0.4.2
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -117,14 +117,15 @@ install: all
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
-www: index.html kcgi-$(VERSION).tgz $(HTMLS)
+www: index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS)
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
 	install -m 0444 index.html index.css $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
-	install -m 0444 kcgi-$(VERSION).tgz $(PREFIX)/snapshots/
-	install -m 0444 kcgi-$(VERSION).tgz $(PREFIX)/snapshots/kcgi.tgz
+	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
+	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
+	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
 
 index.html: index.xml
 	sed "s!@VERSION@!$(VERSION)!g" index.xml >$@
@@ -132,7 +133,10 @@ index.html: index.xml
 .3.3.html:
 	mandoc -Thtml -Oman=%N.%S.html $< >$@
 
-kcgi-$(VERSION).tgz:
+kcgi.tgz.sha512: kcgi.tgz
+	openssl dgst -sha512 kcgi.tgz >$@
+
+kcgi.tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
 	mkdir -p .dist/kcgi-$(VERSION)/man
 	cp $(SRCS) .dist/kcgi-$(VERSION)
@@ -143,7 +147,7 @@ kcgi-$(VERSION).tgz:
 	rm -rf .dist
 
 clean:
-	rm -f kcgi-$(VERSION).tgz index.html $(HTMLS) sample
+	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(HTMLS) sample
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o

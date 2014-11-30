@@ -46,7 +46,10 @@
 			<section id="version">
 				<div>
 					Version <span class="version">@VERSION@</span>:
-					implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions.
+					implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, 
+					remove function prototype names as per OpenBSD's <a
+						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>,
+					polish documentation.
 				</div>
 			</section>
 		</header>
@@ -200,8 +203,10 @@ int main(void) {
 					To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
 						href="http://www.openbsd.org">OpenBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a>
 					(Snow Leopard, Lion) on i386 and AMD64.
-					It has been deployed under <a href="https://httpd.apache.org/">Apache</a> and <a
-						href="http://nginx.org">nginx</a> (via the <code>slowcgi</code> wrapper).
+					It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
+						href="http://nginx.org">nginx</a>, and OpenBSD's <a
+						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8?query=httpd">httpd(8)</a>
+						(the latter two via the <code>slowcgi</code> wrapper).
 				</p>
 				<p>
 					Portability across UNIX systems is made possible by a small <code>configure</code> script that checks
