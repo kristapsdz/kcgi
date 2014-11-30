@@ -75,8 +75,6 @@ SRCS 		 = compat-memmem.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
-# Only for local installation.
-WWWDIR 		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 
 all: libkcgi.a libkcgihtml.a libkcgijson.a
 
@@ -122,17 +120,17 @@ sample: sample.o libkcgi.a libkcgihtml.a
 www: index.html kcgi-$(VERSION).tgz $(HTMLS)
 
 installwww: www
-	mkdir -p $(WWWDIR)/snapshots
-	install -m 0444 index.html index.css $(HTMLS) $(WWWDIR)
-	install -m 0444 sample.c $(WWWDIR)/sample.c.txt
-	install -m 0444 kcgi-$(VERSION).tgz $(WWWDIR)/snapshots/
-	install -m 0444 kcgi-$(VERSION).tgz $(WWWDIR)/snapshots/kcgi.tgz
+	mkdir -p $(PREFIX)/snapshots
+	install -m 0444 index.html index.css $(HTMLS) $(PREFIX)
+	install -m 0444 sample.c $(PREFIX)/sample.c.txt
+	install -m 0444 kcgi-$(VERSION).tgz $(PREFIX)/snapshots/
+	install -m 0444 kcgi-$(VERSION).tgz $(PREFIX)/snapshots/kcgi.tgz
 
 index.html: index.xml
 	sed "s!@VERSION@!$(VERSION)!g" index.xml >$@
 
 .3.3.html:
-	mandoc -Thtml $< >$@
+	mandoc -Thtml -Oman=%N.%S.html $< >$@
 
 kcgi-$(VERSION).tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
