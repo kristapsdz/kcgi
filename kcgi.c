@@ -643,16 +643,27 @@ khttp_parsex(struct kreq *req,
 	size_t		 i;
 	pid_t		 pid;
 	int		 socks[2];
-	int 		 sndbuf, rc;
+	int 		 sndbuf;
 	void		*sand;
 	socklen_t	 socksz;
 
-	socksz = 0;
+	/*socksz = 0;
 	rc = getpeername(STDIN_FILENO, NULL, &socksz);
 	if (-1 == rc && ENOTCONN == errno) {
-		XWARNX("running as FastCGI?");
+		XWARNX("running as FastCGI...");
+		XWARNX("listening...");
+		if (-1 == listen(STDIN_FILENO, 5)) {
+			XWARNX("cannot listen");
+			return(0);
+		}
+		insock = accept(STDIN_FILENO, NULL, &socksz);
+		if (-1 == insock) {
+			XWARNX("cannot accept");
+			return(0);
+		}
+		XWARNX("accepted FastCGI...");
 		return(0);
-	}
+	}*/
 
 	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
