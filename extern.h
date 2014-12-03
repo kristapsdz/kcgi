@@ -19,28 +19,27 @@
 
 __BEGIN_DECLS
 
-enum kcgi_err	 
-	 khttp_input_parent(int fd, struct kreq *r, pid_t pid);
-void	 khttp_input_child(int fd, const struct kvalid *keys, 
-		size_t keysz, const char *const *mimes, size_t mimesz);
+enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
+void	 	 khttp_input_child(int, const struct kvalid *, 
+			size_t, const char *const *, size_t);
 
-void	 ksandbox_free(void *arg);
-void	*ksandbox_alloc(void);
-void	 ksandbox_close(void *arg, pid_t pid);
-void	 ksandbox_init_child(void *arg, int fd);
-void	 ksandbox_init_parent(void *arg, pid_t pid);
+void		 ksandbox_free(void *);
+void		*ksandbox_alloc(void);
+enum kcgi_err	 ksandbox_close(void *, pid_t);
+void		 ksandbox_init_child(void *, int);
+void		 ksandbox_init_parent(void *, pid_t);
 
 #ifdef HAVE_CAPSICUM
-int	 ksandbox_capsicum_init_child(void *arg, int fd);
+int	 	 ksandbox_capsicum_init_child(void *, int);
 #endif
 #ifdef HAVE_SANDBOX_INIT
-int	 ksandbox_darwin_init_child(void *arg);
+int	 	 ksandbox_darwin_init_child(void *);
 #endif
 #ifdef HAVE_SYSTRACE
-void	*ksandbox_systrace_alloc(void);
-void	 ksandbox_systrace_close(void *arg);
-int	 ksandbox_systrace_init_child(void *arg);
-int	 ksandbox_systrace_init_parent(void *arg, pid_t child);
+void		*ksandbox_systrace_alloc(void);
+void	 	 ksandbox_systrace_close(void *);
+int	 	 ksandbox_systrace_init_child(void *);
+int	 	 ksandbox_systrace_init_parent(void *, pid_t);
 #endif
 
 /*
