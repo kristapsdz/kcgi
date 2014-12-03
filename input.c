@@ -155,7 +155,7 @@ fullreadword(int fd, char **cp)
 
 	(*cp)[sz] = '\0';
 	if (0 == sz)
-		return(1);
+		return(KCGI_OK);
 
 	fullread(fd, *cp, sz, 0, &ke);
 	return(ke);
@@ -1001,6 +1001,9 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	enum kcgi_err	 ke;
 	size_t		 i;
 
+	/* Pointers freed at "out" label. */
+	memset(&kp, 0, sizeof(struct kpair));
+
 	/*
 	 * First read all of our parsed parameters.
 	 * Each parsed parameter is handled a little differently.
@@ -1013,7 +1016,7 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 		XWARNX("failed to read authorisation type");
 		goto out;
 	} else if (KCGI_OK != (ke = fullreadword(fd, &r->remote))) {
-		XWARNX("failed to read fullpath");
+		XWARNX("failed to read remote");
 		goto out;
 	} else if (KCGI_OK != (ke = fullreadword(fd, &r->fullpath))) {
 		XWARNX("failed to read fullpath");
