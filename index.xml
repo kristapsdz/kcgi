@@ -35,22 +35,20 @@
 		<header>
 			<section id="header">
 				<h1>
-					<span class="nm">kcgi</span> &#8211; <span class="nd">minimal CGI library in C</span>
+					<span itemprop="name" class="nm">kcgi</span> 
+					&#8211; 
+					<span itemprop="description" class="nd">minimal CGI library in C</span>
 				</h1>
 				<nav>
-					<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				</nav>
 			</section>
 			<section id="version">
-				<div>
-					Version <span class="version">@VERSION@</span>:
-					implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, 
-					remove function prototype names as per OpenBSD's <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>,
-					polish documentation.
-				</div>
+				<nav data-sblg-nav="1" data-sblg-navsz="3" data-sblg-navcontent="1">
+					Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>): ${sblg-aside}
+				</nav>
 			</section>
 		</header>
 		<article>
@@ -82,7 +80,7 @@ int main(void) {
   struct kreq r;
   struct kvalid key = { kvalid_int, "integer" };
   const char *page = "index";
-  if ( ! <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
     return(EXIT_FAILURE);
   <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
   khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
@@ -181,7 +179,7 @@ int main(void) {
 						This is supplemented by resource limiting via <code>setrlimit(2)</code>.
 					</dd>
 					<dt>
-						<a href="https://www.freebsd.org/cgi/man.cgi?query=capsicum&sektion=4">capsicum(4)</a>
+						<a href="https://www.freebsd.org/cgi/man.cgi?query=capsicum&amp;sektion=4">capsicum(4)</a>
 						(<a href="https://www.freebsd.org">FreeBSD</a>)
 					</dt>
 					<dd>
@@ -243,8 +241,8 @@ int main(void) {
 					Input Processing
 				</h3>
 				<p>
-					All common input methods&mdash;query string, cookie, and form (multipart form-data and mixed,
-					urlencoded, and plain&mdash;are supported by <span class="nm">kcgi</span>.
+					All common input methods&#8212;query string, cookie, and form (multipart form-data and mixed,
+					urlencoded, and plain&#8212;are supported by <span class="nm">kcgi</span>.
 					As described in the <a href="#security">Security</a> section, these fields are all parsed and validated
 					from network data in a child process.
 					Each input key-value pair can be matched (by key name) to a validator, which is run when fields are
@@ -265,7 +263,7 @@ int main(void) {
 			</section>
 		</article>
 		<footer>
-			<div>&#169; 2014 <a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
 				<i class="fa fa-clock-o"></i> $Date$
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>

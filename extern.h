@@ -19,7 +19,8 @@
 
 __BEGIN_DECLS
 
-int	 khttp_input_parent(int fd, struct kreq *r, pid_t pid);
+enum kcgi_err	 
+	 khttp_input_parent(int fd, struct kreq *r, pid_t pid);
 void	 khttp_input_child(int fd, const struct kvalid *keys, 
 		size_t keysz, const char *const *mimes, size_t mimesz);
 
