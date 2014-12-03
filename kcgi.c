@@ -612,7 +612,7 @@ kreq_free(struct kreq *req)
 	free(req->pname);
 }
 
-int
+enum kcgi_err
 khttp_parse(struct kreq *req, 
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
@@ -629,7 +629,7 @@ khttp_parse(struct kreq *req,
  * This consists of paths, suffixes, methods, and most importantly,
  * pasred query string, cookie, and form data.
  */
-int
+enum kcgi_err
 khttp_parsex(struct kreq *req, 
 	const struct kmimemap *suffixmap, 
 	const char *const *mimes, size_t mimesz,
@@ -641,52 +641,42 @@ khttp_parsex(struct kreq *req,
 	char		*cp;
 	const struct kmimemap *mm;
 	size_t		 i;
+	enum kcgi_err	 kerr;
 	pid_t		 pid;
 	int		 socks[2];
-	int 		 sndbuf;
+	int 		 sndbuf, er;
 	void		*sand;
 	socklen_t	 socksz;
 
-	/*socksz = 0;
-	rc = getpeername(STDIN_FILENO, NULL, &socksz);
-	if (-1 == rc && ENOTCONN == errno) {
-		XWARNX("running as FastCGI...");
-		XWARNX("listening...");
-		if (-1 == listen(STDIN_FILENO, 5)) {
-			XWARNX("cannot listen");
-			return(0);
-		}
-		insock = accept(STDIN_FILENO, NULL, &socksz);
-		if (-1 == insock) {
-			XWARNX("cannot accept");
-			return(0);
-		}
-		XWARNX("accepted FastCGI...");
-		return(0);
-	}*/
-
+	/*
+	 * We'll be using poll(2) for reading our HTTP document, so this
+	 * must be non-blocking in order to make the reads not spin the
+	 * CPU.
+	 */
 	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
-		return(0);
+		return(KCGI_SYSTEM);
 	}
 
 	/*
-	 * Establish a non-blocking socket between our child and the
-	 * parent for communicating parsed form data.
+	 * Similarly, create and non-block-ify the socket between our
+	 * child and the parent for communicating parsed form data.
 	 */
 	if (-1 == socketpair(AF_UNIX, SOCK_STREAM, 0, socks)) {
+		er = errno;
 		XWARN("socketpair");
-		return(0);
+		return(EMFILE == er || ENFILE == er ?
+			KCGI_ENFILE : KCGI_SYSTEM);
 	} else if (-1 == fcntl(socks[0], F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
 		close(socks[0]);
 		close(socks[1]);
-		return(0);
+		return(KCGI_SYSTEM);
 	} else if (-1 == fcntl(socks[1], F_SETFL, O_NONBLOCK)) {
 		XWARN("fcntl: O_NONBLOCK");
 		close(socks[0]);
 		close(socks[1]);
-		return(0);
+		return(KCGI_SYSTEM);
 	}
 
 	/*
@@ -717,8 +707,9 @@ khttp_parsex(struct kreq *req,
 	sand = ksandbox_alloc();
 	
 	if (-1 == (pid = fork())) {
+		er = errno;
 		perror("fork");
-		return(0);
+		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == pid) {
 		/* Conditionally free our argument. */
 		if (NULL != argfree && NULL != arg)
@@ -734,11 +725,14 @@ khttp_parsex(struct kreq *req,
 	ksandbox_init_parent(sand, pid);
 
 	memset(req, 0, sizeof(struct kreq));
+	kerr = KCGI_ENOMEM;
 
 	/*
 	 * After this point, all errors should use "goto err", which
 	 * will properly free up our memory and close any extant file
 	 * descriptors.
+	 * Also, we're running our child in the background, so make sure
+	 * that it gets killed!
 	 */
 	req->arg = arg;
 	req->keys = keys;
@@ -784,7 +778,8 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
-	if ( ! khttp_input_parent(socks[1], req, pid))
+	kerr = khttp_input_parent(socks[1], req, pid);
+	if (KCGI_OK != kerr)
 		goto err;
 
 	/* Look up page type from component. */
@@ -802,7 +797,7 @@ khttp_parsex(struct kreq *req,
 				req->mime = mm->mime;
 				break;
 			}
-		/* Could not find this mime type! */
+		 /* Could not find this mime type! */
 		if (NULL == mm->name)
 			req->mime = mimesz;
 	}
@@ -810,11 +805,12 @@ khttp_parsex(struct kreq *req,
 	/* FIXME: do this after err handler? */
 	ksandbox_close(sand, pid);
 	ksandbox_free(sand);
-	return(1);
+	return(KCGI_OK);
 err:
+	/* FIXME: kill child process? */
 	kreq_free(req);
 	close(socks[1]);
-	return(0);
+	return(kerr);
 }
 
 /*

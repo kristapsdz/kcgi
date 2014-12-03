@@ -7,6 +7,10 @@ body 			{ color: #333;
 code, pre		{ font-size: 11pt; }
 a 			{ text-decoration: none; }
 header			{ box-shadow: 0 1px 4px #888; }
+header nav ul		{ margin: auto 0; 
+			  padding: 0;
+			  list-style-type: none; }
+header nav li + li	{ margin-top: 0.5em; }
 #header			{ background-color: #333; 
 			  padding: 3em 2% 1ex 2%;
 			  color: #fff; }
@@ -17,6 +21,7 @@ header			{ box-shadow: 0 1px 4px #888; }
 			  font-style: italic;
 			  padding: 1em 2%; }
 #version a, 
+#version time, 
 #version span.version	{ font-style: normal; }
 h1 			{ font-size: 32pt; 
 			  margin: 0 0 1ex 0;

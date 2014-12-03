@@ -315,6 +315,20 @@ struct	ktemplate {
 	int		 	(*cb)(size_t key, void *arg);
 };
 
+enum	kcgi_err {
+	KCGI_OK = 0,
+	/* ENOMEM (fork, malloc, etc.). */
+	KCGI_ENOMEM,
+	/* ENFILE or EMFILE (fd ops). */
+	KCGI_ENFILE,
+	/* EAGAIN (fork). */
+	KCGI_EAGAIN,
+	/* Internal system error (malformed data). */
+	KCGI_FORM,
+	/* Opaque operating-system error. */
+	KCGI_SYSTEM
+};
+
 __BEGIN_DECLS
 
 void		 khttp_body(struct kreq *);
@@ -322,10 +336,10 @@ void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
 void		 khttp_head(struct kreq *, const char *, const char *,
 			...) __attribute__((format(printf, 3, 4)));
-int		 khttp_parse(struct kreq *, 
+enum kcgi_err	 khttp_parse(struct kreq *, 
 			const struct kvalid *, size_t,
 			const char *const *, size_t, size_t);
-int		 khttp_parsex(struct kreq *, const struct kmimemap *, 
+enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *, 
 			const char *const *, size_t, 
 			const struct kvalid *, size_t,
 			const char *const *, size_t,

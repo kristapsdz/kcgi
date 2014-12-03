@@ -1,0 +1,12 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.4.3</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2014-12-03">2014-12-03</time>
+	</header>
+	<aside>
+		Make sure that <a href="khttp_parse.3.html">khttp_parse(3)</a> returns an error code indicating what actually went wrong.
+		This is a minor API change because the function no longer returns 0, but an enumeration (where 0, incidentally, means success).
+		Also audit the parsing trailer to make sure that the parent doesn't exit in the event of memory exhaustion.
+	</aside>
+</article>

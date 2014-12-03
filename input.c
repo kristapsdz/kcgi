@@ -82,13 +82,14 @@ static	const char *const kauths[KAUTH_UNKNOWN] = {
 };
 
 /*
- * Read the contents of buf, size bufsz, entirely.
+ * Read the contents of buf, size bufsz, entirely, using non-blocking
+ * reads (i.e., poll(2) then read(2)).
  * This will exit with -1 on fatal errors (the child didn't return
  * enough data or we received an unexpected EOF) or 0 on EOF (only if
  * it's allowed), otherwise 1.
  */
 static int
-fullread(int fd, void *buf, size_t bufsz, int eofok)
+fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 {
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
@@ -96,6 +97,7 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
+	*er = KCGI_SYSTEM;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
@@ -112,37 +114,51 @@ fullread(int fd, void *buf, size_t bufsz, int eofok)
 			return(-1);
 		} else if (0 == ssz && sz > 0) {
 			XWARN("read: short read");
+			*er = KCGI_FORM;
 			return(-1);
 		} else if (0 == ssz && sz == 0 && ! eofok) {
 			XWARNX("read: unexpected eof");
+			*er = KCGI_FORM;
 			return(-1);
-		} else if (0 == ssz && sz == 0 && eofok)
+		} else if (0 == ssz && sz == 0 && eofok) {
+			*er = KCGI_OK;
 			return(0);
+		}
 
 		/* Additive overflow check. */
 		if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("read: overflow: %zu, %zd", sz, ssz);
+			*er = KCGI_FORM;
 			return(-1);
 		}
 	}
+
+	*er = KCGI_OK;
 	return(1);
 }
 
-static int
+/*
+ * Read a word from the stream, which consists of the word size followed
+ * by the word itself, not including the nil terminator.
+ */
+static enum kcgi_err
 fullreadword(int fd, char **cp)
 {
-	size_t	 sz;
+	size_t	 	 sz;
+	enum kcgi_err	 ke;
 
-	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
-		return(-1);
-	*cp = kmalloc(sz + 1);
+	if (fullread(fd, &sz, sizeof(size_t), 0, &ke) < 0)
+		return(ke);
+
+	if (NULL == (*cp = XMALLOC(sz + 1)))
+		return(KCGI_ENOMEM);
+
 	(*cp)[sz] = '\0';
 	if (0 == sz)
 		return(1);
-	if (fullread(fd, *cp, sz, 0) < 0)
-		return(-1);
 
-	return(1);
+	fullread(fd, *cp, sz, 0, &ke);
+	return(ke);
 }
 
 /*
@@ -152,7 +168,7 @@ fullreadword(int fd, char **cp)
  * Otherwise, it returns 1 and the pair is zeroed and filled in.
  */
 static int
-input(enum input *type, struct kpair *kp, int fd)
+input(enum input *type, struct kpair *kp, int fd, enum kcgi_err *ke)
 {
 	size_t		 sz;
 	int		 rc;
@@ -161,52 +177,61 @@ input(enum input *type, struct kpair *kp, int fd)
 	memset(kp, 0, sizeof(struct kpair));
 
 	/* This will return EOF for the last one. */
-	if (0 == (rc = fullread(fd, type, sizeof(enum input), 1)))
+	if (0 == (rc = fullread(fd, type, sizeof(enum input), 1, ke)))
 		return(0);
 	else if (rc < 0)
 		return(-1);
+
 	if (*type >= IN__MAX) {
 		XWARNX("unknown input type %d", *type);
+		*ke = KCGI_FORM;
 		return(-1);
 	}
 
 	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
+	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
 		return(-1);
-	if (NULL == (kp->key = XCALLOC(sz + 1, 1))) 
+	if (NULL == (kp->key = XCALLOC(sz + 1, 1))) {
+		*ke = KCGI_ENOMEM;
 		return(-1);
-	if (fullread(fd, kp->key, sz, 0) < 0)
+	}
+	if (fullread(fd, kp->key, sz, 0, ke) < 0)
 		return(-1);
 
 	/* TODO: check additive overflow. */
-	if (fullread(fd, &kp->valsz, sizeof(size_t), 0) < 0)
+	if (fullread(fd, &kp->valsz, sizeof(size_t), 0, ke) < 0)
 		return(-1);
-	if (NULL == (kp->val = XCALLOC(kp->valsz + 1, 1)))
+	if (NULL == (kp->val = XCALLOC(kp->valsz + 1, 1))) {
+		*ke = KCGI_ENOMEM;
 		return(-1);
-	if (fullread(fd, kp->val, kp->valsz, 0) < 0)
+	}
+	if (fullread(fd, kp->val, kp->valsz, 0, ke) < 0)
 		return(-1);
 
-	if (fullread(fd, &kp->state, sizeof(enum kpairstate), 0) < 0)
+	if (fullread(fd, &kp->state, sizeof(enum kpairstate), 0, ke) < 0)
 		return(-1);
-	if (fullread(fd, &kp->type, sizeof(enum kpairtype), 0) < 0)
+	if (fullread(fd, &kp->type, sizeof(enum kpairtype), 0, ke) < 0)
 		return(-1);
-	if (fullread(fd, &kp->keypos, sizeof(size_t), 0) < 0)
+	if (fullread(fd, &kp->keypos, sizeof(size_t), 0, ke) < 0)
 		return(-1);
 
 	if (KPAIR_VALID == kp->state)
 		switch (kp->type) {
 		case (KPAIR_DOUBLE):
-			if (fullread(fd, &kp->parsed.d, sizeof(double), 0) < 0)
+			if (fullread(fd, &kp->parsed.d, sizeof(double), 0, ke) < 0)
 				return(-1);
 			break;
 		case (KPAIR_INTEGER):
-			if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0) < 0)
+			if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0, ke) < 0)
 				return(-1);
 			break;
 		case (KPAIR_STRING):
-			if (fullread(fd, &diff, sizeof(ptrdiff_t), 0) < 0)
+			if (fullread(fd, &diff, sizeof(ptrdiff_t), 0, ke) < 0)
 				return(-1);
-			assert(diff <= (ssize_t)kp->valsz);
+			if (diff > (ssize_t)kp->valsz) {
+				*ke = KCGI_FORM;
+				return(-1);
+			}
 			kp->parsed.s = kp->val + diff;
 			break;
 		default:
@@ -214,29 +239,35 @@ input(enum input *type, struct kpair *kp, int fd)
 		}
 
 	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
+	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
 		return(-1);
-	if (NULL == (kp->file = XCALLOC(sz + 1, 1)))
+	if (NULL == (kp->file = XCALLOC(sz + 1, 1))) {
+		*ke = KCGI_ENOMEM;
 		return(-1);
-	if (fullread(fd, kp->file, sz, 0) < 0)
-		return(-1);
-
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
-		return(-1);
-	if (NULL == (kp->ctype = XCALLOC(sz + 1, 1)))
-		return(-1);
-	if (fullread(fd, kp->ctype, sz, 0) < 0)
-		return(-1);
-	if (fullread(fd, &kp->ctypepos, sizeof(size_t), 0) < 0)
+	}
+	if (fullread(fd, kp->file, sz, 0, ke) < 0)
 		return(-1);
 
 	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0) < 0)
+	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
 		return(-1);
-	if (NULL == (kp->xcode = XCALLOC(sz + 1, 1))) 
+	if (NULL == (kp->ctype = XCALLOC(sz + 1, 1))) {
+		*ke = KCGI_ENOMEM;
 		return(-1);
-	if (fullread(fd, kp->xcode, sz, 0) < 0)
+	}
+	if (fullread(fd, kp->ctype, sz, 0, ke) < 0)
+		return(-1);
+	if (fullread(fd, &kp->ctypepos, sizeof(size_t), 0, ke) < 0)
+		return(-1);
+
+	/* TODO: check additive overflow. */
+	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
+		return(-1);
+	if (NULL == (kp->xcode = XCALLOC(sz + 1, 1)))  {
+		*ke = KCGI_ENOMEM;
+		return(-1);
+	}
+	if (fullread(fd, kp->xcode, sz, 0, ke) < 0) 
 		return(-1);
 
 	return(1);
@@ -960,13 +991,14 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
  * We build up the kpair arrays here with this data, then assign the
  * kpairs into named buckets.
  */
-int
+enum kcgi_err
 khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
 	enum input	 type;
 	int		 rc;
+	enum kcgi_err	 ke;
 	size_t		 i;
 
 	/*
@@ -974,31 +1006,30 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	 * Each parsed parameter is handled a little differently.
 	 * This list will end with META__MAX.
 	 */
-	rc = -1;
-	if (fullread(fd, &r->method, sizeof(enum kmethod), 0) < 0) {
+	if (fullread(fd, &r->method, sizeof(enum kmethod), 0, &ke) < 0) {
 		XWARNX("failed to read request method");
 		goto out;
-	} else if (fullread(fd, &r->auth, sizeof(enum kauth), 0) < 0) {
+	} else if (fullread(fd, &r->auth, sizeof(enum kauth), 0, &ke) < 0) {
 		XWARNX("failed to read authorisation type");
 		goto out;
-	} if (fullreadword(fd, &r->remote) < 0) {
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->remote))) {
 		XWARNX("failed to read fullpath");
 		goto out;
-	} if (fullreadword(fd, &r->fullpath) < 0) {
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->fullpath))) {
 		XWARNX("failed to read fullpath");
 		goto out;
-	} else if (fullreadword(fd, &r->suffix) < 0) {
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->suffix))) {
 		XWARNX("failed to read suffix");
 		goto out;
-	} else if (fullreadword(fd, &r->pagename) < 0) {
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->pagename))) {
 		XWARNX("failed to read page part");
 		goto out;
-	} else if (fullreadword(fd, &r->path) < 0) {
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->path))) {
 		XWARNX("failed to read path part");
 		goto out;
 	}
 
-	while ((rc = input(&type, &kp, fd)) > 0) {
+	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
 		/*
 		 * We have a parsed field from the child process.
 		 * Begin by expanding the number of parsed fields
@@ -1011,11 +1042,15 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 
 		if (NULL == kpp) {
 			rc = -1;
+			ke = KCGI_ENOMEM;
 			break;
 		}
 
 		*kpp = kp;
 	}
+
+	if (rc < 0)
+		goto out;
 
 	/*
 	 * Now that the field and cookie arrays are fixed and not going
@@ -1047,6 +1082,7 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 		}
 	}
 
+	ke = KCGI_OK;
 	/*
 	 * Usually, "kp" would be zeroed after its memory is copied into
 	 * one of the form-input arrays.
@@ -1061,7 +1097,7 @@ out:
 	free(kp.xcode);
 
 	close(fd);
-	return(0 == rc);
+	return(ke);
 }
 
 /*
