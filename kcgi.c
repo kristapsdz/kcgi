@@ -29,6 +29,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <math.h> /* HUGE_VAL */
+#include <signal.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -803,11 +804,14 @@ khttp_parsex(struct kreq *req,
 	}
 
 	/* FIXME: do this after err handler? */
-	ksandbox_close(sand, pid);
+	kerr = ksandbox_close(sand, pid);
 	ksandbox_free(sand);
-	return(KCGI_OK);
+	return(kerr);
 err:
-	/* FIXME: kill child process? */
+	/* Make sure that our child is dead. */
+	(void)kill(pid, SIGINT);
+	(void)ksandbox_close(sand, pid);
+	ksandbox_free(sand);
 	kreq_free(req);
 	close(socks[1]);
 	return(kerr);

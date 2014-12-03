@@ -93,27 +93,35 @@ ksandbox_free(void *arg)
  * This consists of waiting for the child to exit, then running any
  * system-specific exit routines (right now only systrace).
  */
-void
+enum kcgi_err
 ksandbox_close(void *arg, pid_t pid)
 {
-	pid_t	 rp;
-	int	 st;
+	pid_t	 	 rp;
+	int	 	 st;
+	enum kcgi_err	 ke;
+
+	ke = KCGI_OK;
 
 	do
 		rp = waitpid(pid, &st, 0);
 	while (rp == -1 && errno == EINTR);
 
-	if (-1 == rp)
+	if (-1 == rp) {
+		ke = KCGI_SYSTEM;
 		XWARN("waiting for child");
-	else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st))
+	} else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st)) {
+		ke = KCGI_FORM;
 		XWARNX("child status %d", WEXITSTATUS(st));
-	else if (WIFSIGNALED(st))
+	} else if (WIFSIGNALED(st)) {
+		ke = KCGI_FORM;
 		XWARNX("child signal %d", WTERMSIG(st));
+	}
 
 	/* Now run system-specific closure stuff. */
 #ifdef HAVE_SYSTRACE
 	ksandbox_systrace_close(arg);
 #endif
+	return(ke);
 }
 
 /*
