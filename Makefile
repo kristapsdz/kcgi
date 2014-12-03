@@ -2,7 +2,7 @@
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Comment if you don't need statically linked.
-#STATIC 		 = -static
+STATIC 		 = -static
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
@@ -10,7 +10,7 @@ VERSIONS	 = version_0_4_2.xml \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.2
+VERSION 	 = 0.4.3
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
