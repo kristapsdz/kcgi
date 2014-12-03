@@ -5,6 +5,8 @@ CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-string
 #STATIC 		 = -static
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
+VERSIONS	 = version_0_4_2.xml \
+		   version_0_4_3.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
@@ -127,8 +129,8 @@ installwww: www
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
 	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
 
-index.html: index.xml
-	sed "s!@VERSION@!$(VERSION)!g" index.xml >$@
+index.html: index.xml $(VERSIONS)
+	sblg -t index.xml -o- $(VERSIONS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
 	mandoc -Thtml -Oman=%N.%S.html $< >$@

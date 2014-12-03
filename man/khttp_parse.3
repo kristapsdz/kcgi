@@ -25,7 +25,7 @@
 .Lb libkcgi
 .Sh SYNOPSIS
 .In kcgi.h
-.Ft int
+.Ft "enum kcgi_err"
 .Fo khttp_parse
 .Fa "struct kreq *req"
 .Fa "const struct kvalid *keys"
@@ -34,7 +34,7 @@
 .Fa "size_t pagesz"
 .Fa "size_t defpage"
 .Fc
-.Ft int
+.Ft "enum kcgi_err"
 .Fo khttp_parsex
 .Fa "struct kreq *req"
 .Fa "const struct kmimemap *suffixes"
@@ -402,9 +402,26 @@ floating-point number.
 .Nm khttp_parse
 and
 .Nm khttp_parsex
-return 0 on failure, non-zero on success.
-On failure, the calling application should terminate as soon as
-possible.
+return an error code:
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Memory failure.
+This can occur in many places: spawning a child, allocating memory,
+creating sockets, etc.
+.It Dv KCGI_ENFILE
+Could not allocate file descriptors.
+.It Dv KCGI_EAGAIN
+Could not spawn a child.
+.It Dv KCGI_FORM
+Malformed data between parent and child whilst parsing an HTTP request.
+(Internal system error.)
+.It Dv KCGI_SYSTEM
+Opaque operating system error.
+.El
+.Pp
+On failure, the calling application should terminate as soon as possible.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_free 3
