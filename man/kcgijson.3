@@ -21,10 +21,14 @@
 .Nm kcgijson ,
 .Nm kjson_open ,
 .Nm kjson_close ,
+.Nm kjson_putbool ,
+.Nm kjson_putboolp ,
 .Nm kjson_putint ,
 .Nm kjson_putintp ,
 .Nm kjson_putdouble ,
 .Nm kjson_putdoublep ,
+.Nm kjson_putnull ,
+.Nm kjson_putnullp ,
 .Nm kjson_putstring ,
 .Nm kjson_putstringp ,
 .Nm kjson_obj_open ,
@@ -49,6 +53,17 @@
 .Fa "struct kjsonreq *r"
 .Fc
 .Ft int
+.Fo kjson_putbool
+.Fa "struct kjsonreq *r"
+.Fa "int val"
+.Fc
+.Ft int
+.Fo kjson_putboolp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "int val"
+.Fc
+.Ft int
 .Fo kjson_putdouble
 .Fa "struct kjsonreq *r"
 .Fa "double val"
@@ -60,17 +75,6 @@
 .Fa "double val"
 .Fc
 .Ft int
-.Fo kjson_putstring
-.Fa "struct kjsonreq *r"
-.Fa "const char *val"
-.Fc
-.Ft int
-.Fo kjson_putstringp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "const char *val"
-.Fc
-.Ft int
 .Fo kjson_putint
 .Fa "struct kjsonreq *r"
 .Fa "int64_t val"
@@ -80,6 +84,26 @@
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "int64_t val"
+.Fc
+.Ft int
+.Fo kjson_putnull
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_putnullp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fc
+.Ft int
+.Fo kjson_putstring
+.Fa "struct kjsonreq *r"
+.Fa "const char *val"
+.Fc
+.Ft int
+.Fo kjson_putstringp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "const char *val"
 .Fc
 .Ft int
 .Fo kjson_obj_open
@@ -175,6 +199,15 @@ emit a string value with or without a name.
 Note that it is
 .Em not
 checked for character encoding, only character legality.
+.It Fn kjson_putboolp
+This and
+.Fn kjson_putbool
+emit a Boolean value with or without a name.
+In the usual way, 0 evalutes to FALSE, non-zero to TRUE.
+.It Fn kjson_putnullp
+This and
+.Fn kjson_putnull
+emit a null value with or without a name.
 .It Fn kjson_putintp
 This and
 .Fn kjson_putint

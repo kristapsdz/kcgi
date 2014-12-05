@@ -30,7 +30,7 @@ kjson_open(struct kjsonreq *r, struct kreq *req)
 
 	memset(r, 0, sizeof(struct kjsonreq));
 	r->req = req;
-	r->stack[0].type = KJSONTYPE_ROOT;
+	r->stack[0].type = KJSON_ROOT;
 }
 
 int
@@ -38,19 +38,6 @@ kjson_close(struct kjsonreq *r)
 {
 
 	return(0 == r->stackpos);
-}
-
-static int
-kjson_check(struct kjsonreq *r, const char *key)
-{
-
-	if (NULL != key && KJSONTYPE_OBJECT == r->stack[r->stackpos].type)
-		return(1);
-	if (NULL == key && KJSONTYPE_ARRAY == r->stack[r->stackpos].type)
-		return(1);
-	if (NULL == key && KJSONTYPE_ROOT == r->stack[r->stackpos].type)
-		return(1);
-	return(0);
 }
 
 /*
@@ -84,12 +71,18 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 }
 
 static int
-kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
+kjson_check(struct kjsonreq *r, const char *key)
 {
 
-	if ( ! kjson_check(r, key))
-		return(0);
+	if (NULL == key && KJSON_OBJECT == r->stack[r->stackpos].type)
+		goto out;
+	if (NULL == key && KJSON_ARRAY == r->stack[r->stackpos].type)
+		goto out;
+	if (NULL == key && KJSON_ROOT == r->stack[r->stackpos].type)
+		goto out;
 
+	return(0);
+out:
 	if (r->stack[r->stackpos].elements++ > 0) 
 		khttp_puts(r->req, ", ");
 
@@ -97,6 +90,15 @@ kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
 		kjson_puts(r, key);
 		khttp_puts(r->req, ": ");
 	}
+	return(1);
+}
+
+static int
+kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
+{
+
+	if ( ! kjson_check(r, key))
+		return(0);
 	khttp_puts(r->req, val);
 	return(1);
 }
@@ -114,14 +116,6 @@ kjson_putstringp(struct kjsonreq *r, const char *key, const char *val)
 
 	if ( ! kjson_check(r, key))
 		return(0);
-
-	if (r->stack[r->stackpos].elements++ > 0) 
-		khttp_puts(r->req, ", ");
-
-	if (NULL != key) {
-		kjson_puts(r, key);
-		khttp_puts(r->req, ": ");
-	}
 	kjson_puts(r, val);
 	return(1);
 }
@@ -150,6 +144,40 @@ kjson_putint(struct kjsonreq *r, int64_t val)
 }
 
 int
+kjson_putnullp(struct kjsonreq *r, const char *key)
+{
+
+	if ( ! kjson_check(r, key))
+		return(0);
+	khttp_puts(r->req, "null");
+	return(1);
+}
+
+int
+kjson_putboolp(struct kjsonreq *r, const char *key, int val)
+{
+
+	if ( ! kjson_check(r, key))
+		return(0);
+	khttp_puts(r->req, val ? "true" : "false");
+	return(1);
+}
+
+int
+kjson_putnull(struct kjsonreq *r)
+{
+
+	return(kjson_putnullp(r, NULL));
+}
+
+int
+kjson_putbool(struct kjsonreq *r, int val)
+{
+
+	return(kjson_putboolp(r, NULL, val));
+}
+
+int
 kjson_putintp(struct kjsonreq *r, const char *key, int64_t val)
 {
 	char	buf[22];
@@ -172,17 +200,9 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 	if ( ! kjson_check(r, key))
 		return(0);
 
-	if (r->stack[r->stackpos].elements++ > 0) 
-		khttp_puts(r->req, ", ");
-
-	if (NULL != key) {
-		kjson_puts(r, key);
-		khttp_puts(r->req, ": ");
-	}
-
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
-	r->stack[r->stackpos].type = KJSONTYPE_ARRAY;
+	r->stack[r->stackpos].type = KJSON_ARRAY;
 	assert(r->stackpos < 128);
 	khttp_putc(r->req, '[');
 	return(1);
@@ -194,7 +214,7 @@ kjson_array_close(struct kjsonreq *r)
 
 	if (0 == r->stackpos)
 		return(0);
-	if (KJSONTYPE_ARRAY != r->stack[r->stackpos].type)
+	if (KJSON_ARRAY != r->stack[r->stackpos].type)
 		return(0);
 	khttp_putc(r->req, ']');
 	r->stackpos--;
@@ -215,17 +235,9 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 	if ( ! kjson_check(r, key))
 		return(0);
 
-	if (r->stack[r->stackpos].elements++ > 0) 
-		khttp_puts(r->req, ", ");
-
-	if (NULL != key) {
-		kjson_puts(r, key);
-		khttp_puts(r->req, ": ");
-	}
-
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
-	r->stack[r->stackpos].type = KJSONTYPE_OBJECT;
+	r->stack[r->stackpos].type = KJSON_OBJECT;
 	assert(r->stackpos < 128);
 	khttp_putc(r->req, '{');
 	return(1);
@@ -237,7 +249,7 @@ kjson_obj_close(struct kjsonreq *r)
 
 	if (0 == r->stackpos)
 		return(0);
-	if (KJSONTYPE_OBJECT != r->stack[r->stackpos].type)
+	if (KJSON_OBJECT != r->stack[r->stackpos].type)
 		return(0);
 	khttp_putc(r->req, '}');
 	r->stackpos--;
