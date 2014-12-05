@@ -74,7 +74,7 @@ static int
 kjson_check(struct kjsonreq *r, const char *key)
 {
 
-	if (NULL == key && KJSON_OBJECT == r->stack[r->stackpos].type)
+	if (NULL != key && KJSON_OBJECT == r->stack[r->stackpos].type)
 		goto out;
 	if (NULL == key && KJSON_ARRAY == r->stack[r->stackpos].type)
 		goto out;
