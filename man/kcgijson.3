@@ -165,6 +165,10 @@ pair (ending in
 or a standalone value.
 Standalone values are used in arrays;
 key-value pairs are used in objects.
+Passing a
+.Dv NULL
+value as the key for any key-value pair function is the same as calling
+the standalone version.
 .Pp
 To use these functions, you must include the
 .In kcgijson.h
