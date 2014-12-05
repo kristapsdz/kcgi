@@ -1,0 +1,10 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.4.4</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2014-12-03">XXXX-XX-XX</time>
+	</header>
+	<aside>
+		Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
+	</aside>
+</article>
