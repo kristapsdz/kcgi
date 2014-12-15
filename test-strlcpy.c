@@ -5,6 +5,7 @@ main(void)
 {
 	char a[] = "foo";
 	char b[1024];
-	strlcpy(b, a, sizeof(b));
+	b[0] = '\0';
+	strlcat(b, a, sizeof(b));
 	return(0);
 }
