@@ -2,9 +2,10 @@
 	<header>
 		<h1>0.4.4</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2014-12-03">XXXX-XX-XX</time>
+		<time datetime="2014-12-15">2014-12-15</time>
 	</header>
 	<aside>
 		Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
+		Fix control code serialisation in the same.
 	</aside>
 </article>

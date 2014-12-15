@@ -6,11 +6,12 @@ STATIC 		 = -static
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
-		   version_0_4_3.xml
+		   version_0_4_3.xml \
+		   version_0_4_4.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.3
+VERSION 	 = 0.4.4
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
