@@ -19,7 +19,9 @@
 .Os
 .Sh NAME
 .Nm khttp_template ,
-.Nm khttp_template_buf
+.Nm khttp_templatex ,
+.Nm khttp_template_buf ,
+.Nm khttp_templatex_buf ,
 .Nd emit filled-in templates for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -32,43 +34,87 @@
 .Fa "const char *fname"
 .Fc
 .Ft int
+.Fo khttp_templatex
+.Fa "const struct ktemplate *t"
+.Fa "const char *fname"
+.Fa "ktemplate_writef fp"
+.Fa "void *arg"
+.Fc
+.Ft int
 .Fo khttp_template_buf
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
 .Fa "size_t sz"
 .Fc
+.Ft int
+.Fo khttp_templatex_buf
+.Fa "const struct ktemplate *t"
+.Fa "const char *buf"
+.Fa "size_t sz"
+.Fa "ktemplate_writef fp"
+.Fa "void *arg"
+.Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_template
+.Nm khttp_template ,
+.Nm khttp_templatex ,
+.Nm khttp_template_buf ,
 and
-.Nm khttp_template_buf
-are template functions for a
+.Nm khttp_templatex_buf
+functions comprise a template system for a
 .Xr kcgi 3
 context allocated with
 .Xr khttp_parse 3 .
-It may only come after
-.Xr khttp_body 3
-is invoked, else its behaviour is undefined.
+They may only be called after
+.Xr khttp_body 3 ,
+else behaviour is undefined.
 .Pp
-The
-.Nm khttp_template
-function memory-maps the regular file
+.Fn khttp_template
+and
+.Fn khttp_templatex
+memory-map the regular file
 .Fa fname
-and passes the string into
-.Nm khttp_template_buf .
-.Pp
-The
-.Nm khttp_template_buf
-function emits the buffer with
+and pass the string into
+.Fn khttp_template_buf
+and
+.Fn khttp_templatex_buf .
+.Fn khttp_template
+uses the
 .Xr khttp_write 3
-and friends until it reaches a
+family of functions for writing data, while
+.Fn khttp_templatex
+uses a function callback
+.Fa fp
+and opaque pointer
+.Fa arg
+for applications to override this behaviour.
+Passing
+.Dv NULL
+as
+.Fa fp
+causes undefined behaviour.
+.Pp
+.Fn khttp_template_buf
+and
+.Fn khttp_templatex_buf
+template an input buffer directly using
+.Xr khttp_write 3
+and friends for
+.Fn khttp_template_buf
+or
+.Fa fp
+and opaque pointer
+.Fa arg
+for
+.Fn khttp_templatex_buf .
+The buffer is emitted until a
 .Li @@foo@@
 sequence (two
 .Qq at
 signs followed by a key, followed by a trailing pair of
 .Qq at
-signs).
+signs) is encountered.
 The key is then looked up in the
 .Fa t
 argument's
@@ -101,6 +147,11 @@ Both
 and
 .Nm khttp_template_buf
 fail if the callback function returns 0.
+The
+.Nm khttp_templatex
+and
+.Nm khttp_atemplatex_buf
+functions may also return 0 if the write functions return 0.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
