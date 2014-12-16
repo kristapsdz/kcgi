@@ -43,7 +43,7 @@ kjson_close(struct kjsonreq *r)
 /*
  * Put a quoted JSON string into the output stream.
  */
-void
+static void
 kjson_puts(struct kjsonreq *r, const char *cp)
 {
 	int	 c;
@@ -85,6 +85,16 @@ static int
 kjson_check(struct kjsonreq *r, const char *key)
 {
 
+	/* We should never be in a string context. */
+	if (KJSON_STRING == r->stack[r->stackpos].type)
+		goto out;
+
+	/*
+	 * Check the parent of a new JSON value.
+	 * In short, we cannot have a key if our parent is the root
+	 * (KJSON_ROOT) or an array (KJSON_ARRAY), both of which accept
+	 * only values.
+	 */
 	if (NULL != key && KJSON_OBJECT == r->stack[r->stackpos].type)
 		goto out;
 	if (NULL == key && KJSON_ARRAY == r->stack[r->stackpos].type)
@@ -228,6 +238,88 @@ kjson_array_close(struct kjsonreq *r)
 	if (KJSON_ARRAY != r->stack[r->stackpos].type)
 		return(0);
 	khttp_putc(r->req, ']');
+	r->stackpos--;
+	return(1);
+}
+
+int
+kjson_string_write(const char *p, size_t sz, void *arg)
+{
+	struct kjsonreq	*r = arg;
+	size_t		 i;
+
+	if (KJSON_STRING != r->stack[r->stackpos].type)
+		return(0);
+
+	for (i = 0; i < sz; i++) 
+		switch (p[i]) {
+		case ('"'):
+		case ('\\'):
+		case ('/'):
+			khttp_putc(r->req, '\\');
+			khttp_putc(r->req, p[i]);
+			break;
+		case ('\b'):
+			khttp_puts(r->req, "\\b");
+			break;
+		case ('\f'):
+			khttp_puts(r->req, "\\f");
+			break;
+		case ('\n'):
+			khttp_puts(r->req, "\\n");
+			break;
+		case ('\r'):
+			khttp_puts(r->req, "\\r");
+			break;
+		case ('\t'):
+			khttp_puts(r->req, "\\t");
+			break;
+		default:
+			khttp_putc(r->req, p[i]);
+			break;
+		}
+
+	return(1);
+}
+
+int
+kjson_string_puts(struct kjsonreq *r, const char *cp)
+{
+
+	return(kjson_string_write(cp, strlen(cp), r));
+}
+
+int
+kjson_string_open(struct kjsonreq *r)
+{
+
+	return(kjson_stringp_open(r, NULL));
+}
+
+int
+kjson_stringp_open(struct kjsonreq *r, const char *key)
+{
+
+	if ( ! kjson_check(r, key))
+		return(0);
+
+	r->stack[r->stackpos].elements++;
+	r->stack[++r->stackpos].elements = 0;
+	r->stack[r->stackpos].type = KJSON_STRING;
+	assert(r->stackpos < 128);
+	khttp_putc(r->req, '"');
+	return(1);
+}
+
+int
+kjson_string_close(struct kjsonreq *r)
+{
+
+	if (0 == r->stackpos)
+		return(0);
+	if (KJSON_STRING != r->stack[r->stackpos].type)
+		return(0);
+	khttp_putc(r->req, '"');
 	r->stackpos--;
 	return(1);
 }
