@@ -298,7 +298,7 @@ const char *const ksuffixes[KMIME__MAX] = {
 const char	*pname = NULL;
 
 void
-khttp_write(struct kreq *req, const void *buf, size_t sz)
+khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
 
 #ifdef HAVE_ZLIB
@@ -310,7 +310,7 @@ khttp_write(struct kreq *req, const void *buf, size_t sz)
 }
 
 static int
-khttp_templatex_write(const void *dat, size_t sz, void *arg)
+khttp_templatex_write(const char *dat, size_t sz, void *arg)
 {
 
 	khttp_write(arg, dat, sz);

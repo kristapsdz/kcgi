@@ -36,7 +36,12 @@
 .Nm kjson_obj_close ,
 .Nm kjson_array_open ,
 .Nm kjson_arrayp_open ,
-.Nm kjson_array_close
+.Nm kjson_array_close ,
+.Nm kjson_string_open ,
+.Nm kjson_stringp_open ,
+.Nm kjson_string_close ,
+.Nm kjson_string_puts ,
+.Nm kjson_string_write
 .Nd JSON handling functions for kcgi
 .Sh LIBRARY
 .Lb libkcgijson
@@ -131,6 +136,30 @@
 .Fo kjson_array_close
 .Fa "struct kjsonreq *r"
 .Fc
+.Ft int
+.Fo kjson_string_open
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_stringp_open
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fc
+.Ft int
+.Fo kjson_string_close
+.Fa "struct kjsonreq *r"
+.Fc
+.Ft int
+.Fo kjson_string_puts
+.Fa "struct kjsonreq *r"
+.Fa "const char *cp"
+.Fc
+.Ft int
+.Fo kjson_string_write
+.Fa "const char *cp"
+.Fa "size_t sz"
+.Fa "void *arg"
+.Fc
 .Sh DESCRIPTION
 The
 .Nm kcgijson
@@ -148,23 +177,19 @@ sequences begin and end with
 and
 .Nm kjson_close ,
 respectively.
-This is followed by either an standalone array or standalone object
-context,
+These enclose a standalone-type array or object context,
 .Nm kjson_array_open
 or
 .Nm kjson_obj_open ,
-respectively.
-Key-value pairs or standalone values are separated internally, as are
-characters escaped.
+respectively, each with its own pair-type or standalone-type children.
 .Pp
 In general,
 .Nm kcgijson
-functions follow the convention of either being part of key-value
-pair (ending in
+functions follow the convention of writing either pair-type (ending in
 .Qq p )
-or a standalone value.
-Standalone values are used in arrays;
-key-value pairs are used in objects.
+or standalone-type data.
+Standalone values are used in arrays; key-value pairs are used in
+objects.
 Passing a
 .Dv NULL
 value as the key for any key-value pair function is the same as calling
@@ -188,11 +213,20 @@ Close a JSON context.
 This and
 .Fn kjson_array_open
 start an array context with or without a name.
-.It Fn kjson_objp_open
-This and
 .It Fn kjson_array_close
 Close an array context with or without a name.
+.Fn kjson_string_open
+This and
+.Fn kjson_stringp_open
+start an string context with or without a name.
+This is usually used for complex values, or those create dynamically
+with
+.Xr khttp_template 3 .
+.It Fn kjson_string_close
+Close an string context with or without a name.
 .Fn kjson_obj_open
+This and
+.Fn kjson_objp_open
 start an object context with or without a name.
 .It Fn kjson_obj_close
 Close an object context with or without a name.
