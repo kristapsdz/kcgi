@@ -20,7 +20,8 @@
 enum	kjsontype {
 	KJSON_ARRAY,
 	KJSON_OBJECT,
-	KJSON_ROOT
+	KJSON_ROOT,
+	KJSON_STRING
 };
 
 struct	kjsonscope {
@@ -58,6 +59,12 @@ int	kjson_obj_close(struct kjsonreq *);
 int	kjson_arrayp_open(struct kjsonreq *, const char *);
 int	kjson_array_open(struct kjsonreq *);
 int	kjson_array_close(struct kjsonreq *);
+
+int	kjson_stringp_open(struct kjsonreq *, const char *);
+int	kjson_string_open(struct kjsonreq *);
+int	kjson_string_close(struct kjsonreq *);
+int	kjson_string_write(const char *, size_t, void *);
+int	kjson_string_puts(struct kjsonreq *, const char *);
 
 __END_DECLS
 
