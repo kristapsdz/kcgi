@@ -309,6 +309,14 @@ khttp_write(struct kreq *req, const void *buf, size_t sz)
 		fwrite(buf, 1, sz, stdout);
 }
 
+static int
+khttp_templatex_write(const void *dat, size_t sz, void *arg)
+{
+
+	khttp_write(arg, dat, sz);
+	return(1);
+}
+
 void
 khttp_puts(struct kreq *req, const char *cp)
 {
@@ -1168,17 +1176,22 @@ int
 khttp_template_buf(struct kreq *req, 
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
-	size_t		 i, j, len, start, end;
 
 	assert(KSTATE_BODY == req->kdata->state);
+	return(khttp_templatex_buf(t, buf, sz, khttp_templatex_write, req));
+}
+
+int
+khttp_templatex_buf(const struct ktemplate *t, 
+	const char *buf, size_t sz, ktemplate_writef fp, void *arg)
+{
+	size_t		 i, j, len, start, end;
 
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
-		if ('@' != buf[i]) {
-			khttp_putc(req, buf[i]);
-			continue;
-		} else if ('@' != buf[i + 1]) {
-			khttp_putc(req, buf[i]);
+		if ('@' != buf[i] || '@' != buf[i + 1]) {
+			if ( ! fp(&buf[i], 1, arg))
+				return(0);
 			continue;
 		} 
 
@@ -1190,7 +1203,8 @@ khttp_template_buf(struct kreq *req,
 
 		/* Continue printing if not found of 0-length. */
 		if (end == sz - 1 || end == start) {
-			khttp_putc(req, buf[i]);
+			if ( ! fp(&buf[i], 1, arg))
+				return(0);
 			continue;
 		}
 
@@ -1209,16 +1223,26 @@ khttp_template_buf(struct kreq *req,
 		}
 
 		/* Didn't find it... */
-		if (j == t->keysz)
-			khttp_putc(req, buf[i]);
-		else
+		if (j == t->keysz) {
+			if ( ! fp(&buf[i], 1, arg))
+				return(0);
+		} else
 			i = end + 1;
 	}
 
-	if (i < sz)
-		khttp_putc(req, buf[i]);
+	if (i < sz && ! fp(&buf[i], 1, arg))
+		return(0);
 
 	return(1);
+}
+
+int
+khttp_template(struct kreq *req, 
+	const struct ktemplate *t, const char *fname)
+{
+
+	assert(KSTATE_BODY == req->kdata->state);
+	return(khttp_templatex(t, fname, khttp_templatex_write, req));
 }
 
 /*
@@ -1231,15 +1255,13 @@ khttp_template_buf(struct kreq *req,
  * If found, invoke the callback function with the given key.
  */
 int
-khttp_template(struct kreq *req, 
-	const struct ktemplate *t, const char *fname)
+khttp_templatex(const struct ktemplate *t, 
+	const char *fname, ktemplate_writef fp, void *arg)
 {
 	struct stat 	 st;
 	char		*buf;
 	size_t		 sz;
 	int		 fd, rc;
-
-	assert(KSTATE_BODY == req->kdata->state);
 
 	if (-1 == (fd = open(fname, O_RDONLY, 0))) {
 		XWARN("open: %s", fname);
@@ -1267,7 +1289,7 @@ khttp_template(struct kreq *req,
 		return(0);
 	}
 
-	rc = khttp_template_buf(req, t, buf, sz);
+	rc = khttp_templatex_buf(t, buf, sz, fp, arg);
 	munmap(buf, sz);
 	close(fd);
 	return(rc);
