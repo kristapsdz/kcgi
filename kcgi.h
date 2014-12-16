@@ -331,6 +331,8 @@ enum	kcgi_err {
 
 __BEGIN_DECLS
 
+typedef int	(*ktemplate_writef)(const void *, size_t, void *);
+
 void		 khttp_body(struct kreq *);
 void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
@@ -350,6 +352,10 @@ int		 khttp_template(struct kreq *,
 			const struct ktemplate *, const char *);
 int		 khttp_template_buf(struct kreq *, 
 			const struct ktemplate *, const char *, size_t);
+int		 khttp_templatex(const struct ktemplate *, 
+			const char *, ktemplate_writef, void *);
+int		 khttp_templatex_buf(const struct ktemplate *, 
+			const char *, size_t, ktemplate_writef, void *);
 void		 khttp_write(struct kreq *, const void *, size_t);
 
 int		 kvalid_date(struct kpair *);
