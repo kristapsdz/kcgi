@@ -7,7 +7,8 @@ PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
 		   version_0_4_3.xml \
-		   version_0_4_4.xml
+		   version_0_4_4.xml \
+		   version_0_4_5.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include

@@ -290,6 +290,24 @@ kjson_string_puts(struct kjsonreq *r, const char *cp)
 }
 
 int
+kjson_string_putdouble(struct kjsonreq *r, double val)
+{
+	char	buf[256];
+
+	(void)snprintf(buf, sizeof(buf), "%g", val);
+	return(kjson_string_write(buf, strlen(buf), r));
+}
+
+int
+kjson_string_putint(struct kjsonreq *r, int64_t val)
+{
+	char	buf[22];
+
+	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
+	return(kjson_string_write(buf, strlen(buf), r));
+}
+
+int
 kjson_string_open(struct kjsonreq *r)
 {
 
