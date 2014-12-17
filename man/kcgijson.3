@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: December 5 2014 $
+.Dd $Mdocdate: December 16 2014 $
 .Dt KCGIJSON 3
 .Os
 .Sh NAME
@@ -40,6 +40,8 @@
 .Nm kjson_string_open ,
 .Nm kjson_stringp_open ,
 .Nm kjson_string_close ,
+.Nm kjson_string_putdouble ,
+.Nm kjson_string_putint ,
 .Nm kjson_string_puts ,
 .Nm kjson_string_write
 .Nd JSON handling functions for kcgi
@@ -150,6 +152,11 @@
 .Fa "struct kjsonreq *r"
 .Fc
 .Ft int
+.Fo kjson_string_putint
+.Fa "struct kjsonreq *r"
+.Fa "int64_t val"
+.Fc
+.Ft int
 .Fo kjson_string_puts
 .Fa "struct kjsonreq *r"
 .Fa "const char *cp"
@@ -222,6 +229,13 @@ start an string context with or without a name.
 This is usually used for complex values, or those create dynamically
 with
 .Xr khttp_template 3 .
+The
+.Fn kjson_string_putdouble ,
+.Fn kjson_string_putint ,
+.Fn kjson_string_puts ,
+and
+.Fn kjson_string_write
+functions may be used for serialising value data.
 .It Fn kjson_string_close
 Close an string context with or without a name.
 .Fn kjson_obj_open

@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kcgi.h"
 #include "kcgihtml.h"
@@ -661,6 +662,37 @@ khtml_int(struct khtmlreq *req, int64_t val)
 	khtml_text(req, buf);
 }
 
+int
+khtml_write(const char *cp, size_t sz, void *arg)
+{
+	struct khtmlreq	*r = arg;
+	size_t		 i;
+
+	for (i = 0; i < sz; i++) 
+		switch (cp[i]) {
+		case ('>'):
+			khtml_entity(r, KENTITY_gt);
+			break;
+		case ('&'):
+			khtml_entity(r, KENTITY_amp);
+			break;
+		case ('<'):
+			khtml_entity(r, KENTITY_lt);
+			break;
+		case ('"'):
+			khtml_entity(r, KENTITY_quot);
+			break;
+		case ('\''):
+			khtml_ncr(r, 39);
+			break;
+		default:
+			khttp_putc(r->req, cp[i]);
+			break;
+		}
+
+	return(1);
+}
+
 /*
  * Emit text in an HTML document.
  * This means, minimally, that we need to escape the open and close
@@ -670,28 +702,7 @@ void
 khtml_text(struct khtmlreq *req, const char *cp)
 {
 
-	/* TODO: speed up with strcspn. */
 	req->newln = 0;
-	for ( ; NULL != cp && '\0' != *cp; cp++)
-		switch (*cp) {
-		case ('>'):
-			khtml_entity(req, KENTITY_gt);
-			break;
-		case ('&'):
-			khtml_entity(req, KENTITY_amp);
-			break;
-		case ('<'):
-			khtml_entity(req, KENTITY_lt);
-			break;
-		case ('"'):
-			khtml_entity(req, KENTITY_quot);
-			break;
-		case ('\''):
-			khtml_ncr(req, 39);
-			break;
-		default:
-			khttp_putc(req->req, *cp);
-			break;
-		}
+	(void)khtml_write(cp, strlen(cp), req);
 }
 

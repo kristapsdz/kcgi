@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 23 2014 $
+.Dd $Mdocdate: November 25 2014 $
 .Dt KCGIHTML 3
 .Os
 .Sh NAME
@@ -29,7 +29,8 @@
 .Nm khtml_entity ,
 .Nm khtml_int ,
 .Nm khtml_ncr ,
-.Nm khtml_text
+.Nm khtml_text ,
+.Nm khtml_write
 .Nd HTML handling functions for kcgi
 .Sh LIBRARY
 .Lb libkcgihtml
@@ -86,6 +87,12 @@
 .Fo khtml_text
 .Fa "struct khtmlreq *req"
 .Fa "const char *cp"
+.Fc
+.Ft int
+.Fo khtml_write
+.Fa "const char *cp"
+.Fa "size_t sz"
+.Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
 The
@@ -208,6 +215,12 @@ Emit the text
 escaping it (e.g.,
 .Sq \&> )
 for HTML if necessary.
+.It Fn khtml_write
+Like
+.Fn khtml_text ,
+but working with a sized buffer.
+This is generally for use with
+.Xr khttp_template 3 .
 .El
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.

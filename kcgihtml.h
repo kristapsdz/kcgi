@@ -458,6 +458,7 @@ void		 khtml_entity(struct khtmlreq *, enum kentity);
 void		 khtml_int(struct khtmlreq *, int64_t);
 void		 khtml_ncr(struct khtmlreq *, uint16_t);
 void		 khtml_text(struct khtmlreq *, const char *);
+int		 khtml_write(const char *, size_t, void *);
 
 __END_DECLS
 
