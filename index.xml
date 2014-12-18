@@ -78,9 +78,8 @@
 
 int main(void) {
   struct kreq r;
-  struct kvalid key = { kvalid_int, "integer" };
   const char *page = "index";
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
     return(EXIT_FAILURE);
   <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
   khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
@@ -95,16 +94,14 @@ int main(void) {
 
 int main(void) {
   struct kreq r;
-  struct kvalid key = { kvalid_int, "integer" };
   const char *page = "index";
 
   /*
    * Parse the HTTP environment.
-   * Allow our single form-value pair.
    * We only know a single page, "index", which is also
    * the default page if none is supplied.
    */
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
     return(EXIT_FAILURE);
 
   /* Emit the HTTP status 200 header: everything's ok. */
@@ -266,9 +263,11 @@ int main(void) {
 				<p>
 					<span class="nm">kcgi</span> is shipped with a fully automated testing framework executed with
 					<code>make regress</code>.
+					Interfacing systems can also make use of this by working with the <a
+						href="kcgi_regress.3.html">kcgi_regress(3)</a> function library.
 					This framework acts as a mini-webserver, listening on a local port, translating an HTTP document into a
 					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
-					The other side of the test is usually a document request with <a
+					For internal tests, test requests are constructed with <a
 						href="http://curl.haxx.se/libcurl/">libcurl</a>.
 				</p>
 				<p>

@@ -20,7 +20,7 @@
 
 #include <curl/curl.h>
 
-#include "kcgi.h"
+#include "../kcgi.h"
 #include "regress.h"
 
 static int
