@@ -197,7 +197,7 @@ int main(void) {
 				<p>
 					<span class="nm">kcgi</span> should run on any modern UNIX systems and with any web server.
 					To date, it has been built and run on GNU/<a href="http://www.linux.org">Linux</a> machines, BSD (<a
-						href="http://www.openbsd.org">OpenBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a>
+						href="http://www.openbsd.org">OpenBSD</a>, <a href="http://www.freebsd.org">FreeBSD</a>), and <a href="http://www.apple.com/osx">Mac OSX</a>
 					(Snow Leopard, Lion) on i386 and AMD64.
 					It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 						href="http://nginx.org">nginx</a>, and OpenBSD's <a
