@@ -104,7 +104,7 @@ int main(void) {
    * We only know a single page, "index", which is also
    * the default page if none is supplied.
    */
-  if ( ! <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, &amp;key, 1, &amp;page, 1, 0))
     return(EXIT_FAILURE);
 
   /* Emit the HTTP status 200 header: everything's ok. */
@@ -259,6 +259,23 @@ int main(void) {
 					of functions to fill in files or memory buffers with data.
 					Templates are the most common usage of <span class="nm">kcgi</span>, as they allow for a strong
 					disconnect between prsentation and logic.
+				</p>
+				<h3 id="testing">
+					Testing
+				</h3>
+				<p>
+					<span class="nm">kcgi</span> is shipped with a fully automated testing framework executed with
+					<code>make regress</code>.
+					This framework acts as a mini-webserver, listening on a local port, translating an HTTP document into a
+					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
+					The other side of the test is usually a document request with <a
+						href="http://curl.haxx.se/libcurl/">libcurl</a>.
+				</p>
+				<p>
+					The automated test framework, at the moment, only has a few tests for basic functionality and
+					sandboxing.
+					The binding local port is fixed, too; so if you plan on running the regression suite, you may need to
+					tweak its access port.
 				</p>
 			</section>
 		</article>
