@@ -14,44 +14,16 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
+#ifndef KCGIREGRESS_H
+#define KCGIREGRESS_H
 
-#include <curl/curl.h>
+__BEGIN_DECLS
 
-#include "../kcgi.h"
-#include "regress.h"
+typedef int	(*kcgi_regress_client)(void *);
+typedef int	(*kcgi_regress_server)(void *);
+int 		  kcgi_regress(kcgi_regress_client, void *, 
+			kcgi_regress_server, void *);
 
-static int
-parent(CURL *curl)
-{
+__END_DECLS
 
-	curl_easy_setopt(curl, CURLOPT_URL, 
-		"http://localhost:17123/");
-	return(CURLE_OK == curl_easy_perform(curl));
-}
-
-static int
-child(void)
-{
-	struct kreq	 r;
-	const char 	*page = "index";
-
-	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
-		return(0);
-	khttp_head(&r, kresps[KRESP_STATUS], 
-		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[KMIME_TEXT_HTML]);
-	khttp_body(&r);
-	khttp_free(&r);
-	return(1);
-}
-
-int
-main(int argc, char *argv[])
-{
-
-	return(regress(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
-}
+#endif
