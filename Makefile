@@ -12,7 +12,7 @@ VERSIONS	 = version_0_4_2.xml \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.4.5
+VERSION 	 = 0.5
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -28,6 +28,7 @@ LIBOBJS 	 = kcgi.o \
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
 		   man/kcgijson.3.html \
+		   man/kcgi_regress.3.html \
 		   man/khttp_body.3.html \
 		   man/khttp_free.3.html \
 		   man/khttp_head.3.html \
@@ -49,6 +50,7 @@ TESTS 		 = test-memmem.c \
 MANS		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
+		   man/kcgi_regress.3 \
 		   man/khttp_body.3 \
 		   man/khttp_free.3 \
 		   man/khttp_head.3 \
@@ -68,9 +70,11 @@ SRCS 		 = compat-memmem.c \
      		   kcgi.c \
      		   kcgihtml.c \
 		   kcgijson.c \
+		   kcgiregress.c \
      		   kcgi.h \
      		   kcgihtml.h \
 		   kcgijson.h \
+		   kcgiregress.h \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
@@ -89,7 +93,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-file-get.c \
 		   regress/test-ping.c
 
-all: libkcgi.a libkcgihtml.a libkcgijson.a
+all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgiregress.a
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -98,29 +102,32 @@ regress: $(REGRESS)
 		/bin/echo "ok" ; \
 	done
 
-regress/test-ping: regress/test-ping.o regress/regress.o libkcgi.a
-	$(CC) -o $@ regress/test-ping.o regress/regress.o libkcgi.a -lz `curl-config --libs`
+regress/test-ping: regress/test-ping.o regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/regress.o libkcgiregress.a libkcgi.a -lz `curl-config --libs` regress/test-ping.c
 
-regress/test-ping.o: regress/test-ping.c 
-	$(CC) $(CFLAGS) `/usr/local/opt/curl/bin/curl-config --cflags` -c -o $@ regress/test-ping.c
+regress/test-file-get: regress/test-file-get.o regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/regress.o libkcgiregress.a libkcgi.a -lz `curl-config --libs` regress/test-file-get.c
 
-regress/test-file-get: regress/test-file-get.o regress/regress.o libkcgi.a
-	$(CC) -o $@ regress/test-file-get.o regress/regress.o libkcgi.a -lz `curl-config --libs`
-
-regress/test-file-get.o: regress/test-file-get.c 
-	$(CC) $(CFLAGS) `/usr/local/opt/curl/bin/curl-config --cflags` -c -o $@ regress/test-file-get.c
-
-mime2c: mime2c.o
-	$(CC) -o $@ mime2c.o -lutil
+regress/regress.o: regress/regress.c
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
 
 libkcgi.a: $(LIBOBJS)
 	$(AR) rs $@ $(LIBOBJS)
+
+kcgihtml.o: kcgihtml.h
+
+kcgijson.o: kcgijson.h
+
+kcgiregress.o: kcgiregress.h
 
 libkcgihtml.a: kcgihtml.o
 	$(AR) rs $@ kcgihtml.o
 
 libkcgijson.a: kcgijson.o
 	$(AR) rs $@ kcgijson.o
+
+libkcgiregress.a: kcgiregress.o
+	$(AR) rs $@ kcgiregress.o
 
 $(LIBOBJS) sample.o kcgihtml.o kcgijson.o: kcgi.h
 
@@ -185,6 +192,7 @@ clean:
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
+	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
 	rm -f test-memmem test-memmem.o 
 	rm -f test-reallocarray test-reallocarray.o 

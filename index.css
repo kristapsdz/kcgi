@@ -18,7 +18,6 @@ header nav li + li	{ margin-top: 0.5em; }
 #header a:hover		{ color: #fff; }
 #header nav		{ padding: 0.5ex 0 1ex 0; }
 #version		{ background-color: #ddd; 
-			  font-style: italic;
 			  padding: 1em 2%; }
 #version a, 
 #version time, 
