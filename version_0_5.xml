@@ -4,7 +4,7 @@
 		<address>Kristaps Dzonsons</address>
 		<time datetime="2014-12-20">xxxx-xx-xx</time>
 	</header>
-	<Aside>
+	<aside>
 		Expand the functionality of the template system with <a href="khttp_template.3.html">khttp_templatex(3)</a> and <a
 			href="khttp_template.3.html">khttp_templatex_buf(3)</a>, which allow the writing function to be overriden.
 		This allows templates to play nicely with other systems such as <a href="kcgijson.3.html">kcgijson(3)</a> and general dynamic
