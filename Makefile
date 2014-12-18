@@ -102,11 +102,11 @@ regress: $(REGRESS)
 		/bin/echo "ok" ; \
 	done
 
-regress/test-ping: regress/test-ping.o regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/regress.o libkcgiregress.a libkcgi.a -lz `curl-config --libs` regress/test-ping.c
+regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
-regress/test-file-get: regress/test-file-get.o regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/regress.o libkcgiregress.a libkcgi.a -lz `curl-config --libs` regress/test-file-get.c
+regress/test-file-get: regress/test-file-get.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-file-get.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
