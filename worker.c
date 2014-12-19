@@ -69,10 +69,10 @@ kworker_init(struct kworker *p)
 	socksz = sizeof(sndbuf);
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
-		if (-1 != setsockopt(p->sock[1], SOL_SOCKET, 
-			SO_RCVBUF, &sndbuf, socksz) &&
-			-1 != setsockopt(p->sock[0], SOL_SOCKET, 
-			SO_SNDBUF, &sndbuf, socksz))
+		if (-1 != setsockopt(p->sock[KWORKER_READ], 
+			SOL_SOCKET, SO_RCVBUF, &sndbuf, socksz) &&
+			-1 != setsockopt(p->sock[KWORKER_WRITE], 
+			SOL_SOCKET, SO_SNDBUF, &sndbuf, socksz))
 			break;
 		XWARN("sockopt");
 	}
@@ -95,17 +95,17 @@ void
 kworker_prep_child(struct kworker *p)
 {
 
-	close(p->sock[1]);
-	p->sock[1] = -1;
-	ksandbox_init_child(p->sand, p->sock[0]);
+	close(p->sock[KWORKER_READ]);
+	p->sock[KWORKER_READ] = -1;
+	ksandbox_init_child(p->sand, p->sock[KWORKER_WRITE]);
 }
 
 void
 kworker_prep_parent(struct kworker *p)
 {
 
-	close(p->sock[0]);
-	p->sock[0] = -1;
+	close(p->sock[KWORKER_WRITE]);
+	p->sock[KWORKER_WRITE] = -1;
 	ksandbox_init_parent(p->sand, p->pid);
 }
 
