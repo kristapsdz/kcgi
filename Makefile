@@ -88,16 +88,19 @@ SRCS 		 = compat-memmem.c \
      		   $(TESTS)
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-file-get \
-		   regress/test-ping
+		   regress/test-ping \
+		   regress/test-upload
 REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-abort-validator.o \
 		   regress/test-file-get.o \
-		   regress/test-ping.o
+		   regress/test-ping.o \
+		   regress/test-upload.o
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
 		   regress/test-file-get.c \
-		   regress/test-ping.c
+		   regress/test-ping.c \
+		   regress/test-upload.c
 
 all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgiregress.a
 
@@ -116,6 +119,9 @@ regress/test-file-get: regress/test-file-get.c regress/regress.o libkcgiregress.
 
 regress/test-abort-validator: regress/test-abort-validator.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-abort-validator.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-upload: regress/test-upload.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-upload.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c

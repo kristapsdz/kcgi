@@ -410,14 +410,14 @@ output(const struct parms *pp, char *key,
  * Returns the pointer to the data.
  */
 static char *
-scanbuf(size_t len, size_t *szp)
+scanbuf(const struct kworker *work, size_t len, size_t *szp)
 {
 	ssize_t		 ssz;
 	size_t		 sz;
 	char		*p;
 	struct pollfd	 pfd;
 
-	pfd.fd = STDIN_FILENO;
+	pfd.fd = work->input;
 	pfd.events = POLLIN;
 
 	/* Allocate the entire buffer here. */
@@ -430,13 +430,13 @@ scanbuf(size_t len, size_t *szp)
 			XWARN("poll: POLLIN");
 			_exit(EXIT_FAILURE);
 		}
-		ssz = read(STDIN_FILENO, p + sz, len - sz);
+		ssz = read(work->input, p + sz, len - sz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
 			continue;
 		} else if (ssz < 0) {
-			XWARN("read: %d, %zu", STDIN_FILENO, len - sz);
+			XWARN("short read: %zu", len - sz);
 			_exit(EXIT_FAILURE);
 		} else if (0 == ssz)
 			break;
@@ -500,11 +500,12 @@ parse_pairs_text(const struct parms *pp, char *p)
  * from the input.
  */
 static void
-parse_text(const struct parms *pp, size_t len)
+parse_text(const struct kworker *work, 
+	const struct parms *pp, size_t len)
 {
 	char	*p;
 
-	p = scanbuf(len, NULL);
+	p = scanbuf(work, len, NULL);
 	parse_pairs_text(pp, p);
 	free(p);
 }
@@ -601,11 +602,12 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 }
 
 static void
-parse_urlenc(const struct parms *pp, size_t len)
+parse_urlenc(const struct kworker *work,
+	const struct parms *pp, size_t len)
 {
 	char	*p;
 
-	p = scanbuf(len, NULL);
+	p = scanbuf(work, len, NULL);
 	parse_pairs_urlenc(pp, p);
 	free(p);
 }
@@ -923,7 +925,8 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(const struct parms *pp, char *line, size_t len)
+parse_multi(const struct kworker *work,
+	const struct parms *pp, char *line, size_t len)
 {
 	char		*cp;
 	size_t		 sz;
@@ -967,7 +970,7 @@ parse_multi(const struct parms *pp, char *line, size_t len)
 	}
 
 	/* Read in full file. */
-	cp = scanbuf(len, &sz);
+	cp = scanbuf(work, len, &sz);
 	len = 0;
 	parse_multiform(pp, NULL, line, cp, sz, &len);
 	free(cp);
@@ -1109,17 +1112,19 @@ out:
  * value size along with the field type.
  */
 void
-khttp_input_child(int fd, const struct kvalid *keys, 
-	size_t keysz, const char *const *mimes, size_t mimesz)
+khttp_input_child(const struct kworker *work, 
+	const struct kvalid *keys, size_t keysz, 
+	const char *const *mimes, size_t mimesz)
 {
 	struct parms	 pp;
 	char		*cp, *ep, *sub;
 	const char	*ccp;
+	int		 wfd;
 	enum kmethod	 meth;
 	enum kauth	 auth;
 	size_t	 	 len;
 
-	pp.fd = fd;
+	pp.fd = wfd = work->sock[KWORKER_WRITE];
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
@@ -1132,7 +1137,7 @@ khttp_input_child(int fd, const struct kvalid *keys,
 		for (meth = 0; meth < KMETHOD__MAX; meth++)
 			if (0 == strcmp(kmethods[meth], ccp))
 				break;
-	fullwrite(fd, &meth, sizeof(enum kmethod));
+	fullwrite(wfd, &meth, sizeof(enum kmethod));
 
 	/* Determine authenticaiton: RFC 3875, 4.1.1. */
 	auth = KAUTH_NONE;
@@ -1143,15 +1148,15 @@ khttp_input_child(int fd, const struct kvalid *keys,
 			if (0 == strcmp(kauths[auth], ccp))
 				break;
 		}
-	fullwrite(fd, &auth, sizeof(enum kauth));
+	fullwrite(wfd, &auth, sizeof(enum kauth));
 
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
 	if (NULL == (ccp = getenv("REMOTE_ADDR")))
 		ccp = "127.0.0.1";
 	len = strlen(ccp);
-	fullwrite(fd, &len, sizeof(size_t));
-	fullwrite(fd, ccp, len);
+	fullwrite(wfd, &len, sizeof(size_t));
+	fullwrite(wfd, ccp, len);
 
 	/*
 	 * Now parse the first path element (the page we want to
@@ -1161,11 +1166,11 @@ khttp_input_child(int fd, const struct kvalid *keys,
 	 */
 	if (NULL != (cp = getenv("PATH_INFO"))) {
 		len = strlen(cp);
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, cp, len);
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, cp, len);
 	} else {
 		len = 0;
-		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(wfd, &len, sizeof(size_t));
 	}
 
 	/* This isn't possible in the real world. */
@@ -1181,11 +1186,11 @@ khttp_input_child(int fd, const struct kvalid *keys,
 		if ('.' == *ep) {
 			*ep++ = '\0';
 			len = strlen(ep);
-			fullwrite(fd, &len, sizeof(size_t));
-			fullwrite(fd, ep, len);
+			fullwrite(wfd, &len, sizeof(size_t));
+			fullwrite(wfd, ep, len);
 		} else {
 			len = 0;
-			fullwrite(fd, &len, sizeof(size_t));
+			fullwrite(wfd, &len, sizeof(size_t));
 		}
 
 		/* Now find the top-most path part. */
@@ -1194,24 +1199,24 @@ khttp_input_child(int fd, const struct kvalid *keys,
 
 		/* Send the base path. */
 		len = strlen(cp);
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, cp, len);
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, cp, len);
 
 		/* Send the path part. */
 		if (NULL != sub) {
 			len = strlen(sub);
-			fullwrite(fd, &len, sizeof(size_t));
-			fullwrite(fd, sub, len);
+			fullwrite(wfd, &len, sizeof(size_t));
+			fullwrite(wfd, sub, len);
 		} else {
 			len = 0;
-			fullwrite(fd, &len, sizeof(size_t));
+			fullwrite(wfd, &len, sizeof(size_t));
 		}
 	} else {
 		len = 0;
 		/* Suffix, base path, and path part. */
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, &len, sizeof(size_t));
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, &len, sizeof(size_t));
 	}
 
 	/*
@@ -1236,13 +1241,13 @@ khttp_input_child(int fd, const struct kvalid *keys,
 	pp.type = IN_FORM;
 	if (NULL != (cp = getenv("CONTENT_TYPE"))) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
-			parse_urlenc(&pp, len);
+			parse_urlenc(work, &pp, len);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(&pp, cp + 19, len);
+			parse_multi(work, &pp, cp + 19, len);
 		else if (0 == strcasecmp(cp, "text/plain"))
-			parse_text(&pp, len);
+			parse_text(work, &pp, len);
 	} else
-		parse_text(&pp, len);
+		parse_text(work, &pp, len);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,

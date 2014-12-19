@@ -34,7 +34,7 @@ dochild(kcgi_regress_server child, void *carg)
 	int	 	 s, in, rc, opt, first;
 	struct sockaddr_in ad, rem;
 	socklen_t	 len;
-	char		 head[1024], *cp, *path, *query;
+	char		 head[1024], *cp, *path, *query, *key, *val;
 	size_t		 sz;
 	extern char	*__progname;
 
@@ -146,6 +146,7 @@ dochild(kcgi_regress_server child, void *carg)
 				exit(EXIT_FAILURE);
 			}
 
+			/* Split this into the path and query. */
 			cp = path;
 			while ('\0' != *cp && ! isspace(*cp))
 				cp++;
@@ -160,8 +161,29 @@ dochild(kcgi_regress_server child, void *carg)
 			continue;
 		}
 
-		/* Process header lines. */
-		/*fprintf(stderr, "Skipping header: %s\n", head);*/
+		/* 
+		 * Split headers into key/value parts.
+		 * Strip the leading spaces on the latter. 
+		 * Let baddies (no value) just go by.
+		 */
+		key = head;
+		if (NULL == (val = strchr(key, ':')))
+			continue;
+		*val++ = '\0';
+		while ('\0' != *val && isspace(*val))
+			val++;
+
+		/* Recognise some attributes... */
+		if (0 == strcmp(key, "Content-Length"))
+			setenv("CONTENT_LENGTH", val, 1);
+		else if (0 == strcmp(key, "Content-Type"))
+			setenv("CONTENT_TYPE", val, 1);
+		else if (0 == strcmp(key, "Accept"))
+			setenv("HTTP_ACCEPT", val, 1);
+		else if (0 == strcmp(key, "Host"))
+			setenv("HTTP_HOST", val, 1);
+		else if (0 != strcmp(key, "Expect"))
+			fprintf(stderr, "Skipping header: %s\n", key);
 	}
 
 	if (NULL == head)
