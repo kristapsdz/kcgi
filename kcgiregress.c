@@ -34,7 +34,7 @@ dochild(kcgi_regress_server child, void *carg)
 	int	 	 s, in, rc, opt, first;
 	struct sockaddr_in ad, rem;
 	socklen_t	 len;
-	char		 head[1024], *cp, *cpp;
+	char		 head[1024], *cp, *path, *query;
 	size_t		 sz;
 	extern char	*__progname;
 
@@ -131,27 +131,32 @@ dochild(kcgi_regress_server child, void *carg)
 			/* Snarf the first GET/POST line. */
 			if (0 == strncmp(head, "GET ", 4)) {
 				setenv("REQUEST_METHOD", "GET", 1);
-				cp = strdup(head + 4);
+				path = strdup(head + 4);
 			} else if (0 == strncmp(head, "POST ", 5)) {
 				setenv("REQUEST_METHOD", "POST", 1);
-				cp = strdup(head + 5);
+				path = strdup(head + 5);
 			} else {
 				fprintf(stderr, "Unknown HTTP "
 					"first line: %s\n", head);
 				goto out;
 			}
 
-			if (NULL == cp) {
+			if (NULL == path) {
 				perror(NULL);
 				exit(EXIT_FAILURE);
 			}
 
-			cpp = cp;
-			while ('\0' != *cpp && ! isspace(*cpp))
-				cpp++;
-			*cpp = '\0';
+			cp = path;
+			while ('\0' != *cp && ! isspace(*cp))
+				cp++;
+			*cp = '\0';
+			if (NULL != (query = strchr(path, '?')))
+				*query++ = '\0';
+
 			first = 0;
-			setenv("PATH_INFO", cp, 1);
+			setenv("PATH_INFO", path, 1);
+			if (NULL != query)
+				setenv("QUERY_STRING", query, 1);
 			continue;
 		}
 
