@@ -24,16 +24,20 @@
  * operating-system specific (e.g., systrace, capsicum).
  */
 struct	kworker {
+#define	KWORKER_READ	 1
+#define	KWORKER_WRITE	 0
 	int	 	 sock[2];
 	pid_t		 pid;
 	void		*sand;
+	int		 input;
 };
 
 __BEGIN_DECLS
 
 enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
-void	 	 khttp_input_child(int, const struct kvalid *, 
-			size_t, const char *const *, size_t);
+void	 	 khttp_input_child(const struct kworker *, 
+			const struct kvalid *, size_t, 
+			const char *const *, size_t);
 
 void		 ksandbox_free(void *);
 void		*ksandbox_alloc(void);

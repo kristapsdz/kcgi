@@ -5,7 +5,7 @@
 		<time datetime="2014-12-20">2014-xx-xx</time>
 	</header>
 	<aside>
-		Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query string for validation testing.
+		Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
 		Split apart <a href="khttp_parse.3.html">khttp_parse(3)</a>'s internal implementation in getting ready for FastCGI: namely,
 		abstract the worker interface.
 	</aside>
