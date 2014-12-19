@@ -1099,7 +1099,6 @@ out:
 	free(kp.ctype);
 	free(kp.xcode);
 
-	close(fd);
 	return(ke);
 }
 

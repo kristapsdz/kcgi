@@ -8,7 +8,8 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
 		   version_0_4_3.xml \
 		   version_0_4_4.xml \
-		   version_0_5.xml
+		   version_0_5.xml \
+		   version_0_5_1.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
@@ -24,6 +25,7 @@ LIBOBJS 	 = kcgi.o \
 		   sandbox-capsicum.o \
 		   sandbox-darwin.o \
 		   sandbox-systrace.o \
+		   worker.o \
 		   wrappers.o
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
@@ -80,16 +82,20 @@ SRCS 		 = compat-memmem.c \
      		   sandbox-capsicum.c \
      		   sandbox-darwin.c \
      		   sandbox-systrace.c \
+		   worker.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
-REGRESS		 = regress/test-file-get \
+REGRESS		 = regress/test-abort-validator \
+		   regress/test-file-get \
 		   regress/test-ping
 REGRESS_OBJS	 = regress/regress.o \
+		   regress/test-abort-validator.o \
 		   regress/test-file-get.o \
 		   regress/test-ping.o
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
+		   regress/test-abort-validator.c \
 		   regress/test-file-get.c \
 		   regress/test-ping.c
 
@@ -98,7 +104,7 @@ all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgiregress.a
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
 		/bin/echo -n "./$${f}... " ; \
-		./$$f >/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
+		./$$f >/dev/null 2>/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
 		/bin/echo "ok" ; \
 	done
 
@@ -107,6 +113,9 @@ regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcg
 
 regress/test-file-get: regress/test-file-get.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-file-get.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-abort-validator: regress/test-abort-validator.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-abort-validator.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c

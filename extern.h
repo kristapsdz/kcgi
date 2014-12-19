@@ -17,6 +17,18 @@
 #ifndef EXTERN_H
 #define EXTERN_H
 
+/*
+ * A worker extracts the HTTP document body and passes parsed key-value
+ * pairs (and environment data) via the "sock".
+ * It's sandboxed with a configuration specified by "sand", which is
+ * operating-system specific (e.g., systrace, capsicum).
+ */
+struct	kworker {
+	int	 	 sock[2];
+	pid_t		 pid;
+	void		*sand;
+};
+
 __BEGIN_DECLS
 
 enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
@@ -25,7 +37,7 @@ void	 	 khttp_input_child(int, const struct kvalid *,
 
 void		 ksandbox_free(void *);
 void		*ksandbox_alloc(void);
-enum kcgi_err	 ksandbox_close(void *, pid_t);
+void		 ksandbox_close(void *);
 void		 ksandbox_init_child(void *, int);
 void		 ksandbox_init_parent(void *, pid_t);
 
@@ -41,6 +53,13 @@ void	 	 ksandbox_systrace_close(void *);
 int	 	 ksandbox_systrace_init_child(void *);
 int	 	 ksandbox_systrace_init_parent(void *, pid_t);
 #endif
+
+void	 	 kworker_prep_child(struct kworker *);
+void	 	 kworker_prep_parent(struct kworker *);
+void	 	 kworker_free(struct kworker *);
+enum kcgi_err	 kworker_init(struct kworker *);
+void		 kworker_kill(struct kworker *);
+enum kcgi_err	 kworker_close(struct kworker *);
 
 /*
  * These are just wrappers over the native functions that report when

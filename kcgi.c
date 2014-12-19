@@ -62,7 +62,7 @@ enum	kstate {
 
 /*
  * Interior data.
- * This is used for pretty-printing and managing HTTP compression.
+ * This is used for managing HTTP compression.
  */
 struct	kdata {
 	enum kstate	 state;
@@ -633,11 +633,6 @@ khttp_parse(struct kreq *req,
 		KMIME_TEXT_HTML, defpage, NULL, NULL));
 }
 
-/*
- * Parse a request from an HTTP request.
- * This consists of paths, suffixes, methods, and most importantly,
- * pasred query string, cookie, and form data.
- */
 enum kcgi_err
 khttp_parsex(struct kreq *req, 
 	const struct kmimemap *suffixmap, 
@@ -649,13 +644,9 @@ khttp_parsex(struct kreq *req,
 {
 	char		*cp;
 	const struct kmimemap *mm;
-	size_t		 i;
 	enum kcgi_err	 kerr;
-	pid_t		 pid;
-	int		 socks[2];
-	int 		 sndbuf, er;
-	void		*sand;
-	socklen_t	 socksz;
+	int 		 er;
+	struct kworker	 work;
 
 	/*
 	 * We'll be using poll(2) for reading our HTTP document, so this
@@ -667,71 +658,24 @@ khttp_parsex(struct kreq *req,
 		return(KCGI_SYSTEM);
 	}
 
-	/*
-	 * Similarly, create and non-block-ify the socket between our
-	 * child and the parent for communicating parsed form data.
-	 */
-	if (-1 == socketpair(AF_UNIX, SOCK_STREAM, 0, socks)) {
-		er = errno;
-		XWARN("socketpair");
-		return(EMFILE == er || ENFILE == er ?
-			KCGI_ENFILE : KCGI_SYSTEM);
-	} else if (-1 == fcntl(socks[0], F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl: O_NONBLOCK");
-		close(socks[0]);
-		close(socks[1]);
-		return(KCGI_SYSTEM);
-	} else if (-1 == fcntl(socks[1], F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl: O_NONBLOCK");
-		close(socks[0]);
-		close(socks[1]);
-		return(KCGI_SYSTEM);
-	}
+	if (KCGI_OK != (kerr = kworker_init(&work)))
+		return(kerr);
 
-	/*
-	 * Now we try to make our inter-process communication buffer as
-	 * large as possible.
-	 * To do so, try with a huge buffer, then gradually make it
-	 * smaller.
-	 */
-	socksz = sizeof(sndbuf);
-	for (i = 200; i > 0; i--) {
-		sndbuf = (i + 1) * 1024;
-		if (-1 != setsockopt(socks[1], 
-			SOL_SOCKET, SO_RCVBUF, &sndbuf, socksz))
-			break;
-		XWARN("sockopt");
-	}
-	for (i = 200; i > 0; i--) {
-		sndbuf = (i + 1) * 1024;
-		if (-1 != setsockopt(socks[0], 
-			SOL_SOCKET, SO_SNDBUF, &sndbuf, socksz))
-			break;
-		XWARN("sockopt");
-	}
-
-	/*
-	 * Initialise our sandbox then fork the child.
-	 */
-	sand = ksandbox_alloc();
-	
-	if (-1 == (pid = fork())) {
+	if (-1 == (work.pid = fork())) {
 		er = errno;
-		perror("fork");
+		XWARN("fork");
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
-	} else if (0 == pid) {
+	} else if (0 == work.pid) {
 		/* Conditionally free our argument. */
 		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
-		close(socks[1]);
-		ksandbox_init_child(sand, socks[0]);
-		khttp_input_child(socks[0], keys, keysz, mimes, mimesz);
-		ksandbox_free(sand);
+		kworker_prep_child(&work);
+		khttp_input_child(work.sock[0], keys, keysz, mimes, mimesz);
+		kworker_free(&work);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
-	close(socks[0]);
-	ksandbox_init_parent(sand, pid);
+	kworker_prep_parent(&work);
 
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
@@ -787,7 +731,7 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
-	kerr = khttp_input_parent(socks[1], req, pid);
+	kerr = khttp_input_parent(work.sock[1], req, work.pid);
 	if (KCGI_OK != kerr)
 		goto err;
 
@@ -811,17 +755,14 @@ khttp_parsex(struct kreq *req,
 			req->mime = mimesz;
 	}
 
-	/* FIXME: do this after err handler? */
-	kerr = ksandbox_close(sand, pid);
-	ksandbox_free(sand);
+	kerr = kworker_close(&work);
+	kworker_free(&work);
 	return(kerr);
 err:
-	/* Make sure that our child is dead. */
-	(void)kill(pid, SIGINT);
-	(void)ksandbox_close(sand, pid);
-	ksandbox_free(sand);
+	kworker_kill(&work);
 	kreq_free(req);
-	close(socks[1]);
+	(void)kworker_close(&work);
+	kworker_free(&work);
 	return(kerr);
 }
 
