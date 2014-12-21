@@ -32,6 +32,19 @@ struct	kworker {
 	int		 input;
 };
 
+/*
+ * The master arbitrates data from the FastCGI socket.
+ */
+struct	kmaster {
+	size_t		 workersz;
+	struct kworker	*workers;
+	int	 	*outputs;
+#define	KMASTER_READ	 1
+#define KMASTER_WRITE	 0
+	int		 response[2];
+	pid_t		 pid;
+};
+
 __BEGIN_DECLS
 
 enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
@@ -70,36 +83,37 @@ enum kcgi_err	 kworker_close(struct kworker *);
  * failure has occured.
  * They do nothing else and return the normal values.
  */
-int	 xasprintf(const char *file, int line, 
-		char **p, const char *fmt, ...);
-int	 xvasprintf(const char *file, int line, 
-		char **p, const char *fmt, va_list ap);
-void	*xcalloc(const char *file, int line, size_t nm, size_t sz);
-void	*xmalloc(const char *file, int line, size_t sz);
-void	*xrealloc(const char *file, int line, void *p, size_t sz);
-void	*xreallocarray(const char *file, 
-		int line, void *p, size_t nm, size_t sz);
-char	*xstrdup(const char *file, int line, const char *p);
-void	 xwarn(const char *file, int line, const char *fmt, ...);
-void	 xwarnx(const char *file, int line, const char *fmt, ...);
-#define	 XASPRINTF(_p, ...) \
- 	 xasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
-#define	 XVASPRINTF(_p, _fmt, _va) \
- 	 xvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
-#define	 XCALLOC(_nm, _sz) \
- 	 xcalloc(__FILE__, __LINE__, (_nm), (_sz))
-#define	 XMALLOC(_sz) \
- 	 xmalloc(__FILE__, __LINE__, (_sz))
-#define	 XREALLOC(_p, _sz) \
- 	 xrealloc(__FILE__, __LINE__, (_p), (_sz))
-#define	 XREALLOCARRAY(_p, _nm, _sz) \
-	 xreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
-#define	 XSTRDUP(_p) \
- 	 xstrdup(__FILE__, __LINE__, (_p))
-#define	 XWARN(...) \
- 	 xwarn(__FILE__, __LINE__, __VA_ARGS__)
-#define	 XWARNX(...) \
- 	 xwarnx(__FILE__, __LINE__, __VA_ARGS__)
+int		 xasprintf(const char *file, int line, 
+			char **p, const char *fmt, ...);
+int		 xvasprintf(const char *file, int line, 
+			char **p, const char *fmt, va_list ap);
+void		*xcalloc(const char *file, int line, size_t nm, size_t sz);
+void		*xmalloc(const char *file, int line, size_t sz);
+void		*xrealloc(const char *file, int line, void *p, size_t sz);
+void		*xreallocarray(const char *file, 
+			int line, void *p, size_t nm, size_t sz);
+enum kcgi_err	 xsocketpair(int, int, int, int[2]);
+char		*xstrdup(const char *file, int line, const char *p);
+void		 xwarn(const char *file, int line, const char *fmt, ...);
+void		 xwarnx(const char *file, int line, const char *fmt, ...);
+#define		 XASPRINTF(_p, ...) \
+		 xasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
+#define		 XVASPRINTF(_p, _fmt, _va) \
+		 xvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
+#define		 XCALLOC(_nm, _sz) \
+		 xcalloc(__FILE__, __LINE__, (_nm), (_sz))
+#define		 XMALLOC(_sz) \
+		 xmalloc(__FILE__, __LINE__, (_sz))
+#define		 XREALLOC(_p, _sz) \
+		 xrealloc(__FILE__, __LINE__, (_p), (_sz))
+#define		 XREALLOCARRAY(_p, _nm, _sz) \
+		 xreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
+#define		 XSTRDUP(_p) \
+		 xstrdup(__FILE__, __LINE__, (_p))
+#define		 XWARN(...) \
+		 xwarn(__FILE__, __LINE__, __VA_ARGS__)
+#define		 XWARNX(...) \
+		 xwarnx(__FILE__, __LINE__, __VA_ARGS__)
 
 __END_DECLS
 
