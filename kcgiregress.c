@@ -98,11 +98,7 @@ dochild(kcgi_regress_server child, void *carg)
 		goto out;
 	} 
 
-	if (NULL == (cp = strdup(__progname))) {
-		perror(NULL);
-		exit(EXIT_FAILURE);
-	}
-	setenv("SCRIPT_NAME", cp, 1);
+	setenv("SCRIPT_NAME", __progname, 1);
 	
 	/*
 	 * Read header lines.
@@ -131,19 +127,14 @@ dochild(kcgi_regress_server child, void *carg)
 			/* Snarf the first GET/POST line. */
 			if (0 == strncmp(head, "GET ", 4)) {
 				setenv("REQUEST_METHOD", "GET", 1);
-				path = strdup(head + 4);
+				path = head + 4;
 			} else if (0 == strncmp(head, "POST ", 5)) {
 				setenv("REQUEST_METHOD", "POST", 1);
-				path = strdup(head + 5);
+				path = head + 5;
 			} else {
 				fprintf(stderr, "Unknown HTTP "
 					"first line: %s\n", head);
 				goto out;
-			}
-
-			if (NULL == path) {
-				perror(NULL);
-				exit(EXIT_FAILURE);
 			}
 
 			/* Split this into the path and query. */
@@ -195,6 +186,7 @@ out:
 		close(in);
 	if (-1 != s)
 		close(s);
+
 	return(rc);
 }
 

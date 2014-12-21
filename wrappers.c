@@ -17,12 +17,16 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/socket.h>
+
 #include <errno.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "kcgi.h"
 #include "extern.h"
@@ -136,4 +140,34 @@ xwarn(const char *file, int line, const char *fmt, ...)
 	va_end(ap);
 	fprintf(stderr, "%s:%d: %s: %s\n", 
 		file, line, buf, strerror(e));
+}
+
+/*
+ * Create a non-blocking socket pair.
+ * This is identical to the socketpair() function followed by O_NONBLOCK
+ * fcntl() calls on both ends of the socket.
+ */
+enum kcgi_err
+xsocketpair(int domain, int type, int protocol, int sock[2])
+{
+	int	 rc;
+
+	rc = socketpair(domain, type, protocol, sock);
+	if (-1 == rc && (EMFILE == errno || ENFILE == errno)) {
+		XWARN("socketpair");
+		return(KCGI_ENFILE);
+	} else if (-1 == rc) {
+		XWARN("socketpair");
+		return(KCGI_SYSTEM);
+	}
+
+	if (-1 == fcntl(sock[0], F_SETFL, O_NONBLOCK) || 
+		-1 == fcntl(sock[1], F_SETFL, O_NONBLOCK)) {
+		XWARN("fcntl: O_NONBLOCK");
+		close(sock[0]);
+		close(sock[1]);
+		return(KCGI_SYSTEM);
+	}
+
+	return(KCGI_OK);
 }
