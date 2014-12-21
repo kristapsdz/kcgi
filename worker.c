@@ -36,36 +36,25 @@
 enum kcgi_err
 kworker_init(struct kworker *p)
 {
-	int	 	 rc;
 	size_t		 i;
 	int 	 	 sndbuf;
 	socklen_t	 socksz;
+	enum kcgi_err	 er;
 
 	memset(p, 0, sizeof(struct kworker));
+	p->pid = -1;
+	p->sock[0] = p->sock[1] = -1;
 
 	/* Allocate the communication sockets. */
-	rc = socketpair(AF_UNIX, SOCK_STREAM, 0, p->sock);
-	if (-1 == rc && (EMFILE == errno || ENFILE == errno)) {
-		XWARN("socketpair");
-		return(KCGI_ENFILE);
-	} else if (-1 == rc) {
-		XWARN("socketpair");
-		return(KCGI_SYSTEM);
-	}
-
-	/* Mark both sockets as non-blocking. */
-	if (-1 == fcntl(p->sock[0], F_SETFL, O_NONBLOCK) || 
-		-1 == fcntl(p->sock[1], F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl: O_NONBLOCK");
-		close(p->sock[0]);
-		close(p->sock[1]);
-		return(KCGI_SYSTEM);
-	}
+	er = xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->sock);
+	if (KCGI_OK != er)
+		return(er);
 
 	/* Allocate the sandbox. (FIXME: ENOMEM?) */
 	p->sand = ksandbox_alloc();
 
 	/* Enlarge the transfer buffer size. */
+	/* FIXME: is this a good idea? */
 	socksz = sizeof(sndbuf);
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
@@ -88,6 +77,8 @@ kworker_free(struct kworker *p)
 		close(p->sock[0]);
 	if (-1 != p->sock[1])
 		close(p->sock[1]);
+	if (-1 != p->input)
+		close(p->input);
 	ksandbox_free(p->sand);
 }
 
@@ -107,14 +98,16 @@ kworker_prep_parent(struct kworker *p)
 	close(p->sock[KWORKER_WRITE]);
 	p->sock[KWORKER_WRITE] = -1;
 	ksandbox_init_parent(p->sand, p->pid);
+	close(p->input);
+	p->input = -1;
 }
 
 void
 kworker_kill(struct kworker *p)
 {
 
-	assert(p->pid);
-	(void)kill(p->pid, SIGKILL);
+	if (-1 != p->pid)
+		(void)kill(p->pid, SIGKILL);
 }
 
 enum kcgi_err
@@ -124,8 +117,12 @@ kworker_close(struct kworker *p)
 	int	 	 st;
 	enum kcgi_err	 ke;
 
-	assert(p->pid);
 	ke = KCGI_OK;
+
+	if (-1 == p->pid) {
+		ksandbox_close(p->sand);
+		return(ke);
+	}
 
 	do
 		rp = waitpid(p->pid, &st, 0);

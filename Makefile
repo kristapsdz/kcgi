@@ -21,6 +21,7 @@ LIBOBJS 	 = kcgi.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o \
 		   input.o \
+		   master.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
 		   sandbox-darwin.o \
@@ -77,6 +78,7 @@ SRCS 		 = compat-memmem.c \
      		   kcgihtml.h \
 		   kcgijson.h \
 		   kcgiregress.h \
+		   master.c \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
