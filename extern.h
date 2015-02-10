@@ -32,19 +32,6 @@ struct	kworker {
 	int		 input;
 };
 
-/*
- * The master arbitrates data from the FastCGI socket.
- */
-struct	kmaster {
-	size_t		 workersz;
-	struct kworker	*workers;
-	int	 	*outputs;
-#define	KMASTER_READ	 1
-#define KMASTER_WRITE	 0
-	int		 response[2];
-	pid_t		 pid;
-};
-
 __BEGIN_DECLS
 
 enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
@@ -83,19 +70,20 @@ enum kcgi_err	 kworker_close(struct kworker *);
  * failure has occured.
  * They do nothing else and return the normal values.
  */
-int		 xasprintf(const char *file, int line, 
-			char **p, const char *fmt, ...);
-int		 xvasprintf(const char *file, int line, 
-			char **p, const char *fmt, va_list ap);
-void		*xcalloc(const char *file, int line, size_t nm, size_t sz);
-void		*xmalloc(const char *file, int line, size_t sz);
-void		*xrealloc(const char *file, int line, void *p, size_t sz);
-void		*xreallocarray(const char *file, 
-			int line, void *p, size_t nm, size_t sz);
+int		 xasprintf(const char *, int, 
+			char **, const char *, ...);
+int		 xbindpath(const char *);
+int		 xvasprintf(const char *, int, 
+			char **, const char *, va_list);
+void		*xcalloc(const char *, int, size_t, size_t);
+void		*xmalloc(const char *, int, size_t);
+void		*xrealloc(const char *, int, void *, size_t);
+void		*xreallocarray(const char *, 
+			int, void *, size_t, size_t);
 enum kcgi_err	 xsocketpair(int, int, int, int[2]);
-char		*xstrdup(const char *file, int line, const char *p);
-void		 xwarn(const char *file, int line, const char *fmt, ...);
-void		 xwarnx(const char *file, int line, const char *fmt, ...);
+char		*xstrdup(const char *, int, const char *);
+void		 xwarn(const char *, int, const char *, ...);
+void		 xwarnx(const char *, int, const char *, ...);
 #define		 XASPRINTF(_p, ...) \
 		 xasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \

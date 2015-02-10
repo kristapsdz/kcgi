@@ -17,7 +17,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -163,11 +165,65 @@ xsocketpair(int domain, int type, int protocol, int sock[2])
 
 	if (-1 == fcntl(sock[0], F_SETFL, O_NONBLOCK) || 
 		-1 == fcntl(sock[1], F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl: O_NONBLOCK");
+		XWARN("fcntl (O_NONBLOCK)");
 		close(sock[0]);
 		close(sock[1]);
 		return(KCGI_SYSTEM);
 	}
 
 	return(KCGI_OK);
+}
+
+int
+xbindpath(const char *path)
+{
+	int	 	 fd, old_umask, opt;
+	size_t		 len;
+	struct sockaddr_un sun;
+
+	/*if (-1 == unlink(path))
+		if (ENOENT != errno) {
+			XWARN("%s: unlink", path);
+			return(-1);
+		}*/
+
+	memset(&sun, 0, sizeof(sun));
+	sun.sun_family = AF_UNIX;
+	len = strlcpy(sun.sun_path, path, sizeof(sun.sun_path));
+
+	if (len >= sizeof(sun.sun_path)) {
+		XWARNX("%s: too long", path);
+		return(-1);
+	}
+	sun.sun_len = len;
+
+	opt = 1;
+	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
+		XWARN("socket (AF_UNIX)");
+		return(-1);
+	} else if (-1 == setsockopt(fd, SOL_SOCKET, 
+		 SO_REUSEADDR, &opt, sizeof(opt))) {
+		XWARN("setsockopt");
+		close(fd);
+		return(-1);
+	}
+
+	old_umask = umask(S_IXUSR|S_IXGRP|S_IWOTH|S_IROTH|S_IXOTH);
+
+	if (-1 == bind(fd, (struct sockaddr *)&sun, sizeof(sun))) {
+		XWARN("%s: bind", path);
+		close(fd);
+		return(-1);
+
+	}
+
+	umask(old_umask);
+
+	if (-1 == fcntl(fd, F_SETFL, O_NONBLOCK)) {
+		XWARN("fcntl (O_NONBLOCK)");
+		close(fd);
+		return(-1);
+	}
+
+	return(fd);
 }

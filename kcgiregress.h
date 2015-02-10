@@ -21,8 +21,10 @@ __BEGIN_DECLS
 
 typedef int	(*kcgi_regress_client)(void *);
 typedef int	(*kcgi_regress_server)(void *);
-int 		  kcgi_regress(kcgi_regress_client, void *, 
-			kcgi_regress_server, void *);
+int 		  kcgi_regress_fastcgi(kcgi_regress_client, 
+			void *, kcgi_regress_server, void *);
+int 		  kcgi_regress_cgi(kcgi_regress_client, 
+			void *, kcgi_regress_server, void *);
 
 __END_DECLS
 
