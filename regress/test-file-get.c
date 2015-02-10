@@ -59,5 +59,5 @@ int
 main(int argc, char *argv[])
 {
 
-	return(regress(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
+	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
