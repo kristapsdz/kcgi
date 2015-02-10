@@ -88,6 +88,7 @@ SRCS 		 = compat-memmem.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
+AFL		 = afl/afl-test
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-file-get \
 		   regress/test-ping \
@@ -97,6 +98,7 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-file-get.o \
 		   regress/test-ping.o \
 		   regress/test-upload.o
+AFL_SRCS	 = afl/afl-test.c
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
@@ -105,6 +107,8 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-upload.c
 
 all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgiregress.a
+
+afl: $(AFL)
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -127,6 +131,9 @@ regress/test-upload: regress/test-upload.c regress/regress.o libkcgiregress.a li
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
+
+afl/afl-test: afl/afl-test.c libkcgi.a
+	$(CC) $(CFLAGS) -o $@ afl/afl-test.c libkcgi.a -lz
 
 libkcgi.a: $(LIBOBJS)
 	$(AR) rs $@ $(LIBOBJS)
@@ -196,8 +203,10 @@ kcgi.tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
 	mkdir -p .dist/kcgi-$(VERSION)/man
 	mkdir -p .dist/kcgi-$(VERSION)/regress
+	mkdir -p .dist/kcgi-$(VERSION)/afl
 	cp $(SRCS) .dist/kcgi-$(VERSION)
 	cp $(REGRESS_SRCS) .dist/kcgi-$(VERSION)/regress
+	cp $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
 	cp Makefile template.xml .dist/kcgi-$(VERSION)
 	cp $(MANS) .dist/kcgi-$(VERSION)/man
 	cp configure config.h.pre config.h.post .dist/kcgi-$(VERSION)
@@ -220,5 +229,5 @@ clean:
 	rm -f test-systrace test-systrace.o
 	rm -f test-zlib test-zlib.o 
 	rm -f test-capsicum test-capsicum.o
-	rm -f $(REGRESS) $(REGRESS_OBJS)
-	rm -rf *.dSYM regress/*.dSYM
+	rm -f $(REGRESS) $(AFL) $(REGRESS_OBJS)
+	rm -rf *.dSYM regress/*.dSYM afl/*.dSYM
