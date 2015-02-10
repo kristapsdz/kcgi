@@ -446,6 +446,7 @@ scanbuf(const struct kworker *work, size_t len, size_t *szp)
 	p[sz] = '\0';
 	if (NULL != szp)
 		*szp = sz;
+
 	return(p);
 }
 
@@ -797,15 +798,13 @@ parse_multiform(const struct parms *pp, char *name,
 	/* Read to the next instance of a buffer boundary. */
 	for (first = 1; *pos < len; first = 0, *pos = endpos) {
 		/*
-		 * The conditional is because the prologue, if not
-		 * specified, will not incur an initial CRLF, so our bb
-		 * is past the CRLF and two bytes smaller.
-		 * This ONLY occurs for the first read, however.
+		 * The conditional is because the prologue FIRST
+		 * boundary will not incur an initial CRLF, so our bb is
+		 * past the CRLF and two bytes smaller.
 		 */
 		ln = memmem(&buf[*pos], len - *pos, 
 			bb + (first ? 2 : 0), bbsz - (first ? 2 : 0));
 
-		/* Unexpected EOF for this part. */
 		if (NULL == ln) {
 			XWARNX("multiform: unexpected eof");
 			goto out;
@@ -813,12 +812,12 @@ parse_multiform(const struct parms *pp, char *name,
 
 		/* 
 		 * Set "endpos" to point to the beginning of the next
-		 * multipart component.
-		 * We set "endpos" to be at the very end if the
-		 * terminating boundary buffer occurs.
+		 * multipart component, i.e, the end of the boundary
+		 * "bb" string.
 		 */
 		endpos = *pos + (ln - &buf[*pos]) + 
 			bbsz - (first ? 2 : 0);
+
 		/* Check buffer space... */
 		if (endpos > len - 2) {
 			XWARNX("multiform: end position out of bounds");
@@ -834,17 +833,18 @@ parse_multiform(const struct parms *pp, char *name,
 				XWARNX("multiform: missing crlf");
 				goto out;
 			}
-			endpos += 2;
+			*pos = endpos + 2;
+			break;
 		} else
 			endpos = len;
 
 		/* 
-		 * Zero-length part. 
+		 * Zero-length part or beginning of sequence.
 		 * This shouldn't occur, but if it does, it'll screw up
 		 * the MIME parsing (which requires a blank CRLF before
 		 * considering itself finished).
 		 */
-		if (0 == (partsz = ln - &buf[*pos]))
+		if (first || 0 == (partsz = ln - &buf[*pos]))
 			continue;
 
 		/* We now read our MIME headers, bailing on error. */
@@ -896,8 +896,8 @@ parse_multiform(const struct parms *pp, char *name,
 			continue;
 		}
 
-		assert('\r' == buf[*pos + partsz] || '\0' == buf[*pos + partsz]);
-
+		assert('\r' == buf[*pos + partsz] || 
+		       '\0' == buf[*pos + partsz]);
 		if ('\0' != buf[*pos + partsz])
 			buf[*pos + partsz] = '\0';
 
