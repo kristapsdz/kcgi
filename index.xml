@@ -277,6 +277,14 @@ int main(void) {
 					The binding local port is fixed, too; so if you plan on running the regression suite, you may need to
 					tweak its access port.
 				</p>
+				<p>
+					Another testing framework exists for use with the <a href="http://lcamtuf.coredump.cx/afl/">American
+						fuzzy lop</a>.
+					To use this, you'll need to compile the <code>make afl</code> target with your compiler of choice, e.g.,
+					<code>make clean</code>, then <code>make afl CC=afl-gcc</code>.
+					Then run the <code>afl-fuzz</code> tool on the <code>afl-test</code> binary using the test cases
+					provided.
+				</p>
 			</section>
 		</article>
 		<footer>
