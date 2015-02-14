@@ -2,7 +2,7 @@
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Comment if you don't need statically linked.
-STATIC 		 = -static
+#STATIC 		 = -static
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
@@ -88,7 +88,9 @@ SRCS 		 = compat-memmem.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
-AFL		 = afl/afl-test
+AFL		 = afl/afl-multipart \
+		   afl/afl-plain \
+		   afl/afl-urlencoded
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-file-get \
 		   regress/test-ping \
@@ -98,7 +100,9 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-file-get.o \
 		   regress/test-ping.o \
 		   regress/test-upload.o
-AFL_SRCS	 = afl/afl-test.c
+AFL_SRCS	 = afl/afl-multipart.c \
+		   afl/afl-plain.c \
+		   afl/afl-urlencoded.c
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
@@ -132,8 +136,14 @@ regress/test-upload: regress/test-upload.c regress/regress.o libkcgiregress.a li
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
 
-afl/afl-test: afl/afl-test.c libkcgi.a
-	$(CC) $(CFLAGS) -o $@ afl/afl-test.c libkcgi.a -lz
+afl/afl-multipart: afl/afl-multipart.c libkcgi.a
+	$(CC) $(CFLAGS) -o $@ afl/afl-multipart.c libkcgi.a -lz
+
+afl/afl-plain: afl/afl-plain.c libkcgi.a
+	$(CC) $(CFLAGS) -o $@ afl/afl-plain.c libkcgi.a -lz
+
+afl/afl-urlencoded: afl/afl-urlencoded.c libkcgi.a
+	$(CC) $(CFLAGS) -o $@ afl/afl-urlencoded.c libkcgi.a -lz
 
 libkcgi.a: $(LIBOBJS)
 	$(AR) rs $@ $(LIBOBJS)
