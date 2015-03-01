@@ -833,8 +833,7 @@ parse_multiform(const struct parms *pp, char *name,
 				XWARNX("multiform: missing crlf");
 				goto out;
 			}
-			*pos = endpos + 2;
-			break;
+			endpos += 2;
 		} else
 			endpos = len;
 
