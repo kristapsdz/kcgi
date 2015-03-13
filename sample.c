@@ -109,8 +109,10 @@ static void
 resp_open(struct kreq *req, enum khttp http)
 {
 
-	khttp_head(req, "Status", "%s", khttps[http]);
-	khttp_head(req, "Content-Type", "%s", kmimetypes[req->mime]);
+	khttp_head(req, kresps[KRESP_STATUS], 
+		"%s", khttps[http]);
+	khttp_head(req, kresps[KRESP_CONTENT_TYPE], 
+		"%s", kmimetypes[req->mime]);
 	khttp_body(req);
 }
 
@@ -246,7 +248,17 @@ main(void)
 		pages, PAGE__MAX, PAGE_INDEX))
 		return(EXIT_FAILURE);
 
-	if (PAGE__MAX == r.page || KMIME_TEXT_HTML != r.mime) {
+	if (KMETHOD_OPTIONS == r.method) {
+		khttp_head(&r, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		khttp_head(&r, kresps[KRESP_ALLOW], 
+			"OPTIONS GET POST");
+		khttp_body(&r);
+	} else if (KMETHOD_GET != r.method && 
+			KMETHOD_POST != r.method) {
+		resp_open(&r, KHTTP_405);
+	} else if (PAGE__MAX == r.page || 
+			KMIME_TEXT_HTML != r.mime) {
 		/*
 		 * We've been asked for an unknown page or something
 		 * with an unknown extension.
