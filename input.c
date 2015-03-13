@@ -71,8 +71,14 @@ struct	parms {
 };
 
 static	const char *const kmethods[KMETHOD__MAX] = {
-	"POST",
-	"GET",
+	"CONNECT", /* KMETHOD_CONNECT */
+	"DELETE", /* KMETHOD_DELETE */
+	"GET", /* KMETHOD_GET */
+	"HEAD", /* KMETHOD_HEAD */
+	"OPTIONS", /* KMETHOD_OPTIONS */
+	"POST", /* KMETHOD_POST */
+	"PUT", /* KMETHOD_PUT */
+	"TRACE", /* KMETHOD_TRACE */
 };
 
 static	const char *const kauths[KAUTH_UNKNOWN] = {
