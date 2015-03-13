@@ -6,8 +6,8 @@
 	</header>
 	<aside>
 		Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
-		Split apart <a href="khttp_parse.3.html">khttp_parse(3)</a>'s internal implementation in getting ready for FastCGI: namely,
-		abstract the worker interface.  (This won't be released for quite a while.)
-		Pick out numerous buglets in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
+		Pick out one assertion failure in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
+		Add an a test harness for AFL as well.
+		Recognise CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
 	</aside>
 </article>

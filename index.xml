@@ -282,8 +282,8 @@ int main(void) {
 						fuzzy lop</a>.
 					To use this, you'll need to compile the <code>make afl</code> target with your compiler of choice, e.g.,
 					<code>make clean</code>, then <code>make afl CC=afl-gcc</code>.
-					Then run the <code>afl-fuzz</code> tool on the <code>afl-test</code> binary using the test cases
-					provided.
+					Then run the <code>afl-fuzz</code> tool on the <code>afl-multipart</code>, <code>afl-plain</code>, and
+					<code>afl-urlencoded</code> binaries using the test cases (and dictionaries, for the first) provided.
 				</p>
 			</section>
 		</article>
