@@ -2,7 +2,7 @@
 	<header>
 		<h1>0.5.1</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2014-12-20">2014-xx-xx</time>
+		<time datetime="2015-03-14">2015-03-14</time>
 	</header>
 	<aside>
 		Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
