@@ -203,6 +203,7 @@ const char *const kresps[KRESP__MAX] = {
 const char *const kmimetypes[KMIME__MAX] = {
 	"application/x-javascript", /* KMIME_APP_JAVASCRIPT */
 	"application/json", /* KMIME_APP_JSON */
+	"application/octet-stream", /* KMIME_APP_OCTET_STREAM */
 	"image/gif", /* KMIME_IMAGE_GIF */
 	"image/jpeg", /* KMIME_IMAGE_JPEG */
 	"image/png", /* KMIME_IMAGE_PNG */
