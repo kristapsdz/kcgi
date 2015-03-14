@@ -249,22 +249,28 @@ main(void)
 		return(EXIT_FAILURE);
 
 	if (KMETHOD_OPTIONS == r.method) {
+		/* Indicate that we accept GET, POST, and PUT. */
 		khttp_head(&r, kresps[KRESP_STATUS], 
 			"%s", khttps[KHTTP_200]);
 		khttp_head(&r, kresps[KRESP_ALLOW], 
-			"OPTIONS GET POST");
+			"OPTIONS GET POST PUT");
 		khttp_body(&r);
 	} else if (KMETHOD_PUT == r.method) {
+		/* PUT makes us just drop to the browser. */
 		khttp_head(&r, kresps[KRESP_STATUS], 
 			"%s", khttps[KHTTP_200]);
-		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-			"%s", kmimetypes[KMIME_TEXT_HTML]);
-		khttp_body(&r);
-		if (r.fieldsz) {
+		if (r.fieldsz > 0) {
+			khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+				"%s", NULL == r.fields[0].ctype ?
+				kmimetypes[KMIME_APP_OCTET_STREAM]:
+				r.fields[0].ctype);
+			khttp_body(&r);
 			khttp_write(&r, r.fields[0].val, r.fields[0].valsz);
-		}
+		} else
+			khttp_body(&r);
 	} else if (KMETHOD_GET != r.method && 
 			KMETHOD_POST != r.method) {
+		/* Don't accept anything else. */
 		resp_open(&r, KHTTP_405);
 	} else if (PAGE__MAX == r.page || 
 			KMIME_TEXT_HTML != r.mime) {
