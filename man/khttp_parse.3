@@ -54,10 +54,18 @@ The
 .Nm khttp_parse
 and
 .Nm khttp_parsex
-functions parse and validate input fields (cookies, GET, and POST with
-support for multipart-mixed, multipart-form-data, url-encoded, and plain
-text) and the HTTP environment (compression, paths, MIME types, and so
-on).
+functions parse and validate input and the HTTP environment
+(compression, paths, MIME types, and so on).
+It parses and validates data as key-value pairs for the
+.Li application/x-www-form-urlencoded ,
+.Li multipart/form-data ,
+and
+.Li text/plain
+.Pq if and only if the method is POST
+content types, and opaque message bodies (defaulting to
+.Li application/octet-stream )
+otherwise.
+Key-value pairs are also parsed from cookies and the query string.
 .Pp
 The collective arguments are as follows:
 .Bl -tag -width Ds
@@ -184,7 +192,8 @@ mapped into field indices as defined by the
 argument to
 .Fn khttp_parse .
 .It Va fields
-All key-value pairs read from the POST and GET requests.
+All key-value pairs read from the requests (query string, cookies,
+message body).
 .It Va fieldsz
 The number of elements in the
 .Va fields

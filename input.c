@@ -675,8 +675,7 @@ parse_body(const char *ctype, const struct kworker *work,
 
 	p = scanbuf(work, len, &sz);
 	memset(&mime, 0, sizeof(struct mime));
-	if (NULL != ctype) 
-		mime.ctype = strdup(ctype);
+	mime.ctype = strdup(ctype);
 	name = '\0';
 	output(pp, &name, p, sz, &mime);
 	free(mime.ctype);
@@ -1279,7 +1278,7 @@ khttp_input_child(const struct kworker *work,
 		else
 			parse_body(cp, work, &pp, len);
 	} else
-		parse_body(cp, work, &pp, len);
+		parse_body(kmimetypes[KMIME_APP_OCTET_STREAM], work, &pp, len);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
