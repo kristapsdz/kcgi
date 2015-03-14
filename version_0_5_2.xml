@@ -1,0 +1,12 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.2</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-12-21">2015-02-21</time>
+	</header>
+	<aside>
+		Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
+		<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
+		and validate it against the empty-key validator.
+	</aside>
+</article>
