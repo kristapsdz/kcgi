@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: December 3 2014 $
+.Dd $Mdocdate: March 13 2015 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -334,6 +334,12 @@ In other words, these must be pure computation.
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
 .Dv NULL .
+If the field name is an empty string and the HTTP message consists of an
+opaque body (and not key-value pairs), then that field will be used to
+validate the HTTP message body.
+This is useful for
+.Dv KMETHOD_PUT
+style requests.
 .El
 .Pp
 The
@@ -346,6 +352,9 @@ variable passed to
 .Bl -tag -width Ds
 .It Va key
 The nil-terminated key (input) name.
+If the HTTP message body is opaque (e.g.,
+.Dv KMETHOD_PUT ) ,
+then an empty-string key is cooked up.
 .It Va val
 The (input) value, which is always nil-terminated, but if the data is
 binary, nil terminators may occur before the true data length of

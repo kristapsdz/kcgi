@@ -254,6 +254,15 @@ main(void)
 		khttp_head(&r, kresps[KRESP_ALLOW], 
 			"OPTIONS GET POST");
 		khttp_body(&r);
+	} else if (KMETHOD_PUT == r.method) {
+		khttp_head(&r, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+			"%s", kmimetypes[KMIME_TEXT_HTML]);
+		khttp_body(&r);
+		if (r.fieldsz) {
+			khttp_write(&r, r.fields[0].val, r.fields[0].valsz);
+		}
 	} else if (KMETHOD_GET != r.method && 
 			KMETHOD_POST != r.method) {
 		resp_open(&r, KHTTP_405);
