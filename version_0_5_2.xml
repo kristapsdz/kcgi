@@ -8,5 +8,8 @@
 		Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
 		<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
 		and validate it against the empty-key validator.
+		Add the HTTP methods stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed Authoring
+			and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
+			(CalDAV)</a>.
 	</aside>
 </article>
