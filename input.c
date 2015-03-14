@@ -457,169 +457,6 @@ scanbuf(const struct kworker *work, size_t len, size_t *szp)
 }
 
 /*
- * Parse keys and values separated by newlines.
- * I'm not aware of any standard that defines this, but the W3
- * guidelines for HTML give a rough idea.
- */
-static void
-parse_pairs_text(const struct parms *pp, char *p)
-{
-	char            *key, *val;
-
-	while (NULL != p && '\0' != *p) {
-		/* Skip leading whitespace. */
-		while (' ' == *p)
-			p++;
-
-		key = p;
-		val = NULL;
-		if (NULL != (p = strchr(p, '='))) {
-			/* Key/value pair. */
-			*p++ = '\0';
-			val = p;
-			p = strstr(val, "\r\n");
-			if (NULL != p) {
-				*p = '\0';
-				p += 2;
-			}
-		} else {
-			/* No value--error. */
-			p = strstr(key, "\r\n");
-			if (NULL != p) {
-				*p = '\0';
-				p += 2;
-			}
-			XWARNX("text key: no value");
-			continue;
-		}
-
-		if ('\0' == *key) {
-			XWARNX("text key: zero-length");
-			continue;
-		}
-		output(pp, key, val, strlen(val), NULL);
-	}
-}
-
-/*
- * Parse an encoding type given as `text/plan'.
- * We simply suck this into a buffer and start parsing pairs directly
- * from the input.
- */
-static void
-parse_text(const struct kworker *work, 
-	const struct parms *pp, size_t len)
-{
-	char	*p;
-
-	p = scanbuf(work, len, NULL);
-	parse_pairs_text(pp, p);
-	free(p);
-}
-
-/*
- * In-place HTTP-decode a string.  The standard explanation is that this
- * turns "%4e+foo" into "n foo" in the regular way.  This is done
- * in-place over the allocated string.
- */
-static int
-urldecode(char *p)
-{
-	char             hex[3];
-	unsigned int	 c;
-
-	hex[2] = '\0';
-
-	for ( ; '\0' != *p; p++) {
-		if ('%' == *p) {
-			if ('\0' == (hex[0] = *(p + 1))) {
-				XWARNX("urldecode: short hex");
-				return(0);
-			} else if ('\0' == (hex[1] = *(p + 2))) {
-				XWARNX("urldecode: short hex");
-				return(0);
-			} else if (1 != sscanf(hex, "%x", &c)) {
-				XWARN("urldecode: bad hex");
-				return(0);
-			} else if ('\0' == c) {
-				XWARN("urldecode: nil byte");
-				return(0);
-			}
-
-			*p = (char)c;
-			memmove(p + 1, p + 3, strlen(p + 3) + 1);
-		} else
-			*p = '+' == *p ? ' ' : *p;
-	}
-
-	*p = '\0';
-	return(1);
-}
-
-/*
- * Parse out key-value pairs from an HTTP request variable.
- * This can be either a cookie or a POST/GET string.
- * This MUST be a non-binary (i.e., nil-terminated) string!
- */
-static void
-parse_pairs_urlenc(const struct parms *pp, char *p)
-{
-	char            *key, *val;
-	size_t           sz;
-
-	while (NULL != p && '\0' != *p) {
-		/* Skip leading whitespace. */
-		while (' ' == *p)
-			p++;
-
-		key = p;
-		val = NULL;
-		if (NULL != (p = strchr(p, '='))) {
-			/* Key/value pair. */
-			*p++ = '\0';
-			val = p;
-			sz = strcspn(p, ";&");
-			p += sz;
-			if ('\0' != *p)
-				*p++ = '\0';
-		} else {
-			/* No value--error. */
-			p = key;
-			sz = strcspn(p, ";&");
-			p += sz;
-			if ('\0' != *p)
-				p++;
-			XWARNX("url key: no value");
-			continue;
-		}
-
-		if ('\0' == *key) {
-			XWARNX("url key: zero length");
-			continue;
-		} else if ( ! urldecode(key)) {
-			XWARNX("url key: key decode");
-			break;
-		} else if ( ! urldecode(val)) {
-			XWARNX("url key: val decode");
-			break;
-		}
-
-		output(pp, key, val, strlen(val), NULL);
-	}
-}
-
-static void
-parse_urlenc(const struct kworker *work,
-	const struct parms *pp, size_t len)
-{
-	char	*p;
-
-	p = scanbuf(work, len, NULL);
-	parse_pairs_urlenc(pp, p);
-	free(p);
-}
-
-/*
  * Reset a particular mime component.
  * We can get duplicates, so reallocate.
  */
@@ -774,6 +611,194 @@ mime_free(struct mime *mime)
 	free(mime->xcode);
 	free(mime->bound);
 	memset(mime, 0, sizeof(struct mime));
+}
+
+/*
+ * Parse keys and values separated by newlines.
+ * I'm not aware of any standard that defines this, but the W3
+ * guidelines for HTML give a rough idea.
+ */
+static void
+parse_pairs_text(const struct parms *pp, char *p)
+{
+	char            *key, *val;
+
+	while (NULL != p && '\0' != *p) {
+		/* Skip leading whitespace. */
+		while (' ' == *p)
+			p++;
+
+		key = p;
+		val = NULL;
+		if (NULL != (p = strchr(p, '='))) {
+			/* Key/value pair. */
+			*p++ = '\0';
+			val = p;
+			p = strstr(val, "\r\n");
+			if (NULL != p) {
+				*p = '\0';
+				p += 2;
+			}
+		} else {
+			/* No value--error. */
+			p = strstr(key, "\r\n");
+			if (NULL != p) {
+				*p = '\0';
+				p += 2;
+			}
+			XWARNX("text key: no value");
+			continue;
+		}
+
+		if ('\0' == *key) {
+			XWARNX("text key: zero-length");
+			continue;
+		}
+		output(pp, key, val, strlen(val), NULL);
+	}
+}
+
+/*
+ * Parse an HTTP message that has a given content-type.
+ * This happens with, e.g., PUT requests.
+ * We fake up a "name" for this (it's not really a key-value pair) of an
+ * empty string, then pass that to the validator and forwarder.
+ */
+static void
+parse_body(const char *ctype, const struct kworker *work, 
+	const struct parms *pp, size_t len)
+{
+	char		*p;
+	char		 name;
+	struct mime	 mime;
+	size_t	 	 sz;
+
+	p = scanbuf(work, len, &sz);
+	memset(&mime, 0, sizeof(struct mime));
+	if (NULL != ctype) 
+		mime.ctype = strdup(ctype);
+	name = '\0';
+	output(pp, &name, p, sz, &mime);
+	free(mime.ctype);
+	free(p);
+}
+
+/*
+ * Parse an encoding type given as `text/plan'.
+ * We simply suck this into a buffer and start parsing pairs directly
+ * from the input.
+ */
+static void
+parse_text(const struct kworker *work, 
+	const struct parms *pp, size_t len)
+{
+	char	*p;
+
+	p = scanbuf(work, len, NULL);
+	parse_pairs_text(pp, p);
+	free(p);
+}
+
+/*
+ * In-place HTTP-decode a string.  The standard explanation is that this
+ * turns "%4e+foo" into "n foo" in the regular way.  This is done
+ * in-place over the allocated string.
+ */
+static int
+urldecode(char *p)
+{
+	char             hex[3];
+	unsigned int	 c;
+
+	hex[2] = '\0';
+
+	for ( ; '\0' != *p; p++) {
+		if ('%' == *p) {
+			if ('\0' == (hex[0] = *(p + 1))) {
+				XWARNX("urldecode: short hex");
+				return(0);
+			} else if ('\0' == (hex[1] = *(p + 2))) {
+				XWARNX("urldecode: short hex");
+				return(0);
+			} else if (1 != sscanf(hex, "%x", &c)) {
+				XWARN("urldecode: bad hex");
+				return(0);
+			} else if ('\0' == c) {
+				XWARN("urldecode: nil byte");
+				return(0);
+			}
+
+			*p = (char)c;
+			memmove(p + 1, p + 3, strlen(p + 3) + 1);
+		} else
+			*p = '+' == *p ? ' ' : *p;
+	}
+
+	*p = '\0';
+	return(1);
+}
+
+/*
+ * Parse out key-value pairs from an HTTP request variable.
+ * This can be either a cookie or a POST/GET string.
+ * This MUST be a non-binary (i.e., nil-terminated) string!
+ */
+static void
+parse_pairs_urlenc(const struct parms *pp, char *p)
+{
+	char            *key, *val;
+	size_t           sz;
+
+	while (NULL != p && '\0' != *p) {
+		/* Skip leading whitespace. */
+		while (' ' == *p)
+			p++;
+
+		key = p;
+		val = NULL;
+		if (NULL != (p = strchr(p, '='))) {
+			/* Key/value pair. */
+			*p++ = '\0';
+			val = p;
+			sz = strcspn(p, ";&");
+			p += sz;
+			if ('\0' != *p)
+				*p++ = '\0';
+		} else {
+			/* No value--error. */
+			p = key;
+			sz = strcspn(p, ";&");
+			p += sz;
+			if ('\0' != *p)
+				p++;
+			XWARNX("url key: no value");
+			continue;
+		}
+
+		if ('\0' == *key) {
+			XWARNX("url key: zero length");
+			continue;
+		} else if ( ! urldecode(key)) {
+			XWARNX("url key: key decode");
+			break;
+		} else if ( ! urldecode(val)) {
+			XWARNX("url key: val decode");
+			break;
+		}
+
+		output(pp, key, val, strlen(val), NULL);
+	}
+}
+
+static void
+parse_urlenc(const struct kworker *work,
+	const struct parms *pp, size_t len)
+{
+	char	*p;
+
+	p = scanbuf(work, len, NULL);
+	parse_pairs_urlenc(pp, p);
+	free(p);
 }
 
 /*
@@ -1249,10 +1274,12 @@ khttp_input_child(const struct kworker *work,
 			parse_urlenc(work, &pp, len);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
 			parse_multi(work, &pp, cp + 19, len);
-		else if (0 == strcasecmp(cp, "text/plain"))
+		else if (KMETHOD_POST == meth && 0 == strcasecmp(cp, "text/plain"))
 			parse_text(work, &pp, len);
+		else
+			parse_body(cp, work, &pp, len);
 	} else
-		parse_text(work, &pp, len);
+		parse_body(cp, work, &pp, len);
 
 	/*
 	 * Even POST requests are allowed to have QUERY_STRING elements,
