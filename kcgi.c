@@ -213,6 +213,7 @@ const char *const kmimetypes[KMIME__MAX] = {
 	"text/csv", /* KMIME_TEXT_CSV */
 	"text/html", /* KMIME_TEXT_HTML */
 	"text/plain", /* KMIME_TEXT_PLAIN */
+	"text/xml", /* KMIME_TEXT_XML */
 };
 
 const char *const khttps[KHTTP__MAX] = {
@@ -226,7 +227,7 @@ const char *const khttps[KHTTP__MAX] = {
 	"204 No Content",
 	"205 Reset Content",
 	"206 Partial Content",
-	"207 Multi-status",
+	"207 Multi-Status",
 	"300 Multiple Choices",
 	"301 Moved Permanently",
 	"302 Found",
@@ -297,6 +298,7 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"csv", /* KMIME_TEXT_CSV */
 	"html", /* KMIME_TEXT_HTML */
 	"txt", /* KMIME_TEXT_PLAIN */
+	"xml", /* KMIME_TEXT_XML */
 };
 
 /* 
