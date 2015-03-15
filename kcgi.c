@@ -208,6 +208,7 @@ const char *const kmimetypes[KMIME__MAX] = {
 	"image/jpeg", /* KMIME_IMAGE_JPEG */
 	"image/png", /* KMIME_IMAGE_PNG */
 	"image/svg+xml", /* KMIME_IMAGE_SVG_XML */
+	"text/calendar", /* KMIME_TEXT_CALENDAR */
 	"text/css", /* KMIME_TEXT_CSS */
 	"text/csv", /* KMIME_TEXT_CSV */
 	"text/html", /* KMIME_TEXT_HTML */
@@ -225,6 +226,7 @@ const char *const khttps[KHTTP__MAX] = {
 	"204 No Content",
 	"205 Reset Content",
 	"206 Partial Content",
+	"207 Multi-status",
 	"300 Multiple Choices",
 	"301 Moved Permanently",
 	"302 Found",
@@ -266,6 +268,10 @@ const struct kmimemap ksuffixmap[] = {
 	{ "gif", KMIME_IMAGE_GIF },
 	{ "htm", KMIME_TEXT_HTML },
 	{ "html", KMIME_TEXT_HTML },
+	{ "ical", KMIME_TEXT_CALENDAR },
+	{ "icalendar", KMIME_TEXT_CALENDAR },
+	{ "ics", KMIME_TEXT_CALENDAR },
+	{ "ifb", KMIME_TEXT_CALENDAR },
 	{ "jpg", KMIME_IMAGE_JPEG },
 	{ "jpeg", KMIME_IMAGE_JPEG },
 	{ "js", KMIME_APP_JAVASCRIPT },

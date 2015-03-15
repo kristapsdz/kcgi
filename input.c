@@ -71,6 +71,7 @@ struct	parms {
 };
 
 static	const char *const kmethods[KMETHOD__MAX] = {
+	"ACL", /* KMETHOD_ACL */
 	"CONNECT", /* KMETHOD_CONNECT */
 	"COPY", /* KMETHOD_COPY */
 	"DELETE", /* KMETHOD_DELETE */
