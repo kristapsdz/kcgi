@@ -613,7 +613,14 @@ kpair_free(struct kpair *p, size_t sz)
 static void
 kreq_free(struct kreq *req)
 {
+	size_t	 i;
 
+	for (i = 0; i < req->reqsz; i++) {
+		free(req->reqs[i].key);
+		free(req->reqs[i].val);
+	}
+
+	free(req->reqs);
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
