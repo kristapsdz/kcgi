@@ -91,6 +91,26 @@ static	const char *const kmethods[KMETHOD__MAX] = {
 	"UNLOCK", /* KMETHOD_UNLOCK */
 };
 
+static	const char *const krequs[KREQU__MAX] = {
+	"HTTP_ACCEPT", /* KREQU_ACCEPT */
+	"HTTP_ACCEPT_CHARSET", /* KREQU_ACCEPT_CHARSET */
+	"HTTP_ACCEPT_ENCODING", /* KREQU_ACCEPT_ENCODING */
+	"HTTP_ACCEPT_LANGUAGE", /* KREQU_ACCEPT_LANGUAGE */
+	"HTTP_AUTHORIZATION", /* KREQU_AUTHORIZATION */
+	"HTTP_FROM", /* KREQU_FROM */
+	"HTTP_HOST", /* KREQU_HOST */
+	"HTTP_IF_MODIFIED_SINCE", /* KREQU_IF_MODIFIED_SINCE */
+	"HTTP_IF_MATCH", /* KREQU_IF_MATCH */
+	"HTTP_IF_NONE_MATCH", /* KREQU_IF_NONE_MATCH */
+	"HTTP_IF_RANGE", /* KREQU_IF_RANGE */
+	"HTTP_IF_UNMODIFIED_SINCE", /* KREQU_IF_UNMODIFIED_SINCE */
+	"HTTP_MAX_FORWARDS", /* KREQU_MAX_FORWARDS */
+	"HTTP_PROXY_AUTHORIZATION", /* KREQU_PROXY_AUTHORIZATION */
+	"HTTP_RANGE", /* KREQU_RANGE */
+	"HTTP_REFERER", /* KREQU_REFERER */
+	"HTTP_USER_AGENT", /* KREQU_USER_AGENT */
+};
+
 static	const char *const kauths[KAUTH_UNKNOWN] = {
 	NULL,
 	"basic",
@@ -1038,6 +1058,7 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
+	enum krequ	 requ;
 	enum input	 type;
 	int		 rc;
 	enum kcgi_err	 ke;
@@ -1051,6 +1072,33 @@ khttp_input_parent(int fd, struct kreq *r, pid_t pid)
 	 * Each parsed parameter is handled a little differently.
 	 * This list will end with META__MAX.
 	 */
+	if (fullread(fd, &r->reqsz, sizeof(size_t), 0, &ke) < 0) {
+		XWARNX("failed to read request header size");
+		goto out;
+	}
+	r->reqs = XCALLOC(r->reqsz, sizeof(struct khead));
+	if (NULL == r->reqs) {
+		ke = KCGI_ENOMEM;
+		goto out;
+	}
+
+	for (i = 0; i < r->reqsz; i++) {
+		if (fullread(fd, &requ, sizeof(enum krequ), 0, &ke) < 0) {
+			XWARNX("failed to read request identifier");
+			goto out;
+		}
+		if (KCGI_OK != (ke = fullreadword(fd, &r->reqs[i].key))) {
+			XWARNX("failed to read request key");
+			goto out;
+		}
+		if (KCGI_OK != (ke = fullreadword(fd, &r->reqs[i].val))) {
+			XWARNX("failed to read request value");
+			goto out;
+		}
+		if (requ != KREQU__MAX)
+			r->reqmap[requ] = &r->reqs[i];
+	}
+
 	if (fullread(fd, &r->method, sizeof(enum kmethod), 0, &ke) < 0) {
 		XWARNX("failed to read request method");
 		goto out;
@@ -1155,19 +1203,58 @@ khttp_input_child(const struct kworker *work,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz)
 {
-	struct parms	 pp;
-	char		*cp, *ep, *sub;
-	const char	*ccp;
-	int		 wfd;
-	enum kmethod	 meth;
-	enum kauth	 auth;
-	size_t	 	 len;
+	struct parms	  pp;
+	char		 *cp, *ep, *sub;
+	char		**evp;
+	const char	 *ccp;
+	int		  wfd;
+	enum kmethod	  meth;
+	enum kauth	  auth;
+	enum krequ	  requ;
+	size_t	 	  len, reqs;
+	extern char	**environ;
 
 	pp.fd = wfd = work->sock[KWORKER_WRITE];
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
 	pp.mimesz = mimesz;
+
+	reqs = 0;
+	for (evp = environ; NULL != *evp; evp++) {
+		if (strncmp(*evp, "HTTP_", 5))
+			continue;
+		if (0 == strncmp(*evp, "HTTP_COOKIE=", 12))
+			continue;
+		if (NULL == strchr(*evp, '='))
+			continue;
+		reqs++;
+	}
+	fullwrite(wfd, &reqs, sizeof(size_t));
+	for (evp = environ; NULL != *evp; evp++) {
+		if (strncmp(*evp, "HTTP_", 5))
+			continue;
+		if (0 == strncmp(*evp, "HTTP_COOKIE=", 12))
+			continue;
+		if (NULL == strchr(*evp, '='))
+			continue;
+		cp = strchr(*evp, '=');
+		assert(NULL != cp && cp > *evp);
+		for (requ = 0; requ < KREQU__MAX; requ++) {
+			len = (size_t)(cp - *evp);
+			if (len != strlen(krequs[requ]))
+				continue;
+			if (strncmp(krequs[requ], *evp, len))
+				continue;
+			break;
+		}
+		fullwrite(wfd, &requ, sizeof(enum krequ));
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, *evp, len);
+		len = strlen(cp + 1);
+		fullwrite(wfd, &len, sizeof(size_t));
+		fullwrite(wfd, cp + 1, len);
+	}
 
 	/* RFC 3875, 4.1.12. */
 	/* We assume GET if not supplied. */
