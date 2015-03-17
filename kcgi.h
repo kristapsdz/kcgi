@@ -72,6 +72,27 @@ enum	khttp {
 	KHTTP__MAX
 };
 
+enum	krequ {
+	KREQU_ACCEPT,
+	KREQU_ACCEPT_CHARSET,
+	KREQU_ACCEPT_ENCODING,
+	KREQU_ACCEPT_LANGUAGE,
+	KREQU_AUTHORIZATION,
+	KREQU_FROM,
+	KREQU_HOST,
+	KREQU_IF_MODIFIED_SINCE,
+	KREQU_IF_MATCH,
+	KREQU_IF_NONE_MATCH,
+	KREQU_IF_RANGE,
+	KREQU_IF_UNMODIFIED_SINCE,
+	KREQU_MAX_FORWARDS,
+	KREQU_PROXY_AUTHORIZATION,
+	KREQU_RANGE,
+	KREQU_REFERER,
+	KREQU_USER_AGENT,
+	KREQU__MAX
+};
+
 enum	kresp {
 	KRESP_ACCESS_CONTROL_ALLOW_ORIGIN,
 	KRESP_ACCEPT_RANGES,
@@ -301,7 +322,15 @@ enum	kauth {
 
 struct	kdata;
 
+struct	khead {
+	char		*key;
+	char		*val;
+};
+
 struct	kreq {
+	struct khead		 *reqmap[KREQU__MAX];
+	struct khead		 *reqs;
+	size_t		 	  reqsz;
 	enum kmethod		  method;
 	enum kauth		  auth;
 	struct kpair		 *cookies;
