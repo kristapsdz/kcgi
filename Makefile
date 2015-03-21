@@ -75,10 +75,12 @@ SRCS 		 = compat-memmem.c \
      		   kcgihtml.c \
 		   kcgijson.c \
 		   kcgiregress.c \
+		   kcgixml.c \
      		   kcgi.h \
      		   kcgihtml.h \
 		   kcgijson.h \
 		   kcgiregress.h \
+		   kcgixml.h \
 		   master.c \
      		   sample.c \
      		   sandbox.c \
@@ -111,7 +113,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-ping.c \
 		   regress/test-upload.c
 
-all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgiregress.a
+all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
 afl: $(AFL)
 
@@ -153,6 +155,8 @@ kcgihtml.o: kcgihtml.h
 
 kcgijson.o: kcgijson.h
 
+kcgixml.o: kcgixml.h
+
 kcgiregress.o: kcgiregress.h
 
 libkcgihtml.a: kcgihtml.o
@@ -161,10 +165,13 @@ libkcgihtml.a: kcgihtml.o
 libkcgijson.a: kcgijson.o
 	$(AR) rs $@ kcgijson.o
 
+libkcgixml.a: kcgixml.o
+	$(AR) rs $@ kcgixml.o
+
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
 
-$(LIBOBJS) sample.o kcgihtml.o kcgijson.o: kcgi.h
+$(LIBOBJS) sample.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS): config.h extern.h
 
@@ -182,8 +189,8 @@ install: all
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
 	mkdir -p $(DESTDIR)$(MANDIR)
-	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a $(DESTDIR)$(LIBDIR)
-	install -m 0444 kcgi.h kcgihtml.h kcgijson.h $(DESTDIR)$(INCLUDEDIR)
+	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a $(DESTDIR)$(LIBDIR)
+	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MANS) $(DESTDIR)$(MANDIR)
 	install -m 0444 template.xml sample.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
@@ -229,6 +236,7 @@ clean:
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
+	rm -f libkcgixml.a kcgixml.o
 	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
 	rm -f test-memmem test-memmem.o 

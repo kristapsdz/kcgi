@@ -11,5 +11,7 @@
 		Add the HTTP methods stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed Authoring
 			and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
 			(CalDAV)</a>.
+		Lastly, allow for the HTTP request headers to be exported to the <code>struct kreq</code> object as both a list and, for common
+		HTTP headers, an indexed map.
 	</aside>
 </article>
