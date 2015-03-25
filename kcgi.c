@@ -290,10 +290,12 @@ const struct kmimemap ksuffixmap[] = {
 const char *const ksuffixes[KMIME__MAX] = {
 	"js", /* KMIME_APP_JAVASCRIPT */
 	"json", /* KMIME_APP_JSON */
+	NULL, /* KMIME_APP_OCTET_STREAM */
 	"gif", /* KMIME_IMAGE_GIF */
 	"jpg", /* KMIME_IMAGE_JPEG */
 	"png", /* KMIME_IMAGE_PNG */
 	"svg", /* KMIME_IMAGE_PNG */
+	"ics", /* KMIME_TEXT_CALENDAR */
 	"css", /* KMIME_TEXT_CSS */
 	"csv", /* KMIME_TEXT_CSV */
 	"html", /* KMIME_TEXT_HTML */
@@ -494,7 +496,10 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	if (NULL == (pp = kutil_urlencode(page)))
 		exit(EXIT_FAILURE);
 
-	(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+	if (NULL != mime)
+		(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+	else
+		(void)kasprintf(&p, "%s/%s", path, pp);
 
 	free(pp);
 	total = strlen(p) + 1;
@@ -559,7 +564,10 @@ kutil_urlpart(struct kreq *req, const char *path,
 	if (NULL == (pp = kutil_urlencode(page)))
 		exit(EXIT_FAILURE);
 
-	(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+	if (NULL != mime)
+		(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
+	else
+		(void)kasprintf(&p, "%s/%s", path, pp);
 
 	free(pp);
 	total = strlen(p) + 1;
