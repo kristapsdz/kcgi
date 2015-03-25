@@ -57,8 +57,13 @@ The
 .Nm kutil_urlpart ,
 and
 .Nm kutil_urlpartx
-functions format a partial HTTP URL from variable-length query string
-keys and values.
+functions format a partial HTTP URL from the path, suffix, page, and
+variable-length query string keys and values.
+If the
+.Fa suffix
+part is
+.Dv NULL ,
+it is not formatted as part of the URL.
 The
 .Nm kutil_urlabs
 forms an absolute URL from a scheme, domain, and path component.
