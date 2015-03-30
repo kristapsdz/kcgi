@@ -1153,6 +1153,9 @@ khttp_templatex_buf(const struct ktemplate *t,
 {
 	size_t		 i, j, len, start, end;
 
+	if (NULL == t)
+		return(fp(buf, sz, arg));
+
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
 		if ('@' != buf[i] || '@' != buf[i + 1]) {
