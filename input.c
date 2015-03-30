@@ -97,6 +97,7 @@ static	const char *const krequs[KREQU__MAX] = {
 	"HTTP_ACCEPT_ENCODING", /* KREQU_ACCEPT_ENCODING */
 	"HTTP_ACCEPT_LANGUAGE", /* KREQU_ACCEPT_LANGUAGE */
 	"HTTP_AUTHORIZATION", /* KREQU_AUTHORIZATION */
+	"HTTP_DEPTH", /* KREQU_DEPTH */
 	"HTTP_FROM", /* KREQU_FROM */
 	"HTTP_HOST", /* KREQU_HOST */
 	"HTTP_IF", /* KREQU_IF */
@@ -1266,7 +1267,7 @@ khttp_input_child(const struct kworker *work,
 				break;
 	fullwrite(wfd, &meth, sizeof(enum kmethod));
 
-	/* Determine authenticaiton: RFC 3875, 4.1.1. */
+	/* Determine authentication: RFC 3875, 4.1.1. */
 	auth = KAUTH_NONE;
 	if (NULL != (ccp = getenv("AUTH_TYPE"))) 
 		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {

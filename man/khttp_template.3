@@ -133,6 +133,12 @@ fails.
 If the key is not found, it is emitted as opaque text via
 .Xr khttp_write 3
 and friends.
+.Pp
+If
+.Fa t
+is
+.Dv NULL ,
+the buffer (or file) is emitted without any processing.
 .Sh RETURN VALUES
 .Nm khttp_template
 returns 0 if the
