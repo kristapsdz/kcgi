@@ -254,12 +254,14 @@ const char *const khttps[KHTTP__MAX] = {
 	"415 Unsupported Media Type",
 	"416 Requested Range Not Satisfiable",
 	"417 Expectation Failed",
+	"424 Failed Dependency",
 	"500 Internal Server Error",
 	"501 Not Implemented",
 	"502 Bad Gateway",
 	"503 Service Unavailable",
 	"504 Gateway Timeout",
 	"505 HTTP Version Not Supported",
+	"507 Insufficient Storage",
 	"511 Network Authentication Required",
 };
 
