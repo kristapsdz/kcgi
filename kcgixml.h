@@ -36,8 +36,9 @@ int	kxml_pushattrs(struct kxmlreq *, size_t, ...);
 void	kxml_pushnullattrs(struct kxmlreq *, size_t, ...);
 int	kxml_pop(struct kxmlreq *);
 void	kxml_popall(struct kxmlreq *);
-void	kxml_text(struct kxmlreq *, const char *);
 int	kxml_write(const char *, size_t, void *);
+void	kxml_putc(struct kxmlreq *, char);
+void	kxml_puts(struct kxmlreq *, const char *);
 
 __END_DECLS
 

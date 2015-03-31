@@ -69,6 +69,26 @@ kxml_pushnull(struct kxmlreq *r, size_t elem)
 	khttp_puts(r->req, " />");
 }
 
+void
+kxml_putc(struct kxmlreq *r, char c)
+{
+
+	switch (c) {
+	case ('<'):
+		khttp_puts(r->req, "&lt;");
+		break;
+	case ('>'):
+		khttp_puts(r->req, "&gt;");
+		break;
+	case ('"'):
+		khttp_puts(r->req, "&quot;");
+		break;
+	default:
+		khttp_putc(r->req, c);
+		break;
+	}
+}
+
 int
 kxml_write(const char *p, size_t sz, void *arg)
 {
@@ -76,43 +96,17 @@ kxml_write(const char *p, size_t sz, void *arg)
 	size_t	 	 i;
 
 	for (i = 0; i < sz; i++)
-		switch (p[i]) {
-		case ('<'):
-			khttp_puts(r->req, "&lt;");
-			break;
-		case ('>'):
-			khttp_puts(r->req, "&gt;");
-			break;
-		case ('"'):
-			khttp_puts(r->req, "&quot;");
-			break;
-		default:
-			khttp_putc(r->req, p[i]);
-			break;
-		}
+		kxml_putc(r, p[i]);
 
 	return(1);
 }
 
 void
-kxml_text(struct kxmlreq *r, const char *p)
+kxml_puts(struct kxmlreq *r, const char *p)
 {
 
 	for ( ; '\0' != *p; p++)
-		switch (*p) {
-		case ('<'):
-			khttp_puts(r->req, "&lt;");
-			break;
-		case ('>'):
-			khttp_puts(r->req, "&gt;");
-			break;
-		case ('"'):
-			khttp_puts(r->req, "&quot;");
-			break;
-		default:
-			khttp_putc(r->req, *p);
-			break;
-		}
+		kxml_putc(r, *p);
 }
 
 int
@@ -135,7 +129,7 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 		khttp_puts(r->req, key);
 		khttp_putc(r->req, '=');
 		khttp_putc(r->req, '"');
-		kxml_text(r, val);
+		kxml_puts(r, val);
 		khttp_putc(r->req, '"');
 	}
 	va_end(ap);
@@ -161,7 +155,7 @@ kxml_pushnullattrs(struct kxmlreq *r, size_t elem, ...)
 		khttp_puts(r->req, key);
 		khttp_putc(r->req, '=');
 		khttp_putc(r->req, '"');
-		kxml_text(r, val);
+		kxml_puts(r, val);
 		khttp_putc(r->req, '"');
 	}
 	va_end(ap);
