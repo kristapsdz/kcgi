@@ -70,7 +70,7 @@ struct	parms {
 	enum input		 type;
 };
 
-static	const char *const kmethods[KMETHOD__MAX] = {
+const char *const kmethods[KMETHOD__MAX] = {
 	"ACL", /* KMETHOD_ACL */
 	"CONNECT", /* KMETHOD_CONNECT */
 	"COPY", /* KMETHOD_COPY */
