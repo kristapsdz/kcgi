@@ -78,6 +78,9 @@ static const struct systrace_preauth preauth_policy[] = {
 	{ SYS_exit, SYSTR_POLICY_PERMIT },
 	{ SYS_getpid, SYSTR_POLICY_PERMIT },
 	{ SYS_gettimeofday, SYSTR_POLICY_PERMIT },
+#ifdef SYS_getentropy
+	{ SYS_getentropy, SYSTR_POLICY_PERMIT },
+#endif
 	{ SYS_clock_gettime, SYSTR_POLICY_PERMIT },
 	{ SYS_madvise, SYSTR_POLICY_PERMIT },
 	{ SYS_mmap, SYSTR_POLICY_PERMIT },
