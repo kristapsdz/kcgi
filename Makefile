@@ -173,7 +173,7 @@ libkcgiregress.a: kcgiregress.o
 
 $(LIBOBJS) sample.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
-$(LIBOBJS): config.h extern.h
+$(LIBOBJS) kcgiregress.o: config.h extern.h
 
 config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
