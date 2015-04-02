@@ -93,7 +93,7 @@ ksandbox_close(void *arg)
  * child context is sandboxed properly.
  */
 void
-ksandbox_init_child(void *arg, int fd __unused)
+ksandbox_init_child(void *arg, int fd)
 {
 
 #if defined(HAVE_CAPSICUM)

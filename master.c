@@ -113,7 +113,7 @@ static int
 master_read_input_head(struct master *m, int pos)
 {
 	ssize_t	 	 ssz;
-	unsigned char	 version, type;
+	unsigned char	 version;
 
 	fprintf(stderr, "Master input read event (head)\n");
 
@@ -128,7 +128,6 @@ master_read_input_head(struct master *m, int pos)
 		return(1);
 
 	version = m->states[pos].head[0];
-	type = m->states[pos].head[1];
 
 	if (1 != version) {
 		XWARNX("read bad version: %u", version);
