@@ -195,7 +195,9 @@ xbindpath(const char *path)
 		XWARNX("%s: too long", path);
 		return(-1);
 	}
+#ifndef	__linux__
 	sun.sun_len = len;
+#endif
 
 	opt = 1;
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {

@@ -14,6 +14,9 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/un.h>
@@ -396,7 +399,9 @@ bindpath(const char *path)
 		fprintf(stderr, "%s: too long\n", path);
 		return(-1);
 	}
+#ifndef	__linux__
 	sun.sun_len = len;
+#endif
 
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror("socket (AF_UNIX)");
@@ -420,7 +425,7 @@ bindpath(const char *path)
 static int
 dochild_fcgi(kcgi_regress_server child, void *carg)
 {
-	int	 	 s, fd, in, rc, opt, first, st;
+	int	 	 s, fd, in, rc, first, st;
 	struct sockaddr_in ad, rem;
 	socklen_t	 len;
 	char		 head[1024], *cp, *path, *query, *key, *val;
@@ -429,7 +434,6 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	extern char	*__progname;
 
 	rc = 0;
-	opt = 1;
 	s = in = fd = -1;
 	memset(&ad, 0, sizeof(struct sockaddr_in));
 
