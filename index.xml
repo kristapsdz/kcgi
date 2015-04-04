@@ -57,13 +57,11 @@
 					<span class="nm">kcgi</span> is a minimal CGI library for web applications in <a
 						href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a> ISO C.  
 					It was designed to be secure and auditable.
-					See a <a href="http://www.lemoda.net/c/cgi-libraries/index.html">Comparison of CGI Libraries in C</a>
-					for alternatives.
 					To start, download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and run <code>make install</code> into your
 					<code>PREFIX</code> of choice, then read <a href="kcgi.3.html">kcgi(3)</a>.
 					The system also ships with the <a href="kcgihtml.3.html">kcgihtml(3)</a>, <a
-						href="kcgijson.3.html">kcgijson(3)</a>, and <a href="kcgi_regress.3.html">kcgi_regress(3)</a>
-					libraries.
+						href="kcgijson.3.html">kcgijson(3)</a>, <a href="kcgixml.3.html">kcgixml(3)</a>, and <a
+						href="kcgi_regress.3.html">kcgi_regress(3)</a> libraries.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 				</p>

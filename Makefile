@@ -14,7 +14,7 @@ VERSIONS	 = version_0_4_2.xml \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.5.1
+VERSION 	 = 0.5.2
 LIBOBJS 	 = kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
@@ -32,6 +32,7 @@ LIBOBJS 	 = kcgi.o \
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
 		   man/kcgijson.3.html \
+		   man/kcgixml.3.html \
 		   man/kcgi_regress.3.html \
 		   man/khttp_body.3.html \
 		   man/khttp_free.3.html \
@@ -54,6 +55,7 @@ TESTS 		 = test-memmem.c \
 MANS		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
+		   man/kcgixml.3 \
 		   man/kcgi_regress.3 \
 		   man/khttp_body.3 \
 		   man/khttp_free.3 \

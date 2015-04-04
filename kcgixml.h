@@ -27,18 +27,17 @@ struct	kxmlreq {
 
 __BEGIN_DECLS
 
-void	kxml_open(struct kxmlreq *, struct kreq *, const char *const *, size_t);
 int	kxml_close(struct kxmlreq *);
-
+void	kxml_open(struct kxmlreq *, struct kreq *, const char *const *, size_t);
 int	kxml_push(struct kxmlreq *, size_t);
-void	kxml_pushnull(struct kxmlreq *, size_t);
 int	kxml_pushattrs(struct kxmlreq *, size_t, ...);
+void	kxml_pushnull(struct kxmlreq *, size_t);
 void	kxml_pushnullattrs(struct kxmlreq *, size_t, ...);
 int	kxml_pop(struct kxmlreq *);
 void	kxml_popall(struct kxmlreq *);
-int	kxml_write(const char *, size_t, void *);
 void	kxml_putc(struct kxmlreq *, char);
 void	kxml_puts(struct kxmlreq *, const char *);
+int	kxml_write(const char *, size_t, void *);
 
 __END_DECLS
 
