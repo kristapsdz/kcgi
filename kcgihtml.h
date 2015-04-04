@@ -457,7 +457,10 @@ size_t		 khtml_elemat(struct khtmlreq *);
 void		 khtml_entity(struct khtmlreq *, enum kentity);
 void		 khtml_int(struct khtmlreq *, int64_t);
 void		 khtml_ncr(struct khtmlreq *, uint16_t);
-void		 khtml_text(struct khtmlreq *, const char *);
+void		 khtml_putc(struct khtmlreq *, char);
+void		 khtml_puts(struct khtmlreq *, const char *);
+void		 khtml_text(struct khtmlreq *, const char *)
+			__attribute__ ((deprecated));
 int		 khtml_write(const char *, size_t, void *);
 
 __END_DECLS
