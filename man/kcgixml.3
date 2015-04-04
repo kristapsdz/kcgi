@@ -1,0 +1,211 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGIXML 3
+.Os
+.Sh NAME
+.Nm kcgixml ,
+.Nm kxml_close ,
+.Nm kxml_open ,
+.Nm kxml_push ,
+.Nm kxml_pushattrs ,
+.Nm kxml_pushnull ,
+.Nm kxml_pushnullattrs ,
+.Nm kxml_pop ,
+.Nm kxml_popall ,
+.Nm kxml_putc ,
+.Nm kxml_puts ,
+.Nm kxml_write
+.Nd XML handling functions for kcgi
+.Sh LIBRARY
+.Lb libkcgixml
+.Sh SYNOPSIS
+.In kcgi.h
+.In kcgixml.h
+.Ft int
+.Fo kxml_close
+.Fa "struct kxmlreq *xml"
+.Fc
+.Ft void
+.Fo kxml_open
+.Fa "struct kxmlreq *xml"
+.Fa "struct kreq *req"
+.Fa "const char *const *elems"
+.Fa "size_t elemsz"
+.Fc
+.Ft int
+.Fo kxml_push
+.Fa "struct kxmlreq *xml"
+.Fa "size_t elem"
+.Fc
+.Ft int
+.Fo kxml_pushattrs
+.Fa "struct kxmlreq *xml"
+.Fa "size_t elem"
+.Fa "..."
+.Fc
+.Ft void
+.Fo kxml_pushnull
+.Fa "struct kxmlreq *xml"
+.Fa "size_t elem"
+.Fc
+.Ft void
+.Fo kxml_pushnullattrs
+.Fa "struct kxmlreq *xml"
+.Fa "size_t elem"
+.Fa "..."
+.Fc
+.Ft int
+.Fo kxml_pop
+.Fa "struct kxmlreq *xml"
+.Fc
+.Ft void
+.Fo kxml_popall
+.Fa "struct kxmlreq *xml"
+.Fc
+.Ft void
+.Fo kxml_putc
+.Fa "struct kxmlreq *xml"
+.Fa "char c"
+.Fc
+.Ft void
+.Fo kxml_puts
+.Fa "struct kxmlreq *xml"
+.Fa "const char *cp"
+.Fc
+.Ft int
+.Fo kxml_write
+.Fa "const char *cp"
+.Fa "size_t sz"
+.Fa "void *arg"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm kcgixml
+functions extend
+.Xr kcgi 3
+output with very simpe XML-specific output.
+None of these functions may be called before
+.Xr khttp_body 3 .
+.Pp
+All
+.Nm kcgixml
+sequences begin and end with
+.Nm kxml_open
+and
+.Nm kxml_close ,
+respectively.
+An array of possible elements is passed as
+.Fa elems
+to
+.Fn kxml_open .
+This is later indexed into with
+.Fn kxml_push ,
+.Fn kxml_pushnull ,
+.Fn kxml_pushattrs ,
+and
+.Fn kxml_pushnullattrs
+to open elements.
+The
+.Fn kxml_pop
+family closes out opened elements.
+.Pp
+To use these functions, you must include the
+.In kcgixml.h
+header and compile with
+.Lb kcgixml ,
+for example,
+.Bd -literal
+% cc -I/usr/local/include -c -o sample.o sample.c
+% cc -L/usr/local/lib -o sample -lkcgixml -lkcgi -lz
+.Ed
+.Bl -tag -width Ds
+.It Fn kxml_close
+Close an XML context as opened with
+.Fn kxml_open .
+.It Fn kxml_open
+Open an XML context, binding it to
+.Fa elems ,
+a set of elements (e.g.,
+.Qq DAV:set
+or
+.Qq html ) ,
+the number of elements
+.Fa elemsz ,
+the
+.Xr kcgi 3
+request object
+.Fa req ,
+and an output object
+.Fa xml .
+.It Fn kxml_push
+Push the element-open tag indexed by
+.Fn elem
+onto the output stream.
+.It Fn kxml_pushattrs
+Push the element-open tag indexed by
+.Fn elem
+onto the output stream, as well as a sequence of nil-terminated pairs of
+attributes.
+The last attribute key must be a
+.Dv NULL
+to terminate the list.
+.It Fn kxml_pushnull
+Like
+.Fn kxml_push ,
+but producing an empty-element tag.
+.It Fn kxml_pushnullattrs
+Like
+.Fn kxml_pushattrs ,
+but producing an empty-element tag.
+.It Fn kxml_pop
+Pop the current open tag as opened by
+.Fn kxml_push
+or
+.Fn kxml_pushattrs .
+.It Fn kxml_popall
+Pop all open tags.
+.It Fn kxml_putc
+Write a single character within the currently-open tag, escaping it
+properly as opaque text.
+.It Fn kxml_puts
+Invokes
+.Fn kxml_putc
+for all characters in the nil-terminated string.
+.It Fn kxml_write
+Invokes
+.Fn kxml_putc
+for all elements in the bounded buffer.
+.El
+.Sh RETURN VALUES
+Functions returning an
+.Vt int
+indicating zero on failure and non-zero on success.
+This occurs if the requested element is over
+.Pq for Fn kxml_push
+or under
+.Pq for Fn kxml_pop
+the scope domain.
+.Sh STANDARDS
+The
+.Nm kcgixml
+functions conform to the XML 1.0 mark-up specification.
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

@@ -29,6 +29,8 @@
 .Nm khtml_entity ,
 .Nm khtml_int ,
 .Nm khtml_ncr ,
+.Nm khtml_putc ,
+.Nm khtml_puts ,
 .Nm khtml_text ,
 .Nm khtml_write
 .Nd HTML handling functions for kcgi
@@ -84,6 +86,16 @@
 .Fa "uint16_t ncr"
 .Fc
 .Ft void
+.Fo khtml_putc
+.Fa "struct khtmlreq *req"
+.Fa "char c"
+.Fc
+.Ft void
+.Fo khtml_puts
+.Fa "struct khtmlreq *req"
+.Fa "const char *cp"
+.Fc
+.Ft void
 .Fo khtml_text
 .Fa "struct khtmlreq *req"
 .Fa "const char *cp"
@@ -120,7 +132,7 @@ functions accept a
 .Vt "struct khtmlreq"
 object.
 To use this properly, simply zero the function and set its
-.Va req
+.Fa req
 member to the current
 .Vt "struct kreq"
 object.
@@ -147,7 +159,7 @@ and
 .Li 100
 will properly render the integer type.
 The types route through to
-.Fn khtml_text
+.Fn khtml_puts
 for
 .Dv KATTRX_STRING ,
 .Fn khtml_int
@@ -181,7 +193,7 @@ Usually used with
 .Fn khtml_elemat .
 .It Fn khtml_double
 Wrapper over
-.Fn khtml_text
+.Fn khtml_puts
 for formatting a double-precision floating point.
 This uses a buffer of size
 .Li 256
@@ -201,20 +213,29 @@ Useful for saving a
 rollback point.
 .It Fn khtml_entity
 Emit the numeric character reference for
-.Va entity .
+.Fa entity .
 .It Fn khtml_int
 Wrapper over
-.Fn khtml_text
+.Fn khtml_puts
 for formatting a 64-bit signed integer.
 .It Fn khtml_ncr
 Emit the numeric character reference
-.Va ncr .
-.It Fn khtml_text
+.Fa ncr .
+.It Fn khtml_putc
 Emit the text
-.Va cp ,
+.Fa c ,
 escaping it (e.g.,
 .Sq \&> )
 for HTML if necessary.
+.It Fn khtml_puts
+Invokes
+.Fn khtml_putc
+for each character of the nil-terminated string
+.Fa cp .
+.It Fn khtml_text
+Deprecated.
+A synonym for
+.Fn khtml_puts .
 .It Fn khtml_write
 Like
 .Fn khtml_text ,

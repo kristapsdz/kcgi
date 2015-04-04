@@ -539,7 +539,7 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 		khttp_putc(req->req, '"');
 		switch (va_arg(ap, enum kattrx)) {
 		case (KATTRX_STRING):
-			khtml_text(req, va_arg(ap, char *));
+			khtml_puts(req, va_arg(ap, char *));
 			break;
 		case (KATTRX_INT):
 			khtml_int(req, va_arg(ap, int64_t));
@@ -581,7 +581,7 @@ khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 		khttp_puts(req->req, attrs[at]);
 		khttp_putc(req->req, '=');
 		khttp_putc(req->req, '"');
-		khtml_text(req, cp);
+		khtml_puts(req, cp);
 		khttp_putc(req->req, '"');
 
 	}
@@ -650,7 +650,7 @@ khtml_double(struct khtmlreq *req, double val)
 	char	 buf[256];
 
 	(void)snprintf(buf, sizeof(buf), "%g", val);
-	khtml_text(req, buf);
+	khtml_puts(req, buf);
 }
 
 void
@@ -659,7 +659,34 @@ khtml_int(struct khtmlreq *req, int64_t val)
 	char	 buf[INT_MAXSZ];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	khtml_text(req, buf);
+	khtml_puts(req, buf);
+}
+
+int
+kxml_putc(struct khtmlreq *r, char c)
+{
+
+	switch (c) {
+	case ('>'):
+		khtml_entity(r, KENTITY_gt);
+		break;
+	case ('&'):
+		khtml_entity(r, KENTITY_amp);
+		break;
+	case ('<'):
+		khtml_entity(r, KENTITY_lt);
+		break;
+	case ('"'):
+		khtml_entity(r, KENTITY_quot);
+		break;
+	case ('\''):
+		khtml_ncr(r, 39);
+		break;
+	default:
+		khttp_putc(r->req, c);
+		break;
+	}
+	return(1);
 }
 
 int
@@ -669,29 +696,25 @@ khtml_write(const char *cp, size_t sz, void *arg)
 	size_t		 i;
 
 	for (i = 0; i < sz; i++) 
-		switch (cp[i]) {
-		case ('>'):
-			khtml_entity(r, KENTITY_gt);
-			break;
-		case ('&'):
-			khtml_entity(r, KENTITY_amp);
-			break;
-		case ('<'):
-			khtml_entity(r, KENTITY_lt);
-			break;
-		case ('"'):
-			khtml_entity(r, KENTITY_quot);
-			break;
-		case ('\''):
-			khtml_ncr(r, 39);
-			break;
-		default:
-			khttp_putc(r->req, cp[i]);
-			break;
-		}
+		kxml_putc(r, cp[i]);
 
 	return(1);
 }
+
+/*
+ * Emit text in an HTML document.
+ * This means, minimally, that we need to escape the open and close
+ * delimiters for HTML tags.
+ */
+void
+khtml_puts(struct khtmlreq *req, const char *cp)
+{
+
+	req->newln = 0;
+	while ('\0' != *cp)
+		kxml_putc(req, *cp++);
+}
+
 
 /*
  * Emit text in an HTML document.
@@ -703,6 +726,7 @@ khtml_text(struct khtmlreq *req, const char *cp)
 {
 
 	req->newln = 0;
-	(void)khtml_write(cp, strlen(cp), req);
+	while ('\0' != *cp)
+		kxml_putc(req, *cp++);
 }
 
