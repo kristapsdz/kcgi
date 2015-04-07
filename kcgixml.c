@@ -83,6 +83,9 @@ kxml_putc(struct kxmlreq *r, char c)
 	case ('"'):
 		khttp_puts(r->req, "&quot;");
 		break;
+	case ('&'):
+		khttp_puts(r->req, "&amp;");
+		break;
 	default:
 		khttp_putc(r->req, c);
 		break;
