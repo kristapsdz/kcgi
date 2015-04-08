@@ -324,6 +324,45 @@ enum	kauth {
 	KAUTH_UNKNOWN
 };
 
+enum	khttpalg {
+	KHTTPALG_MD5 = 0,
+	KHTTPALG_MD5_SESS,
+	KHTTPALG__MAX
+};
+
+enum	khttpqop {
+	KHTTPQOP_NONE = 0,
+	KHTTPQOP_AUTH,
+	KHTTPQOP_AUTH_INT,
+	KHTTPQOP__MAX
+};
+
+struct	khttpdigest {
+	enum khttpalg	 alg;
+	enum khttpqop	 qop;
+	char		*user;
+	char		*uri;
+	char		*realm;
+	char		*nonce;
+	char		*cnonce;
+	char		*response;
+	char		*count;
+	char		*opaque;
+};
+
+struct	khttpbasic {
+	char		*response;
+};
+
+struct	khttpauth {
+	enum kauth	 type;
+	int		 authorised;
+	union {
+		struct khttpdigest digest;
+		struct khttpbasic basic;
+	} d;
+};
+
 struct	kdata;
 
 struct	khead {
@@ -337,6 +376,7 @@ struct	kreq {
 	size_t		 	  reqsz;
 	enum kmethod		  method;
 	enum kauth		  auth;
+	struct khttpauth	  rawauth;
 	struct kpair		 *cookies;
 	size_t			  cookiesz;
 	struct kpair		**cookiemap;

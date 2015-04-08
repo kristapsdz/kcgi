@@ -38,6 +38,8 @@ enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
 void	 	 khttp_input_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
+void		 khttpauth_input_child(int, const char *);
+enum kcgi_err	 khttpauth_input_parent(int, struct khttpauth *);
 
 void		 ksandbox_free(void *);
 void		*ksandbox_alloc(void);
@@ -64,6 +66,11 @@ void	 	 kworker_free(struct kworker *);
 enum kcgi_err	 kworker_init(struct kworker *);
 void		 kworker_kill(struct kworker *);
 enum kcgi_err	 kworker_close(struct kworker *);
+
+void		 fullwrite(int, const void *, size_t);
+void		 fullwriteword(int, const char *);
+int		 fullread(int, void *, size_t, int, enum kcgi_err *);
+enum kcgi_err	 fullreadword(int, char **);
 
 /*
  * These are just wrappers over the native functions that report when

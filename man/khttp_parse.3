@@ -177,9 +177,19 @@ so be sure to emit a
 .Dv KHTTP_405
 status for non-conforming methods.
 .It Va auth
-Type of HTTP authorisation, if any.
-If an authorisation is specified but with unknown type (i.e., not digest
-or basic authentiation), this is set to
+Type of
+.Qq managed
+HTTP authorisation, if any.
+This is digest
+.Pq Dv KAUTH_DIGEST
+or basic
+.Pq Dv KAUTH_BASIC
+authorisation performed by the web server.
+See the
+.Va rawauth
+field for raw authorisation requests.
+If a managed authorisation is specified but with unknown type (i.e., not
+digest or basic authentiation), this is set to
 .Dv KAUTH_UNKNOWN .
 .It Va cookies
 All key-value pairs read from user cookies.
