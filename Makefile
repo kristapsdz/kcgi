@@ -15,13 +15,14 @@ MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.5.2
-LIBOBJS 	 = kcgi.o \
+LIBOBJS 	 = httpauth.o \
+		   input.o \
+		   kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o \
-		   input.o \
 		   master.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
