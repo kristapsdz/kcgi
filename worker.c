@@ -18,6 +18,7 @@
 #include "config.h"
 #endif
 #include <sys/socket.h>
+#include <sys/poll.h>
 #include <sys/wait.h>
 
 #include <assert.h>
@@ -143,3 +144,133 @@ kworker_close(struct kworker *p)
 	ksandbox_close(p->sand);
 	return(ke);
 }
+
+void
+fullwriteword(int fd, const char *buf)
+{
+	size_t	 sz;
+
+	if (NULL == buf) {
+		sz = 0;
+		fullwrite(fd, &sz, sizeof(size_t));
+		return;
+	}
+
+	sz = strlen(buf);
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, buf, sz);
+}
+
+void
+fullwrite(int fd, const void *buf, size_t bufsz)
+{
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
+		if (-1 == poll(&pfd, 1, -1)) {
+			XWARN("poll: %d, POLLOUT", fd);
+			_exit(EXIT_FAILURE);
+		}
+
+		ssz = write(fd, buf + sz, bufsz - sz);
+		if (ssz < 0 && EAGAIN == errno) {
+			XWARN("write: trying again");
+			ssz = 0;
+			continue;
+		} else if (ssz < 0) {
+			XWARN("write: %d, %zu", fd, bufsz - sz);
+			_exit(EXIT_FAILURE);
+		}
+		/* Additive overflow check. */
+		if (sz > SIZE_MAX - (size_t)ssz) {
+			XWARNX("write: overflow: %zu, %zd", sz, ssz);
+			_exit(EXIT_FAILURE);
+		}
+	}
+}
+
+/*
+ * Read the contents of buf, size bufsz, entirely, using non-blocking
+ * reads (i.e., poll(2) then read(2)).
+ * This will exit with -1 on fatal errors (the child didn't return
+ * enough data or we received an unexpected EOF) or 0 on EOF (only if
+ * it's allowed), otherwise 1.
+ */
+int
+fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
+{
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	*er = KCGI_SYSTEM;
+
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
+		if (-1 == poll(&pfd, 1, -1)) {
+			XWARN("poll: %d, POLLIN", fd);
+			return(-1);
+		}
+		ssz = read(fd, buf + sz, bufsz - sz);
+		if (ssz < 0 && EAGAIN == errno) {
+			XWARN("read: trying again");
+			ssz = 0;
+			continue;
+		} else if (ssz < 0) {
+			XWARN("read: %d, %zu", fd, bufsz - sz);
+			return(-1);
+		} else if (0 == ssz && sz > 0) {
+			XWARN("read: short read");
+			*er = KCGI_FORM;
+			return(-1);
+		} else if (0 == ssz && sz == 0 && ! eofok) {
+			XWARNX("read: unexpected eof");
+			*er = KCGI_FORM;
+			return(-1);
+		} else if (0 == ssz && sz == 0 && eofok) {
+			*er = KCGI_OK;
+			return(0);
+		}
+
+		/* Additive overflow check. */
+		if (sz > SIZE_MAX - (size_t)ssz) {
+			XWARNX("read: overflow: %zu, %zd", sz, ssz);
+			*er = KCGI_FORM;
+			return(-1);
+		}
+	}
+
+	*er = KCGI_OK;
+	return(1);
+}
+
+/*
+ * Read a word from the stream, which consists of the word size followed
+ * by the word itself, not including the nil terminator.
+ */
+enum kcgi_err
+fullreadword(int fd, char **cp)
+{
+	size_t	 	 sz;
+	enum kcgi_err	 ke;
+
+	if (fullread(fd, &sz, sizeof(size_t), 0, &ke) < 0)
+		return(ke);
+
+	if (NULL == (*cp = XMALLOC(sz + 1)))
+		return(KCGI_ENOMEM);
+
+	(*cp)[sz] = '\0';
+	if (0 == sz)
+		return(KCGI_OK);
+
+	fullread(fd, *cp, sz, 0, &ke);
+	return(ke);
+}
+
