@@ -191,6 +191,12 @@ field for raw authorisation requests.
 If a managed authorisation is specified but with unknown type (i.e., not
 digest or basic authentiation), this is set to
 .Dv KAUTH_UNKNOWN .
+.It Va rawauth
+If the web server passes the
+.Qq Authorization
+header (which, for example, Apache doesn't by default), then the header
+is parsed into this field, which is of type
+.Vt struct khttpauth .
 .It Va cookies
 All key-value pairs read from user cookies.
 .It Va cookiesz
@@ -451,6 +457,28 @@ These may be integer, for a 64-bit signed integer; string, for a
 nil-termianted character string; or double, for a double-precision
 floating-point number.
 .El
+.Pp
+Lastly, the
+.Vt struct khttpauth
+structure holds authorisation data if passed by the server.
+If no data was passed by the server, the
+.Va type
+value is
+.Dv KAUTH_NONE .
+Otherwise it's
+.Dv KAUTH_BASIC
+or
+.Dv KAUTH_DIGEST ,
+with
+.Dv KAUTH_UNKNOWN
+if the authorisation type was not recognised.
+For digest or basic authorisation, the
+.Va authorised
+field indicates whether all required values were passed.
+The union
+.Va d
+contains these fields per type.
+The field names are self-explanatory.
 .Sh RETURN VALUES
 .Nm khttp_parse
 and
