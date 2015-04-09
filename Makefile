@@ -10,7 +10,8 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_4_4.xml \
 		   version_0_5.xml \
 		   version_0_5_1.xml \
-		   version_0_5_2.xml
+		   version_0_5_2.xml \
+		   version_0_5_3.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
@@ -23,7 +24,6 @@ LIBOBJS 	 = httpauth.o \
 		   compat-strlcat.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o \
-		   master.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
 		   sandbox-darwin.o \
@@ -84,7 +84,6 @@ SRCS 		 = compat-memmem.c \
 		   kcgijson.h \
 		   kcgiregress.h \
 		   kcgixml.h \
-		   master.c \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \

@@ -1,0 +1,13 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.3</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-04-09">2015-04-09</time>
+	</header>
+	<aside>
+		Fully process <code>Authentication</code> header, implementing <a href="https://tools.ietf.org/html/rfc2617">RFC 2617</a>.
+		This was originally developed in <a href="http://kristaps.bsd.lv/kcaldav">kcaldav</a>, but makes more sense to be run here
+		inside of the untrusted child.
+		Values are stored in the <code>struct khttpauth</code> field documented in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+	</aside>
+</article>
