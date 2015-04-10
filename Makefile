@@ -79,6 +79,7 @@ SRCS 		 = child.c \
      		   compat-strlcpy.c \
      		   compat-strtonum.c \
      		   extern.h \
+		   httpauth.c \
      		   kcgi.c \
      		   kcgihtml.c \
 		   kcgijson.c \
