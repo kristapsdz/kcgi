@@ -708,7 +708,7 @@ khttp_parsex(struct kreq *req,
 		if (NULL != argfree && NULL != arg)
 			(*argfree)(arg);
 		kworker_prep_child(&work);
-		khttp_input_child(&work, keys, keysz, mimes, mimesz);
+		kworker_child(&work, keys, keysz, mimes, mimesz);
 		kworker_free(&work);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
@@ -769,7 +769,7 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
-	kerr = khttp_input_parent(work.sock[KWORKER_READ], req, work.pid);
+	kerr = kworker_parent(work.sock[KWORKER_READ], req, work.pid);
 	if (KCGI_OK != kerr)
 		goto err;
 

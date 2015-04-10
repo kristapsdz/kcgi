@@ -304,7 +304,7 @@ khttpdigest_input(int fd, const char *cp)
 }
 
 enum kcgi_err
-khttpauth_input_parent(int fd, struct khttpauth *auth)
+kworker_auth_parent(int fd, struct khttpauth *auth)
 {
 	enum kcgi_err	 ke;
 
@@ -354,7 +354,7 @@ khttpauth_input_parent(int fd, struct khttpauth *auth)
 }
 
 void
-khttpauth_input_child(int fd, const char *cp)
+kworker_auth_child(int fd, const char *cp)
 {
 	const char	*start;
 	size_t	 	 sz;

@@ -32,14 +32,27 @@ struct	kworker {
 	int		 input;
 };
 
+/*
+ * Types of field we can read from the child.
+ * This governs the list of fields into which we'll assign this
+ * particular field.
+ */
+enum	input {
+	IN_COOKIE = 0, /* cookies (environment variable) */
+	IN_QUERY, /* query string */
+	IN_FORM, /* any sort of standard input form */
+	IN__MAX
+};
+
+
 __BEGIN_DECLS
 
-enum kcgi_err	 khttp_input_parent(int, struct kreq *, pid_t);
-void	 	 khttp_input_child(const struct kworker *, 
+enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
+enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
+void	 	 kworker_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
-void		 khttpauth_input_child(int, const char *);
-enum kcgi_err	 khttpauth_input_parent(int, struct khttpauth *);
+void		 kworker_auth_child(int, const char *);
 
 void		 ksandbox_free(void *);
 void		*ksandbox_alloc(void);
@@ -79,7 +92,6 @@ enum kcgi_err	 fullreadword(int, char **);
  */
 int		 xasprintf(const char *, int, 
 			char **, const char *, ...);
-int		 xbindpath(const char *);
 int		 xvasprintf(const char *, int, 
 			char **, const char *, va_list);
 void		*xcalloc(const char *, int, size_t, size_t);
