@@ -590,8 +590,6 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	} else if ( ! send_stdin(fd, NULL, 0))
 		goto out;
 
-	rc = 1;
-
 	do
 		rc = read_stdout(fd, head, sizeof(head));
 	while (1 == rc);
@@ -642,7 +640,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 
 	rc = 0;
 	opt = 1;
-	s = in = -1;
+	in = -1;
 	memset(&ad, 0, sizeof(struct sockaddr_in));
 
 	/*
