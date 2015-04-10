@@ -107,8 +107,7 @@ kauth_nexttok(const char **next, char delim, size_t *sz)
 static void
 kauth_nextvalue(struct pdigbuf *val, const char **cp)
 {
-	int	 	 quot;
-	const char	*start, *end;
+	int	 quot;
 
 	if ('\0' == **cp)
 		return;
@@ -121,7 +120,7 @@ kauth_nextvalue(struct pdigbuf *val, const char **cp)
 		val->sz = 0;
 	}
 
-	for (start = *cp; '\0' != **cp; (*cp)++) {
+	for ( ; '\0' != **cp; (*cp)++) {
 		if (quot && '"' == **cp && '\\' != (*cp)[-1])
 			break;
 		else if ( ! quot && isspace((int)**cp))
@@ -131,8 +130,6 @@ kauth_nextvalue(struct pdigbuf *val, const char **cp)
 		if (NULL != val)
 			val->sz++;
 	}
-
-	end = *cp;
 
 	if (quot && '"' == **cp)
 		(*cp)++;
