@@ -1,8 +1,12 @@
 .SUFFIXES: .3 .3.html
 
-CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 # Comment if you don't need statically linked.
+# This is only for the sample program!
 #STATIC 		 = -static
+
+# You probably don't need to change anything else...
+
+CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
@@ -15,7 +19,7 @@ VERSIONS	 = version_0_4_2.xml \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.5.2
+VERSION 	 = 0.5.3
 LIBOBJS 	 = child.o \
 		   httpauth.o \
 		   kcgi.o \
