@@ -16,14 +16,15 @@ MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.5.2
-LIBOBJS 	 = httpauth.o \
-		   input.o \
+LIBOBJS 	 = child.o \
+		   httpauth.o \
 		   kcgi.o \
 		   compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o \
+		   parent.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
 		   sandbox-darwin.o \
@@ -67,13 +68,13 @@ MANS		 = man/kcgi.3 \
 		   man/kmalloc.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
-SRCS 		 = compat-memmem.c \
+SRCS 		 = child.c \
+		   compat-memmem.c \
      		   compat-reallocarray.c \
      		   compat-strlcat.c \
      		   compat-strlcpy.c \
      		   compat-strtonum.c \
      		   extern.h \
-     		   input.c \
      		   kcgi.c \
      		   kcgihtml.c \
 		   kcgijson.c \
@@ -84,6 +85,7 @@ SRCS 		 = compat-memmem.c \
 		   kcgijson.h \
 		   kcgiregress.h \
 		   kcgixml.h \
+		   parent.c \
      		   sample.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
@@ -234,7 +236,7 @@ kcgi.tgz:
 	rm -rf .dist
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(HTMLS) sample
+	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(HTMLS) sample sample.o
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
