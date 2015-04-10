@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 30 2014 $
+.Dd $Mdocdate: March 14 2015 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -105,6 +105,11 @@ Many standards are involved in the
 library, most generally being draft RFC 3875,
 .Qq The Common Gateway Interface (CGI) Version 1.1 .
 .Bl -bullet
+.It
+The
+.Qq Authentication
+header is parsed for digest or basic tokens as defined by RFC 2617,
+.Qq HTTP Authentication: Basic and Digest Access Authentication .
 .It
 The partial multipart form data support is defined by RFC 2388,
 .Qq Returning Values from Forms: multipart/form-data ,
