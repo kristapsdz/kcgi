@@ -127,13 +127,13 @@ template(size_t key, void *arg)
 
 	switch (key) {
 	case (TEMPL_TITLE):
-		khtml_text(req, "title");
+		khtml_puts(req, "title");
 		break;
 	case (TEMPL_NAME):
-		khtml_text(req, "name");
+		khtml_puts(req, "name");
 		break;
 	case (TEMPL_REMOTE_ADDR):
-		khtml_text(req, req->req->remote);
+		khtml_puts(req, req->req->remote);
 		break;
 	default:
 		abort();
@@ -191,10 +191,10 @@ sendindex(struct kreq *req)
 	khtml_elem(&r, KELEM_HTML);
 	khtml_elem(&r, KELEM_HEAD);
 	khtml_elem(&r, KELEM_TITLE);
-	khtml_text(&r, "Welcome!");
+	khtml_puts(&r, "Welcome!");
 	khtml_close(&r, 2);
 	khtml_elem(&r, KELEM_BODY);
-	khtml_text(&r, "Welcome!");
+	khtml_puts(&r, "Welcome!");
 	khtml_attr(&r, KELEM_FORM,
 		KATTR_METHOD, "post",
 		KATTR_ENCTYPE, "multipart/form-data",
@@ -202,7 +202,7 @@ sendindex(struct kreq *req)
 		KATTR__MAX);
 	khtml_elem(&r, KELEM_FIELDSET);
 	khtml_elem(&r, KELEM_LEGEND);
-	khtml_text(&r, "Post (multipart)");
+	khtml_puts(&r, "Post (multipart)");
 	khtml_close(&r, 1);
 	khtml_elem(&r, KELEM_P);
 	cp = NULL == req->fieldmap[KEY_INTEGER] ?
@@ -220,13 +220,13 @@ sendindex(struct kreq *req)
 		KATTR__MAX);
 	if (NULL != req->fieldmap[KEY_FILE]) {
 		if (NULL != req->fieldmap[KEY_FILE]->file) {
-			khtml_text(&r, "file: ");
-			khtml_text(&r, req->fieldmap[KEY_FILE]->file);
-			khtml_text(&r, " ");
+			khtml_puts(&r, "file: ");
+			khtml_puts(&r, req->fieldmap[KEY_FILE]->file);
+			khtml_puts(&r, " ");
 		} 
 		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
-			khtml_text(&r, "ctype: ");
-			khtml_text(&r, req->fieldmap[KEY_FILE]->ctype);
+			khtml_puts(&r, "ctype: ");
+			khtml_puts(&r, req->fieldmap[KEY_FILE]->ctype);
 		} 
 	}
 	khtml_close(&r, 1);
