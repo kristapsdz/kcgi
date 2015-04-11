@@ -20,6 +20,8 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -51,8 +53,8 @@ struct	pdigest {
 	struct pdigbuf	 nonce;
 	struct pdigbuf	 cnonce;
 	struct pdigbuf	 response;
-	struct pdigbuf	 count;
 	struct pdigbuf	 opaque;
+	size_t		 count;
 };
 
 /*
@@ -184,6 +186,37 @@ kauth_qop(enum khttpqop *val, const char **cp)
 	*val = i;
 }
 
+static void
+kauth_count(size_t *count, const char **cp)
+{
+	struct pdigbuf	 buf;
+	char		 numbuf[9];
+	const char	*numstr;
+	char		*ep;
+	unsigned long long ll;
+
+	*count = 0;
+
+	/* According to the RFC, this is 8 bytes long. */
+	kauth_nextvalue(&buf, cp);
+	if (buf.sz != 8)
+		return;
+
+	/* Copy into a nil-terminated buffer. */
+	memcpy(numbuf, buf.pos, buf.sz);
+	numbuf[buf.sz] = '\0';
+	numstr = numbuf;
+
+	/* Convert from the hex string into a number. */
+	ll = strtoull(numstr, &ep, 16);
+	if (numstr == ep || *ep != '\0')
+		*count = 0;
+	else if (ll == ULLONG_MAX && errno == ERANGE)
+		*count = 0;
+	else if (ll > SIZE_MAX)
+		*count = 0;
+}
+
 static int
 kauth_eq(const char *p, const char *start, size_t sz, size_t want)
 {
@@ -249,7 +282,7 @@ khttpdigest_input(int fd, const char *cp)
 		else if (kauth_eq("qop", start, sz, 3))
 			kauth_qop(&d.qop, &cp);
 		else if (kauth_eq("nc", start, sz, 2))
-			kauth_nextvalue(&d.count, &cp);
+			kauth_count(&d.count, &cp);
 		else if (kauth_eq("opaque", start, sz, 6))
 			kauth_nextvalue(&d.opaque, &cp);
 		else
@@ -273,7 +306,7 @@ khttpdigest_input(int fd, const char *cp)
 		(KHTTPQOP_AUTH == d.qop ||
 		 KHTTPQOP_AUTH_INT == d.qop))
 		authorised = 
-			0 != d.count.sz &&
+			0 != d.count &&
 			0 != d.cnonce.sz;
 
 	fullwrite(fd, &authorised, sizeof(int));
@@ -295,8 +328,7 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, d.cnonce.pos, d.cnonce.sz);
 	fullwrite(fd, &d.response.sz, sizeof(size_t));
 	fullwrite(fd, d.response.pos, d.response.sz);
-	fullwrite(fd, &d.count.sz, sizeof(size_t));
-	fullwrite(fd, d.count.pos, d.count.sz);
+	fullwrite(fd, &d.count, sizeof(size_t));
 	fullwrite(fd, &d.opaque.sz, sizeof(size_t));
 	fullwrite(fd, d.opaque.pos, d.opaque.sz);
 }
@@ -331,7 +363,7 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 			return(ke);
 		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.response)))
 			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.count)))
+		if (fullread(fd, &auth->d.digest.count, sizeof(size_t), 0, &ke) < 0)
 			return(ke);
 		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.opaque)))
 			return(ke);

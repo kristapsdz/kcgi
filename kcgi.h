@@ -346,7 +346,7 @@ struct	khttpdigest {
 	char		*nonce;
 	char		*cnonce;
 	char		*response;
-	char		*count;
+	size_t		 count;
 	char		*opaque;
 };
 
