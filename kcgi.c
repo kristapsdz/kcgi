@@ -652,7 +652,6 @@ kreq_free(struct kreq *req)
 		free(req->rawauth.d.digest.nonce);
 		free(req->rawauth.d.digest.cnonce);
 		free(req->rawauth.d.digest.response);
-		free(req->rawauth.d.digest.count);
 		free(req->rawauth.d.digest.opaque);
 	} else if (KAUTH_BASIC == req->rawauth.type) 
 		free(req->rawauth.d.basic.response);
