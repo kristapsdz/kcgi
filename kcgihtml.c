@@ -662,8 +662,8 @@ khtml_int(struct khtmlreq *req, int64_t val)
 	khtml_puts(req, buf);
 }
 
-int
-kxml_putc(struct khtmlreq *r, char c)
+void
+khtml_putc(struct khtmlreq *r, char c)
 {
 
 	switch (c) {
@@ -686,7 +686,6 @@ kxml_putc(struct khtmlreq *r, char c)
 		khttp_putc(r->req, c);
 		break;
 	}
-	return(1);
 }
 
 int
@@ -696,7 +695,7 @@ khtml_write(const char *cp, size_t sz, void *arg)
 	size_t		 i;
 
 	for (i = 0; i < sz; i++) 
-		kxml_putc(r, cp[i]);
+		khtml_putc(r, cp[i]);
 
 	return(1);
 }
@@ -712,7 +711,7 @@ khtml_puts(struct khtmlreq *req, const char *cp)
 
 	req->newln = 0;
 	while ('\0' != *cp)
-		kxml_putc(req, *cp++);
+		khtml_putc(req, *cp++);
 }
 
 
@@ -727,6 +726,6 @@ khtml_text(struct khtmlreq *req, const char *cp)
 
 	req->newln = 0;
 	while ('\0' != *cp)
-		kxml_putc(req, *cp++);
+		khtml_putc(req, *cp++);
 }
 
