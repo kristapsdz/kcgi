@@ -263,7 +263,7 @@ khttpdigest_input(int fd, const char *cp)
 
 	auth = KAUTH_DIGEST;
 	fullwrite(fd, &auth, sizeof(enum kauth));
-	memset(&d, 0, sizeof(struct khttpdigest));
+	memset(&d, 0, sizeof(struct pdigest));
 
 	for (rc = 1; 1 == rc && '\0' != *cp; ) {
 		start = kauth_nexttok(&cp,  '=', &sz);
