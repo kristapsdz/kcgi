@@ -387,6 +387,7 @@ struct	kreq {
 	size_t			  fieldsz;
 	size_t			  mime;
 	size_t			  page;
+	enum kscheme		  scheme;
 	char			 *path;
 	char			 *suffix;
 	char			 *fullpath;
@@ -478,6 +479,7 @@ char		*kstrdup(const char *);
 
 extern const char *const	 kmimetypes[KMIME__MAX];
 extern const char *const	 khttps[KHTTP__MAX];
+extern const char *const	 kschemes[KSCHEME__MAX];
 extern const char *const	 kresps[KRESP__MAX];
 extern const char *const	 kmethods[KMETHOD__MAX];
 extern const struct kmimemap	 ksuffixmap[];
