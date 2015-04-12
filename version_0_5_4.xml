@@ -1,0 +1,10 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.4</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-04-12">2015-04-12</time>
+	</header>
+	<aside>
+		Single bug-fix: the nonce count parsed from an HTTP digest was not being correctly recorded.
+	</aside>
+</article>
