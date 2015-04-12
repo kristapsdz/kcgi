@@ -1,0 +1,10 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.5</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-04-12">2015-04-12</time>
+	</header>
+	<aside>
+		Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+	</aside>
+</article>
