@@ -214,6 +214,9 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 	} else if (KCGI_OK != (ke = kworker_auth_parent(fd, &r->rawauth))) {
 		XWARNX("failed to read raw authorisation");
 		goto out;
+	} else if (fullread(fd, &r->scheme, sizeof(enum kscheme), 0, &ke) < 0) {
+		XWARNX("failed to read scheme");
+		goto out;
 	} else if (KCGI_OK != (ke = fullreadword(fd, &r->remote))) {
 		XWARNX("failed to read remote");
 		goto out;

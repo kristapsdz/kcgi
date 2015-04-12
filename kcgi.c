@@ -71,7 +71,7 @@ struct	kdata {
 #endif
 };
 
-static const char *const kschemes[KSCHEME__MAX] = {
+const char *const kschemes[KSCHEME__MAX] = {
 	"aaa", /* KSCHEME_AAA */
 	"aaas", /* KSCHEME_AAAS */
 	"about", /* KSCHEME_ABOUT */

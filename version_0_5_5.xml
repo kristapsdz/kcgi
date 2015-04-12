@@ -6,5 +6,6 @@
 	</header>
 	<aside>
 		Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+		Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
 	</aside>
 </article>

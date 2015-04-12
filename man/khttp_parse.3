@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 8 2015 $
+.Dd $Mdocdate: April 9 2015 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -311,6 +311,13 @@ is the
 .Dv PATH_INFO ,
 this would be
 .Pa /bar/baz .
+.It Va scheme
+The access scheme, which is either
+.Dv KSCHEME_HTTP ,
+.Dv KSCHEME_HTTPS ,
+or
+.Dv KSCHEME__MAX
+if the scheme was not recognised.
 .It Va remote
 The string form of the client's IPV4 or IVP6 address.
 .It Va host
