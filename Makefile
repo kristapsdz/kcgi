@@ -15,11 +15,12 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5.xml \
 		   version_0_5_1.xml \
 		   version_0_5_2.xml \
-		   version_0_5_3.xml
+		   version_0_5_3.xml \
+		   version_0_5_4.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.5.3
+VERSION 	 = 0.5.4
 LIBOBJS 	 = child.o \
 		   httpauth.o \
 		   kcgi.o \
