@@ -818,6 +818,7 @@ kworker_child(const struct kworker *work,
 	enum kmethod	  meth;
 	enum kauth	  auth;
 	enum krequ	  requ;
+	enum kscheme	  scheme;
 	size_t	 	  len, reqs;
 	extern char	**environ;
 
@@ -885,6 +886,21 @@ kworker_child(const struct kworker *work,
 
 	/* Handle the raw HTTP authorisation. */
 	kworker_auth_child(wfd, getenv("HTTP_AUTHORIZATION"));
+
+	/* RFC 3875, 4.1.16. */
+	if (NULL == (ccp = getenv("SERVER_PROTOCOL")))
+		ccp = "HTTP/1.0";
+
+	if (0 == strncasecmp(ccp, "http/", 5)) 
+		scheme = KSCHEME_HTTP;
+	else if (0 == strncasecmp(ccp, "https/", 6))
+		scheme = KSCHEME_HTTPS;
+	else if (0 == strcasecmp(ccp, "included"))
+		scheme = KSCHEME_HTTP;
+	else
+		scheme = KSCHEME__MAX;
+
+	fullwrite(wfd, &scheme, sizeof(enum kscheme));
 
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
