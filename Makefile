@@ -16,7 +16,8 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5_1.xml \
 		   version_0_5_2.xml \
 		   version_0_5_3.xml \
-		   version_0_5_4.xml
+		   version_0_5_4.xml \
+		   version_0_5_5.xml
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
