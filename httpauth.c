@@ -215,6 +215,8 @@ kauth_count(size_t *count, const char **cp)
 		*count = 0;
 	else if (ll > SIZE_MAX)
 		*count = 0;
+	else	
+		*count = ll;
 }
 
 static int
