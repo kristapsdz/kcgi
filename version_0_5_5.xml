@@ -7,5 +7,6 @@
 	<aside>
 		Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
 		Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
+		Have validation for document body correctly set the <code>ctypepos</code> prior to validation.
 	</aside>
 </article>
