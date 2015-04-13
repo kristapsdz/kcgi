@@ -106,6 +106,21 @@ static	const char *const kauths[KAUTH_UNKNOWN] = {
 	"digest"
 };
 
+static size_t
+str2ctype(const struct parms *pp, const char *ctype)
+{
+	size_t	 i;
+
+	if (NULL == ctype) 
+		return(pp->mimesz);
+
+	for (i = 0; i < pp->mimesz; i++)
+		if (0 == strcasecmp(pp->mimes[i], ctype))
+			return(i);
+
+	return(i);
+}
+
 /*
  * Given a parsed field, first try to look it up and conditionally
  * validate any looked-up fields.
@@ -274,9 +289,8 @@ static int
 mime_parse(const struct parms *pp, struct mime *mime, 
 	char *buf, size_t len, size_t *pos)
 {
-	char		*key, *val, *end, *start, *line;
-	size_t		 i;
-	int		 rc = 0;
+	char	*key, *val, *end, *start, *line;
+	int	 rc = 0;
 
 	memset(mime, 0, sizeof(struct mime));
 
@@ -370,18 +384,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		}
 	} 
 
-	/* 
-	 * Try to cast the content-type, if any, into a recognisable
-	 * form.
-	 * This is a convenience for the calling application.
-	 */
-	if (NULL != mime->ctype) {
-		for (i = 0; i < pp->mimesz; i++)
-			if (0 == strcasecmp(pp->mimes[i], mime->ctype))
-				break;
-		mime->ctypepos = i;
-	} else
-		mime->ctypepos = pp->mimesz;
+	mime->ctypepos = str2ctype(pp, mime->ctype);
 
 	if ( ! rc)
 		XWARNX("MIME header unexpected EOF");
@@ -470,6 +473,8 @@ parse_body(const char *ctype, const struct kworker *work,
 	p = scanbuf(work, len, &sz);
 	memset(&mime, 0, sizeof(struct mime));
 	mime.ctype = strdup(ctype);
+	mime.ctypepos = str2ctype(pp, mime.ctype);
+
 	name = '\0';
 	output(pp, &name, p, sz, &mime);
 	free(mime.ctype);
