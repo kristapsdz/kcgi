@@ -892,18 +892,19 @@ kworker_child(const struct kworker *work,
 	/* Handle the raw HTTP authorisation. */
 	kworker_auth_child(wfd, getenv("HTTP_AUTHORIZATION"));
 
-	/* RFC 3875, 4.1.16. */
-	if (NULL == (ccp = getenv("SERVER_PROTOCOL")))
-		ccp = "HTTP/1.0";
+	/* 
+	 * This isn't defined in any RFC.
+	 * It seems to be the best way of getting whether we're HTTPS,
+	 * as the SERVER_PROTOCOL (RFC 3875, 4.1.16) doesn't reliably
+	 * return the scheme.
+	 */
+	if (NULL == (ccp = getenv("HTTPS")))
+		ccp = "off";
 
-	if (0 == strncasecmp(ccp, "http/", 5)) 
-		scheme = KSCHEME_HTTP;
-	else if (0 == strncasecmp(ccp, "https/", 6))
+	if (0 == strcasecmp(ccp, "on")) 
 		scheme = KSCHEME_HTTPS;
-	else if (0 == strcasecmp(ccp, "included"))
-		scheme = KSCHEME_HTTP;
 	else
-		scheme = KSCHEME__MAX;
+		scheme = KSCHEME_HTTP;
 
 	fullwrite(wfd, &scheme, sizeof(enum kscheme));
 
