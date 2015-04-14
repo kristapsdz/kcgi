@@ -106,17 +106,34 @@ static	const char *const kauths[KAUTH_UNKNOWN] = {
 	"digest"
 };
 
+/*
+ * Parse the type/subtype field out of a content-type.
+ * The content-type is defined (among other places) in RFC 822, and is
+ * either the whole string or up until the ';', which marks the
+ * beginning of the parameters.
+ */
 static size_t
 str2ctype(const struct parms *pp, const char *ctype)
 {
-	size_t	 i;
+	size_t		 i, sz;
+	const char	*end;
+	
 
 	if (NULL == ctype) 
 		return(pp->mimesz);
 
-	for (i = 0; i < pp->mimesz; i++)
-		if (0 == strcasecmp(pp->mimes[i], ctype))
+	/* Stop at the content-type parameters. */
+	if (NULL == (end = strchr(ctype, ';'))) 
+		sz = strlen(ctype);
+	else
+		sz = end - ctype;
+
+	for (i = 0; i < pp->mimesz; i++) {
+		if (sz != strlen(pp->mimes[i]))
+			continue;
+		if (0 == strncasecmp(pp->mimes[i], ctype, sz))
 			return(i);
+	}
 
 	return(i);
 }
