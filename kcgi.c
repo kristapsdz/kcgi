@@ -1165,6 +1165,9 @@ khttp_templatex_buf(const struct ktemplate *t,
 {
 	size_t		 i, j, len, start, end;
 
+	if (0 == sz)
+		return(1);
+
 	if (NULL == t)
 		return(fp(buf, sz, arg));
 
