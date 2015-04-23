@@ -1,0 +1,11 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.6</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-04-23">2015-04-23</time>
+	</header>
+	<aside>
+		Bug-fix for Capsicum sandbox, found by by Baptiste Daroussin.  (Thanks!)
+		Also fix passing a zero-length buffer into the template buffer functions.
+	</aside>
+</article>
