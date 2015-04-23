@@ -48,7 +48,7 @@ ksandbox_capsicum_init_child(void *arg, int fd)
 	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && errno != ENOSYS)
 		XWARN("cap_rights_limit: STDERR_FILENO");
 
-	cap_rights_init(&rights, CAP_READ);
+	cap_rights_init(&rights, CAP_READ|CAP_WRITE);
 	if (cap_rights_limit(fd, &rights) < 0 && errno != ENOSYS)
 		XWARN("cap_rights_limit: internal socket");
 
