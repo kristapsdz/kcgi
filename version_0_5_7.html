@@ -1,0 +1,16 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.7</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-04-23">2015-04-23</time>
+	</header>
+	<aside>
+		Rename <code>khtml_close</code> to <code>khtml_closeelem</code> in <a href="kcgihtml.3.html">kcgihtml(3)</a>, then re-add the
+		close function and an open function to harmonise with <a href="kcgijson.3.html">kcgijson(3)</a> and <a
+			href="kcgixml.3.html">kcgixml(3)</a>.
+		In the process, allow the closing functions in all libraries to unwind any remaining context, and have the closing functions
+		return whether the request was out of bounds.
+		Prevent some bogus calls to <a href="kcgihtml.3.html">kcgihtml(3)</a> from aborting.
+		Bug-fix for detecting zlib on FreeBSD, found by Baptiste Daroussin.  (Thanks!)
+	</aside>
+</article>
