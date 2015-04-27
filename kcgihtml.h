@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -449,14 +449,16 @@ __BEGIN_DECLS
 
 void		 khtml_attr(struct khtmlreq *, enum kelem, ...);
 void		 khtml_attrx(struct khtmlreq *, enum kelem, ...);
-void		 khtml_close(struct khtmlreq *, size_t);
-void		 khtml_closeto(struct khtmlreq *, size_t);
+int		 khtml_close(struct khtmlreq *);
+int		 khtml_closeelem(struct khtmlreq *, size_t);
+int		 khtml_closeto(struct khtmlreq *, size_t);
 void		 khtml_double(struct khtmlreq *, double);
 void		 khtml_elem(struct khtmlreq *, enum kelem);
 size_t		 khtml_elemat(struct khtmlreq *);
 void		 khtml_entity(struct khtmlreq *, enum kentity);
 void		 khtml_int(struct khtmlreq *, int64_t);
 void		 khtml_ncr(struct khtmlreq *, uint16_t);
+void		 khtml_open(struct khtmlreq *, struct kreq *);
 void		 khtml_putc(struct khtmlreq *, char);
 void		 khtml_puts(struct khtmlreq *, const char *);
 void		 khtml_text(struct khtmlreq *, const char *)

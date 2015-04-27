@@ -215,7 +215,10 @@ for example,
 .It Fn kjson_open
 Initialise a JSON context.
 .It Fn kjson_close
-Close a JSON context.
+Close a JSON context as opened with
+.Fn kjson_open .
+This will also close any open arrays, strings, or objects.
+You should not use the object after invoking this function.
 .It Fn kjson_arrayp_open
 This and
 .Fn kjson_array_open
