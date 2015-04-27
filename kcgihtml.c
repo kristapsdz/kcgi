@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -598,8 +598,8 @@ khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 	assert(req->elemsz < KDATA_MAXELEMSZ);
 }
 
-void
-khtml_close(struct khtmlreq *req, size_t sz)
+int
+khtml_closeelem(struct khtmlreq *req, size_t sz)
 {
 	size_t		 i;
 
@@ -607,7 +607,8 @@ khtml_close(struct khtmlreq *req, size_t sz)
 		sz = req->elemsz;
 
 	for (i = 0; i < sz; i++) {
-		assert(req->elemsz > 0);
+		if (0 == req->elemsz) 
+			return(0);
 		req->elemsz--;
 		khtml_flow_open(req, req->elems[req->elemsz]);
 		khttp_puts(req->req, "</");
@@ -615,14 +616,16 @@ khtml_close(struct khtmlreq *req, size_t sz)
 		khttp_putc(req->req, '>');
 		khtml_flow_close(req, req->elems[req->elemsz]);
 	}
+	return(1);
 }
 
-void
+int
 khtml_closeto(struct khtmlreq *req, size_t pos)
 {
 
-	assert(pos < req->elemsz);
-	khtml_close(req, req->elemsz - pos);
+	if (pos > req->elemsz)
+		return(0);
+	return(khtml_closeelem(req, req->elemsz - pos));
 }
 
 void
@@ -729,3 +732,20 @@ khtml_text(struct khtmlreq *req, const char *cp)
 		khtml_putc(req, *cp++);
 }
 
+void
+khtml_open(struct khtmlreq *r, struct kreq *req)
+{
+
+	memset(r, 0, sizeof(struct khtmlreq));
+	r->req = req;
+}
+
+int
+khtml_close(struct khtmlreq *r)
+{
+	int	 i;
+
+	i = r->elemsz;
+	khtml_closeelem(r, 0);
+	return(i);
+}

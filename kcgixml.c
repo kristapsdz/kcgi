@@ -42,8 +42,11 @@ kxml_open(struct kxmlreq *r, struct kreq *req,
 int
 kxml_close(struct kxmlreq *r)
 {
+	int	 i;
 
-	return(0 == r->stackpos);
+	i = r->stackpos > 0;
+	kxml_popall(r);
+	return(i);
 }
 
 int

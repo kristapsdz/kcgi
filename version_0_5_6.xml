@@ -5,7 +5,7 @@
 		<time datetime="2015-04-23">2015-04-23</time>
 	</header>
 	<aside>
-		Bug-fix for Capsicum sandbox, found by by Baptiste Daroussin.  (Thanks!)
+		Bug-fix for Capsicum sandbox, found by Baptiste Daroussin.  (Thanks!)
 		Also fix passing a zero-length buffer into the template buffer functions.
 	</aside>
 </article>

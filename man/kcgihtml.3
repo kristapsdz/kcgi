@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,7 @@
 .Nm khtml_attr ,
 .Nm khtml_attrx ,
 .Nm khtml_close ,
+.Nm khtml_closeelem ,
 .Nm khtml_closeto ,
 .Nm khtml_double ,
 .Nm khtml_elem ,
@@ -29,9 +30,9 @@
 .Nm khtml_entity ,
 .Nm khtml_int ,
 .Nm khtml_ncr ,
+.Nm khtml_open ,
 .Nm khtml_putc ,
 .Nm khtml_puts ,
-.Nm khtml_text ,
 .Nm khtml_write
 .Nd HTML handling functions for kcgi
 .Sh LIBRARY
@@ -51,12 +52,16 @@
 .Fa "enum kelem elem"
 .Fa "..."
 .Fc
-.Ft void
+.Ft int
 .Fo khtml_close
+.Fa "struct khtmlreq *req"
+.Fc
+.Ft int
+.Fo khtml_closeelem
 .Fa "struct khtmlreq *req"
 .Fa "size_t count"
 .Fc
-.Ft void
+.Ft int
 .Fo khtml_closeto
 .Fa "struct khtmlreq *req"
 .Fa "size_t pos"
@@ -86,17 +91,17 @@
 .Fa "uint16_t ncr"
 .Fc
 .Ft void
+.Fo khtml_open
+.Fa "struct khtmlreq *req"
+.Fa "struct kreq *r"
+.Fc
+.Ft void
 .Fo khtml_putc
 .Fa "struct khtmlreq *req"
 .Fa "char c"
 .Fc
 .Ft void
 .Fo khtml_puts
-.Fa "struct khtmlreq *req"
-.Fa "const char *cp"
-.Fc
-.Ft void
-.Fo khtml_text
 .Fa "struct khtmlreq *req"
 .Fa "const char *cp"
 .Fc
@@ -131,11 +136,10 @@ All of the
 functions accept a
 .Vt "struct khtmlreq"
 object.
-To use this properly, simply zero the function and set its
-.Fa req
-member to the current
-.Vt "struct kreq"
-object.
+To use this properly, open a context with
+.Fn khtml_open ,
+then use whichever functions you wish, then close the context with
+.Fn khtml_close .
 .Bl -tag -width Ds
 .It Fn khtml_attr
 Open the scope of element
@@ -169,6 +173,11 @@ for
 for
 .Dv KATTRX_DOUBLE .
 .It Fn khtml_close
+Close an HTML context as opened with
+.Fn khtml_open .
+This will also close any open elements.
+You should not use the object after invoking this function.
+.It Fn khtml_closeelem
 Close the last
 .Fa count
 scopes.
@@ -191,6 +200,8 @@ Close until a certain level
 in the HTML tree, which must be at or above the current level.
 Usually used with
 .Fn khtml_elemat .
+If there are fewer open contexts than the requested, this will only
+close the available open contexts.
 .It Fn khtml_double
 Wrapper over
 .Fn khtml_puts
@@ -232,17 +243,21 @@ Invokes
 .Fn khtml_putc
 for each character of the nil-terminated string
 .Fa cp .
-.It Fn khtml_text
-Deprecated.
-A synonym for
-.Fn khtml_puts .
 .It Fn khtml_write
 Like
-.Fn khtml_text ,
+.Fn khtml_puts ,
 but working with a sized buffer.
 This is generally for use with
 .Xr khttp_template 3 .
 .El
+.Sh RETURN VALUES
+The
+.Fn khtml_close ,
+.Fn khtml_closeelem ,
+and
+.Fn khtml_closeat
+return zero if the requested statement overruns (or underruns) the stack
+of open elements.
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.
 .Sh AUTHORS

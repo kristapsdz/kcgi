@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,8 +36,27 @@ kjson_open(struct kjsonreq *r, struct kreq *req)
 int
 kjson_close(struct kjsonreq *r)
 {
+	int	 i;
 
-	return(0 == r->stackpos);
+	i = r->stackpos > 0;
+	while (r->stackpos) {
+		switch (r->stack[r->stackpos].type) {
+		case (KJSON_ARRAY):
+			khttp_putc(r->req, ']');
+			break;
+		case (KJSON_STRING):
+			khttp_putc(r->req, '"');
+			break;
+		case (KJSON_OBJECT):
+			khttp_putc(r->req, '}');
+			break;
+		default:
+			abort();
+		}
+		r->stackpos--;
+	}
+
+	return(i);
 }
 
 /*
