@@ -2,7 +2,7 @@
 	<header>
 		<h1>0.5.7</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-04-23">2015-04-23</time>
+		<time datetime="2015-04-27">2015-04-27</time>
 	</header>
 	<aside>
 		Rename <code>khtml_close</code> to <code>khtml_closeelem</code> in <a href="kcgihtml.3.html">kcgihtml(3)</a>, then re-add the
