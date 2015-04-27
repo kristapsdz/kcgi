@@ -22,7 +22,7 @@ VERSIONS	 = version_0_4_2.xml \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.5.6
+VERSION 	 = 0.5.7
 LIBOBJS 	 = child.o \
 		   httpauth.o \
 		   kcgi.o \
