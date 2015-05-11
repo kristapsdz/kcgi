@@ -42,6 +42,10 @@ figure			{ margin: 0;
 figcaption		{ padding: 0 1% 0.5ex 1%; }
 figcaption span		{ font-weight: bolder; }
 #intro			{ padding: 0 2%; }
+#intro figure		{ width: 100%; 
+			  text-align: center; }
+#intro img		{ max-width: 480px; 
+			  width: 100%; }
 #sample			{ padding: 1ex 1%; }
 #sample nav i		{ font-size: 16pt; }
 #sample nav		{ padding: 0.5ex 1em; }
