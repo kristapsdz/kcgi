@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: March 14 2015 $
+.Dd $Mdocdate: April 10 2015 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -84,12 +84,22 @@ and
 For example,
 .Bd -literal
 % cc -I/usr/local/include -c -o sample.o sample.c
-% cc -L/usr/local/lib -o sample -lkcgi -lz
+% cc -L/usr/local/lib -o sample sample.o -lkcgi -lz
+.Ed
+.Pp
+If the library will be statically linked (e.g., for running within a
+.Xr chroot 2 ) ,
+and assuming you'll use the
+.Xr kcgihtml 3
+library, link as follows:
+.Bd -literal
+% cc -o sample -static sample.o -lkcgihtml -lkcgi -lz
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr kcgihtml 3 ,
 .Xr kcgijson 3 ,
+.Xr kcgixml 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_free 3 ,
 .Xr khttp_head 3 ,

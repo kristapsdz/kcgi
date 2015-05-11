@@ -1,0 +1,13 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.8</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-05-11">2015-05-11</time>
+	</header>
+	<aside>
+		Update the included sample file and correct the documentation regarding its compilation.
+		Fix noted by Jan Schreiber &#8212; thanks!
+		While doing so, add some documentation bits to the manpages.
+		No functional changes.
+	</aside>
+</article>
