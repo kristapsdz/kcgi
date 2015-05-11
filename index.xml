@@ -99,9 +99,17 @@ int main(void) {
    * Parse the HTTP environment.
    * We only know a single page, "index", which is also
    * the default page if none is supplied.
+   * (We don't validate any input fields.)
    */
   if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
     return(EXIT_FAILURE);
+
+  /* 
+   * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
+   * defined in the <q>method</q> variable) then switch on which
+   * page was requested (<q>page</q> variable).
+   * But for the same of example, just output a response.
+   */
 
   /* Emit the HTTP status 200 header: everything's ok. */
   <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);

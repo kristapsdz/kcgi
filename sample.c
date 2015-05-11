@@ -181,18 +181,16 @@ sendindex(struct kreq *req)
 	struct khtmlreq	 r;
 	const char	*cp;
 
-	memset(&r, 0, sizeof(struct khtmlreq));
-	r.req = req;
-
 	(void)kasprintf(&page, "%s/%s", 
 		req->pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
+	khtml_open(&r, req);
 	khtml_elem(&r, KELEM_DOCTYPE);
 	khtml_elem(&r, KELEM_HTML);
 	khtml_elem(&r, KELEM_HEAD);
 	khtml_elem(&r, KELEM_TITLE);
 	khtml_puts(&r, "Welcome!");
-	khtml_close(&r, 2);
+	khtml_closeelem(&r, 2);
 	khtml_elem(&r, KELEM_BODY);
 	khtml_puts(&r, "Welcome!");
 	khtml_attr(&r, KELEM_FORM,
@@ -203,7 +201,7 @@ sendindex(struct kreq *req)
 	khtml_elem(&r, KELEM_FIELDSET);
 	khtml_elem(&r, KELEM_LEGEND);
 	khtml_puts(&r, "Post (multipart)");
-	khtml_close(&r, 1);
+	khtml_closeelem(&r, 1);
 	khtml_elem(&r, KELEM_P);
 	cp = NULL == req->fieldmap[KEY_INTEGER] ?
 		"" : req->fieldmap[KEY_INTEGER]->val;
@@ -211,7 +209,7 @@ sendindex(struct kreq *req)
 		KATTR_TYPE, "number",
 		KATTR_NAME, keys[KEY_INTEGER].name,
 		KATTR_VALUE, cp, KATTR__MAX);
-	khtml_close(&r, 1);
+	khtml_closeelem(&r, 1);
 	khtml_elem(&r, KELEM_P);
 	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "file",
@@ -229,12 +227,13 @@ sendindex(struct kreq *req)
 			khtml_puts(&r, req->fieldmap[KEY_FILE]->ctype);
 		} 
 	}
-	khtml_close(&r, 1);
+	khtml_closeelem(&r, 1);
 	khtml_elem(&r, KELEM_P);
 	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "submit",
 		KATTR__MAX);
-	khtml_close(&r, 0);
+	khtml_closeelem(&r, 0);
+	khtml_close(&r);
 	free(page);
 }
 
