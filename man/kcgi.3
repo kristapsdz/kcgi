@@ -95,6 +95,73 @@ library, link as follows:
 .Bd -literal
 % cc -o sample -static sample.o -lkcgihtml -lkcgi -lz
 .Ed
+.Sh EXAMPLES
+The following simple example assumes that
+.Pa kcgi.h
+is in the compiler's include path.
+It does nothing but emit
+.Dq Hello, world!
+to the output.
+.Bd -literal
+#include <stdint.h>
+#include <stdlib.h>
+#include <kcgi.h>
+ 
+int main(void) {
+  struct kreq r;
+  const char *page = "index";
+  if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
+    return(EXIT_FAILURE);
+  khttp_head(&r, kresps[KRESP_STATUS], 
+    "%s", khttps[KHTTP_200]);
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+    "%s", kmimetypes[r.mime]);
+  khttp_body(&r);
+  khttp_puts(&r, "Hello, world!");
+  khttp_free(&r);
+  return(EXIT_SUCCESS);
+}
+.Ed
+.Pp
+In a more complicated example,
+.Nm
+accepts a single parameter
+.Dq string
+to validate and display.
+This might be provided as part of an HTML form or directly as part of
+the URL query string.
+.Bd -literal
+#include <stdint.h>
+#include <stdlib.h>
+#include <kcgi.h>
+ 
+int main(void) {
+  struct kreq r;
+  struct kpair *p;
+  const char *page = "index";
+  struct kvalid key = { kvalid_stringne, "string" };
+  if (KCGI_OK != khttp_parse(&r, &key, 1, &page, 1, 0))
+    return(EXIT_FAILURE);
+  khttp_head(&r, kresps[KRESP_STATUS], 
+    "%s", khttps[KHTTP_200]);
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+    "%s", kmimetypes[r.mime]);
+  khttp_body(&r);
+  khttp_puts(&r, "Result: ");
+  if ((p = r.fieldmap[0]))
+    khttp_puts(&r, p->parsed.s);
+  else if (r.fieldnmap[0])
+    khttp_puts(&r, "bad parse");
+  else
+    khttp_puts(&r, "no value");
+  khttp_free(&r);
+  return(EXIT_SUCCESS);
+}
+.Ed
+.Pp
+Applications will usually specify an array of key-value pairs to
+validate; or in the event of web services, a default validator (empty
+string) for the full HTTP message body.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr kcgihtml 3 ,
