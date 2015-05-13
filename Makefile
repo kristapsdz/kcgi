@@ -1,4 +1,4 @@
-.SUFFIXES: .3 .3.html
+.SUFFIXES: .3 .3.html .dot .svg .gnuplot .png
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
@@ -126,6 +126,9 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-file-get.c \
 		   regress/test-ping.c \
 		   regress/test-upload.c
+SVGS		 = figure1.svg \
+		   figure2.png \
+		   figure3.png
 
 all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
@@ -212,11 +215,11 @@ install: all
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
-www: index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS)
+www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS)
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 index.html index.css $(HTMLS) $(PREFIX)
+	install -m 0444 index.html index.css $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
@@ -245,8 +248,14 @@ kcgi.tgz:
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
+.dot.svg:
+	dot -Tsvg -o $@ $<
+
+.gnuplot.png:
+	gnuplot $<
+
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(HTMLS) sample sample.o
+	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(SVGS) $(HTMLS) sample sample.o
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
