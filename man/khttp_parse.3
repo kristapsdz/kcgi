@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 12 2015 $
+.Dd $Mdocdate: April 14 2015 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -56,49 +56,13 @@ and
 .Nm khttp_parsex
 functions parse and validate input and the HTTP environment
 (compression, paths, MIME types, and so on).
-It parses and validates data as key-value pairs for the
-.Li application/x-www-form-urlencoded ,
-.Li multipart/form-data ,
-and
-.Li text/plain
-.Pq if and only if the method is POST
-content types, and opaque message bodies (defaulting to
-.Li application/octet-stream )
-otherwise.
-Key-value pairs are also parsed from cookies and the query string.
+It is the central function in the
+.Xr kcgi 3
+library, parsing and validating key-value form (query string, message
+body, cookie) data and opaque message bodies.
 .Pp
 The collective arguments are as follows:
 .Bl -tag -width Ds
-.It Fa req
-Fill with input fields and HTTP context parsed from the CGI environment.
-This is the main structure carried around in a
-.Xr kcgi 3
-application.
-.It Fa keys
-An array of input and validation fields.
-.It Fa keysz
-The number of elements in
-.Fa keys .
-.It Fa pages
-An array of recognised pathnames.
-When pathnames are parsed, they're matched to indices in this array.
-.It Fa pagesz
-The number of pages in
-.Fa pages .
-Also used if the requested page was not in
-.Fa pages .
-.It Fa defmime
-If no MIME type is specified (that is, there's no suffix to the
-page request), use this index in the
-.Fa mimes
-array.
-.It Fa defpage
-If no page was specified (e.g., the default landing page), this is
-provided as the requested page index.
-.It Fa suffixes
-Define the MIME type (suffix) mapping.
-.It Fa maxmime
-The MIME index used if no MIME type was matched.
 .It Fa arg
 A pointer to private application data.
 It is not touched unless
@@ -109,14 +73,48 @@ Function invoked with
 .Fa arg
 by the child process starting to parse untrusted network data.  This
 makes sure that no unnecessary data is leaked into the child.
+.It Fa defmime
+If no MIME type is specified (that is, there's no suffix to the
+page request), use this index in the
+.Fa mimes
+array.
+.It Fa defpage
+If no page was specified (e.g., the default landing page), this is
+provided as the requested page index.
+.It Fa keys
+An array of input and validation fields.
+.It Fa keysz
+The number of elements in
+.Fa keys .
+.It Fa maxmime
+The MIME index used if no MIME type was matched.
+.It Fa pages
+An array of recognised pathnames.
+When pathnames are parsed, they're matched to indices in this array.
+.It Fa pagesz
+The number of pages in
+.Fa pages .
+Also used if the requested page was not in
+.Fa pages .
+.It Fa req
+Fill with input fields and HTTP context parsed from the CGI environment.
+This is the main structure carried around in a
+.Xr kcgi 3
+application.
+.It Fa suffixes
+Define the MIME type (suffix) mapping.
 .El
 .Pp
-The first form is for applications using the system-recognised MIME
-types, which should work well enough for most applications.
-It is equivalent to the following:
+The first form,
+.Nm khttp_parse ,
+is for applications using the system-recognised MIME types.
+This should work well enough for most applications.
+It is equivalent to invoking the second form,
+.Nm khttp_parsex ,
+as follows:
 .Bd -literal -offset indent
 khttp_parsex(req, ksuffixmap, KIME__MAX,
-	keys, keysz, pages, pagesz, NULL, NULL);
+  keys, keysz, pages, pagesz, NULL, NULL);
 .Ed
 .Pp
 The
@@ -140,6 +138,76 @@ It consists of the following fields:
 Private application data.
 This is set during
 .Fn khttp_parse .
+.It Va auth
+Type of
+.Qq managed
+HTTP authorisation, if any.
+This is digest
+.Pq Dv KAUTH_DIGEST
+or basic
+.Pq Dv KAUTH_BASIC
+authorisation performed by the web server.
+See the
+.Va rawauth
+field for raw authorisation requests.
+If a managed authorisation is specified but with unknown type (i.e., not
+digest or basic authentiation), this is set to
+.Dv KAUTH_UNKNOWN .
+.It Va cookies
+All key-value pairs read from user cookies.
+.It Va cookiemap
+Entries in successfully-parsed (or un-parsed)
+.Va cookies
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Va cookienmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa cookies
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Va cookiesz
+The size of the
+.Va cookies
+array.
+.It Va fields
+All key-value pairs read from the requests (query string, cookies,
+message body).
+.It Va fieldmap
+Entries in successfully-parsed (or un-parsed)
+.Fa fields
+mapped into field indices as defined by the
+.Fa keys
+arguments to
+.Fn khttp_parse .
+.It Va fieldnmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa fields
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Va fieldsz
+The number of elements in the
+.Va fields
+array.
+.It Va fullpath
+The full path following the server name or
+.Dv NULL
+if there is no path following the server.
+For example, if
+.Pa foo.cgi/bar/baz
+is the
+.Dv PATH_INFO ,
+this would be
+.Pa /bar/baz .
+.It Va host
+The host-name (i.e., the host of the web application) request passed to
+the application.
+This shouldn't be confused with the application host's canonical name.
 .It Va method
 The
 .Dv KMETHOD_ACL ,
@@ -176,67 +244,14 @@ and
 so be sure to emit a
 .Dv KHTTP_405
 status for non-conforming methods.
-.It Va auth
-Type of
-.Qq managed
-HTTP authorisation, if any.
-This is digest
-.Pq Dv KAUTH_DIGEST
-or basic
-.Pq Dv KAUTH_BASIC
-authorisation performed by the web server.
-See the
-.Va rawauth
-field for raw authorisation requests.
-If a managed authorisation is specified but with unknown type (i.e., not
-digest or basic authentiation), this is set to
-.Dv KAUTH_UNKNOWN .
-.It Va rawauth
-If the web server passes the
-.Qq Authorization
-header (which, for example, Apache doesn't by default), then the header
-is parsed into this field, which is of type
-.Vt struct khttpauth .
-.It Va cookies
-All key-value pairs read from user cookies.
-.It Va cookiesz
-The size of the
-.Va cookies
-array.
-.It Va cookiemap
-Entries in successfully-parsed (or un-parsed)
-.Va cookies
-mapped into field indices as defined by the
-.Fa keys
-argument to
+.It Va kdata
+Internal data.
+Should not be touched.
+.It Va keys
+Value passed to
 .Fn khttp_parse .
-.It Va cookienmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa cookies
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
-.It Va fields
-All key-value pairs read from the requests (query string, cookies,
-message body).
-.It Va fieldsz
-The number of elements in the
-.Va fields
-array.
-.It Va fieldmap
-Entries in successfully-parsed (or un-parsed)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-arguments to
-.Fn khttp_parse .
-.It Va fieldnmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-argument to
+.It Va keysz
+Value passed to
 .Fn khttp_parse .
 .It Va mime
 The MIME type of the requested file as determined by its
@@ -275,6 +290,8 @@ if the path failed lookup.
 .It Va pagename
 The string corresponding to
 .Va page .
+.It Va port
+The server's receiving TCP port.
 .It Va path
 The path (or empty string) following the parsed component regardless of
 whether it was located in the path array provided to
@@ -286,6 +303,27 @@ is
 the path component would be
 .Pa baz
 .Pq with the leading slash stripped .
+.It Va pname
+The script name (which may be an empty string in degenerate cases)
+passed to the server.
+This may not reflect a file-system entity if re-written by the web
+server.
+.It Va rawauth
+If the web server passes the
+.Qq Authorization
+header (which, for example, Apache doesn't by default), then the header
+is parsed into this field, which is of type
+.Vt struct khttpauth .
+.It Va remote
+The string form of the client's IPV4 or IVP6 address.
+.It Va scheme
+The access scheme, which is either
+.Dv KSCHEME_HTTP
+or
+.Dv KSCHEME_HTTPS .
+The scheme defaults to
+.Dv KSCHEME_HTTP
+if not specified by the request.
 .It Va suffix
 The suffix part of the
 .Dv PATH_INFO
@@ -301,53 +339,39 @@ the suffix would be
 See the
 .Va mime
 field for the MIME type parsed from the suffix.
-.It Va fullpath
-The full path following the server name or
-.Dv NULL
-if there is no path following the server.
-For example, if
-.Pa foo.cgi/bar/baz
-is the
-.Dv PATH_INFO ,
-this would be
-.Pa /bar/baz .
-.It Va scheme
-The access scheme, which is either
-.Dv KSCHEME_HTTP
-or
-.Dv KSCHEME_HTTPS .
-.It Va remote
-The string form of the client's IPV4 or IVP6 address.
-.It Va host
-The host-name request passed to the application.
-.It Va port
-The server's receiving TCP port.
-.It Va kdata
-Internal data.
-Should not be touched.
-.It Va keys
-Value passed to
-.Fn khttp_parse .
-.It Va keysz
-Value passed to
-.Fn khttp_parse .
-.It Va pname
-The script name (which may be an empty string in degenerate cases).
 .El
 .Pp
-The application must define the
+The application may optionally define
 .Vt keys
 provided to
 .Nm khttp_parse
+and
+.Nm khttp_parsex
 as an array of
-.Vt "struct kvalid" ,
-which consists of the following:
+.Vt "struct kvalid" .
+This structure is central to the validation of input data.
+It consists of the following fields:
 .Bl -tag -width Ds
-.It Va "int (*valid)(struct kpair *kp)"
+.It Va name
+The field name, i.e., how it appears in the HTML form input name.
+This cannot be
+.Dv NULL .
+If the field name is an empty string and the HTTP message consists of an
+opaque body (and not key-value pairs), then that field will be used to
+validate the HTTP message body.
+This is useful for
+.Dv KMETHOD_PUT
+style requests.
+.It Va valid
 Validating function.
-This can be
-.Dv NULL
-if anything goes.
+This function accepts a single
+.Ft "struct kpair *"
+argument and returns an
+.Ft int .
+If the function is
+.Dv NULL ,
+then no validation is performed and the data is considered as always
+valid.
 If you provide your own
 .Fa valid
 function, it must set the
@@ -370,16 +394,6 @@ You should assume that you cannot invoke any
 .Qq invasive
 system calls such as opening files, sockets, etc.
 In other words, these must be pure computation.
-.It Va "const char *name"
-The field name, i.e., how it appears in the HTML form input name.
-This cannot be
-.Dv NULL .
-If the field name is an empty string and the HTTP message consists of an
-opaque body (and not key-value pairs), then that field will be used to
-validate the HTTP message body.
-This is useful for
-.Dv KMETHOD_PUT
-style requests.
 .El
 .Pp
 The
@@ -388,26 +402,16 @@ structure presents the user with fields parsed from input and (possibly)
 matched to the
 .Fa keys
 variable passed to
-.Fn http_parse .
+.Nm khttp_parse
+and
+.Nm khttp_parsex .
+It is also passed to the validation function to be filled in.
+In this case, the MIME-related fields are already filled in and may be
+examined to determine the method of validation.
+This is useful when validating opaque message bodies.
 .Bl -tag -width Ds
-.It Va key
-The nil-terminated key (input) name.
-If the HTTP message body is opaque (e.g.,
-.Dv KMETHOD_PUT ) ,
-then an empty-string key is cooked up.
-.It Va val
-The (input) value, which is always nil-terminated, but if the data is
-binary, nil terminators may occur before the true data length of
-.Fa valsz .
-.It Va valsz
-The true length of
-.Fa val .
-.It Va file
-The value's source filename or
-.Dv NULL
-if not defined.
 .It Va ctype
-The value's content type (e.g.,
+The value's MIME content type (e.g.,
 .Li image/jpeg ) ,
 or
 .Dv NULL
@@ -420,34 +424,46 @@ is not
 it is looked up in the
 .Fa mimes
 parameter passed to
-.Fn khttp_parsex
+.Nm khttp_parsex
 or
 .Va ksuffixmap
 if using
-.Fn khttp_parse .
+.Nm khttp_parse .
 If found, it is set to the appropriate index.
 Otherwise, it's
 .Fa mimesz .
-.It Va xcode
-The value's content transfer encoding (e.g.,
-.Li base64 ) ,
-or
+.It Va file
+The value's MIME source filename or
 .Dv NULL
 if not defined.
+.It Va key
+The nil-terminated key (input) name.
+If the HTTP message body is opaque (e.g.,
+.Dv KMETHOD_PUT ) ,
+then an empty-string key is cooked up.
+.It Va keypos
+If looked up in the
+.Fa keys
+variable passed to
+.Nm khttp_parse ,
+the index of the looked-up key.
+Otherwise
+.Fa keysz .
 .It Va next
 In a cookie or field map,
 .Fa next
 points to the next parsed key-value pair with the same
 .Fa key
 name.
-.It Va keypos
-If looked up in the
-.Fa keys
-variable passed to
-.Fn khttp_parse ,
-the index of the looked-up key.
-Otherwise
-.Fa keysz .
+This occurs most often in HTML checkbox forms, where many fields may
+have the same name.
+.It Va parsed
+The parsed, validated value.
+These may be integer, for a 64-bit signed integer; string, for a
+nil-termianted character string; or double, for a double-precision
+floating-point number.
+This is intentionally basic because the resulting data must be reliably
+passed from the parsing context back into the web application.
 .It Va state
 The validation state: whether validated by a parse, invalidated by a
 parse, or non-validated (unparsed).
@@ -456,11 +472,19 @@ If parsed, the type of data in
 .Fa parsed ,
 otherwise
 .Dv KFIELD__MAX .
-.It Va parsed
-The parsed, validated value.
-These may be integer, for a 64-bit signed integer; string, for a
-nil-termianted character string; or double, for a double-precision
-floating-point number.
+.It Va val
+The (input) value, which is always nil-terminated, but if the data is
+binary, nil terminators may occur before the true data length of
+.Fa valsz .
+.It Va valsz
+The true length of
+.Fa val .
+.It Va xcode
+The value's MIME content transfer encoding (e.g.,
+.Li base64 ) ,
+or
+.Dv NULL
+if not defined.
 .El
 .Pp
 Lastly, the
@@ -508,6 +532,10 @@ Opaque operating system error.
 .El
 .Pp
 On failure, the calling application should terminate as soon as possible.
+Applications should
+.Em not
+try to write an HTTP 505 error or similar, but allow the web server to
+handle the empty CGI response on its own.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_free 3
