@@ -181,8 +181,13 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			continue;
 		}
 
+		/*
+		 * Now we have "regular" attributes that we want to cast
+		 * directly as HTTP attributes in the CGI environment.
+		 */
 		strlcpy(headbuf, "HTTP_", sizeof(headbuf));
-		strlcat(headbuf, key, sizeof(headbuf));
+		sz = strlcat(headbuf, key, sizeof(headbuf));
+		assert(sz < sizeof(headbuf));
 		for (cp = headbuf; '\0' != *cp; cp++) 
 			if ('-' == *cp)
 				*cp = '_';
