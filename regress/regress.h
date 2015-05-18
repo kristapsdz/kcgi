@@ -23,7 +23,6 @@ typedef int (*cb_child)(void);
 typedef int (*cb_parent)(CURL *);
 
 int regress_cgi(cb_parent, cb_child);
-int regress_fastcgi(cb_parent, cb_child);
 
 __END_DECLS
 
