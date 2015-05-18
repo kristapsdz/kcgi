@@ -1,0 +1,15 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.5.9</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-05-18">2015-05-18</time>
+	</header>
+	<aside>
+		Add ability to retrieve HTTP headers from the request.
+		This adds several fields to the structure filled in by <a href="khttp_parse.3.html">khttp_parse(3)</a> that allow for mapped
+		(indexed by known header) and listed header fields.
+		The HTTP headers are reconstituted from the CGI environmental variables according to the RFC.
+		These fields existed in earlier releases, but were not documented and, moreover, did not reconstitute the HTTP header name from
+		the CGI environment variable name.
+	</aside>
+</article>
