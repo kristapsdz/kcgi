@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 14 2015 $
+.Dd $Mdocdate: May 13 2015 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -316,6 +316,19 @@ is parsed into this field, which is of type
 .Vt struct khttpauth .
 .It Va remote
 The string form of the client's IPV4 or IVP6 address.
+.It Va reqmap
+Mapping of
+.Vt "enum krequ"
+enumeration values to
+.Va reqs
+parsed from the input stream.
+.It Va reqs
+List of all HTTP request headers, known via
+.Vt "enum krequ"
+and not known, parsed from the input stream.
+.It Va reqsz
+Number of request headers in
+.Va reqs .
 .It Va scheme
 The access scheme, which is either
 .Dv KSCHEME_HTTP
@@ -487,7 +500,7 @@ or
 if not defined.
 .El
 .Pp
-Lastly, the
+The
 .Vt struct khttpauth
 structure holds authorisation data if passed by the server.
 If no data was passed by the server, the
@@ -508,6 +521,20 @@ The union
 .Va d
 contains these fields per type.
 The field names are self-explanatory.
+.Pp
+Lastly, the
+.Vt struct khead
+structure holds parsed HTTP headers.
+The
+.Va key
+field holds the HTTP header name.
+This is not the CGI header name (e.g.,
+.Li HTTP_COOKIE ) ,
+but the reconstituted HTTP name (e.g.,
+.Li Coookie ) .
+The
+.Va val
+is the opaque header value, which may be an empty string.
 .Sh RETURN VALUES
 .Nm khttp_parse
 and
