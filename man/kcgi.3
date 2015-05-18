@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 11 2015 $
+.Dd $Mdocdate: May 13 2015 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -110,14 +110,17 @@ to the output.
 int main(void) {
   struct kreq r;
   const char *page = "index";
+
   if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
-    return(EXIT_FAILURE);
+      return(EXIT_FAILURE);
+
   khttp_head(&r, kresps[KRESP_STATUS], 
-    "%s", khttps[KHTTP_200]);
+      "%s", khttps[KHTTP_200]);
   khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-    "%s", kmimetypes[r.mime]);
+      "%s", kmimetypes[r.mime]);
   khttp_body(&r);
   khttp_puts(&r, "Hello, world!");
+
   khttp_free(&r);
   return(EXIT_SUCCESS);
 }
@@ -140,20 +143,23 @@ int main(void) {
   struct kpair *p;
   const char *page = "index";
   struct kvalid key = { kvalid_stringne, "string" };
+
   if (KCGI_OK != khttp_parse(&r, &key, 1, &page, 1, 0))
-    return(EXIT_FAILURE);
+      return(EXIT_FAILURE);
+
   khttp_head(&r, kresps[KRESP_STATUS], 
-    "%s", khttps[KHTTP_200]);
+      "%s", khttps[KHTTP_200]);
   khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-    "%s", kmimetypes[r.mime]);
+      "%s", kmimetypes[r.mime]);
   khttp_body(&r);
   khttp_puts(&r, "Result: ");
   if ((p = r.fieldmap[0]))
-    khttp_puts(&r, p->parsed.s);
+      khttp_puts(&r, p->parsed.s);
   else if (r.fieldnmap[0])
-    khttp_puts(&r, "bad parse");
+      khttp_puts(&r, "bad parse");
   else
-    khttp_puts(&r, "no value");
+      khttp_puts(&r, "no value");
+
   khttp_free(&r);
   return(EXIT_SUCCESS);
 }
