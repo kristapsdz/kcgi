@@ -63,10 +63,3 @@ regress_cgi(cb_parent parent, cb_child child)
 
 	return(kcgi_regress_cgi(doparent, parent, dochild, child));
 }
-
-int
-regress_fastcgi(cb_parent parent, cb_child child)
-{
-
-	return(kcgi_regress_fastcgi(doparent, parent, dochild, child));
-}
