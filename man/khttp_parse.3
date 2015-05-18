@@ -514,27 +514,88 @@ or
 with
 .Dv KAUTH_UNKNOWN
 if the authorisation type was not recognised.
-For digest or basic authorisation, the
-.Va authorised
-field indicates whether all required values were passed.
-The union
-.Va d
-contains these fields per type.
-The field names are self-explanatory.
+The specific fields are as follows.
+.Bl -tag -width Ds
+.It Va authorised
+For
+.Dv KAUTH_BASIC
+or
+.Dv KAUTH_DIGEST
+authorisation, this field indicates whether all required values were
+specified.
+.It Va d
+A union containing parsed fields per type:
+.Va basic
+for
+.Dv KAUTH_BASIC
+or
+.Va digest
+for
+.Dv KAUTH_DIGEST .
+.El
+.Pp
+If the field for an HTTP authorisation request is
+.Dv KAUTH_BASIC ,
+it will consist of the following for its parsed entities in its
+.Vt struct khttpbasic
+structure:
+.Bl -tag -width Ds
+.It Va response
+The hashed and encoded response string.
+.El
+.Pp
+If the field for an HTTP authorisation request is
+.Dv KAUTH_DIGEST ,
+it will consist of the following in its
+.Vt struct khttpdigest
+structure:
+.Bl -tag -width Ds
+.It Va alg
+The encoding algorithm, parsed from the possible
+.Li MD5
+or
+.Li MD5-Sess
+values.
+.It Va qop
+The quality of protection algorithm, which may be unspecified,
+.Li Auth
+or
+.Li Auth-Init .
+.It Va user
+The user coordinating the request.
+.It Va uri
+The URI for which the request is designated.
+.Pq This must match the request URI .
+.It Va realm
+The request realm.
+.It Va nonce
+The server-generated nonce value.
+.It Va cnonce
+The (optional) client-generated nonce value.
+.It Va response
+The hashed and encoded response string, which entangled fields depending
+on algorithm and quality of protection.
+.It Va count
+The (optional)
+.Va cnonce
+counter.
+.It Va opaque
+The (optional) opaque string requested by the server.
+.El
 .Pp
 Lastly, the
 .Vt struct khead
 structure holds parsed HTTP headers.
-The
-.Va key
-field holds the HTTP header name.
+.Bl -tag -width Ds
+.It Va key
+Holds the HTTP header name.
 This is not the CGI header name (e.g.,
 .Li HTTP_COOKIE ) ,
 but the reconstituted HTTP name (e.g.,
 .Li Coookie ) .
-The
-.Va val
-is the opaque header value, which may be an empty string.
+.It Va val
+The opaque header value, which may be an empty string.
+.El
 .Sh RETURN VALUES
 .Nm khttp_parse
 and
