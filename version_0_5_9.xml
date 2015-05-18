@@ -11,6 +11,7 @@
 		The HTTP headers are reconstituted from the CGI environmental variables according to the RFC.
 		These fields existed in earlier releases, but were not documented and, moreover, did not reconstitute the HTTP header name from
 		the CGI environment variable name.
-		While adding this documentation, clean up the type list in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+		A regression test has been added to test this behaviour.
+		While adding the documentation, clean up the type list in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
 	</aside>
 </article>
