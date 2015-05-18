@@ -20,6 +20,7 @@
 #include <sys/poll.h>
 
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -836,12 +837,13 @@ kworker_child(const struct kworker *work,
 	char		 *cp, *ep, *sub;
 	char		**evp;
 	const char	 *ccp;
-	int		  wfd;
+	char		  c;
+	int		  wfd, first;
 	enum kmethod	  meth;
 	enum kauth	  auth;
 	enum krequ	  requ;
 	enum kscheme	  scheme;
-	size_t	 	  len, reqs;
+	size_t	 	  i, len, reqs;
 	extern char	**environ;
 
 	pp.fd = wfd = work->sock[KWORKER_WRITE];
@@ -850,11 +852,15 @@ kworker_child(const struct kworker *work,
 	pp.mimes = mimes;
 	pp.mimesz = mimesz;
 
+	/*
+	 * Look through the environment variables for HTTP headers
+	 * (those beginning with HTTP_) and read them into an array (and
+	 * mapped buckets).
+	 * This conforms to RFC 3875, 4.1.18.
+	 */
 	reqs = 0;
 	for (evp = environ; NULL != *evp; evp++) {
 		if (strncmp(*evp, "HTTP_", 5))
-			continue;
-		if (0 == strncmp(*evp, "HTTP_COOKIE=", 12))
 			continue;
 		if (NULL == strchr(*evp, '='))
 			continue;
@@ -862,16 +868,17 @@ kworker_child(const struct kworker *work,
 	}
 	fullwrite(wfd, &reqs, sizeof(size_t));
 	for (evp = environ; NULL != *evp; evp++) {
+		/*
+		 * First, search for the key name (HTTP_XXX) in our list
+		 * of known headers.
+		 */
 		if (strncmp(*evp, "HTTP_", 5))
 			continue;
-		if (0 == strncmp(*evp, "HTTP_COOKIE=", 12))
+		if (NULL == (cp = strchr(*evp, '=')))
 			continue;
-		if (NULL == strchr(*evp, '='))
-			continue;
-		cp = strchr(*evp, '=');
 		assert(NULL != cp && cp > *evp);
+		len = (size_t)(cp - *evp);
 		for (requ = 0; requ < KREQU__MAX; requ++) {
-			len = (size_t)(cp - *evp);
 			if (len != strlen(krequs[requ]))
 				continue;
 			if (strncmp(krequs[requ], *evp, len))
@@ -879,8 +886,29 @@ kworker_child(const struct kworker *work,
 			break;
 		}
 		fullwrite(wfd, &requ, sizeof(enum krequ));
+
+		/*
+		 * According to RFC 3875, 4.1.18, HTTP headers are
+		 * re-written into CGI environment variables by
+		 * uppercasing and converting dashes to underscores.
+		 * In this part, we [try to] reverse that so that the
+		 * headers are properly identified.
+		 */
+		ep = *evp + 5;
+		len = (size_t)(cp - ep);
 		fullwrite(wfd, &len, sizeof(size_t));
-		fullwrite(wfd, *evp, len);
+		for (i = 0, first = 1; i < len; i++) {
+			if ('_' == ep[i]) {
+				c = '-';
+				first = 1;
+			} else if (first) {
+				c = ep[i];
+				first = 0;
+			} else
+				c = tolower((int)ep[i]);
+			fullwrite(wfd, &c, 1);
+		}
+
 		len = strlen(cp + 1);
 		fullwrite(wfd, &len, sizeof(size_t));
 		fullwrite(wfd, cp + 1, len);
