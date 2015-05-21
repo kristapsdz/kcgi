@@ -55,11 +55,22 @@ The
 .Va kresps
 global array provides indexed HTTP response keys.
 Use them!
+.Pp
+The
+.Dq Content-Encoding
+header can be automatically emitted if the request specifies
+.Dq gzip
+in its
+.Dq Accept-Encoding
+request header.
+See
+.Xr khttp_body 3
+for details.
 .Sh EXAMPLES
 To emit a cookie with key
-.Qq foo
+.Dq foo
 and value
-.Qq bar
+.Dq bar
 for the global path and without an expiration date, one may invoke the
 following.
 Assume that
