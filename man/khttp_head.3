@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 23 2014 $
+.Dd $Mdocdate: May 21 2015 $
 .Dt KHTTP_HEAD 3
 .Os
 .Sh NAME
@@ -56,16 +56,11 @@ The
 global array provides indexed HTTP response keys.
 Use them!
 .Pp
-The
-.Dq Content-Encoding
-header can be automatically emitted if the request specifies
-.Dq gzip
-in its
-.Dq Accept-Encoding
-request header.
 See
 .Xr khttp_body 3
-for details.
+for a discussion on the
+.Dq Content-Encoding
+header: do not specify this header before doing so!
 .Sh EXAMPLES
 To emit a cookie with key
 .Dq foo
@@ -79,7 +74,7 @@ is a context allocated by
 .Xr khttp_parse 3 .
 .Bd -literal
 khttp_head(r, kresps[KRESP_SET_COOKIE],
-	"%s", "foo=bar; path=/; expires=");
+    "%s", "foo=bar; path=/; expires=");
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
