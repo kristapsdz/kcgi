@@ -14,34 +14,100 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 4 2014 $
+.Dd $Mdocdate: November 23 2014 $
 .Dt KHTTP_BODY 3
 .Os
 .Sh NAME
-.Nm khttp_body
-.Nd close the HTTP header session for kcgi
+.Nm khttp_body ,
+.Nm khttp_body_compress ,
+.Nd close the HTTP header sequence for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
 .In kcgi.h
-.Ft void
+.Ft int
 .Fo khttp_body
 .Fa "struct kreq *req"
 .Fc
+.Ft int
+.Fo khttp_body_compress
+.Fa "struct kreq *req"
+.Fa "int compress"
+.Fc
 .Sh DESCRIPTION
 The
-.Nm
-function terminates the zero or more
+.Nm khttp_body
+and
+.Nm khttp_body_compress
+functions terminate the zero or more
 .Xr khttp_head 3
 calls for a
 .Xr kcgi 3
 context.
-After this function, invoking
+After these functions, invoking
 .Xr khttp_head 3
 will result in undefined behaviour.
+.Pp
+.Nm khttp_body_compress
+takes an additional argument,
+.Fa compress ,
+that dictates whether compression should be enabled.
+If
+.Nm khttp_body
+is used, this argument is set as 1.
+The values for
+.Fa compress
+are as follows:
+.Bl -tag -width Ds
+.It >0
+Check whether the
+.Dq Accept-Encoding
+request header specified
+.Dq gzip
+with a non-zero or empty qvalue.
+If so, emit the appropriate
+.Dq Content-Encoding
+header and try to enable write compression.
+This auto-compression setting is the default behaviour of
+.Nm khttp_body .
+.It 0
+Do not check for the request header and do not emit
+.Dq Content-Encoding ,
+but try to enable write compression anyway.
+This is useful for applications overriding the
+.Dq Content-Encoding
+header themselves and want to explicitly stipulate output compression.
+.It <0
+Simply open the document body: do not fiddle with compression at all.
+This is useful if the application will have complete control over the
+output stream.
+Calls to
+.Xr khttp_write 3
+will be uncompressed.
+.El
+.Pp
+If
+.Xr kcgi 3
+is not built with
+.Xr zlib 3
+support, compression is never enabled regardless the argument to
+.Fn khttp_body_compress .
+If
+.Xr zlib 3
+fails when enabling compression, the error is reported and compression
+is disabled.
+.Sh RETURN VALUES
+Both functions will return zero if compression was not enabled and
+non-zero if it was.
+Enabling means only that subsequent calls to
+.Xr khttp_write 3
+and family will be compressed, not whether the compression
+.Dq Content-Encoding
+header was emitted.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
-.Xr khttp_head 3
+.Xr khttp_head 3 ,
+.Xr zlib 3
 .Sh AUTHORS
 The
 .Nm

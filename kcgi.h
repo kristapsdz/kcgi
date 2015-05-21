@@ -427,7 +427,8 @@ __BEGIN_DECLS
 
 typedef int	(*ktemplate_writef)(const char *, size_t, void *);
 
-void		 khttp_body(struct kreq *);
+int		 khttp_body(struct kreq *);
+int		 khttp_body_compress(struct kreq *, int);
 void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
 void		 khttp_head(struct kreq *, const char *, const char *,
