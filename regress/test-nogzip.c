@@ -81,7 +81,8 @@ child(void)
 		"%s", khttps[KHTTP_200]);
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
-	khttp_body(&r);
+	if (khttp_body(&r))
+		return(0);
 	khttp_puts(&r, "1234567890");
 	khttp_free(&r);
 	return(1);
