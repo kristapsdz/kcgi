@@ -5,7 +5,9 @@
 		<time datetime="2014-12-15">2014-12-15</time>
 	</header>
 	<aside>
-		Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
-		Fix control code serialisation in the same.
+		<div>
+			Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
+			Fix control code serialisation in the same.
+		</div>
 	</aside>
 </article>

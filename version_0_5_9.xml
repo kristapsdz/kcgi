@@ -2,7 +2,7 @@
 	<header>
 		<h1>0.5.9</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-05-21">2015-05-21</time>
+		<time datetime="2015-06-17">2015-06-17</time>
 	</header>
 	<aside>
 		<div>
@@ -24,6 +24,9 @@
 				href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC 2616</a> <q>qvalue</q>.
 			Both functions now return whether compression has been enabled.
 			This functionality augments existing behaviour: it does not change it.
+		</div>
+		<div>
+			Add HTTP error codes described by <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
 		</div>
 	</aside>
 </article>
