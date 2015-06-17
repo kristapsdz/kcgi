@@ -5,9 +5,11 @@
 		<time datetime="2015-03-14">2015-03-14</time>
 	</header>
 	<aside>
-		Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
-		Pick out one assertion failure in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
-		Add an a test harness for AFL as well.
-		Recognise CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
+		<div>
+			Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
+			Pick out one assertion failure in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
+			Add an a test harness for AFL as well.
+			Recognise CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
+		</div>
 	</aside>
 </article>

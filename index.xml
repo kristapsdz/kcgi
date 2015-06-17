@@ -164,6 +164,11 @@ int main(void) {
 					file and the output of the failed compilation.
 					If you're running on an operating system with an unsupported sandbox, let me know and we can work
 					together to fit it into the configuration and portability layer.
+					<strong>
+						If you're running on Linux, you're not being sandboxed.
+					</strong>
+					<span class="nm">kcgi</span> doesn't yet have support for seccomp.
+					<i>Please</i> contact me if you can give me access to a server to do so.
 				</p>
 			</section>
 			<section id="usage">
