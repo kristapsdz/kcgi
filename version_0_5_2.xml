@@ -5,20 +5,22 @@
 		<time datetime="2015-04-05">2015-04-05</time>
 	</header>
 	<aside>
-		Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
-		<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
-		and validate it against the empty-key validator.
-		Add HTTP methods and headers stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed
-			Authoring and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
-			(CalDAV)</a>.
-		Allow for the HTTP request headers to be exported to the <code>struct kreq</code> object as both a list and, for common
-		HTTP headers, an indexed map.
-		Added <a href="kcgixml.3.html">kcgixml(3)</a> bits for some simple XML support and added <code>khtml_putc()</code> and
-		<code>khtml_puts()</code> to <a href="kcgihtml.3.html">kcgihtml(3)</a> for consistency.
-		Specify that a <code>NULL</code> template passed to the <a href="khttp_template.3.html">khttp_template(3)</a> functions simply
-		causes the named file or buffer to be outputted without any processing.
-		Lastly, recognise <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/getentropy.2">getentropy(2)</a> as a
-		white-listed system call in the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
-		sandbox.
+		<div>
+			Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
+			<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
+			and validate it against the empty-key validator.
+			Add HTTP methods and headers stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed
+				Authoring and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
+				(CalDAV)</a>.
+			Allow for the HTTP request headers to be exported to the <code>struct kreq</code> object as both a list and, for common
+			HTTP headers, an indexed map.
+			Added <a href="kcgixml.3.html">kcgixml(3)</a> bits for some simple XML support and added <code>khtml_putc()</code> and
+			<code>khtml_puts()</code> to <a href="kcgihtml.3.html">kcgihtml(3)</a> for consistency.
+			Specify that a <code>NULL</code> template passed to the <a href="khttp_template.3.html">khttp_template(3)</a> functions simply
+			causes the named file or buffer to be outputted without any processing.
+			Lastly, recognise <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/getentropy.2">getentropy(2)</a> as a
+			white-listed system call in the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+			sandbox.
+		</div>
 	</aside>
 </article>

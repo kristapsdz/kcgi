@@ -5,6 +5,8 @@
 		<time datetime="2015-04-12">2015-04-12</time>
 	</header>
 	<aside>
-		Single bug-fix: the nonce count parsed from an HTTP digest was not being correctly recorded.
+		<div>
+			Single bug-fix: the nonce count parsed from an HTTP digest was not being correctly recorded.
+		</div>
 	</aside>
 </article>

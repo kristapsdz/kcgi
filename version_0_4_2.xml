@@ -5,8 +5,10 @@
 		<time datetime="2014-11-30">2014-11-30</time>
 	</header>
 	<aside>
-		Implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, remove function prototype names
-		as per OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>, polish
-		documentation.
+		<div>
+			Implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, remove function prototype names
+			as per OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>, polish
+			documentation.
+		</div>
 	</aside>
 </article>

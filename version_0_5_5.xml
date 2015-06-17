@@ -5,9 +5,11 @@
 		<time datetime="2015-04-12">2015-04-12</time>
 	</header>
 	<aside>
-		Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
-		Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
-		Have validation for document body correctly set the <code>ctypepos</code> prior to validation.
-		While there, properly decode the content-type field (i.e., discarding parameters) when looking up the type in the known types.
+		<div>
+			Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+			Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
+			Have validation for document body correctly set the <code>ctypepos</code> prior to validation.
+			While there, properly decode the content-type field (i.e., discarding parameters) when looking up the type in the known types.
+		</div>
 	</aside>
 </article>

@@ -61,6 +61,8 @@ dd				{ margin: 0 0 1em 0; }
 .sample nav a			{ color: #333; }
 .sample nav a:hover i		{ text-shadow: 1px 1px #aaa; }
 nav[data-sblg-nav]		{ overflow: hidden; }
+nav[data-sblg-nav] li >div > div	
+				{ margin-top: 0.5em; }
 #longnews,
 #comments			{ max-height: 0; }
 #nolongnews,
