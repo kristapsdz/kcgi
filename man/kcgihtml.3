@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 4 2015 $
+.Dd $Mdocdate: April 27 2015 $
 .Dt KCGIHTML 3
 .Os
 .Sh NAME
@@ -70,6 +70,11 @@
 .Fo khtml_double
 .Fa "struct khtmlreq *req"
 .Fa "double val"
+.Fc
+.Ft void
+.Fo khtml_elem
+.Fa "struct khtmlreq *req"
+.Fa "enum kelem elem"
 .Fc
 .Ft size_t
 .Fo khtml_elemat
