@@ -2,7 +2,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-STATIC 		 = -static
+#STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -23,8 +23,10 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5_8.xml \
 		   version_0_5_9.xml \
 		   version_0_6.xml
-TUTORIALXMLS	 = tutorial0.xml
-TUTORIALHTMLS	 = tutorial0.html
+TUTORIALXMLS	 = tutorial0.xml \
+		   tutorial1.xml
+TUTORIALHTMLS	 = tutorial0.html \
+		   tutorial1.html
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
@@ -253,6 +255,11 @@ installwww: www
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
 	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
+
+updatewww: www
+	mkdir -p $(PREFIX)
+	install -m 0444 index.html index.css $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
+	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 
 index.html: index.xml $(VERSIONS) $(TUTORIALHTMLS)
 	sblg -t index.xml -o- $(VERSIONS) $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
