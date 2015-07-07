@@ -248,7 +248,7 @@ www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS)
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 index.html index.css $(SVGS) $(HTMLS) $(PREFIX)
+	install -m 0444 index.html index.css $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
