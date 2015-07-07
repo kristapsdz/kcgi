@@ -1,0 +1,16 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.6</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-07-07">2015-07-07</time>
+	</header>
+	<aside>
+		<div>
+			Import initial Linux seccomp filter.
+			Now that Linux, FreeBSD, Darwin, and OpenBSD have
+			sandboxes enabled, require that a sandbox exist in order to compile.
+			(You can disable the compiler error, but at your own risk!)
+			While here, allow for compilation on musl.
+		</div>
+	</aside>
+</article>
