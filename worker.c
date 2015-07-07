@@ -18,13 +18,13 @@
 #include "config.h"
 #endif
 #include <sys/socket.h>
-#include <sys/poll.h>
 #include <sys/wait.h>
 
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
