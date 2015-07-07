@@ -1,4 +1,4 @@
-.SUFFIXES: .3 .3.html .dot .svg .gnuplot .png
+.SUFFIXES: .3 .3.html .dot .svg .gnuplot .png .xml .html
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
@@ -23,6 +23,8 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5_8.xml \
 		   version_0_5_9.xml \
 		   version_0_6.xml
+TUTORIALXMLS	 = tutorial0.xml
+TUTORIALHTMLS	 = tutorial0.html
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
@@ -211,7 +213,7 @@ libkcgiregress.a: kcgiregress.o
 
 $(LIBOBJS) sample.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
-$(LIBOBJS) kcgiregress.o: config.h extern.h
+$(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 
 config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
@@ -236,7 +238,7 @@ install: all
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
-www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS)
+www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS)
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
@@ -246,8 +248,13 @@ installwww: www
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
 	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
 
-index.html: index.xml $(VERSIONS)
-	sblg -t index.xml -o- $(VERSIONS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+index.html: index.xml $(VERSIONS) $(TUTORIALHTMLS)
+	sblg -t index.xml -o- $(VERSIONS) $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+
+$(TUTORIALHTMLS): tutorial.xml $(VERSIONS) $(TUTORIALXMLS)
+
+.xml.html:
+	sblg -t tutorial.xml -o- -C $< $(VERSIONS) $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
 	mandoc -Thtml -Oman=%N.%S.html $< >$@
@@ -276,7 +283,8 @@ kcgi.tgz:
 	gnuplot $<
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 index.html $(SVGS) $(HTMLS) sample sample.o
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample.o
+	rm -f index.html $(TUTORIALHTMLS)
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
