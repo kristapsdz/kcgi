@@ -64,7 +64,7 @@
 #include "extern.h"
 
 /* Linux seccomp_filter sandbox */
-#define SECCOMP_FILTER_FAIL SECCOMP_RET_KILL
+#define SECCOMP_FILTER_FAIL SECCOMP_RET_TRAP
 
 /* Simple helpers to avoid manual errors (but larger BPF programs). */
 #define SC_DENY(_nr, _errno) \
