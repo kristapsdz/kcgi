@@ -21,7 +21,7 @@
 #ifndef HAVE_SYSTRACE
 #ifndef HAVE_SECCOMP_FILTER
 #ifndef HAVE_CAPSICUM
-#ifndef HAVE_DARWIN
+#ifndef HAVE_SANDBOX_INIT
 #warning Compiling without a sandbox!?
 #endif
 #endif
