@@ -18,6 +18,16 @@
 #include "config.h"
 #endif
 
+#ifndef HAVE_SYSTRACE
+#ifndef HAVE_SECCOMP_FILTER
+#ifndef HAVE_CAPSICUM
+#ifndef HAVE_DARWIN
+#warning Compiling without a sandbox!?
+#endif
+#endif
+#endif
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
