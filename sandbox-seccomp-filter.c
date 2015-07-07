@@ -19,6 +19,11 @@
 #endif
 
 #ifdef HAVE_SECCOMP_FILTER
+
+#ifndef SECCOMP_AUDIT_ARCH
+# error Unsupported seccomp architecture
+#endif 
+
 /*
  * Copyright (c) 2012 Will Drewry <wad@dataspill.org>
  *
