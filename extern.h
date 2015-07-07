@@ -72,6 +72,9 @@ void	 	 ksandbox_systrace_close(void *);
 int	 	 ksandbox_systrace_init_child(void *);
 int	 	 ksandbox_systrace_init_parent(void *, pid_t);
 #endif
+#ifdef HAVE_SECCOMP_FILTER
+int	 	 ksandbox_seccomp_init_child(void *);
+#endif
 
 void	 	 kworker_prep_child(struct kworker *);
 void	 	 kworker_prep_parent(struct kworker *);
