@@ -21,7 +21,7 @@
 #ifdef HAVE_SECCOMP_FILTER
 
 #ifndef SECCOMP_AUDIT_ARCH
-# error Unsupported seccomp architecture
+#error Unknown seccomp arch: please contact us with your uname -m
 #endif 
 
 /*
