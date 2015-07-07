@@ -37,7 +37,7 @@ runtest sandbox_init SANDBOX_INIT ""
 runtest systrace SYSTRACE ""
 runtest zlib ZLIB "-lz"
 runtest capsicum CAPSICUM ""
-#runtest seccomp-filter SECCOMP_FILTER ""
+runtest seccomp-filter SECCOMP_FILTER ""
 cat config.h.post
 
 exit 0
