@@ -239,6 +239,14 @@ int main(void) {
 				</p>
 				<dl>
 					<dt>
+						<a href="http://man7.org/linux/man-pages/man2/seccomp.2.html">seccomp(2)</a>
+						(Linux)
+					</dt>
+					<dd>
+						This requires a fairly new kernel (&#x2265;Linux 3.5).
+						It is supplemented by <code>setrlimit(2)</code> limiting.
+					</dd>
+					<dt>
 						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
 						(<a href="http://www.openbsd.org">OpenBSD</a>)
 					</dt>
