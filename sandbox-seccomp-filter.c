@@ -131,8 +131,6 @@ static const struct sock_fprog preauth_program = {
 };
 
 #ifdef SANDBOX_SECCOMP_DEBUG
-void mm_log_handler(LogLevel level, const char *msg, void *ctx);
-
 static void
 ssh_sandbox_violation(int signum, 
 	siginfo_t *info, void *void_context)
@@ -143,7 +141,7 @@ ssh_sandbox_violation(int signum,
 		"(arch:0x%x,syscall:%d @ %p)\n",
 		__func__, info->si_arch, 
 		info->si_syscall, info->si_call_addr);
-	_exit(1);
+	exit(1);
 }
 
 static void
@@ -177,8 +175,10 @@ ksandbox_seccomp_init_child(void *arg)
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_FSIZE)");
+#if 0
 	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_NOFILE)");
+#endif
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_NPROC)");
 
