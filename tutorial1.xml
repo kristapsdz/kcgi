@@ -1,0 +1,143 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			Getting and Setting CGI Cookies in C
+		</h2>
+		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2015-07-07">7 July, 2015</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			Cookies are an integral part of any web application.
+			In this tutorial, I'll describe how to use the HTTP header functionality in <span class="nm">kcgi</span> to set,
+			recognise, and store headers.
+		</aside>
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		Setting and getting cookies with <span class="nm">kcgi</span> is easy.
+		It uses the same logic as setting and getting form fields.
+		Cookies consist of name-value pairs that we can grok from a table.
+		I'll lead this tutorial as if we were reading a source file from top to bottom, so let's start with headers.
+		We'll obviously need <span class="nm">kcgi</span> and <span class="file">stdint.h</span>, which is necessary for some types
+		found in the header file.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;kcgi.h&gt;</pre>
+	</figure>
+	<p>
+		Next, let's define identifiers for our cookies.
+		These will later be mapped to the cookie names and the validators for their values.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum cookie {
+  COOKIE_STRING,
+  COOKIE_INTEGER,
+  COOKIE__MAX
+};</pre>
+	</figure>
+	<p>
+		The enumeration will allow us to bound an array to <code>COOKIE__MAX</code> and refer to individual buckets in the array by the
+		enumeration value.
+		I'll assume that <code>COOKIE_STRING</code> is assigned 0 and <code>COOKIE_INTEGER</code>, 1.
+	</p>
+	<p>
+		Next, connect the indices with validation functions and names.
+		The validation function is run by <a href="khttp_parse.3.html">khttp_parse(3)</a>; the name is the cookie key name.
+		Built-in validation functions, which we'll use, are described in <a href="kvalid_string.3.html">kvalid_string(3)</a>.
+		In this example, <code>kvalid_stringne</code> will validate a non-empty (nil-terminated) C string, while <code>kvalid_int</code>
+		will validate a signed 64-bit integer.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static const struct kvalid cookies[COOKIE__MAX] = {
+  { kvalid_stringne, "string" }, /* COOKIE_STRING */
+  { kvalid_int, "integer" }, /* COOKIE_INTEGER */
+};</pre>
+	</figure>
+	<p>
+		Before doing any parsing, I sanitise the HTTP context.
+		I'll let any page request pass, but will make sure our MIME type and HTTP method are sane.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
+  if (KMIME_TEXT_HTML != r->mime)
+    return(KHTTP_404);
+  else if (KMETHOD_GET != r->method)
+    return(KHTTP_405);
+  else
+    return(KHTTP_200);
+}</pre> 
+	</figure>
+	<p>
+		Now the scaffolding is done.
+		What about the cookies?
+		To begin with, you should glance at the <a href="https://tools.ietf.org/html/rfc6265">RFC 6265</a>, <q>HTTP State Management
+			Mechanism</q>, to gain an understanding of how cookies work.
+		In our application, let's just attempt to read the cookie; and if it doesn't exist, write the cookie along with the page.
+		If it does exist, we'll indicate that in our page.
+		We'll focus only on the <code>COOKIE_STRING</code> cookie, and will set the cookie to be visible to the path root and expire at
+		the end of the session.
+		Headers are output using <a href="khttp_head.3.html">khttp_head(3)</a>, with the document body started
+		with <a href="khttp_body.3.html">khttp_body(3)</a>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static void process(struct kreq *r) {
+  khttp_head(r, kresps[KRESP_STATUS],
+    "%s", khttps[KHTTP_200]);
+  khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+    "%s", kmimetypes[r->mime]);
+  if (NULL == r->cookiemap[COOKIE_STRING])
+    khttp_head(r, kresps[KRESP_SET_COOKIE],
+      "%s=%s; Path=/; Expires=0", 
+      cookies[COOKIE_STRING].name, "Hello, world!");
+  khttp_body(r);
+  khttp_puts(r, 
+    "&lt;!DOCTYPE html&gt;"
+    "&lt;title&gt;Foo&lt;/title&gt;");
+  if (NULL != r->cookiemap[COOKIE_STRING])
+    khttp_puts(r, "Cookie found!");
+  else
+    khttp_puts(r, "Cookie set.");
+}</pre> 
+	</figure>
+	<p>
+		Most of the above code is just to handle the HTML5 bits, and we deliberately used the smallest possible page.
+		(Yes, this is a valid page&#8212;<a href="https://validator.w3.org/nu/">validate</a> it yourself to find out!)
+		For any significant page, you'd want to use <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+	</p>
+	<p>
+		Putting all of these together: parse the HTTP context, validate it, process it, then free the resources.
+		The HTTP context is closed with <a href="khttp_free.3.html">khttp_free(3)</a>.
+		Note that the identifiers for the cookies, <code>enum cookie</code>, are also used to identify any form input.
+		So if you have both form input and cookies (which is common), they can either share identifiers or use unique ones.
+		In other words, <code>COOKIE__MAX</code> defines the size of both <code>fieldmap</code> and <code>cookiemap</code>, so the
+		validator for <code>COOKIE_STRING</code> is also valid for form inputs of the same name.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">int main(void) {
+  struct kreq r;
+  enum khttp er;
+  if (KCGI_OK != khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0))  
+    return(EXIT_FAILURE);
+  if (KHTTP_200 != (er = sanitise(&amp;r))) {
+    khttp_head(&amp;r, kresps[KRESP_STATUS],
+      "%s", khttps[er]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
+      "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    if (KMIME_TEXT_HTML == r.mime)
+      khttp_puts(&amp;r, "Could not service request.");
+  } else
+    process(&amp;r);
+  khttp_free(&amp;r);
+  return(EXIT_SUCCESS);
+};</pre>
+	</figure>
+	<p>
+		For compilation, linking, and installation, see <a href="tutorial0.html">Getting Started with CGI in C</a>.
+	</p>
+</article>

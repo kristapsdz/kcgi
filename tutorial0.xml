@@ -1,13 +1,13 @@
-<article data-sblg-article="1" data-sblg-tags="tutorial">
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
 	<header>
-		<h2>
+		<h2 itemprop="name">
 			Getting Started with CGI in C
 		</h2>
-		<address><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
-		<time datetime="2015-06-21">21 June, 2015</time>
+		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2015-06-21">21 June, 2015</time>
 	</header>
 	<p>
-		<aside>
+		<aside itemprop="about">
 			This tutorial describes a typical CGI example using <span class="nm">kcgi</span>.
 			In it, I'll process HTML form input with two named fields, <code>string</code> (a non-empty, unbounded string) and
 			<code>integer</code>, a signed 64-bit integer.
@@ -20,7 +20,20 @@
 		Source Code
 	</h3>
 	<p>
-		First, I'll assign the fields we're interested in to numeric identifiers.
+		I'll describe this as if reading a source file from top to bottom.
+		To wit, let's start with the header files.
+		We'll obviously need <span class="nm">kcgi</span> and <span class="file">stdint.h</span>, which is necessary for some types
+		found in the header file.
+		I'll also include the HTML library for <span class="nm">kcgi</span>&#8212;I'll explain why later.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;kcgi.h&gt;
+#include &lt;kcgihtml.h&gt;</pre>
+	</figure>
+	<p>
+		Next, I'll assign the fields we're interested in to numeric identifiers.
 		This will allow us later to assign names, then assign validators to named fields.
 	</p>
 	<figure class="sample">
@@ -200,5 +213,53 @@ const char *const pages[PAGE__MAX] = {
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint lang-sh linenums">% cc -static -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgi -lz</pre>
+	</figure>
+	<h3>
+		Install
+	</h3>
+	<p>
+		Installation steps depends on your operating system, web server, and a thousand other factors.
+		I'll stick with the simplest installation using the defaults of <a href="http://www.openbsd.org">OpenBSD</a> with the default
+		web server <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
+		To begin with, configure <span class="file">/etc/httpd.conf</span> with your server's root being in <span
+			class="file">/var/www</span> and FastCGI being in <span class="file">/var/www/cgi-bin</span>.
+		If you've already done this, or have a configuration file in place, you won't need to do this.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">server "me.local" {
+  listen on * port 80
+  root "/htdocs"
+  location "/cgi-bin/*" {
+    fastcgi
+    root "/"
+  }
+}</pre>
+	</figure>
+	<p>
+		Next, we use the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/rcctl.8">rcctl(8)</a> tool to enable and
+		start the the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> webserver and
+		<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/slowcgi.8">slowcgi(8)</a> wrapper.
+		(The latter is necessary because <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> only
+		directly supports FastCGI, so a proxy is necessary.)
+		Again, you may not need to do this part.
+		We also make sure the instructions on the main page are followed regarding OpenBSD sandboxing in the file-system jail.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% sudo mkdir -p /var/www/dev
+% (cd /var/www/dev ; sudo sh /dev/MAKEDEV systrace)
+% sudo rcctl enable httpd
+% sudo rcctl start httpd
+% sudo rcctl check httpd
+httpd(ok)
+% sudo rcctl enable slowcgi
+% sudo rcctl start slowcgi
+% sudo rcctl check slowcgi
+slowcgi(ok)</pre>
+	</figure>
+	<p>
+		Assuming we built the static binary, we can now just install into the CGI directory and be ready to go!
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% sudo install -m 0555 tutorial0.cgi /var/www/cgi-bin</pre>
 	</figure>
 </article>
