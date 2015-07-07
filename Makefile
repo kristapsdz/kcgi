@@ -62,6 +62,7 @@ TESTS 		 = test-memmem.c \
       		   test-strlcat.c \
       		   test-strlcpy.c \
       		   test-strtonum.c \
+      		   test-seccomp-filter.c \
       		   test-systrace.c \
       		   test-zlib.c
 MANS		 = man/kcgi.3 \
@@ -284,6 +285,7 @@ clean:
 	rm -f test-memmem test-memmem.o 
 	rm -f test-reallocarray test-reallocarray.o 
 	rm -f test-sandbox_init test-sandbox_init.o
+	rm -f test-seccomp-filter test-seccomp-filter.o
 	rm -f test-strlcat test-strlcat.o
 	rm -f test-strlcpy test-strlcpy.o
 	rm -f test-strtonum test-strtonum.o
