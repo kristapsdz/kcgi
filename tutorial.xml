@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<meta charset='utf-8' /> 
+		<title>kcgi | ${sblg-titletext}</title>
+		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="index.css" type="text/css" />
+	</head>
+	<body>
+		<header>
+			<section id="header">
+				<h1>
+					<a href="index.html" class="nm">kcgi</a> 
+					&#8211; 
+					<span itemprop="description" class="nd">minimal CGI library in C</span>
+				</h1>
+				<nav>
+					Version @VERSION@
+					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
+					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				</nav>
+			</section>
+		</header>
+		<article data-sblg-article="1" data-sblg-permlink="0">
+		</article>
+		<div id="permlink">
+			<a href="${sblg-url}"><i class="fa fa-link"></i>Permanent link</a> to this article.
+		</div>
+		<footer>
+			<div>&#169; 2014&#8211;2015 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>
+				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
+				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
+			</div>
+		</footer>
+	</body>
+</html>

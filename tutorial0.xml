@@ -1,0 +1,204 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial">
+	<header>
+		<h2>
+			Getting Started with CGI in C
+		</h2>
+		<address><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time datetime="2015-06-21">21 June, 2015</time>
+	</header>
+	<p>
+		<aside>
+			This tutorial describes a typical CGI example using <span class="nm">kcgi</span>.
+			In it, I'll process HTML form input with two named fields, <code>string</code> (a non-empty, unbounded string) and
+			<code>integer</code>, a signed 64-bit integer.
+			I'll then output the input within a simple HTML page.
+			The tutorial will be laid out in code snippets, which I'll put together at the end.
+			I'll then follow with compilation instructions.
+		</aside>
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		First, I'll assign the fields we're interested in to numeric identifiers.
+		This will allow us later to assign names, then assign validators to named fields.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum key {
+  KEY_STRING,
+  KEY_INTEGER,
+  KEY__MAX
+};</pre>
+	</figure>
+	<p>
+		The enumeration will allow us to bound an array to <code>KEY__MAX</code> and refer to individual buckets in the array by the
+		enumeration value.
+		I'll assume that <code>KEY_STRING</code> is assigned 0 and <code>KEY_INTEGER</code>, 1.
+	</p>
+	<p>
+		Next, connect the indices with validation functions and names.
+		The validation function is run by <a href="khttp_parse.3.html">khttp_parse(3)</a>; the name is the HTML form name for the given
+		element.
+		Built-in validation functions, which we'll use, are described in <a href="kvalid_string.3.html">kvalid_string(3)</a>.
+		In this example, <code>kvalid_stringne</code> will validate a non-empty (nil-terminated) C string, while <code>kvalid_int</code>
+		will validate a signed 64-bit integer.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static const struct kvalid keys[KEY__MAX] = {
+  { kvalid_stringne, "string" }, /* KEY_STRING */
+  { kvalid_int, "integer" }, /* KEY_INTEGER */
+};</pre>
+	</figure>
+	<p>
+		Next, I define a function that acts upon the parsed fields.
+		According to <a href="khttp_parse.3.html">khttp_parse(3)</a>, if a valid value is found, it is assigned into the
+		<code>fieldmap</code> array.
+		If one was found but did not validate, it is assigned into the <code>fieldnmap</code> array.
+		Both of these are indexed by the array position in <code>keys</code>.
+		(We could also have run the <code>fields</code> list, but that's for chumps.)
+	</p>
+	<p>
+		In this trivial example, the function emits the string values if found or indicates that they're not
+		found (or not valid).
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static void process(struct kreq *r) {
+  struct kpair *p;
+  khttp_puts(r, "&lt;p&gt;\n");
+  khttp_puts(r, "The string value is ");
+  if ((p = r->fieldmap[KEY_STRING]))
+    khttp_puts(r, p->parsed.s);
+  else if (r->fieldnmap[KEY_STRING])
+    khttp_puts(r, "&lt;i&gt;failed parse&lt;i/&gt;");
+  else 
+    khttp_puts(r, "&lt;i&gt;not provided&lt;i/&gt;");
+  khttp_puts(r, "&lt;/p&gt;\n");
+}</pre>
+	</figure>
+	<p>
+		As is, this routine introduces a significant problem: if the <code>KEY_STRING</code> value consists of HTML, it will be inserted
+		directly into the stream, allowing attackers to use <a href="https://en.wikipedia.org/wiki/Cross-site_scripting">XSS</a>.
+		Instead, let's use the <a href="kcgihtml.3.html">kcgihtml(3)</a> library to perform the proper encoding and element nesting.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static void process_safe(struct kreq *r) {
+  struct kpair *p;
+  struct khtmlreq req;
+  khtml_open(&amp;req, r);
+  khtml_elem(&amp;req, KELEM_P);
+  khtml_puts(&amp;req, "The string value is ");
+  if ((p = r->fieldmap[KEY_STRING])) {
+    khtml_puts(&amp;req, p->parsed.s);
+  } else if (r->fieldnmap[KEY_STRING]) {
+    khtml_elem(&amp;req, KELEM_I);
+    khtml_puts(&amp;req, "failed parse");
+  } else {
+    khtml_elem(&amp;req, KELEM_I);
+    khtml_puts(&amp;req, "not provided");
+  }
+  khtml_close(&amp;req);
+}</pre>
+	</figure>
+	<p>
+		Before doing any parsing, I sanitise the HTTP context.
+		This consists of the page requested, MIME type, HTTP method, and so on.
+	</p>
+	<p>
+		To begin, I provide an array of indexed page identifiers&#8212;similarly as I did for the field validator and name.
+		This will also be passed to <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+		These define the page requests accepted by the application, in this case being only <code>index</code>, which I'll also set to
+		be the default page when invoked without a path (i.e., just <code>http://www.foo.com</code>).
+		<strong>Note</strong>: this is the first path component, so specifying <code>index</code> will also accept
+		<code>index/foo</code>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum page {
+  PAGE_INDEX,
+  PAGE__MAX
+};
+const char *const pages[PAGE__MAX] = {
+  "index", /* PAGE_INDEX */
+};</pre>
+	</figure>
+	<p>
+		Now, I validate the page request and HTTP context based upon the defined components.
+		This function checks the page request (it must be <code>index</code> without a subpath), HTML MIME type (expanding to
+		<code>index.html</code>), and HTTP method (it must be an HTTP <code>GET</code>, such as <code>index.html?string=foo</code>).
+		To keep things reasonable, I'll have the sanitiser return an HTTP error code (see <a
+			href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">RFC 2616</a> for an explanation).
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
+  if (PAGE_INDEX != r->page)
+    return(KHTTP_404);
+  else if (NULL != r->path)
+    return(KHTTP_404);
+  else if (KMIME_TEXT_HTML != r->mime)
+    return(KHTTP_404);
+  else if (KMETHOD_GET != r->method)
+    return(KHTTP_405);
+
+  return(KHTTP_200);
+}</pre> 
+	</figure>
+	<p>
+		Putting all of these together: parse the HTTP context, validate it, process it, then free the resources.
+		Headers are output using <a href="khttp_head.3.html">khttp_head(3)</a>, with the document body started
+		with <a href="khttp_body.3.html">khttp_body(3)</a>.
+		The HTTP context is closed with <a href="khttp_free.3.html">khttp_free(3)</a>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">int main(void) {
+  struct kreq r;
+  enum khttp er;
+  if (KCGI_OK != khttp_parse(&amp;r, keys, KEY__MAX,
+      pages, PAGE__MAX, PAGE_INDEX))  
+    return(EXIT_FAILURE);
+  if (KHTTP_200 != (er = sanitise(&amp;r))) {
+    khttp_head(&amp;r, kresps[KRESP_STATUS],
+      "%s", khttps[er]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
+      "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    if (KMIME_TEXT_HTML == r.mime)
+      khttp_puts(&amp;r, "Could not service request.");
+  } else {
+    khttp_head(&amp;r, kresps[KRESP_STATUS],
+      "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
+      "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    process_safe(&amp;r);
+  }
+  khttp_free(&amp;r);
+  return(EXIT_SUCCESS);
+};</pre>
+	</figure>
+	<p>
+		That's it!
+	</p>
+	<h3>
+		Compile and Link
+	</h3>
+	<p>
+		Your source is no good til it's compiled and linked into an executable.
+		In this section I'll mention two strategies: the first is where the application is dynamically linked; in the second,
+		statically.
+		Dynamic linking is normal for most applications, but CGI applications are often placed in a file-system jail (a chroot(2))
+		without access to other libraries, and are thus statically linked.
+		In short, it depends on your environment.
+		Let's call our application <code>tutorial0.cgi</code> and the source file, <code>tutorial0.c</code>.
+		I assume <span class="nm">kcgi</span> has been installed into <code>/usr/local</code> and is being linked with zlib(3).
+		To dynamically link:
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% cc -I/usr/local/include -c -o tutorial0.o tutorial0.c
+% cc -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgi -lz</pre>
+	</figure>
+	<p>
+		For static linking, which is the norm in more sophisticated systems like OpenBSD:
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% cc -static -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgi -lz</pre>
+	</figure>
+</article>

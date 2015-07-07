@@ -42,11 +42,11 @@
 				</nav>
 			</section>
 			<section id="version">
-				<nav data-sblg-nav="1" data-sblg-navsz="1" data-sblg-navcontent="1" id="nolongnews">
+				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1" id="nolongnews">
 					<div>Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
 					<div>${sblg-aside}</div>
 				</nav>
-				<nav data-sblg-nav="1" data-sblg-navcontent="1" id="longnews">
+				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navcontent="1" id="longnews">
 					<div>Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
 					<div>${sblg-aside}</div>
 				</nav>
@@ -176,138 +176,14 @@ int main(void) {
 					Usage
 				</h2>
 				<p>
-					While this section describes a fairly typical setup, you'll want to read <a
-						href="kcgi.3.html">kcgi(3)</a> and related for a fuller description.
-					The most relevant component of <span class="nm">kcgi</span> is input parsing, described in <a
-						href="khttp_parse.3.html">khttp_parse(3)</a>.
-					All key-value pairs are parsed from input, as are non-key-value message bodies.
-					Consider a sample application that wishes to process two named HTML fields, <code>string</code> (being a
-					non-empty string) and <code>integer</code>, a signed integer.
-					First, assign these fields to numeric identifiers.
-					This simplifies later access of the field values.
+					The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
+					canonical source of documentation.  
+					The following are introductory materials to the system.
 				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">enum key {
-  KEY_STRING,
-  KEY_INTEGER,
-  KEY__MAX
-};</pre>
-				</figure>
-				<p>
-					Next, connect the indices with validation functions and names.
-					The validation function is run when the value is parsed; the name is the HTML form name for the given
-					element.
-					Validation applies to cookies as well as form and query-string data.
-					You can provide your own validation functions instead of using the stock <span class="nm">kcgi</span>
-					ones described in <a href="kvalid_string.3.html">kvalid_string(3)</a>, of course.
-					An empty string for the name will be applied to non-key-value message bodies.
-				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">const struct kvalid keys[KEY__MAX] = {
-  { kvalid_stringne, "string" }, 
-  { kvalid_int, "integer" }, 
-};</pre>
-				</figure>
-				<p>
-					Next, define a function that acts upon parsed fields.
-					Note that this is <q>application logic</q>, and thus constitutes only an example: each application will
-					handle its input differently.
-					For simplicity, I focus only on the <code>string</code> input.
-					If the value is found, it is assigned into the <code>fieldmap</code> array.
-					If it was found but did not validate, it is assigned into the <code>fieldnmap</code> array.
-					In this trivial example, the function emits the string values if found or indicates that they're not
-					found (or not valid).
-					There can be multiple inputs matching the same name, such as for HTML checkboxes.
-				</p>
-				<p>
-					Beyond directly writing to the HTTP document with <a href="khttp_write.3.html">khttp_write(3)</a> and
-					templating with <a href="khttp_template.3.html">khttp_template(3)</a>, <span class="nm">kcgi</span>
-					provides the <a href="kcgihtml.3.html">kcgihtml(3)</a>, <a href="kcgijson.3.html">kcgijson(3)</a>, and
-					<a href="kcgixml.3.html">kcgixml(3)</a> libraries for media-specific output functions.  
-					These are intended only for the simplest use: complex applications will probably use their own.
-				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">void process(struct kreq *r) {
-  struct kpair *p;
-  khttp_puts(r, "string = ");
-  if ((p = r->fieldmap[KEY_STRING]))
-    khttp_puts(r, p->parsed.s);
-  else if (r->fieldnmap[KEY_STRING])
-    khttp_puts(r, "failed parse");
-  else 
-    khttp_puts(r, "not provided");
-}</pre>
-				</figure>
-				<p>
-					Before doing any parsing, sanitise the HTTP context.
-					To begin, I provide an array of indexed page identifiers.
-					These define the page requests accepted by the application, in this case being only
-					<code>/index.html</code>.
-				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">enum page {
-  PAGE_INDEX,
-  PAGE__MAX
-};
-const char *const pages[PAGE__MAX] = {
-  "index",
-};</pre>
-				</figure>
-				<p>
-					Now, validate the page request and HTTP context based upon pre-parsed components.
-					This function checks the page request (it must be <code>/index</code>), MIME type (expanding to
-					<code>/index.html</code>), and HTTP method (it must be an HTTP <code>GET</code>, such as
-					<code>/index.html?string=foo</code>).
-				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">int sanitise(struct kreq *r) {
-  if (PAGE_INDEX != r->page)
-    return(0);
-  else if (KMIME_TEXT_HTML != r->mime)
-    return(0);
-  return (KMETHOD_GET == r->method);
-}</pre> 
-				</figure>
-				<p>
-					Putting all of these together, parse the HTTP context, validate it, process it, then free the resources.
-					This simple example emits an HTTP 404 error regardless of the cause.
-					In reality, this will switch on HTTP 405 for unsupported methods and empty output for non-text media.
-					Headers are output using <a href="khttp_head.3.html">khttp_head(3)</a>, with the document body started
-					with <a href="khttp_body.3.html">khttp_body(3)</a>.
-					The HTTP context is closed with <a href="khttp_free.3.html">khttp_free(3)</a>.
-				</p>
-				<figure class="sample">
-					<pre class="prettyprint linenums">int main(void) {
-  struct kreq r;
-  if (KCGI_OK != khttp_parse(&amp;r, keys, KEY__MAX,
-      pages, PAGE__MAX, PAGE_INDEX))  
-    return(EXIT_FAILURE);
-  if ( ! sanitise(&amp;r)) {
-    khttp_head(&amp;r, kresps[KRESP_STATUS],
-      "%s", khttps[KHTTP_404]);
-    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
-      "%s", kmimetypes[r.mime]);
-    khttp_body(&amp;r);
-    khttp_puts(&amp;r, "Page not found.");
-  } else {
-    khttp_head(&amp;r, kresps[KRESP_STATUS],
-      "%s", khttps[KHTTP_200]);
-    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
-      "%s", kmimetypes[r.mime]);
-    khttp_body(&amp;r);
-    process(&amp;r);
-  }
-  khttp_free(&amp;r);
-  return(EXIT_SUCCESS);
-};</pre>
-				</figure>
-				<p>
-					Usually, web applications for HTML content will use the page and input maps quite heavily, switching on
-					the page requested (which is usually known beforehand) and data sent along with the page.
-					CMS-style web applications will not parse the page identifier, leaving that to a database lookup.
-					Moreover, while HTML applications can generally disregard the HTTP method, a DAV implementation will
-					focus much more on the method itself.
-				</p>
+				<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1">
+					<h3><a href="${sblg-base}.html">${sblg-titletext}</a></h3>
+					${sblg-aside}
+				</nav>
 			</section>
 			<section id="features">
 				<h2>
@@ -471,12 +347,12 @@ const char *const pages[PAGE__MAX] = {
 			</section>
 		</article>
 		<footer>
-			<div>&#169; 2014 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2015 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
-				<i class="fa fa-clock-o"></i> $Date$
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
 	</body>
