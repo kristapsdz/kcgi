@@ -64,7 +64,11 @@
 #include "extern.h"
 
 /* Linux seccomp_filter sandbox */
-#define SECCOMP_FILTER_FAIL SECCOMP_RET_TRAP
+#ifdef SECCOMP_SECCOMP_DEBUG
+# define SECCOMP_FILTER_FAIL SECCOMP_RET_TRAP
+#else
+# define SECCOMP_FILTER_FAIL SECCOMP_RET_KILL
+#endif
 
 /* Simple helpers to avoid manual errors (but larger BPF programs). */
 #define SC_DENY(_nr, _errno) \
@@ -126,6 +130,43 @@ static const struct sock_fprog preauth_program = {
 	.filter = (struct sock_filter *)preauth_insns,
 };
 
+#ifdef SANDBOX_SECCOMP_DEBUG
+void mm_log_handler(LogLevel level, const char *msg, void *ctx);
+
+static void
+ssh_sandbox_violation(int signum, 
+	siginfo_t *info, void *void_context)
+{
+
+	fprintf(stderr, 
+		"%s: unexpected system call "
+		"(arch:0x%x,syscall:%d @ %p)\n",
+		__func__, info->si_arch, 
+		info->si_syscall, info->si_call_addr);
+	_exit(1);
+}
+
+static void
+ssh_sandbox_child_debugging(void)
+{
+	struct sigaction act;
+	sigset_t mask;
+
+	memset(&act, 0, sizeof(act));
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGSYS);
+
+	act.sa_sigaction = &ssh_sandbox_violation;
+	act.sa_flags = SA_SIGINFO;
+	if (sigaction(SIGSYS, &act, NULL) == -1)
+		fprintf(stderr, "%s: sigaction(SIGSYS): %s\n", 
+			__func__, strerror(errno));
+	if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+		fprintf(stderr, "%s: sigprocmask(SIGSYS): %s\n",
+			__func__, strerror(errno));
+}
+#endif /* SANDBOX_SECCOMP_DEBUG */
+
 int
 ksandbox_seccomp_init_child(void *arg)
 {
@@ -140,6 +181,10 @@ ksandbox_seccomp_init_child(void *arg)
 		XWARN("setrlimit(RLIMIT_NOFILE)");
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_NPROC)");
+
+#ifdef SANDBOX_SECCOMP_DEBUG
+	ssh_sandbox_child_debugging();
+#endif 
 
 	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == -1) {
 		XWARN("prctl(PR_SET_NO_NEW_PRIVS)");
