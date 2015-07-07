@@ -41,6 +41,7 @@ LIBOBJS 	 = child.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
 		   sandbox-darwin.o \
+		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
 		   worker.o \
 		   wrappers.o

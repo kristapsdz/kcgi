@@ -1,5 +1,6 @@
 #include <sys/prctl.h>
 #include <linux/seccomp.h>
+#include <errno.h>
 
 int
 main(void)
