@@ -6,11 +6,16 @@
 	</header>
 	<aside>
 		<div>
-			Import initial Linux seccomp filter.
-			Now that Linux, FreeBSD, Darwin, and OpenBSD have
-			sandboxes enabled, require that a sandbox exist in order to compile.
-			(You can disable the compiler error, but at your own risk!)
-			While here, allow for compilation on musl.
+			Import initial Linux <a href="http://man7.org/linux/man-pages/man2/seccomp.2.html">seccomp(2)</a> (via <a
+				href="http://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a>) sandbox!
+			This uses the implementation of <a href="http://www.openssh.com/">OpenSSH</a>, tweaked to work within the <span
+				class="nm">kcgi</span> framework.
+			For now, it only allows arm, i386, and x86_64: if you're using another architecture, please let me know your <code>uname -m</code>, 
+			as the sandbox (ridiculously) needs to know the system architecture.
+			(Better yet: also send me the relevant <code>AUDIT_ARCH_xxx</code> from <code>/usr/include/linux/audit.h</code>.)
+			While here, allow for compilation on <a href="http://www.musl-libc.org/">musl</a>.
+			I've also moved the tutorial into a separate file and fleshed it out a little.
+			I'll probably add more tutorials in time.
 		</div>
 	</aside>
 </article>

@@ -2,7 +2,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-#STATIC 		 = -static
+STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -28,7 +28,7 @@ TUTORIALHTMLS	 = tutorial0.html
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.5.9
+VERSION 	 = 0.6
 LIBOBJS 	 = child.o \
 		   httpauth.o \
 		   kcgi.o \
