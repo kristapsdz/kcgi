@@ -67,7 +67,8 @@ figure				{ margin: 0;
 				  color: #444; }
 figcaption span			{ font-weight: bolder; }
 dd				{ margin: 0 0 1em 0; }
-#permlink 			{ color: #888; }
+#permlink 			{ color: #888; 
+				  margin-top: 1em; }
 #permlink a			{ color: #444; }
 #permlink a:hover		{ color: #111; }
 .sample				{ text-align: left; }
