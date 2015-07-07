@@ -17,12 +17,12 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include <sys/poll.h>
 
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stddef.h>
