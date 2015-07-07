@@ -39,10 +39,17 @@ kvalid_abort(struct kpair *kp)
 {
 	int	 fd;
 
+	fprintf(stderr, "Trying to break sandbox...\n");
 	fd = open(_PATH_DEVNULL, O_RDONLY, 0);
-	if (-1 != fd)
+	if (-1 != fd) {
+		fprintf(stderr, "Sandbox broken!?\n");
 		close(fd);
-	return(EPERM != errno);
+	} else {
+		perror(_PATH_DEVNULL);
+		fprintf(stderr, "Sandbox (might?) be intact.\n");
+	}
+
+	return(1);
 }
 
 static int
@@ -53,9 +60,9 @@ child(void)
 	const char 	*page[] = { "index" };
 
 	if (KCGI_OK != khttp_parse(&r, &key, 1, page, 1, 0))
-		return(1);
+		return(0);
 	khttp_free(&r);
-	return(0);
+	return(1);
 }
 
 int

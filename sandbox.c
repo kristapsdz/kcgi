@@ -115,5 +115,8 @@ ksandbox_init_child(void *arg, int fd)
 #elif defined(HAVE_SYSTRACE)
 	if ( ! ksandbox_systrace_init_child(arg))
 		XWARNX("systrace sandbox failed (child)");
+#elif defined(HAVE_SECCOMP_FILTER)
+	if ( ! ksandbox_seccomp_init_child(arg))
+		XWARNX("systrace sandbox failed (child)");
 #endif
 }
