@@ -176,6 +176,10 @@ ksandbox_seccomp_init_child(void *arg)
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_FSIZE)");
 #if 0
+	/*
+	 * Don't do like OpenSSH: we need to pass stuff back and forth
+	 * over pipes, and this will prevent that from happening.
+	 */
 	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
 		XWARN("setrlimit(RLIMIT_NOFILE)");
 #endif

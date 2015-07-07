@@ -56,11 +56,10 @@
 		<article>
 			<section id="intro">
 				<p>
-					<span class="nm">kcgi</span> is a minimal CGI library for web applications in <a
-						href="http://opensource.org/licenses/ISC" rel="license">ISC licensed</a> ISO C.  
-					It was designed to be secure and auditable.
-					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>,
-					which links to the canonical manpage documentation.
+					<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
+						source</a> CGI library for C web applications.
+					It is minimal, secure, and auditable.
+					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
 				</p>
@@ -164,11 +163,9 @@ int main(void) {
 					file and the output of the failed compilation.
 					If you're running on an operating system with an unsupported sandbox, let me know and we can work
 					together to fit it into the configuration and portability layer.
-					<strong>
-						If you're running on Linux, you're not being sandboxed.
-					</strong>
-					<span class="nm">kcgi</span> doesn't yet have support for seccomp.
-					<i>Please</i> contact me if you can give me access to a server to do so.
+					Lastly, I'd love to compile with <a href="http://www.mingw.org/">mingw</a> for Microsoft machines:
+					please contact me if you can do the small amount of work (I think?) to port the <code>poll(2)</code> and
+					other non-Microsoft functions.
 				</p>
 			</section>
 			<section id="usage">
