@@ -245,6 +245,9 @@ int main(void) {
 					<dd>
 						This requires a fairly new kernel (&#x2265;Linux 3.5).
 						It is supplemented by <code>setrlimit(2)</code> limiting.
+						For the time being, this feature is only available for x86, x86_64, and arm architectures.
+						If you're using another one, please send me your <code>uname -m</code> and, if you know if it,
+						the correct <code>AUDIT_ARCH_xxx</code> found in <code>/usr/include/linux/audit.h</code>.
 					</dd>
 					<dt>
 						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
@@ -276,8 +279,9 @@ int main(void) {
 				</dl>
 				<p>
 					Since validation occurs within the sandbox, special care must be taken that validation routines don't
-					access the environment (e.g., by opening files, network connections, etc.), as the child will be
-					abruptly killed by the sandbox facility.
+					access the environment (e.g., by opening files, network connections, etc.), as the child
+					<strong>might</strong> be abruptly killed by the sandbox facility.
+					(Not all sandboxes do this.)
 					If required, this kind of validation can take place after the parse validation sequence.
 				</p>
 			</section>
