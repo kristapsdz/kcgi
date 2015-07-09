@@ -22,7 +22,8 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5_7.xml \
 		   version_0_5_8.xml \
 		   version_0_5_9.xml \
-		   version_0_6.xml
+		   version_0_6.xml \
+		   version_0_6_1.xml
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml
 TUTORIALHTMLS	 = tutorial0.html \
@@ -30,7 +31,7 @@ TUTORIALHTMLS	 = tutorial0.html \
 MANDIR 	 	 = $(PREFIX)/man/man3
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.6
+VERSION 	 = 0.6.1
 LIBOBJS 	 = child.o \
 		   httpauth.o \
 		   kcgi.o \
