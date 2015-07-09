@@ -108,6 +108,7 @@ SRCS 		 = child.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
      		   sandbox-darwin.c \
+     		   sandbox-seccomp-filter.c \
      		   sandbox-systrace.c \
 		   worker.c \
      		   wrappers.c \
