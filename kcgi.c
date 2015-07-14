@@ -892,7 +892,7 @@ khttp_free(struct kreq *req)
 {
 
 #ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
+	if (NULL != req->kdata && NULL != req->kdata->gz)
 		gzclose(req->kdata->gz);
 	else
 #endif
