@@ -33,6 +33,7 @@ LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.6.1
 LIBOBJS 	 = child.o \
+		   fcgi.o \
 		   httpauth.o \
 		   kcgi.o \
 		   compat-memmem.o \
@@ -151,7 +152,7 @@ SVGS		 = figure1.svg \
 		   figure2.png \
 		   figure3.png
 
-all: libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
+all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
 afl: $(AFL)
 
@@ -161,6 +162,9 @@ regress: $(REGRESS)
 		./$$f >/dev/null 2>/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
 		/bin/echo "ok" ; \
 	done
+
+kfcgi: kfcgi.c
+	$(CC) $(CFLAGS) -o $@ kfcgi.c
 
 regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
@@ -298,7 +302,7 @@ kcgi.tgz:
 	gnuplot $<
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample.o
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample.o kfcgi
 	rm -f index.html $(TUTORIALHTMLS)
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o

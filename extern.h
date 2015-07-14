@@ -20,6 +20,9 @@
 /*
  * A worker extracts the HTTP document body and passes parsed key-value
  * pairs (and environment data) via the "sock".
+ * If control has a positive value, the data is being passed by a
+ * FastCGI socket, and the child should act accordingly.
+ * Otherwise, it uses "input".
  * It's sandboxed with a configuration specified by "sand", which is
  * operating-system specific (e.g., systrace, capsicum).
  */
@@ -27,6 +30,7 @@ struct	kworker {
 #define	KWORKER_READ	 1
 #define	KWORKER_WRITE	 0
 	int	 	 sock[2];
+	int		 control[2];
 	pid_t		 pid;
 	void		*sand;
 	int		 input;
@@ -50,6 +54,9 @@ __BEGIN_DECLS
 enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(const struct kworker *, 
+			const struct kvalid *, size_t, 
+			const char *const *, size_t);
+void	 	 kworker_fcgi_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
 void		 kworker_auth_child(int, const char *);
@@ -80,6 +87,7 @@ void	 	 kworker_prep_child(struct kworker *);
 void	 	 kworker_prep_parent(struct kworker *);
 void	 	 kworker_free(struct kworker *);
 enum kcgi_err	 kworker_init(struct kworker *);
+enum kcgi_err	 kworker_fcgi_init(struct kworker *);
 void		 kworker_kill(struct kworker *);
 enum kcgi_err	 kworker_close(struct kworker *);
 
