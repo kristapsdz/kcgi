@@ -49,6 +49,17 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
+struct 	fcgihdr {
+	unsigned char version;
+	unsigned char type;
+	unsigned char requestIdB1;
+	unsigned char requestIdB0;
+	unsigned char contentLengthB1;
+	unsigned char contentLengthB0;
+	unsigned char paddingLength;
+	unsigned char reserved;
+};
+
 struct	parms {
 	int	 		 fd;
 	const char *const	*mimes;
@@ -1077,4 +1088,42 @@ kworker_child(const struct kworker *work,
 	pp.type = IN_COOKIE;
 	if (NULL != (cp = getenv("HTTP_COOKIE")))
 		parse_pairs_urlenc(&pp, cp);
+}
+
+void
+kworker_fcgi_child(const struct kworker *work, 
+	const struct kvalid *keys, size_t keysz, 
+	const char *const *mimes, size_t mimesz)
+{
+	struct parms	 pp;
+	struct fcgihdr	 hdr;
+	const size_t	 hdrsz = 8;
+	int		 rc;
+	enum kcgi_err	 er;
+
+	pp.fd = work->sock[KWORKER_WRITE];
+	pp.keys = keys;
+	pp.keysz = keysz;
+	pp.mimes = mimes;
+	pp.mimesz = mimesz;
+
+	assert(sizeof(hdr) >= hdrsz);
+
+	for (;;) {
+		rc = fullread
+			(work->control[KWORKER_READ],
+			 &hdr, hdrsz, 1, &er);
+		if (rc < 0) {
+			XWARNX("fullread: fcgi header");
+			return;
+		} else if (rc == 0)
+			return;
+		if (1 != hdr.version) {
+			XWARNX("bad fastcgi header version");
+			return;
+		} else if (1 != hdr.type) {
+			XWARNX("bad fastcgi initial header type");
+			return;
+		}
+	}
 }

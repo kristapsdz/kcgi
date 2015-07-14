@@ -36,6 +36,17 @@
 #include "extern.h"
 
 enum kcgi_err
+kworker_fcgi_init(struct kworker *p)
+{
+	enum kcgi_err	 er;
+
+	if (KCGI_OK != (er = kworker_init(p)))
+		return(er);
+	p->input = -1;
+	return(xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->control));
+}
+
+enum kcgi_err
 kworker_init(struct kworker *p)
 {
 	size_t		 i;
@@ -46,6 +57,8 @@ kworker_init(struct kworker *p)
 	memset(p, 0, sizeof(struct kworker));
 	p->pid = -1;
 	p->sock[0] = p->sock[1] = -1;
+	p->control[0] = p->control[1] = -1;
+	p->input = STDIN_FILENO;
 
 	/* Allocate the communication sockets. */
 	er = xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->sock);
@@ -81,6 +94,10 @@ kworker_free(struct kworker *p)
 		close(p->sock[1]);
 	if (-1 != p->input)
 		close(p->input);
+	if (-1 != p->control[0])
+		close(p->control[0]);
+	if (-1 != p->control[1])
+		close(p->control[1]);
 	ksandbox_free(p->sand);
 }
 
@@ -90,6 +107,10 @@ kworker_prep_child(struct kworker *p)
 
 	close(p->sock[KWORKER_READ]);
 	p->sock[KWORKER_READ] = -1;
+	if (-1 != p->control[KWORKER_WRITE]) {
+		close(p->control[KWORKER_WRITE]);
+		p->control[KWORKER_WRITE] = -1;
+	}
 	ksandbox_init_child(p->sand, p->sock[KWORKER_WRITE]);
 }
 
@@ -99,6 +120,10 @@ kworker_prep_parent(struct kworker *p)
 
 	close(p->sock[KWORKER_WRITE]);
 	p->sock[KWORKER_WRITE] = -1;
+	if (-1 != p->control[KWORKER_READ]) {
+		close(p->control[KWORKER_READ]);
+		p->control[KWORKER_READ] = -1;
+	}
 	ksandbox_init_parent(p->sand, p->pid);
 	close(p->input);
 	p->input = -1;

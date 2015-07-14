@@ -415,6 +415,8 @@ struct	ktemplate {
 enum	kcgi_err {
 	KCGI_OK = 0,
 	/* ENOMEM (fork, malloc, etc.). */
+	KCGI_HUP,
+	/* FastCGI request to exit. */
 	KCGI_ENOMEM,
 	/* ENFILE or EMFILE (fd ops). */
 	KCGI_ENFILE,
