@@ -699,7 +699,6 @@ khttp_parsex(struct kreq *req,
 
 	if (KCGI_OK != (kerr = kworker_init(&work)))
 		return(kerr);
-	work.input = STDIN_FILENO;
 
 	if (-1 == (work.pid = fork())) {
 		er = errno;
