@@ -2,7 +2,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-#STATIC 		 = -static
+STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -94,6 +94,7 @@ SRCS 		 = child.c \
      		   compat-strlcpy.c \
      		   compat-strtonum.c \
      		   extern.h \
+		   fcgi.c \
 		   httpauth.c \
      		   kcgi.c \
      		   kcgihtml.c \
@@ -105,8 +106,10 @@ SRCS 		 = child.c \
 		   kcgijson.h \
 		   kcgiregress.h \
 		   kcgixml.h \
+		   kfcgi.c \
 		   parent.c \
      		   sample.c \
+     		   sample-fcgi.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
      		   sandbox-darwin.c \
@@ -155,6 +158,8 @@ SVGS		 = figure1.svg \
 all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
 afl: $(AFL)
+
+samples: all sample sample-fcgi
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -225,7 +230,7 @@ libkcgixml.a: kcgixml.o
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
 
-$(LIBOBJS) sample.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
+$(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 
@@ -233,9 +238,10 @@ config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
 	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
 
-installcgi: sample 
+installcgi: sample  sample-fcgi
 	install -m 0755 sample $(PREFIX)/sample.cgi
-	install -m 0755 sample $(PREFIX)
+	install -m 0755 sample-fcgi $(PREFIX)/sample-fcgi.cgi
+	install -m 0755 sample sample-fcgi $(PREFIX)
 	install -m 0444 template.xml $(PREFIX)
 
 install: all
@@ -246,11 +252,14 @@ install: all
 	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a $(DESTDIR)$(LIBDIR)
 	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MANS) $(DESTDIR)$(MANDIR)
-	install -m 0444 template.xml sample.c $(DESTDIR)$(DATADIR)
+	install -m 0444 template.xml sample.c sample-fcgi.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
 
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
+
+sample-fcgi: sample-fcgi.o libkcgi.a 
+	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a -lz
 
 www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS)
 
@@ -258,6 +267,7 @@ installwww: www
 	mkdir -p $(PREFIX)/snapshots
 	install -m 0444 index.html index.css $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
+	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
 	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
@@ -266,6 +276,7 @@ updatewww: www
 	mkdir -p $(PREFIX)
 	install -m 0444 index.html index.css $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
+	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 
 index.html: index.xml $(VERSIONS) $(TUTORIALHTMLS)
 	sblg -t index.xml -o- $(VERSIONS) $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
@@ -302,7 +313,7 @@ kcgi.tgz:
 	gnuplot $<
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample.o kfcgi
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi
 	rm -f index.html $(TUTORIALHTMLS)
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o

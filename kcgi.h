@@ -314,6 +314,7 @@ struct	kpair {
 };
 
 struct	kreq; /* forward declaration */
+struct	kfcgi;
 
 struct	kvalid {
 	int		(*valid)(struct kpair *kp);
@@ -415,9 +416,9 @@ struct	ktemplate {
 enum	kcgi_err {
 	KCGI_OK = 0,
 	/* ENOMEM (fork, malloc, etc.). */
-	KCGI_HUP,
-	/* FastCGI request to exit. */
 	KCGI_ENOMEM,
+	/* FastCGI request to exit. */
+	KCGI_HUP,
 	/* ENFILE or EMFILE (fd ops). */
 	KCGI_ENFILE,
 	/* EAGAIN (fork). */
@@ -466,6 +467,19 @@ int		 kvalid_string(struct kpair *);
 int		 kvalid_stringne(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
+
+enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *, 
+			const char *const *, size_t, size_t);
+enum kcgi_err	 khttp_fcgi_parsex(struct kfcgi *, struct kreq *, 
+			const struct kmimemap *, 
+			const char *const *, size_t,
+			size_t, size_t, void *);
+enum kcgi_err	 khttp_fcgi_init(struct kfcgi **, 
+			const struct kvalid *, size_t);
+enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **, 
+			const char *const *, size_t,
+			const struct kvalid *, size_t);
+enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *);

@@ -94,6 +94,7 @@ enum kcgi_err	 kworker_close(struct kworker *);
 void		 fullwrite(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);
+int		 fulldiscard(int, size_t, enum kcgi_err *);
 enum kcgi_err	 fullreadword(int, char **);
 
 /*

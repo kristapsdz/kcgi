@@ -97,6 +97,8 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	size_t	 	 i;
 	enum kcgi_err	 er;
 
+	fprintf(stderr, "%s: freeing\n", __func__);
+
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
 
@@ -115,15 +117,19 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 }
 
 enum kcgi_err
-khttp_fcgi_initx(struct kfcgi *fcgi, 
+khttp_fcgi_initx(struct kfcgi **fcgip, 
 	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz)
 {
 	enum kcgi_err	 kerr;
+	struct kfcgi	*fcgi;
 	int 		 er;
 	size_t		 i;
 
-	memset(fcgi, 0, sizeof(struct kfcgi));
+	if (NULL == (fcgi = XCALLOC(1, sizeof(struct kfcgi))))
+		return(KCGI_ENOMEM);
+	*fcgip = fcgi;
+	fcgi->curfd = -1;
 
 	fprintf(stderr, "%s: starting up\n", __func__);
 
@@ -172,7 +178,7 @@ err:
 }
 
 enum kcgi_err
-khttp_fcgi_init(struct kfcgi *fcgi, 
+khttp_fcgi_init(struct kfcgi **fcgi, 
 	const struct kvalid *keys, size_t keysz)
 {
 
@@ -183,8 +189,6 @@ khttp_fcgi_init(struct kfcgi *fcgi,
 enum kcgi_err
 khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req, 
 	const struct kmimemap *suffixmap, 
-	const char *const *mimes, size_t mimesz,
-	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defmime, size_t defpage, void *arg)
 {
@@ -243,7 +247,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			/* Read to roll... */
 			break;
 		} else if (POLLIN != pfd[0].revents) {
-			XWARN("poll: bad events");
+			XWARNX("poll: bad events");
 			return(KCGI_SYSTEM);
 		} else if ((ssz = read(fd, buf, BUFSIZ)) < 0) {
 			XWARN("read: control socket");
@@ -257,23 +261,27 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	}
 
 	req->arg = arg;
-	req->keys = keys;
-	req->keysz = keysz;
+	req->keys = fcgi->keys;
+	req->keysz = fcgi->keysz;
 	/*req->kdata = XCALLOC(1, sizeof(struct kdata));
 	if (NULL == req->kdata)
 		goto err;*/
 
-	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->cookiemap)
+	req->cookiemap = XCALLOC
+		(fcgi->keysz, sizeof(struct kpair *));
+	if (fcgi->keysz && NULL == req->cookiemap)
 		goto err;
-	req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->cookienmap)
+	req->cookienmap = XCALLOC
+		(fcgi->keysz, sizeof(struct kpair *));
+	if (fcgi->keysz && NULL == req->cookienmap)
 		goto err;
-	req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->fieldmap)
+	req->fieldmap = XCALLOC
+		(fcgi->keysz, sizeof(struct kpair *));
+	if (fcgi->keysz && NULL == req->fieldmap)
 		goto err;
-	req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->fieldnmap)
+	req->fieldnmap = XCALLOC
+		(fcgi->keysz, sizeof(struct kpair *));
+	if (fcgi->keysz && NULL == req->fieldnmap)
 		goto err;
 
 #if 0
@@ -322,7 +330,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			}
 		 /* Could not find this mime type! */
 		if (NULL == mm->name)
-			req->mime = mimesz;
+			req->mime = fcgi->mimesz;
 	}
 
 	return(kerr);
@@ -334,12 +342,10 @@ err:
 
 enum kcgi_err
 khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req, 
-	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defpage)
 {
 
 	return(khttp_fcgi_parsex(fcgi, req, ksuffixmap, 
-		kmimetypes, KMIME__MAX, keys, keysz, pages, 
-		pagesz, KMIME_TEXT_HTML, defpage, NULL));
+		pages, pagesz, KMIME_TEXT_HTML, defpage, NULL));
 }
