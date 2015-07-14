@@ -16,7 +16,9 @@
  */
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 
 #include <errno.h>
 #include <getopt.h>
@@ -25,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 struct	fcgi {
 	pid_t	 	 pid;
@@ -83,6 +86,7 @@ main(int argc, char *argv[])
 	struct pollfd		 pfd;
 	socklen_t		 slen;
 	struct sockaddr_storage	 ss;
+	mode_t			 old_umask;
 
 	rc = EXIT_FAILURE;
 
@@ -165,12 +169,14 @@ main(int argc, char *argv[])
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror("socket");
 		goto out;
-	} else if (unlink(sockpath) == -1 && errno != ENOENT) {
+	} else if (-1 == unlink(sockpath)) {
 		perror(sockpath);
 		goto out;
-	} 
+	}
 
-	fprintf(stderr, "%s: connected to %s\n", pname, sockpath);
+	old_umask = umask(S_IXUSR|S_IXGRP|S_IXOTH|S_IXOTH);
+
+	fprintf(stderr, "%s: connecting to %s\n", pname, sockpath);
 	
 	/* 
 	 * Now actually bind to the FastCGI socket, set up our
@@ -180,13 +186,19 @@ main(int argc, char *argv[])
 	if (-1 == bind(fd, (struct sockaddr *)&sun, sizeof(sun))) {
 		perror("bind");
 		goto out;
-	} else if (-1 == ioctl(fd, FIONBIO, &on)) {
+	}
+
+	umask(old_umask);
+
+	if (-1 == ioctl(fd, FIONBIO, &on)) {
 		perror("ioctl");
 		goto out;
 	} else if (-1 == listen(fd, wsz)) {
 		perror("listen");
 		goto out;
 	}
+
+	fprintf(stderr, "%s: connected to %s\n", pname, sockpath);
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
