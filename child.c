@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <poll.h>
 #include <stdarg.h>
@@ -49,15 +50,19 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
-struct 	fcgihdr {
-	unsigned char version;
-	unsigned char type;
-	unsigned char requestIdB1;
-	unsigned char requestIdB0;
-	unsigned char contentLengthB1;
-	unsigned char contentLengthB0;
-	unsigned char paddingLength;
-	unsigned char reserved;
+struct 	fcgi_hdr {
+	uint8_t	 version;
+	uint8_t	 type;
+	uint16_t requestId;
+	uint16_t contentLength;
+	uint8_t	 paddingLength;
+	uint8_t	 reserved;
+};
+
+struct	fcgi_bgn {
+	uint16_t role;
+	uint8_t	 flags;
+	uint8_t	 res[5];
 };
 
 struct	parms {
@@ -838,6 +843,7 @@ parse_multi(const struct kworker *work,
  * of network data to parse input.
  * When it parses a field, it outputs the key, key size, value, and
  * value size along with the field type.
+ * We use the CGI specification in RFC 3875.
  */
 void
 kworker_child(const struct kworker *work, 
@@ -1090,16 +1096,120 @@ kworker_child(const struct kworker *work,
 		parse_pairs_urlenc(&pp, cp);
 }
 
+/*
+ * Read the FastCGI header (see section 8, Types and Contents,
+ * FCGI_Header, in the FastCGI Specification v1.0).
+ * Return zero if have data, non-zero on success.
+ */
+static struct fcgi_hdr *
+kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
+{
+	enum kcgi_err	 er;
+	struct fcgi_hdr	*ptr;
+	int		 rc;
+
+	if ((rc = fullread(fd, buf, 8, 1, &er)) < 0) {
+		XWARNX("failed read fcgi header");
+		return(NULL);
+	} else if (rc == 0)
+		return(NULL);
+
+	ptr = (struct fcgi_hdr *)buf;
+
+	hdr->version = ptr->version;
+	hdr->type = ptr->type;
+	hdr->requestId = ntohs(ptr->requestId);
+	hdr->contentLength = ntohs(ptr->contentLength);
+	hdr->paddingLength = ntohs(ptr->paddingLength);
+	if (1 != hdr->version) {
+		XWARNX("bad fastcgi header version");
+		return(NULL);
+	}
+	fprintf(stderr, "%s: version: %" PRIu8 "\n", 
+		__func__, hdr->version);
+	fprintf(stderr, "%s: type: %" PRIu8 "\n", 
+		__func__, hdr->type);
+	fprintf(stderr, "%s: id: %" PRIu8 "\n", 
+		__func__, hdr->requestId);
+	fprintf(stderr, "%s: content-length: %" PRIu16 "\n", 
+		__func__, hdr->contentLength);
+	fprintf(stderr, "%s: padding-length: %" PRIu16 "\n", 
+		__func__, hdr->paddingLength);
+	return(hdr);
+}
+
+static int
+kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
+	unsigned char **buf, size_t *bufmaxsz)
+{
+	void		*ptr;
+	enum kcgi_err	 er;
+
+	if (hdr->contentLength > *bufmaxsz) {
+		*bufmaxsz = hdr->contentLength;
+		if (NULL == (ptr = XREALLOC(*buf, *bufmaxsz)))
+			return(0);
+		*buf = ptr;
+	}
+	return(fullread(fd, *buf, hdr->contentLength, 0, &er));
+
+}
+
+static struct fcgi_bgn *
+kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
+	unsigned char **b, size_t *bsz)
+{
+	struct fcgi_hdr	*hdr, realhdr;
+	struct fcgi_bgn	*ptr;
+	enum kcgi_err	 er;
+
+	assert(*bsz >= 8);
+	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
+		return(NULL);
+
+	if (1 != hdr->type) {
+		XWARNX("bad fastcgi initial header type");
+		return(NULL);
+	} else if ( ! kworker_fcgi_content(fd, hdr, b, bsz)) {
+		XWARNX("failed read fcgi begin");
+		return(NULL);
+	}
+
+	ptr = (struct fcgi_bgn *)*b;
+	bgn->role = ntohs(ptr->role);
+	bgn->flags = ptr->flags;
+
+	fprintf(stderr, "%s: role: %" PRIu16 "\n", 
+		__func__, bgn->role);
+	fprintf(stderr, "%s: flags: %" PRIu8 "\n", 
+		__func__, bgn->flags);
+
+	if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
+		XWARNX("failed discard fcgi begin pad");
+		return(NULL);
+	}
+	return(bgn);
+}
+
+/*
+ * This is executed by the untrusted child for FastCGI setups.
+ * Throughout, we follow the FastCGI specification, version 1.0, 29
+ * April 1996.
+ */
 void
 kworker_fcgi_child(const struct kworker *work, 
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz)
 {
-	struct parms	 pp;
-	struct fcgihdr	 hdr;
-	const size_t	 hdrsz = 8;
-	int		 rc;
-	enum kcgi_err	 er;
+	struct parms 	 pp;
+	struct fcgi_hdr	*hdr, realhdr;
+	struct fcgi_bgn	*bgn, realbgn;
+	unsigned char	*buf;
+	size_t		 bsz;
+
+	bsz = 8;
+	if (NULL == (buf = XMALLOC(bsz)))
+		return;
 
 	pp.fd = work->sock[KWORKER_WRITE];
 	pp.keys = keys;
@@ -1107,23 +1217,35 @@ kworker_fcgi_child(const struct kworker *work,
 	pp.mimes = mimes;
 	pp.mimesz = mimesz;
 
-	assert(sizeof(hdr) >= hdrsz);
-
+	/*
+	 * Loop over all incoming sequences to this particular slave.
+	 * Sequences must consist of a single FastCGI session as defined
+	 * in the FastCGI version 1.0 reference document.
+	 */
 	for (;;) {
-		rc = fullread
-			(work->control[KWORKER_READ],
-			 &hdr, hdrsz, 1, &er);
-		if (rc < 0) {
-			XWARNX("fullread: fcgi header");
-			return;
-		} else if (rc == 0)
-			return;
-		if (1 != hdr.version) {
-			XWARNX("bad fastcgi header version");
-			return;
-		} else if (1 != hdr.type) {
-			XWARNX("bad fastcgi initial header type");
-			return;
+		bgn = kworker_fcgi_begin
+			(work->sock[KWORKER_READ],
+			 &realbgn, &buf, &bsz);
+		if (NULL == bgn)
+			break;
+
+		/*
+		 * Now read one or more parameters.
+		 * We'll first read them all at once, then parse the
+		 * headers in the content one by one.
+		 */
+		for (;;) {
+			hdr = kworker_fcgi_header
+				(work->sock[KWORKER_READ],
+				 &realhdr, buf);
+			if (NULL == hdr)
+				break;
+			if (4 != hdr->type)
+				break;
 		}
+		if (NULL == hdr)
+			break;
 	}
+
+	free(buf);
 }
