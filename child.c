@@ -50,6 +50,13 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
+struct	env {
+	char	*key;
+	size_t	 keysz;
+	char	*val;
+	size_t	 valsz;
+};
+
 struct 	fcgi_hdr {
 	uint8_t	 version;
 	uint8_t	 type;
@@ -1111,8 +1118,10 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	if ((rc = fullread(fd, buf, 8, 1, &er)) < 0) {
 		XWARNX("failed read fcgi header");
 		return(NULL);
-	} else if (rc == 0)
+	} else if (rc == 0) {
+		XWARNX("end of fcgi headers");
 		return(NULL);
+	}
 
 	ptr = (struct fcgi_hdr *)buf;
 
@@ -1191,6 +1200,143 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	return(bgn);
 }
 
+static int
+kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
+	unsigned char **bp, size_t *bsz, 
+	unsigned char **sbp, size_t *ssz)
+{
+	enum kcgi_err	 er;
+	void		*ptr;
+
+	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
+		XWARNX("failed read fcgi params");
+		return(-1);
+	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
+		XWARNX("failed discard fcgi params pad");
+		return(-1);
+	} else if (0 == hdr->contentLength)
+		return(0);
+
+	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
+	if (NULL == ptr)
+		return(-1);
+	*sbp = ptr;
+	memcpy(*sbp, *bp, hdr->contentLength);
+	(*sbp)[*ssz + hdr->contentLength] = '\0';
+	*ssz += hdr->contentLength;
+
+	fprintf(stderr, "%s: data: %" PRIu16 " bytes", 
+		__func__, hdr->contentLength);
+	return(1);
+}
+
+static int
+kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
+	unsigned char **bp, size_t *bsz,
+	struct env **envs, size_t *envsz, size_t *envmaxsz)
+{
+	size_t	 	 i, remain, pos, keysz, valsz;
+	unsigned char	*b;
+	enum kcgi_err	 er;
+	void		*ptr;
+
+	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
+		XWARNX("failed read fcgi params");
+		return(0);
+	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
+		XWARNX("failed discard fcgi params pad");
+		return(0);
+	}
+
+	b = *bp;
+	remain = hdr->contentLength;
+	pos = 0;
+	while (remain > 0) {
+		assert(pos < hdr->contentLength);
+		if (0 != b[pos] >> 7) {
+			if (remain > 3) {
+				keysz = ((b[pos] & 0x7f) << 24) + 
+					  (b[pos + 1] << 16) + 
+					  (b[pos + 2] << 8) + 
+					   b[pos + 3];
+				pos += 4;
+				remain -= 4;
+			} else {
+				XWARNX("invalid fcgi params");
+				return(0);
+			}
+		} else {
+			keysz = b[pos];
+			pos++;
+			remain--;
+		}
+		if (remain < 1) {
+			XWARNX("invalid fcgi params");
+			return(0);
+		}
+		assert(pos < hdr->contentLength);
+		if (0 != b[pos] >> 7) {
+			if (remain > 3) {
+				valsz = ((b[pos] & 0x7f) << 24) + 
+					  (b[pos + 1] << 16) + 
+					  (b[pos + 2] << 8) + 
+					   b[pos + 3];
+				pos += 4;
+				remain -= 4;
+			} else {
+				XWARNX("invalid fcgi params");
+				return(0);
+			}
+		} else {
+			valsz = b[pos];
+			pos++;
+			remain--;
+		}
+		if (pos + keysz + valsz > hdr->contentLength) {
+			XWARNX("invalid fcgi params");
+			return(0);
+		}
+		remain -= keysz;
+		remain -= valsz;
+		for (i = 0; i < *envsz; i++) {
+			if ((*envs)[i].keysz != keysz)
+				continue;
+			if (0 == memcmp((*envs)[i].key, &b[pos], keysz))
+				break;
+		}
+
+		if (i == *envsz) {
+			ptr = XREALLOCARRAY
+				(*envs, *envsz + 1, 
+				 sizeof(struct env));
+			if (NULL == ptr)
+				return(0);
+			*envs = ptr;
+			(*envs)[i].key = XMALLOC(keysz + 1);
+			if (NULL == (*envs)[i].key)
+				return(0);
+			memcpy((*envs)[i].key, &b[pos], keysz);
+			(*envs)[i].key[keysz] = '\0';
+			(*envs)[i].keysz = keysz;
+			(*envsz)++;
+		} else
+			free((*envs)[i].val);
+
+		pos += keysz;
+
+		(*envs)[i].val = XMALLOC(valsz + 1);
+		if (NULL == (*envs)[i].val)
+			return(0);
+		memcpy((*envs)[i].val, &b[pos], valsz);
+		(*envs)[i].val[valsz] = '\0';
+		(*envs)[i].valsz = valsz;
+		pos += valsz;
+		fprintf(stderr, "%s: params: %s=%s\n", 
+			__func__, (*envs)[i].key, (*envs)[i].val);
+	}
+	return(1);
+}
+
 /*
  * This is executed by the untrusted child for FastCGI setups.
  * Throughout, we follow the FastCGI specification, version 1.0, 29
@@ -1204,9 +1350,14 @@ kworker_fcgi_child(const struct kworker *work,
 	struct parms 	 pp;
 	struct fcgi_hdr	*hdr, realhdr;
 	struct fcgi_bgn	*bgn, realbgn;
-	unsigned char	*buf;
-	size_t		 bsz;
+	unsigned char	*buf, *sbuf;
+	struct env	*envs;
+	size_t		 i, bsz, ssz, envsz, envmaxsz;
+	int		 rc;
 
+	sbuf = NULL;
+	envmaxsz = 0;
+	envs = NULL;
 	bsz = 8;
 	if (NULL == (buf = XMALLOC(bsz)))
 		return;
@@ -1223,8 +1374,11 @@ kworker_fcgi_child(const struct kworker *work,
 	 * in the FastCGI version 1.0 reference document.
 	 */
 	for (;;) {
+		free(sbuf);
+		ssz = 0;
+		fprintf(stderr, "%s: new sequence\n", __func__);
 		bgn = kworker_fcgi_begin
-			(work->sock[KWORKER_READ],
+			(work->control[KWORKER_READ],
 			 &realbgn, &buf, &bsz);
 		if (NULL == bgn)
 			break;
@@ -1234,18 +1388,65 @@ kworker_fcgi_child(const struct kworker *work,
 		 * We'll first read them all at once, then parse the
 		 * headers in the content one by one.
 		 */
+		envsz = 0;
 		for (;;) {
 			hdr = kworker_fcgi_header
-				(work->sock[KWORKER_READ],
+				(work->control[KWORKER_READ],
 				 &realhdr, buf);
 			if (NULL == hdr)
 				break;
 			if (4 != hdr->type)
 				break;
+			if (kworker_fcgi_params
+				(work->control[KWORKER_READ],
+				 hdr, &buf, &bsz,
+				 &envs, &envsz, &envmaxsz))
+				continue;
+			hdr = NULL;
+			break;
 		}
 		if (NULL == hdr)
 			break;
+
+		if (5 != hdr->type) {
+			XWARNX("unknown fcgi header type");
+			break;
+		}
+
+		/*
+		 * Lastly, we want to process the stdin content.
+		 * These will end with a single zero-length record.
+		 * Keep looping til we've flushed all input.
+		 */
+		for (rc = 0;;) {
+			rc = kworker_fcgi_stdin
+				(work->control[KWORKER_READ],
+				 hdr, &buf, &bsz, &sbuf, &ssz);
+			if (0 == rc)
+				break;
+			hdr = kworker_fcgi_header
+				(work->control[KWORKER_READ],
+				 &realhdr, buf);
+			if (NULL == hdr)
+				break;
+			if (5 == hdr->type) 
+				continue;
+			XWARNX("unknown fcgi header type");
+			hdr = NULL;
+			break;
+		}
+		if (rc < 0 || NULL == hdr)
+			break;
+
+		fprintf(stderr, "%s: finished sequence\n", __func__);
 	}
 
+	for (i = 0; i < envmaxsz; i++) {
+		free(envs[i].key);
+		free(envs[i].val);
+	}
+
+	free(sbuf);
 	free(buf);
+	free(envs);
 }
