@@ -234,6 +234,8 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 		goto out;
 	}
 
+	fprintf(stderr, "%s: moopy>>\n", __func__);
+
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
 		/*
 		 * We have a parsed field from the child process.
@@ -253,6 +255,8 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 
 		*kpp = kp;
 	}
+
+	fprintf(stderr, "%s: moopy<<\n", __func__);
 
 	if (rc < 0)
 		goto out;

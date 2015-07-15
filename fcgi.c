@@ -307,11 +307,15 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 		req->port = strtonum(cp, 0, 80, NULL);
 #endif
 
+	fprintf(stderr, "%s: reading....\n", __func__);
+
 	kerr = kworker_parent
 		(fcgi->work.sock[KWORKER_READ], 
 		 req, fcgi->work.pid);
 	if (KCGI_OK != kerr)
 		goto err;
+
+	fprintf(stderr, "%s: data read\n", __func__);
 
 	/* Look up page type from component. */
 	req->page = defpage;
