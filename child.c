@@ -1340,6 +1340,7 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 		XWARNX("bad FastCGI header version");
 		return(NULL);
 	}
+#if 0
 	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n", 
 		__func__, hdr->version);
 	fprintf(stderr, "%s: DEBUG type: %" PRIu8 "\n", 
@@ -1350,6 +1351,7 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 		__func__, hdr->contentLength);
 	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n", 
 		__func__, hdr->paddingLength);
+#endif
 	return(hdr);
 }
 
@@ -1410,11 +1412,12 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	ptr = (struct fcgi_bgn *)*b;
 	bgn->role = ntohs(ptr->role);
 	bgn->flags = ptr->flags;
-
+#if 0
 	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n", 
 		__func__, bgn->role);
 	fprintf(stderr, "%s: DEBUG flags: %" PRIu8 "\n", 
 		__func__, bgn->flags);
+#endif
 	return(bgn);
 }
 
@@ -1453,8 +1456,10 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	memcpy(*sbp, *bp, hdr->contentLength);
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
+#if 0
 	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n", 
 		__func__, hdr->contentLength);
+#endif
 	return(hdr->contentLength > 0);
 }
 
@@ -1465,7 +1470,7 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 static int
 kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	unsigned char **bp, size_t *bsz,
-	struct env **envs, size_t *envsz, size_t *envmaxsz)
+	struct env **envs, size_t *envsz)
 {
 	size_t	 	 i, remain, pos, keysz, valsz;
 	unsigned char	*b;
@@ -1575,8 +1580,10 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		(*envs)[i].val[valsz] = '\0';
 		(*envs)[i].valsz = valsz;
 		pos += valsz;
+#if 0
 		fprintf(stderr, "%s: DEBUG: params: %s=%s\n", 
 			__func__, (*envs)[i].key, (*envs)[i].val);
+#endif
 	}
 	return(1);
 }
@@ -1597,12 +1604,13 @@ kworker_fcgi_child(const struct kworker *work,
 	unsigned char	*buf, *sbuf;
 	struct env	*envs;
 	uint16_t	 rid;
-	size_t		 i, bsz, ssz, envsz, envmaxsz;
+	size_t		 i, bsz, ssz, envsz;
 	int		 wfd, rc;
 	enum kmethod	 meth;
 
 	sbuf = NULL;
-	envmaxsz = 0;
+	ssz = 0;
+	envsz = 0;
 	envs = NULL;
 	bsz = 8;
 	if (NULL == (buf = XMALLOC(bsz)))
@@ -1620,9 +1628,18 @@ kworker_fcgi_child(const struct kworker *work,
 	 * in the FastCGI version 1.0 reference document.
 	 */
 	for (;;) {
+		/* Clear all memory. */
 		free(sbuf);
 		sbuf = NULL;
 		ssz = 0;
+		for (i = 0; i < envsz; i++) {
+			free(envs[i].key);
+			free(envs[i].val);
+		}
+		free(envs);
+		envs = NULL;
+		envsz = 0;
+
 		fprintf(stderr, "%s: DEBUG: sequence wait\n", __func__);
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],
@@ -1653,7 +1670,7 @@ kworker_fcgi_child(const struct kworker *work,
 			if (kworker_fcgi_params
 				(work->control[KWORKER_READ],
 				 hdr, &buf, &bsz,
-				 &envs, &envsz, &envmaxsz))
+				 &envs, &envsz))
 				continue;
 			hdr = NULL;
 			break;
@@ -1711,7 +1728,6 @@ kworker_fcgi_child(const struct kworker *work,
 		kworker_child_scheme(envs, wfd, envsz);
 		kworker_child_remote(envs, wfd, envsz);
 		kworker_child_path(envs, wfd, envsz);
-
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
@@ -1726,11 +1742,10 @@ kworker_fcgi_child(const struct kworker *work,
 
 	fprintf(stderr, "%s: DEBUG: tearing down\n", __func__);
 
-	for (i = 0; i < envmaxsz; i++) {
+	for (i = 0; i < envsz; i++) {
 		free(envs[i].key);
 		free(envs[i].val);
 	}
-
 	free(sbuf);
 	free(buf);
 	free(envs);
