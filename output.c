@@ -48,12 +48,40 @@ enum	kstate {
  * This is used for managing HTTP compression.
  */
 struct	kdata {
-	int		 fcgi;
+	int		 fcgi; /* file descriptor or -1 */
+	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
 #ifdef	HAVE_ZLIB
 	gzFile		 gz;
 #endif
 };
+
+static void
+fcgi_write(const struct kdata *p, const char *buf, size_t sz)
+{
+	uint8_t	 version, type, reserved, paddingLength;
+	uint16_t requestId, contentLength;
+	size_t	 rsz;
+
+	while (sz > 0) {
+		version = 1;
+		type = 6;
+		reserved = 0;
+		paddingLength = 0;
+		requestId = htons(p->requestId);
+		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
+		contentLength = htons(rsz);
+		write(p->fcgi, &version, sizeof(uint8_t));
+		write(p->fcgi, &type, sizeof(uint8_t));
+		write(p->fcgi, &requestId, sizeof(uint16_t));
+		write(p->fcgi, &contentLength, sizeof(uint16_t));
+		write(p->fcgi, &paddingLength, sizeof(uint8_t));
+		write(p->fcgi, &reserved, sizeof(uint8_t));
+		write(p->fcgi, buf, rsz);
+		sz -= rsz;
+		buf += rsz;
+	}
+}
 
 void
 khttp_write(struct kreq *req, const char *buf, size_t sz)
@@ -62,11 +90,15 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);
 #ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
+	if (NULL != req->kdata->gz) {
 		gzwrite(req->kdata->gz, buf, sz);
-	else 
+		return;
+	}
 #endif
+	if (-1 == req->kdata->fcgi) 
 		fwrite(buf, 1, sz, stdout);
+	else
+		fcgi_write(req->kdata, buf, sz);
 }
 
 void
@@ -76,40 +108,60 @@ khttp_puts(struct kreq *req, const char *cp)
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);
 #ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
+	if (NULL != req->kdata->gz) {
 		gzputs(req->kdata->gz, cp);
-	else 
+		return;
+	}
 #endif
+	if (-1 == req->kdata->fcgi) 
 		fputs(cp, stdout);
+	else
+		fcgi_write(req->kdata, cp, strlen(cp));
 }
 
 void
 khttp_putc(struct kreq *req, int c)
 {
+	unsigned char	cc = c;
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);
 #ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
+	if (NULL != req->kdata->gz) {
 		gzputc(req->kdata->gz, c);
-	else 
+		return;
+	}
 #endif
+	if (-1 == req->kdata->fcgi) 
 		putchar(c);
+	else
+		fcgi_write(req->kdata, &cc, 1);
 }
 
 void
 khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 {
 	va_list	 ap;
+	char	 buf[BUFSIZ];
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_HEAD == req->kdata->state);
 
-	printf("%s: ", key);
-	va_start(ap, fmt);
-	vprintf(fmt, ap);
-	printf("\r\n");
-	va_end(ap);
+	if (-1 == req->kdata->fcgi) {
+		printf("%s: ", key);
+		va_start(ap, fmt);
+		vprintf(fmt, ap);
+		va_end(ap);
+		printf("\r\n");
+	} else {
+		fcgi_write(req->kdata, key, strlen(key));
+		fcgi_write(req->kdata, ": ", 2);
+		va_start(ap, fmt);
+		vsnprintf(buf, sizeof(buf), fmt, ap);
+		va_end(ap);
+		fcgi_write(req->kdata, buf, strlen(buf));
+		fcgi_write(req->kdata, "\r\n", 2);
+	}
 }
 
 /*
@@ -117,25 +169,65 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
  * We accept the file descriptor for the FastCGI stream, if there's any.
  */
 struct kdata *
-kdata_alloc(int fcgi)
+kdata_alloc(int fcgi, uint16_t requestId)
 {
 	struct kdata	*p;
 
-	if (NULL != (p = XCALLOC(1, sizeof(struct kdata))))
-		p->fcgi = fcgi;
+	if (NULL == (p = XCALLOC(1, sizeof(struct kdata))))
+		return(NULL);
+
+	p->fcgi = fcgi;
+	p->requestId = requestId;
 	return(p);
 }
 
 void
 kdata_free(struct kdata *p, int flush)
 {
+	uint8_t	 version, type, reserved, paddingLength,
+		 protocolStatus, reservedbuf[3];
+	uint16_t requestId, contentLength;
+	uint32_t appStatus;
 
 #ifdef HAVE_ZLIB
 	if (NULL != p->gz)
 		gzclose(p->gz);
 #endif
-	if (flush)
-		fflush(stdout);
+	if (flush) {
+		if (-1 != p->fcgi) {
+			version = 1;
+			type = 3;
+			reserved = 0;
+			paddingLength = 0;
+			protocolStatus = 0;
+			reservedbuf[0] =
+			 	reservedbuf[1] =
+			 	reservedbuf[2] = 0;
+			requestId = htons(p->requestId);
+			contentLength = htons(8);
+			appStatus = htonl(EXIT_SUCCESS);
+			write(p->fcgi, &version, sizeof(uint8_t));
+			write(p->fcgi, &type, sizeof(uint8_t));
+			write(p->fcgi, &requestId, sizeof(uint16_t));
+			write(p->fcgi, &contentLength, sizeof(uint16_t));
+			write(p->fcgi, &paddingLength, sizeof(uint8_t));
+			write(p->fcgi, &reserved, sizeof(uint8_t));
+			write(p->fcgi, &appStatus, sizeof(uint32_t));
+			write(p->fcgi, &protocolStatus, sizeof(uint8_t));
+			write(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
+			close(p->fcgi);
+			p->fcgi = -1;
+		} else
+			fflush(stdout);
+	} else {
+		if (-1 != p->fcgi) {
+			close(p->fcgi);
+			p->fcgi = -1;
+		} else {
+			close(STDOUT_FILENO);
+			close(STDIN_FILENO);
+		}
+	}
 	free(p);
 }
 
@@ -172,7 +264,12 @@ kdata_body(struct kdata *p)
 {
 
 	assert(p->state == KSTATE_HEAD);
-	fputs("\r\n", stdout);
-	fflush(stdout);
+
+	if (-1 == p->fcgi) {
+		fputs("\r\n", stdout);
+		fflush(stdout);
+	} else
+		fcgi_write(p, "\r\n", 2);
+
 	p->state = KSTATE_BODY;
 }

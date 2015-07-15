@@ -239,6 +239,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s: dead child\n", pname);
 			goto out;
 		}
+		close(nfd);
 		total++;
 	}
 
