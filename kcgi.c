@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,9 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_ZLIB
-#include <zlib.h>
-#endif
 
 #include "kcgi.h"
 #include "extern.h"
@@ -47,29 +44,6 @@
  * Maximum size of printing a signed 64-bit integer.
  */
 #define	INT_MAXSZ	 22
-
-/*
- * The state of our HTTP response.
- * We can be in KSTATE_HEAD, where we're printing HTTP headers; or
- * KSTATE_BODY, where we're printing the body parts.
- * So if we try to print a header when we're supposed to be in the body,
- * this will be caught.
- */
-enum	kstate {
-	KSTATE_HEAD = 0,
-	KSTATE_BODY
-};
-
-/*
- * Interior data.
- * This is used for managing HTTP compression.
- */
-struct	kdata {
-	enum kstate	 state;
-#ifdef	HAVE_ZLIB
-	gzFile		 gz;
-#endif
-};
 
 const char *const kschemes[KSCHEME__MAX] = {
 	"aaa", /* KSCHEME_AAA */
@@ -312,42 +286,6 @@ const char *const ksuffixes[KMIME__MAX] = {
  * Name of executing CGI script.
  */
 const char	*pname = NULL;
-
-void
-khttp_write(struct kreq *req, const char *buf, size_t sz)
-{
-
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
-		gzwrite(req->kdata->gz, buf, sz);
-	else 
-#endif
-		fwrite(buf, 1, sz, stdout);
-}
-
-void
-khttp_puts(struct kreq *req, const char *cp)
-{
-
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
-		gzputs(req->kdata->gz, cp);
-	else 
-#endif
-		fputs(cp, stdout);
-}
-
-void
-khttp_putc(struct kreq *req, int c)
-{
-
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
-		gzputc(req->kdata->gz, c);
-	else 
-#endif
-		putchar(c);
-}
 
 static int
 khttp_templatex_write(const char *dat, size_t sz, void *arg)
@@ -644,7 +582,6 @@ kreq_free(struct kreq *req)
 	free(req->cookienmap);
 	free(req->fieldmap);
 	free(req->fieldnmap);
-	free(req->kdata);
 	free(req->suffix);
 	free(req->pagename);
 	free(req->pname);
@@ -729,7 +666,7 @@ khttp_parsex(struct kreq *req,
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
-	req->kdata = XCALLOC(1, sizeof(struct kdata));
+	req->kdata = kdata_alloc(-1);
 	if (NULL == req->kdata)
 		goto err;
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
@@ -876,42 +813,23 @@ void
 khttp_child_free(struct kreq *req)
 {
 
+	/* 
+	 * Close the file descriptors beforehand.
+	 * This way, any stray buffered data that's written won't make
+	 * it to the actual output device.
+	 */
 	close(STDOUT_FILENO);
 	close(STDIN_FILENO);
-
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz)
-		gzclose(req->kdata->gz);
-#endif
+	kdata_free(req->kdata, 0);
 	kreq_free(req);
 }
-
 
 void
 khttp_free(struct kreq *req)
 {
 
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata && NULL != req->kdata->gz)
-		gzclose(req->kdata->gz);
-	else
-#endif
-		fflush(stdout);
+	kdata_free(req->kdata, 1);
 	kreq_free(req);
-}
-
-void
-khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
-{
-	va_list	 ap;
-
-	assert(KSTATE_HEAD == req->kdata->state);
-
-	printf("%s: ", key);
-	va_start(ap, fmt);
-	vprintf(fmt, ap);
-	printf("\r\n");
-	va_end(ap);
 }
 
 int
@@ -927,7 +845,6 @@ khttp_body_compress(struct kreq *req, int comp)
 	int	 	 didcomp, hasreq;
 	const char	*cp;
 
-	assert(KSTATE_HEAD == req->kdata->state);
 	didcomp = 0;
 	/*
 	 * First determine if the request wants HTTP compression.
@@ -957,13 +874,8 @@ khttp_body_compress(struct kreq *req, int comp)
 	 * Enable compression if the function argument is zero or if
 	 * it's >0 and the request headers have been set for it.
 	 */
-	if (0 == comp || (comp > 0 && hasreq)) {
-		req->kdata->gz = gzdopen
-			(STDOUT_FILENO, "w");
-		didcomp = NULL != req->kdata->gz;
-		if (NULL == req->kdata->gz)
-			XWARN("gzdopen");
-	}
+	if (0 == comp || (comp > 0 && hasreq))
+		didcomp = kdata_compress(req->kdata);
 	/* 
 	 * Only set the header if we're autocompressing and opening of
 	 * the compression stream did not fail.
@@ -973,9 +885,7 @@ khttp_body_compress(struct kreq *req, int comp)
 			kresps[KRESP_CONTENT_ENCODING], 
 			"%s", "gzip");
 #endif
-	fputs("\r\n", stdout);
-	fflush(stdout);
-	req->kdata->state = KSTATE_BODY;
+	kdata_body(req->kdata);
 	return(didcomp);
 }
 
@@ -1185,7 +1095,6 @@ khttp_template_buf(struct kreq *req,
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
 
-	assert(KSTATE_BODY == req->kdata->state);
 	return(khttp_templatex_buf(t, buf, sz, khttp_templatex_write, req));
 }
 
@@ -1255,7 +1164,6 @@ khttp_template(struct kreq *req,
 	const struct ktemplate *t, const char *fname)
 {
 
-	assert(KSTATE_BODY == req->kdata->state);
 	return(khttp_templatex(t, fname, khttp_templatex_write, req));
 }
 

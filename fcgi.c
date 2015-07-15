@@ -263,10 +263,8 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	req->arg = arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	/*req->kdata = XCALLOC(1, sizeof(struct kdata));
-	if (NULL == req->kdata)
-		goto err;*/
-
+	if (NULL == (req->kdata = kdata_alloc(fd)))
+		goto err;
 	req->cookiemap = XCALLOC
 		(fcgi->keysz, sizeof(struct kpair *));
 	if (fcgi->keysz && NULL == req->cookiemap)
