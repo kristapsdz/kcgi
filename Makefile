@@ -28,7 +28,8 @@ TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml
 TUTORIALHTMLS	 = tutorial0.html \
 		   tutorial1.html
-MANDIR 	 	 = $(PREFIX)/man/man3
+MAN3DIR	 	 = $(PREFIX)/man/man3
+MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.6.1
@@ -55,6 +56,7 @@ HTMLS		 = man/kcgi.3.html \
 		   man/kcgijson.3.html \
 		   man/kcgixml.3.html \
 		   man/kcgi_regress.3.html \
+		   man/kfcgi.8.html \
 		   man/khttp_body.3.html \
 		   man/khttp_free.3.html \
 		   man/khttp_head.3.html \
@@ -74,7 +76,7 @@ TESTS 		 = test-memmem.c \
       		   test-seccomp-filter.c \
       		   test-systrace.c \
       		   test-zlib.c
-MANS		 = man/kcgi.3 \
+MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
 		   man/kcgixml.3 \
@@ -88,6 +90,9 @@ MANS		 = man/kcgi.3 \
 		   man/kmalloc.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
+MAN8S		 = man/kfcgi.8 
+MANS		 = $(MAN3S) \
+		   $(MAN8S)
 SRCS 		 = child.c \
 		   compat-memmem.c \
      		   compat-reallocarray.c \
@@ -250,10 +255,12 @@ install: all
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
-	mkdir -p $(DESTDIR)$(MANDIR)
+	mkdir -p $(DESTDIR)$(MAN3DIR)
+	mkdir -p $(DESTDIR)$(MAN8DIR)
 	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a $(DESTDIR)$(LIBDIR)
 	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h $(DESTDIR)$(INCLUDEDIR)
-	install -m 0444 $(MANS) $(DESTDIR)$(MANDIR)
+	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
+	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
 	install -m 0444 template.xml sample.c sample-fcgi.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
 
