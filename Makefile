@@ -41,6 +41,7 @@ LIBOBJS 	 = child.o \
 		   compat-strlcat.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o \
+		   output.o \
 		   parent.o \
 		   sandbox.o \
 		   sandbox-capsicum.o \
@@ -107,6 +108,7 @@ SRCS 		 = child.c \
 		   kcgiregress.h \
 		   kcgixml.h \
 		   kfcgi.c \
+		   output.c \
 		   parent.c \
      		   sample.c \
      		   sample-fcgi.c \
