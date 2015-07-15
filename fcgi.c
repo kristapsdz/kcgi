@@ -83,10 +83,8 @@ again:
 		}
 		XWARN("recvmsg: %d", socket);
 		return(-1);
-	} else if (0 == ssz) {
-		XWARNX("poll: closed");
+	} else if (0 == ssz) 
 		return(0);
-	}
 
 	cmsg = CMSG_FIRSTHDR(&msg);
 	data = CMSG_DATA(cmsg);
@@ -139,6 +137,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		XWARN("fork");
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == work.pid) {
+		/* Close the parent's control socket. */
+		close(STDIN_FILENO);
 		kworker_prep_child(&work);
 		kworker_fcgi_child(&work, keys, keysz, mimes, mimesz);
 		kworker_free(&work);
@@ -201,17 +201,20 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	char		 buf[BUFSIZ];
 	struct pollfd	 pfd[2];
 
-	fprintf(stderr, "%s: DEBUG parsing\n", __func__);
-
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
 
-	if ((c = kfcgi_control_read(&fd, STDIN_FILENO)) < 0)
-		return(KCGI_SYSTEM);
-	else if (c == 0) {
-		fprintf(stderr, "%s: DEBUG control HUP\n", __func__);
+	fprintf(stderr, "%s: DEBUG: Waiting "
+		"for request...\n", __func__);
+
+	if (0 == (c = kfcgi_control_read(&fd, STDIN_FILENO))) {
+		fprintf(stderr, "%s: DEBUG: Control "
+			"socket now closed\n", __func__);
 		return(KCGI_HUP);
-	}
+	} else if (c < 0)
+		return(KCGI_SYSTEM);
+
+	fprintf(stderr, "%s: DEBUG: Reading request\n", __func__);
 
 	pfd[0].fd = fd;
 	pfd[1].fd = fcgi->work.sock[KWORKER_READ];
@@ -235,7 +238,9 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			XWARN("poll: control socket");
 			close(fd);
 			return(KCGI_SYSTEM);
-		} else if (POLLIN & pfd[1].revents) {
+		} 
+		
+		if (POLLIN & pfd[1].revents) {
 			/* Read to roll... */
 			break;
 		} else if ( ! (POLLIN & pfd[0].revents)) {
@@ -244,6 +249,9 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			return(KCGI_SYSTEM);
 		} else if ((ssz = read(fd, buf, BUFSIZ)) < 0) {
 			XWARN("read: control socket");
+			close(fd);
+			return(KCGI_SYSTEM);
+		} else if (0 == ssz) {
 			close(fd);
 			return(KCGI_SYSTEM);
 		}
@@ -255,12 +263,11 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 		}
 	}
 
-again:
+	fprintf(stderr, "%s: DEBUG: Processing request\n", __func__);
+
 	if (fullread(fcgi->work.sock[KWORKER_READ], 
 		 &rid, sizeof(uint16_t), 0, &kerr) < 0) {
 		XWARNX("failed to read FastCGI requestId");
-		sleep(1);
-		goto again;
 		close(fd);
 		return(KCGI_FORM);
 	}
@@ -311,17 +318,11 @@ again:
 		req->port = strtonum(cp, 0, 80, NULL);
 #endif
 
-	fprintf(stderr, "%s: DEBUG reading sequence: %" 
-		PRIu16 "\n", __func__, rid);
-
 	kerr = kworker_parent
 		(fcgi->work.sock[KWORKER_READ], 
 		 req, fcgi->work.pid);
 	if (KCGI_OK != kerr)
 		goto err;
-
-	fprintf(stderr, "%s: DEBUG sequence read: %" 
-		PRIu16 "\n", __func__, rid);
 
 	/* Look up page type from component. */
 	req->page = defpage;

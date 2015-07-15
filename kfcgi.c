@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 	int			 c, fd, rc, nfd, debug;
 	const int		 on = 1;
 	struct fcgi		*ws;
-	size_t			 wsz, i, sz, total;
+	size_t			 wsz, i, j, sz, total;
 	const char		*pname, *sockpath;
 	struct sockaddr_un	 sun;
 	struct pollfd		 pfd;
@@ -166,15 +166,18 @@ main(int argc, char *argv[])
 			perror("fork");
 			break;
 		} else if (0 == ws[i].pid) {
+			/* Close all existing connections. */
+			for (j = 0; j < i; j++) 
+				close(ws[j].control[0]);
 			/*
 			 * Assign stdin to be the socket over which
 			 * we're going to transfer request descriptors
 			 * when we get them.
 			 */
 			close(ws[i].control[0]);
-			ws[i].control[0] = -1;
 			if (-1 == dup2(ws[i].control[1], STDIN_FILENO))
 				_exit(EXIT_FAILURE);
+			close(ws[i].control[1]);
 			execvp(argv[0], argv);
 			_exit(EXIT_FAILURE);
 		}
@@ -252,7 +255,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s: dead child\n", pname);
 			goto out;
 		}
-		/*close(nfd);*/
+		close(nfd);
 		total++;
 		if (debug > 0 && 0 == --debug)
 			break;
