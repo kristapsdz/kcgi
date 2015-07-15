@@ -54,6 +54,7 @@ kfcgi_control_read(int *newfd, int socket)
 	struct cmsghdr	*cmsg;
 	unsigned char	*data;
 	struct pollfd	 pfd;
+	ssize_t		 ssz;
 
 	memset(&msg, 0, sizeof(struct msghdr));
 	memset(&io, 0, sizeof(struct iovec));
@@ -73,15 +74,18 @@ again:
 		XWARN("poll: %d, POLLIN", socket);
 		return(-1);
 	} else if ( ! (POLLIN & pfd.revents)) {
-		XWARNX("poll: closed?", socket);
+		XWARNX("poll: unexpectedly closed", socket);
 		return(0);
-	} else if (recvmsg(socket, &msg, 0) < 0) {
+	} else if ((ssz = recvmsg(socket, &msg, 0)) < 0) {
 		if (EAGAIN == errno) {
 			XWARN("recvmsg: trying again");
 			goto again;
 		}
 		XWARN("recvmsg: %d", socket);
 		return(-1);
+	} else if (0 == ssz) {
+		XWARNX("poll: closed");
+		return(0);
 	}
 
 	cmsg = CMSG_FIRSTHDR(&msg);
@@ -105,9 +109,9 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	free(fcgi->mimes);
 	free(fcgi->keys);
 
-	kworker_kill(&fcgi->work);
-	er = kworker_close(&fcgi->work);
 	kworker_free(&fcgi->work);
+	/*kworker_kill(&fcgi->work);*/
+	er = kworker_close(&fcgi->work);
 	free(fcgi);
 	return(er);
 }
@@ -121,35 +125,37 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	struct kfcgi	*fcgi;
 	int 		 er;
 	size_t		 i;
-
-	if (NULL == (fcgi = XCALLOC(1, sizeof(struct kfcgi))))
-		return(KCGI_ENOMEM);
-	*fcgip = fcgi;
+	struct kworker	 work;
 
 	fprintf(stderr, "%s: starting up\n", __func__);
 
-	if (KCGI_OK != (kerr = kworker_fcgi_init(&fcgi->work)))
+	memset(&work, 0, sizeof(struct kworker));
+	if (KCGI_OK != (kerr = kworker_fcgi_init(&work)))
 		return(kerr);
 
 	fprintf(stderr, "%s: starting worker\n", __func__);
-
-	if (-1 == (fcgi->work.pid = fork())) {
+	if (-1 == (work.pid = fork())) {
 		er = errno;
 		XWARN("fork");
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
-	} else if (0 == fcgi->work.pid) {
-		kworker_prep_child(&fcgi->work);
-		kworker_fcgi_child(&fcgi->work, 
-			keys, keysz, mimes, mimesz);
-		kworker_free(&fcgi->work);
+	} else if (0 == work.pid) {
+		kworker_prep_child(&work);
+		kworker_fcgi_child(&work, keys, keysz, mimes, mimesz);
+		kworker_free(&work);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
-	kworker_prep_parent(&fcgi->work);
+	kworker_prep_parent(&work);
 
 	fprintf(stderr, "%s: initialised\n", __func__);
 
 	kerr = KCGI_ENOMEM;
+
+	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));
+	if (NULL == fcgi) 
+		return(KCGI_ENOMEM);
+
+	fcgi->work = work;
 	fcgi->mimes = XCALLOC(sizeof(char *), mimesz);
 	if (NULL == fcgi->mimes)
 		goto err;

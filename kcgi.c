@@ -821,6 +821,7 @@ khttp_child_free(struct kreq *req)
 	close(STDOUT_FILENO);
 	close(STDIN_FILENO);
 	kdata_free(req->kdata, 0);
+	req->kdata = NULL;
 	kreq_free(req);
 }
 
@@ -829,6 +830,7 @@ khttp_free(struct kreq *req)
 {
 
 	kdata_free(req->kdata, 1);
+	req->kdata = NULL;
 	kreq_free(req);
 }
 

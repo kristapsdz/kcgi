@@ -110,11 +110,17 @@ main(int argc, char *argv[])
 	wsz = 5;
 	sockpath = "/var/www/run/httpd.sock";
 	ws = NULL;
+	debug = 0;
 
-	while (-1 != (c = getopt(argc, argv, "dn:s:")))
+	while (-1 != (c = getopt(argc, argv, "d:n:s:")))
 		switch (c) {
 		case ('d'):
-			debug = 1;
+			/* 
+			 * Not documented: this is only used during
+			 * testing to avoid needing to play with signals
+			 * too much.
+			 */
+			debug = atoi(optarg);
 			break;
 		case ('n'):
 			wsz = atoi(optarg);
@@ -148,10 +154,8 @@ main(int argc, char *argv[])
 	/*
 	 * Dying children should notify us that something is horribly
 	 * wrong and we should exit.
-	 * TODO: catch SIGINT and so on and handle them accordingly.
 	 */
 	signal(SIGCHLD, sighandle);
-	signal(SIGINT, sighandle);
 
 	for (i = 0; i < wsz; i++) {
 		c = socketpair(AF_UNIX, SOCK_STREAM, 0, ws[i].control);
@@ -162,7 +166,6 @@ main(int argc, char *argv[])
 			perror("fork");
 			break;
 		} else if (0 == ws[i].pid) {
-			signal(SIGINT, SIG_IGN);
 			/*
 			 * Assign stdin to be the socket over which
 			 * we're going to transfer request descriptors
@@ -243,13 +246,15 @@ main(int argc, char *argv[])
 			goto out;
 		}
 
+		slen = sizeof(ss);
 		nfd = accept(fd, (struct sockaddr *)&ss, &slen);
 		if ( ! sendfd(ws[total % wsz].control[0], nfd)) {
 			fprintf(stderr, "%s: dead child\n", pname);
 			goto out;
 		}
+		/*close(nfd);*/
 		total++;
-		if (debug)
+		if (debug > 0 && 0 == --debug)
 			break;
 	}
 
