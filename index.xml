@@ -57,7 +57,7 @@
 			<section id="intro">
 				<p>
 					<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
-						source</a> CGI library for C web applications.
+						source</a> CGI and FastCGI library for C web applications.
 					It is minimal, secure, and auditable.
 					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
@@ -67,7 +67,7 @@
 			<figure id="sample" class="sample">
 				<figcaption>
 					The following simple example implements a server that just echoes <q>Hello, World!</q> as an HTTP
-					response.
+					response to a CGI request.
 					Click on any italicitised fields to link to the documentation.
 				</figcaption>
 				<pre id="nocomments" class="prettyprint linenums">#include &lt;stdint.h&gt;
@@ -150,7 +150,7 @@ int main(void) {
 					It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 						href="http://nginx.org">nginx</a>, and OpenBSD's <a
 						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8?query=httpd">httpd(8)</a>
-					(the latter two via the <code>slowcgi</code> wrapper).
+					(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
 					Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 						href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
 					Once downloaded, compile the software with <code>make</code>, which will automatically run a

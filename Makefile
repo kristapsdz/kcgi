@@ -1,8 +1,8 @@
-.SUFFIXES: .3 .3.html .dot .svg .gnuplot .png .xml .html
+.SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-STATIC 		 = -static
+#STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -23,7 +23,8 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_5_8.xml \
 		   version_0_5_9.xml \
 		   version_0_6.xml \
-		   version_0_6_1.xml
+		   version_0_6_1.xml \
+		   version_0_6_2.xml
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml
 TUTORIALHTMLS	 = tutorial0.html \
@@ -296,6 +297,9 @@ $(TUTORIALHTMLS): tutorial.xml $(VERSIONS) $(TUTORIALXMLS)
 	sblg -t tutorial.xml -o- -C $< $(VERSIONS) $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
+	mandoc -Thtml -Oman=%N.%S.html $< >$@
+
+.8.8.html:
 	mandoc -Thtml -Oman=%N.%S.html $< >$@
 
 kcgi.tgz.sha512: kcgi.tgz
