@@ -122,7 +122,7 @@ khttp_puts(struct kreq *req, const char *cp)
 void
 khttp_putc(struct kreq *req, int c)
 {
-	unsigned char	cc = c;
+	char		cc = c;
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);

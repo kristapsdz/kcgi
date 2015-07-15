@@ -68,9 +68,9 @@ sendfd(int socket, int fd)
 	memset(&msg, 0, sizeof(struct msghdr));
 	memset(&io, 0, sizeof(struct iovec));
 
-	value = '\0';
+	value = 1;
 	io.iov_base = &value;
-	io.iov_len = 0;
+	io.iov_len = 1;
 	msg.msg_iov = &io;
 	msg.msg_iovlen = 1;
 	msg.msg_control = buf;
@@ -89,7 +89,7 @@ sendfd(int socket, int fd)
 int
 main(int argc, char *argv[])
 {
-	int			 c, fd, rc, nfd;
+	int			 c, fd, rc, nfd, debug;
 	const int		 on = 1;
 	struct fcgi		*ws;
 	size_t			 wsz, i, sz, total;
@@ -111,8 +111,11 @@ main(int argc, char *argv[])
 	sockpath = "/var/www/run/httpd.sock";
 	ws = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "n:s:")))
+	while (-1 != (c = getopt(argc, argv, "dn:s:")))
 		switch (c) {
+		case ('d'):
+			debug = 1;
+			break;
 		case ('n'):
 			wsz = atoi(optarg);
 			break;	
@@ -148,6 +151,7 @@ main(int argc, char *argv[])
 	 * TODO: catch SIGINT and so on and handle them accordingly.
 	 */
 	signal(SIGCHLD, sighandle);
+	signal(SIGINT, sighandle);
 
 	for (i = 0; i < wsz; i++) {
 		c = socketpair(AF_UNIX, SOCK_STREAM, 0, ws[i].control);
@@ -158,6 +162,7 @@ main(int argc, char *argv[])
 			perror("fork");
 			break;
 		} else if (0 == ws[i].pid) {
+			signal(SIGINT, SIG_IGN);
 			/*
 			 * Assign stdin to be the socket over which
 			 * we're going to transfer request descriptors
@@ -182,8 +187,10 @@ main(int argc, char *argv[])
 		perror("socket");
 		goto out;
 	} else if (-1 == unlink(sockpath)) {
-		perror(sockpath);
-		goto out;
+		if (ENOENT != errno) {
+			perror(sockpath);
+			goto out;
+		}
 	}
 
 	/* 
@@ -210,6 +217,8 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
+	fprintf(stderr, "%s: ready: %s\n", pname, sockpath);
+
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	total = 0;
@@ -229,7 +238,7 @@ main(int argc, char *argv[])
 		} else if (c < 0) {
 			perror("poll");
 			goto out;
-		} else if (POLLIN != pfd.events) {
+		} else if ( ! (POLLIN & pfd.events)) {
 			fprintf(stderr, "%s: bad poll events\n", pname);
 			goto out;
 		}
@@ -239,8 +248,9 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s: dead child\n", pname);
 			goto out;
 		}
-		close(nfd);
 		total++;
+		if (debug)
+			break;
 	}
 
 	rc = EXIT_SUCCESS;

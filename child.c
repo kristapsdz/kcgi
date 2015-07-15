@@ -970,8 +970,11 @@ kworker_child_rawauth(const struct env *env, int fd, size_t envsz)
 	size_t	 i;
 
 	for (i = 0; i < envsz; i++) 
-		if (0 == strcmp(env[i].key, "HTTP_AUTHORIZATION"))
+		if (0 == strcmp(env[i].key, "HTTP_AUTHORIZATION")) {
 			kworker_auth_child(fd, env[i].val);
+			break;
+		}
+
 	if (i == envsz)
 		kworker_auth_child(fd, NULL);
 }
@@ -999,6 +1002,7 @@ kworker_child_scheme(const struct env *env, int fd, size_t envsz)
 			break;
 		}
 
+	assert(NULL != cp);
 	scheme = 0 == strcasecmp(cp, "on") ?
 		KSCHEME_HTTPS : KSCHEME_HTTP;
 	fullwrite(fd, &scheme, sizeof(enum kscheme));
