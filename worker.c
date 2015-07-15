@@ -120,15 +120,19 @@ void
 kworker_prep_parent(struct kworker *p)
 {
 
-	close(p->sock[KWORKER_WRITE]);
-	p->sock[KWORKER_WRITE] = -1;
+	if (-1 != p->sock[KWORKER_WRITE]) {
+		close(p->sock[KWORKER_WRITE]);
+		p->sock[KWORKER_WRITE] = -1;
+	}
 	if (-1 != p->control[KWORKER_READ]) {
 		close(p->control[KWORKER_READ]);
 		p->control[KWORKER_READ] = -1;
 	}
 	ksandbox_init_parent(p->sand, p->pid);
-	close(p->input);
-	p->input = -1;
+	if (-1 != p->input) {
+		close(p->input);
+		p->input = -1;
+	}
 }
 
 void

@@ -1640,14 +1640,11 @@ kworker_fcgi_child(const struct kworker *work,
 		envs = NULL;
 		envsz = 0;
 
-		fprintf(stderr, "%s: DEBUG: sequence wait\n", __func__);
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],
 			 &realbgn, &buf, &bsz, &rid);
 		if (NULL == bgn)
 			break;
-		fprintf(stderr, "%s: DEBUG: new sequence: %" 
-			PRIu16 "\n", __func__, rid);
 
 		/*
 		 * Now read one or more parameters.
@@ -1717,9 +1714,6 @@ kworker_fcgi_child(const struct kworker *work,
 			break;
 		}
 
-		fprintf(stderr, "%s: DEBUG responding to "
-			"sequence %" PRIu16 "\n", __func__, rid);
-
 		fullwrite(wfd, &rid, sizeof(uint16_t));
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
@@ -1735,12 +1729,7 @@ kworker_fcgi_child(const struct kworker *work,
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
-
-		fprintf(stderr, "%s: DEBUG responded to "
-			"sequence %" PRIu16 "\n", __func__, rid);
 	}
-
-	fprintf(stderr, "%s: DEBUG: tearing down\n", __func__);
 
 	for (i = 0; i < envsz; i++) {
 		free(envs[i].key);
