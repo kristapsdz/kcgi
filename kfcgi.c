@@ -29,13 +29,20 @@
 #include <string.h>
 #include <unistd.h>
 
+/*
+ * The status of each FastCGI worker.
+ * We don't really have anything here right now.
+ */
 struct	fcgi {
-	pid_t	 	 pid;
-	int		 control[2];
+	pid_t	 pid; /* pid */
+	int	 control[2]; /* socketpair */
 };
 
 static	volatile sig_atomic_t stop = 0;
 
+/*
+ * Handle child termination.
+ */
 static void
 sighandle(int sig)
 {
@@ -43,6 +50,11 @@ sighandle(int sig)
 	stop = 1;
 }
 
+/*
+ * Transfer file descriptor `fd' to the process connected to `socket'.
+ * This is almost verbatim from Chapter 15 of Stevens' UNIX Network
+ * Programming book.
+ */
 static int 
 sendfd(int socket, int fd)
 {
@@ -50,7 +62,7 @@ sendfd(int socket, int fd)
 	char 		 buf[CMSG_SPACE(sizeof(fd))];
 	struct iovec 	 io;
 	struct cmsghdr 	*cmsg;
-	unsigned char 	  value;
+	unsigned char 	 value;
 
 	memset(buf, 0, sizeof(buf));
 	memset(&msg, 0, sizeof(struct msghdr));
@@ -114,7 +126,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	/* Do the usual boring dance to set up UNIX sockets. */
+	/* Do the usual dance to set up UNIX sockets. */
 	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
 	sz = strlcpy(sun.sun_path, sockpath, sizeof(sun.sun_path));
@@ -160,11 +172,11 @@ main(int argc, char *argv[])
 		}
 		close(ws[i].control[1]);
 		ws[i].control[1] = -1;
-		fprintf(stderr, "%s: worker %zu started up\n", pname, i);
 	}
 
 	/*
-	 * Create our FastCGI socket and 
+	 * Prepare the socket then unlink any dead existing ones.
+	 * This is because we want to control the socket.
 	 */
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror("socket");
@@ -174,10 +186,12 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
+	/* 
+	 * Set permissions for 0666.
+	 * FIXME: use user/group identifier and 0660. 
+	 */
 	old_umask = umask(S_IXUSR|S_IXGRP|S_IXOTH|S_IXOTH);
 
-	fprintf(stderr, "%s: connecting to %s\n", pname, sockpath);
-	
 	/* 
 	 * Now actually bind to the FastCGI socket, set up our
 	 * listeners, and make sure that we're not blocking.
@@ -187,9 +201,7 @@ main(int argc, char *argv[])
 		perror("bind");
 		goto out;
 	}
-
 	umask(old_umask);
-
 	if (-1 == ioctl(fd, FIONBIO, &on)) {
 		perror("ioctl");
 		goto out;
@@ -198,12 +210,17 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	fprintf(stderr, "%s: connected to %s\n", pname, sockpath);
-
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	total = 0;
 
+	/*
+	 * While we have data coming over the wire, pass file
+	 * descriptors immediately to our children.
+	 * The algorithm for distributing over children is just
+	 * round-robin because we don't know anything about their
+	 * status.
+	 */
 	while ( ! stop) {
 		c = poll(&pfd, 1, -1);
 		if (c < 0 && EINTR == errno) {
@@ -219,11 +236,9 @@ main(int argc, char *argv[])
 
 		nfd = accept(fd, (struct sockaddr *)&ss, &slen);
 		if ( ! sendfd(ws[total % wsz].control[0], nfd)) {
-			fprintf(stderr, "%s: dead child?\n", pname);
+			fprintf(stderr, "%s: dead child\n", pname);
 			goto out;
 		}
-		fprintf(stderr, "%s: sent request %zu to %zu\n",
-			pname, total, total % wsz);
 		total++;
 	}
 
@@ -257,6 +272,9 @@ out:
 	free(ws);
 	return(rc);
 usage:
-	fprintf(stderr, "usage: %s [-n workers] -- prog [arg1...]\n", pname);
+	fprintf(stderr, "usage: %s "
+		"[-n workers] "
+		"[-s sockpath] "
+		"-- prog [arg1...]\n", pname);
 	return(EXIT_FAILURE);
 }

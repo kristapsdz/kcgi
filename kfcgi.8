@@ -1,0 +1,61 @@
+.Dd $Mdocdate$
+.Dt KFCGI 8
+.Os
+.Sh NAME
+.Nm kfcgi
+.Nd FastCGI server for kcgi applications
+.\" .Sh LIBRARY
+.\" For sections 2, 3, and 9 only.
+.\" Not used in OpenBSD.
+.Sh SYNOPSIS
+.Nm kfcgi
+.Op Fl n Ar workers
+.Op Fl s Ar sockpath
+.Ar prog Op arg0...
+.Sh DESCRIPTION
+The
+.Nm
+server starts up
+.Ar workers
+processes of
+.Ar prog
+to handle FastCGI connections.
+By default, it uses 3 workers for
+.Pa /var/www/run/httpd.sock .
+The socket is created in mode 0666 under the current user.
+The arguments are as follows:
+.Bl -tag -width Ds
+.It Fl n Ar workers
+The number of workers >1.
+.It Fl s Ar sockpath
+Alternative socket path.
+.El
+.Pp
+.Nm
+must be run as root.
+.\" .Sh CONTEXT
+.\" For section 9 functions only.
+.\" .Sh IMPLEMENTATION NOTES
+.\" Not used in OpenBSD.
+.\" .Sh RETURN VALUES
+.\" For sections 2, 3, and 9 function return values only.
+.\" .Sh ENVIRONMENT
+.\" For sections 1, 6, 7, and 8 only.
+.\" .Sh FILES
+.Sh EXIT STATUS
+.Ex -std
+.\" For sections 1, 6, and 8 only.
+.\" .Sh EXAMPLES
+.\" .Sh DIAGNOSTICS
+.\" For sections 1, 4, 6, 7, 8, and 9 printf/stderr messages only.
+.\" .Sh ERRORS
+.\" For sections 2, 3, 4, and 9 errno settings only.
+.Sh SEE ALSO
+.Xr kcgi 3
+.\" .Sh STANDARDS
+.\" .Sh HISTORY
+.\" .Sh AUTHORS
+.\" .Sh CAVEATS
+.\" .Sh BUGS
+.\" .Sh SECURITY CONSIDERATIONS
+.\" Not used in OpenBSD.

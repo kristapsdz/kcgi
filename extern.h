@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -50,6 +50,11 @@ enum	input {
 
 
 __BEGIN_DECLS
+
+struct kdata	*kdata_alloc(int);
+int		 kdata_compress(struct kdata *);
+void		 kdata_free(struct kdata *, int);
+void		 kdata_body(struct kdata *);
 
 enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
