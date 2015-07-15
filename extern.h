@@ -51,7 +51,7 @@ enum	input {
 
 __BEGIN_DECLS
 
-struct kdata	*kdata_alloc(int);
+struct kdata	*kdata_alloc(int, uint16_t);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);
 void		 kdata_body(struct kdata *);

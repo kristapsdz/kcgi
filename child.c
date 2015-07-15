@@ -1375,7 +1375,7 @@ kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
  */
 static struct fcgi_bgn *
 kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
-	unsigned char **b, size_t *bsz)
+	unsigned char **b, size_t *bsz, uint16_t *rid)
 {
 	struct fcgi_hdr	*hdr, realhdr;
 	struct fcgi_bgn	*ptr;
@@ -1388,6 +1388,7 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	assert(*bsz >= 8);
 	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
 		return(NULL);
+	*rid = hdr->requestId;
 
 	/* Read the content and discard padding. */
 	if (FCGI_BEGIN_REQUEST != hdr->type) {
@@ -1427,8 +1428,12 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	enum kcgi_err	 er;
 	void		*ptr;
 
+	/* 
+	 * FIXME: there's no need to read this into yet another buffer:
+	 * just copy it directly into our accumulating buffer `sbp'.
+	 */
 	/* Read the content and discard the padding. */
-	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
+	if (hdr->contentLength > 0 && ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
 		XWARNX("failed read FastCGI stdin content");
 		return(-1);
 	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
@@ -1444,7 +1449,6 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	memcpy(*sbp, *bp, hdr->contentLength);
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
-
 	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n", 
 		__func__, hdr->contentLength);
 	return(hdr->contentLength > 0);
@@ -1588,6 +1592,7 @@ kworker_fcgi_child(const struct kworker *work,
 	struct fcgi_bgn	*bgn, realbgn;
 	unsigned char	*buf, *sbuf;
 	struct env	*envs;
+	uint16_t	 rid;
 	size_t		 i, bsz, ssz, envsz, envmaxsz;
 	int		 wfd, rc;
 	enum kmethod	 meth;
@@ -1612,14 +1617,16 @@ kworker_fcgi_child(const struct kworker *work,
 	 */
 	for (;;) {
 		free(sbuf);
+		sbuf = NULL;
 		ssz = 0;
 		fprintf(stderr, "%s: DEBUG: sequence wait\n", __func__);
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],
-			 &realbgn, &buf, &bsz);
+			 &realbgn, &buf, &bsz, &rid);
 		if (NULL == bgn)
 			break;
-		fprintf(stderr, "%s: DEBUG: new sequence\n", __func__);
+		fprintf(stderr, "%s: DEBUG: new sequence: %" 
+			PRIu16 "\n", __func__, rid);
 
 		/*
 		 * Now read one or more parameters.
@@ -1633,7 +1640,11 @@ kworker_fcgi_child(const struct kworker *work,
 				 &realhdr, buf);
 			if (NULL == hdr)
 				break;
-			if (FCGI_PARAMS != hdr->type)
+			if (rid != hdr->requestId) {
+				XWARNX("unexpected FastCGI requestId");
+				hdr = NULL;
+				break;
+			} else if (FCGI_PARAMS != hdr->type)
 				break;
 			if (kworker_fcgi_params
 				(work->control[KWORKER_READ],
@@ -1649,15 +1660,10 @@ kworker_fcgi_child(const struct kworker *work,
 		if (FCGI_STDIN != hdr->type) {
 			XWARNX("unexpected FastCGI header type");
 			break;
+		} else if (rid != hdr->requestId) {
+			XWARNX("unexpected FastCGI requestId");
+			break;
 		}
-
-		kworker_child_env(envs, wfd, envsz);
-		meth = kworker_child_method(envs, wfd, envsz);
-		kworker_child_auth(envs, wfd, envsz);
-		kworker_child_rawauth(envs, wfd, envsz);
-		kworker_child_scheme(envs, wfd, envsz);
-		kworker_child_remote(envs, wfd, envsz);
-		kworker_child_path(envs, wfd, envsz);
 
 		/*
 		 * Lastly, we want to process the stdin content.
@@ -1668,29 +1674,53 @@ kworker_fcgi_child(const struct kworker *work,
 			rc = kworker_fcgi_stdin
 				(work->control[KWORKER_READ],
 				 hdr, &buf, &bsz, &sbuf, &ssz);
-			if (0 == rc)
+			if (rc <= 0)
 				break;
 			hdr = kworker_fcgi_header
 				(work->control[KWORKER_READ],
 				 &realhdr, buf);
 			if (NULL == hdr)
 				break;
-			if (FCGI_STDIN == hdr->type) 
+			if (rid != hdr->requestId) {
+				XWARNX("unexpected FastCGI requestId");
+				hdr = NULL;
+				break;
+			} else if (FCGI_STDIN == hdr->type) 
 				continue;
 			XWARNX("unexpected FastCGI header type");
 			hdr = NULL;
 			break;
 		}
-		if (rc < 0 || NULL == hdr)
+		if (rc < 0 || NULL == hdr) {
+			XWARNX("not responding to FastCGI!?");
 			break;
+		}
+
+		fprintf(stderr, "%s: DEBUG responding to "
+			"sequence %" PRIu16 "\n", __func__, rid);
+
+		fullwrite(wfd, &rid, sizeof(uint16_t));
+		kworker_child_env(envs, wfd, envsz);
+		meth = kworker_child_method(envs, wfd, envsz);
+		kworker_child_auth(envs, wfd, envsz);
+		kworker_child_rawauth(envs, wfd, envsz);
+		kworker_child_scheme(envs, wfd, envsz);
+		kworker_child_remote(envs, wfd, envsz);
+		kworker_child_path(envs, wfd, envsz);
 
 		/* And now the message body itself. */
+		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
 			meth, NULL, (char *)sbuf, ssz);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
+
+		fprintf(stderr, "%s: DEBUG responded to "
+			"sequence %" PRIu16 "\n", __func__, rid);
 	}
+
+	fprintf(stderr, "%s: DEBUG: tearing down\n", __func__);
 
 	for (i = 0; i < envmaxsz; i++) {
 		free(envs[i].key);
@@ -1700,5 +1730,4 @@ kworker_fcgi_child(const struct kworker *work,
 	free(sbuf);
 	free(buf);
 	free(envs);
-	fprintf(stderr, "%s: DEBUG: tearing down\n", __func__);
 }

@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 
 #include <errno.h>
+#include <inttypes.h>
 #include <poll.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -38,7 +39,6 @@ struct	kfcgi {
 	char		**mimes;
 	size_t		  mimesz;
 	struct kworker	  work;
-	int		  curfd;
 };
 
 /*
@@ -105,10 +105,6 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	free(fcgi->mimes);
 	free(fcgi->keys);
 
-	if (-1 != fcgi->curfd)
-		if (-1 == close(fcgi->curfd))
-			XWARN("close: control");
-
 	kworker_kill(&fcgi->work);
 	er = kworker_close(&fcgi->work);
 	kworker_free(&fcgi->work);
@@ -129,7 +125,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (NULL == (fcgi = XCALLOC(1, sizeof(struct kfcgi))))
 		return(KCGI_ENOMEM);
 	*fcgip = fcgi;
-	fcgi->curfd = -1;
 
 	fprintf(stderr, "%s: starting up\n", __func__);
 
@@ -196,17 +191,11 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	const struct kmimemap *mm;
 	int		 c, fd;
 	ssize_t		 ssz, wsz;
+	uint16_t	 rid;
 	char		 buf[BUFSIZ];
 	struct pollfd	 pfd[2];
 
-	fprintf(stderr, "%s: parsing\n", __func__);
-
-	if (-1 != fcgi->curfd) {
-		fprintf(stderr, "%s: closing prior\n", __func__);
-		if (-1 == close(fcgi->curfd))
-			XWARN("close: control");
-		fcgi->curfd = -1;
-	}
+	fprintf(stderr, "%s: DEBUG parsing\n", __func__);
 
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
@@ -214,13 +203,9 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if ((c = kfcgi_control_read(&fd, STDIN_FILENO)) < 0)
 		return(KCGI_SYSTEM);
 	else if (c == 0) {
-		fprintf(stderr, "%s: control HUP\n", __func__);
+		fprintf(stderr, "%s: DEBUG control HUP\n", __func__);
 		return(KCGI_HUP);
 	}
-
-	fprintf(stderr, "%s: control is GO\n", __func__);
-
-	fcgi->curfd = fd;
 
 	pfd[0].fd = fd;
 	pfd[1].fd = fcgi->work.sock[KWORKER_READ];
@@ -242,29 +227,44 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	for (;;) {
 		if (-1 == poll(pfd, 2, -1)) {
 			XWARN("poll: control socket");
+			close(fd);
 			return(KCGI_SYSTEM);
-		} else if (POLLIN == pfd[1].revents) {
+		} else if (POLLIN & pfd[1].revents) {
 			/* Read to roll... */
 			break;
-		} else if (POLLIN != pfd[0].revents) {
+		} else if ( ! (POLLIN & pfd[0].revents)) {
 			XWARNX("poll: bad events");
+			close(fd);
 			return(KCGI_SYSTEM);
 		} else if ((ssz = read(fd, buf, BUFSIZ)) < 0) {
 			XWARN("read: control socket");
+			close(fd);
 			return(KCGI_SYSTEM);
 		}
 		wsz = write(fcgi->work.control[KWORKER_WRITE], buf, ssz);
 		if (ssz != wsz) {
 			XWARN("write: control socket");
+			close(fd);
 			return(KCGI_SYSTEM);
 		}
+	}
+
+again:
+	if (fullread(fcgi->work.sock[KWORKER_READ], 
+		 &rid, sizeof(uint16_t), 0, &kerr) < 0) {
+		XWARNX("failed to read FastCGI requestId");
+		sleep(1);
+		goto again;
+		close(fd);
+		return(KCGI_FORM);
 	}
 
 	req->arg = arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	if (NULL == (req->kdata = kdata_alloc(fd)))
+	if (NULL == (req->kdata = kdata_alloc(fd, rid)))
 		goto err;
+	fd = -1;
 	req->cookiemap = XCALLOC
 		(fcgi->keysz, sizeof(struct kpair *));
 	if (fcgi->keysz && NULL == req->cookiemap)
@@ -305,7 +305,8 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 		req->port = strtonum(cp, 0, 80, NULL);
 #endif
 
-	fprintf(stderr, "%s: reading....\n", __func__);
+	fprintf(stderr, "%s: DEBUG reading sequence: %" 
+		PRIu16 "\n", __func__, rid);
 
 	kerr = kworker_parent
 		(fcgi->work.sock[KWORKER_READ], 
@@ -313,7 +314,8 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if (KCGI_OK != kerr)
 		goto err;
 
-	fprintf(stderr, "%s: data read\n", __func__);
+	fprintf(stderr, "%s: DEBUG sequence read: %" 
+		PRIu16 "\n", __func__, rid);
 
 	/* Look up page type from component. */
 	req->page = defpage;
@@ -337,6 +339,8 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 
 	return(kerr);
 err:
+	if (-1 != fd)
+		close(fd);
 	/*kreq_free(req);*/
 	khttp_free(req);
 	return(kerr);

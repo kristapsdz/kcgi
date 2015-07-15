@@ -34,29 +34,27 @@ main(int argc, char *argv[])
 	else
 		++pname;
 
-	fprintf(stderr, "%s: initialising...\n", pname);
-
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0))
 		return(EXIT_FAILURE);
 
-	fprintf(stderr, "%s: looping...\n", pname);
-	
 	for (;;) {
 		er = khttp_fcgi_parse(fcgi, &req, NULL, 0, 0);
 		if (KCGI_HUP == er) {
-			fprintf(stderr, "%s: hup\n", pname);
+			fprintf(stderr, "%s: KCGI_HUP\n", pname);
 			khttp_free(&req);
 			break;
 		} else if (KCGI_OK != er) {
-			fprintf(stderr, "%s: badness\n", pname);
+			fprintf(stderr, "%s: !KCGI_OK\n", pname);
 			khttp_free(&req);
 			break;
 		}
-		fprintf(stderr, "%s: whee!\n", pname);
+		khttp_head(&req, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		khttp_body(&req);
+		khttp_puts(&req, "Hello, world!\n");
 		khttp_free(&req);
 	}
 
-	fprintf(stderr, "%s: outing\n", pname);
 	khttp_fcgi_free(fcgi);
 	return(EXIT_SUCCESS);
 }
