@@ -325,14 +325,6 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 		fwrite(buf, 1, sz, stdout);
 }
 
-static int
-khttp_templatex_write(const char *dat, size_t sz, void *arg)
-{
-
-	khttp_write(arg, dat, sz);
-	return(1);
-}
-
 void
 khttp_puts(struct kreq *req, const char *cp)
 {
@@ -355,6 +347,14 @@ khttp_putc(struct kreq *req, int c)
 	else 
 #endif
 		putchar(c);
+}
+
+static int
+khttp_templatex_write(const char *dat, size_t sz, void *arg)
+{
+
+	khttp_write(arg, dat, sz);
+	return(1);
 }
 
 char *
