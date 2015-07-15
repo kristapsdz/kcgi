@@ -72,8 +72,8 @@ again:
 	if (-1 == poll(&pfd, 1, -1)) {
 		XWARN("poll: %d, POLLIN", socket);
 		return(-1);
-	} else if (POLLIN != pfd.revents) {
-		XWARN("poll: closed?", socket);
+	} else if ( ! (POLLIN & pfd.revents)) {
+		XWARNX("poll: closed?", socket);
 		return(0);
 	} else if (recvmsg(socket, &msg, 0) < 0) {
 		if (EAGAIN == errno) {

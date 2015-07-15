@@ -1,0 +1,24 @@
+
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.6.2</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-07-09">2015-07-09</time>
+	</header>
+	<aside>
+		<div>
+			This release includes an initial implementation of <a href="http://www.fastcgi.com">FastCGI</a>, drawing from the <a
+				href="http://www.fastcgi.com/drupal/node/22">FastCGI Specification</a>.
+			While the existing functionality wasn't logically altered, it was shuffled around quite a lot and abstracted to
+			accomodate for the new FastCGI functions.
+			The implementation is documented in <a href="kfcgi.8.html">kfcgi(8)</a>, <a
+				href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, and <a
+				href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, and <a
+				href="khttp_fcgi_free.3.html">khttp_fcgi_parse(3)</a>.
+		</div>
+		<div>
+			Also fixed a bug where calling <a href="khttp_free.3.html">khttp_free(3)</a> after a prior <a
+				href="khttp_parse.3.html">khttp_parse(3)</a> failure would cause a NULL dereference.
+		</div>
+	</aside>
+</article>
