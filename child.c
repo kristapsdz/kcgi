@@ -50,13 +50,43 @@ struct	mime {
 	char	 *bound; /* form entry boundary */
 };
 
+/*
+ * Both CGI and FastCGI use an environment for their HTTP parameters.
+ * CGI gets it from the actual environment; FastCGI from a transmitted
+ * environment.
+ * We use an abstract representation of those key-value pairs here so
+ * that we can use the same functions for both.
+ */
 struct	env {
-	char	*key;
+	char	*key; /* key (e.g., HTTP_HOST) */
 	size_t	 keysz;
-	char	*val;
+	char	*val; /* value (e.g., `foo.com') */
 	size_t	 valsz;
 };
 
+/* 
+ * Types of FastCGI requests.
+ * Defined in the FastCGI v1.0 spec, section 8.
+ */
+enum	fcgi_type {
+	FCGI_BEGIN_REQUEST = 1,
+	FCGI_ABORT_REQUEST = 2,
+	FCGI_END_REQUEST = 3,
+	FCGI_PARAMS = 4,
+	FCGI_STDIN = 5,
+	FCGI_STDOUT = 6,
+	FCGI_STDERR = 7,
+	FCGI_DATA = 8,
+	FCGI_GET_VALUES = 9,
+	FCGI_GET_VALUES_RESULT = 10,
+	FCGI_UNKNOWN_TYPE = 11,
+	FCGI__MAX
+};
+
+/*
+ * The FastCGI `FCGI_Header' header layout.
+ * Defined in the FastCGI v1.0 spec, section 8.
+ */
 struct 	fcgi_hdr {
 	uint8_t	 version;
 	uint8_t	 type;
@@ -66,12 +96,19 @@ struct 	fcgi_hdr {
 	uint8_t	 reserved;
 };
 
+/*
+ * The FastCGI `FCGI_BeginRequestBody' header layout.
+ * Defined in the FastCGI v1.0 spec, section 8.
+ */
 struct	fcgi_bgn {
 	uint16_t role;
 	uint8_t	 flags;
 	uint8_t	 res[5];
 };
 
+/*
+ * Parameters required to validate fields.
+ */
 struct	parms {
 	int	 		 fd;
 	const char *const	*mimes;
@@ -922,6 +959,11 @@ kworker_child_auth(const struct env *env, int fd, size_t envsz)
 	fullwrite(fd, &auth, sizeof(enum kauth));
 }
 
+/*
+ * Send the raw (i.e., un-webserver-filtered) authorisation to the
+ * parent.
+ * Most web servers will `handle this for us'.  Ugh.
+ */
 static void
 kworker_child_rawauth(const struct env *env, int fd, size_t envsz)
 {
@@ -934,6 +976,9 @@ kworker_child_rawauth(const struct env *env, int fd, size_t envsz)
 		kworker_auth_child(fd, NULL);
 }
 
+/*
+ * Send our HTTP scheme (secure or not) to the parent.
+ */
 static void
 kworker_child_scheme(const struct env *env, int fd, size_t envsz)
 {
@@ -959,6 +1004,9 @@ kworker_child_scheme(const struct env *env, int fd, size_t envsz)
 	fullwrite(fd, &scheme, sizeof(enum kscheme));
 }
 
+/*
+ * Send remote address to the parent.
+ */
 static void
 kworker_child_remote(const struct env *env, int fd, size_t envsz)
 {
@@ -979,6 +1027,9 @@ kworker_child_remote(const struct env *env, int fd, size_t envsz)
 	fullwrite(fd, cp, len);
 }
 
+/*
+ * Parse all path information (subpath, path, etc.) and send to parent.
+ */
 static void
 kworker_child_path(struct env *env, int fd, size_t envsz)
 {
@@ -1053,6 +1104,10 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
 	}
 }
 
+/*
+ * Parse and send the body of the request to the parent.
+ * This is arguably the most complex part of the system.
+ */
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth,
@@ -1076,8 +1131,9 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 			break;
 		}
 
+	/* Check FastCGI input lengths. */
 	if (NULL != bp && bsz != len)
-		XWARNX("content real and reported length differ");
+		XWARNX("real and reported content lengths differ");
 
 	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
@@ -1092,6 +1148,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 		if (0 == strcmp(env[i].key, "CONTENT_TYPE"))
 			break;
 
+	/* If we're CGI, read the request now. */
 	if (NULL == b) {
 		assert(NULL != work);
 		b = scanbuf(work, len, &bsz);
@@ -1111,24 +1168,23 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	} else
 		parse_body(kmimetypes[KMIME_APP_OCTET_STREAM], pp, b, bsz);
 
+	/* Free CGI parsed buffer (FastCGI is done elsewhere). */
 	if (NULL == bp)
 		free(b);
 }
 
+/*
+ * Send query string data to parent.
+ * Even POST requests are allowed to have QUERY_STRING elements.
+ * Note: both QUERY_STRING and CONTENT_TYPE fields share the same field
+ * space.
+ */
 static void
 kworker_child_query(struct env *env, 
 	int fd, size_t envsz, struct parms *pp)
 {
 	size_t	 i;
 
-	/*
-	 * Even POST requests are allowed to have QUERY_STRING elements,
-	 * so parse those out now.
-	 * Note: both QUERY_STRING and CONTENT_TYPE fields share the
-	 * same field space.
-	 * Since this is a getenv(), we know the returned value is
-	 * nil-terminated.
-	 */
 	pp->type = IN_QUERY;
 	for (i = 0; i < envsz; i++) {
 		if (strcmp(env[i].key, "QUERY_STRING"))
@@ -1138,20 +1194,17 @@ kworker_child_query(struct env *env,
 	}
 }
 
+/*
+ * Send cookies to our parent.
+ * These use the same syntax as QUERY_STRING elements, but don't share
+ * the same namespace (just as a means to differentiate the same names).
+ */
 static void
 kworker_child_cookies(struct env *env, 
 	int fd, size_t envsz, struct parms *pp)
 {
 	size_t	 i;
 
-	/*
-	 * Cookies come last.
-	 * These use the same syntax as QUERY_STRING elements, but don't
-	 * share the same namespace (just as a means to differentiate
-	 * the same names).
-	 * Since this is a getenv(), we know the returned value is
-	 * nil-terminated.
-	 */
 	pp->type = IN_COOKIE;
 	for (i = 0; i < envsz; i++) {
 		if (strcmp(env[i].key, "HTTP_COOKIE"))
@@ -1161,6 +1214,9 @@ kworker_child_cookies(struct env *env,
 	}
 }
 
+/*
+ * Terminate the input fields for the parent. 
+ */
 static void
 kworker_child_last(int fd)
 {
@@ -1262,37 +1318,41 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	int		 rc;
 
 	if ((rc = fullread(fd, buf, 8, 1, &er)) < 0) {
-		XWARNX("failed read fcgi header");
+		XWARNX("failed read FastCGI header");
 		return(NULL);
 	} else if (rc == 0) {
-		XWARNX("end of fcgi headers");
+		XWARNX("end of FastCGI headers");
 		return(NULL);
 	}
 
+	/* Translate from network-byte order. */
 	ptr = (struct fcgi_hdr *)buf;
-
 	hdr->version = ptr->version;
 	hdr->type = ptr->type;
 	hdr->requestId = ntohs(ptr->requestId);
 	hdr->contentLength = ntohs(ptr->contentLength);
 	hdr->paddingLength = ntohs(ptr->paddingLength);
 	if (1 != hdr->version) {
-		XWARNX("bad fastcgi header version");
+		XWARNX("bad FastCGI header version");
 		return(NULL);
 	}
-	fprintf(stderr, "%s: version: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n", 
 		__func__, hdr->version);
-	fprintf(stderr, "%s: type: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG type: %" PRIu8 "\n", 
 		__func__, hdr->type);
-	fprintf(stderr, "%s: id: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG requestId: %" PRIu16 "\n", 
 		__func__, hdr->requestId);
-	fprintf(stderr, "%s: content-length: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG contentLength: %" PRIu16 "\n", 
 		__func__, hdr->contentLength);
-	fprintf(stderr, "%s: padding-length: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n", 
 		__func__, hdr->paddingLength);
 	return(hdr);
 }
 
+/*
+ * Read the content from an FastCGI request.
+ * We might need to expand the buffer holding the content.
+ */
 static int
 kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
 	unsigned char **buf, size_t *bufmaxsz)
@@ -1307,9 +1367,12 @@ kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
 		*buf = ptr;
 	}
 	return(fullread(fd, *buf, hdr->contentLength, 0, &er));
-
 }
 
+/*
+ * Read in the entire header and data for the begin sequence request.
+ * This is defined in section 5.1 of the v1.0 specification.
+ */
 static struct fcgi_bgn *
 kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	unsigned char **b, size_t *bsz)
@@ -1318,34 +1381,44 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	struct fcgi_bgn	*ptr;
 	enum kcgi_err	 er;
 
+	/* 
+	 * Read the header entry.
+	 * Our buffer is initialised to handle this. 
+	 */
 	assert(*bsz >= 8);
 	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
 		return(NULL);
 
-	if (1 != hdr->type) {
-		XWARNX("bad fastcgi initial header type");
+	/* Read the content and discard padding. */
+	if (FCGI_BEGIN_REQUEST != hdr->type) {
+		XWARNX("unexpected FastCGI header type");
 		return(NULL);
 	} else if ( ! kworker_fcgi_content(fd, hdr, b, bsz)) {
-		XWARNX("failed read fcgi begin");
+		XWARNX("failed read FastCGI begin content");
+		return(NULL);
+	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
+		XWARNX("failed discard FastCGI begin padding");
 		return(NULL);
 	}
 
+	/* Translate network-byte order. */
 	ptr = (struct fcgi_bgn *)*b;
 	bgn->role = ntohs(ptr->role);
 	bgn->flags = ptr->flags;
 
-	fprintf(stderr, "%s: role: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n", 
 		__func__, bgn->role);
-	fprintf(stderr, "%s: flags: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG flags: %" PRIu8 "\n", 
 		__func__, bgn->flags);
-
-	if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard fcgi begin pad");
-		return(NULL);
-	}
 	return(bgn);
 }
 
+/*
+ * Read in a data stream as defined within section 5.3 of the v1.0
+ * specification.
+ * We might have multiple stdin buffers for the same data, so always
+ * append to the existing.
+ */
 static int
 kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	unsigned char **bp, size_t *bsz, 
@@ -1354,15 +1427,16 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	enum kcgi_err	 er;
 	void		*ptr;
 
+	/* Read the content and discard the padding. */
 	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
-		XWARNX("failed read fcgi params");
+		XWARNX("failed read FastCGI stdin content");
 		return(-1);
 	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard fcgi params pad");
+		XWARNX("failed discard FastCGI stdin padding");
 		return(-1);
 	} 
 	
-	
+	/* Always nil-terminate! */
 	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
 	if (NULL == ptr)
 		return(-1);
@@ -1371,12 +1445,15 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
 
-	fprintf(stderr, "%s: data: %" PRIu16 " bytes\n", 
+	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n", 
 		__func__, hdr->contentLength);
-
 	return(hdr->contentLength > 0);
 }
 
+/*
+ * Read out a series of parameters contained within a FastCGI parameter
+ * request defined in section 5.2 of the v1.0 specification.
+ */
 static int
 kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	unsigned char **bp, size_t *bsz,
@@ -1387,64 +1464,71 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	enum kcgi_err	 er;
 	void		*ptr;
 
+	/* Read the content and discard the padding. */
 	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
-		XWARNX("failed read fcgi params");
+		XWARNX("failed read FastCGI param content");
 		return(0);
 	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard fcgi params pad");
+		XWARNX("failed discard FastCGI param padding");
 		return(0);
 	}
 
+	/*
+	 * Loop through the string data that's laid out as a key length
+	 * then value length, then key, then value.
+	 * There can be arbitrarily many key-values per string.
+	 */
 	b = *bp;
 	remain = hdr->contentLength;
 	pos = 0;
 	while (remain > 0) {
+		/* First read the lengths. */
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
-			if (remain > 3) {
-				keysz = ((b[pos] & 0x7f) << 24) + 
-					  (b[pos + 1] << 16) + 
-					  (b[pos + 2] << 8) + 
-					   b[pos + 3];
-				pos += 4;
-				remain -= 4;
-			} else {
-				XWARNX("invalid fcgi params");
+			if (remain <= 3) {
+				XWARNX("invalid FastCGI params data");
 				return(0);
 			}
+			keysz = ((b[pos] & 0x7f) << 24) + 
+				  (b[pos + 1] << 16) + 
+				  (b[pos + 2] << 8) + b[pos + 3];
+			pos += 4;
+			remain -= 4;
 		} else {
 			keysz = b[pos];
 			pos++;
 			remain--;
 		}
 		if (remain < 1) {
-			XWARNX("invalid fcgi params");
+			XWARNX("invalid FastCGI params data");
 			return(0);
 		}
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
-			if (remain > 3) {
-				valsz = ((b[pos] & 0x7f) << 24) + 
-					  (b[pos + 1] << 16) + 
-					  (b[pos + 2] << 8) + 
-					   b[pos + 3];
-				pos += 4;
-				remain -= 4;
-			} else {
-				XWARNX("invalid fcgi params");
+			if (remain <= 3) {
+				XWARNX("invalid FastCGI params data");
 				return(0);
 			}
+			valsz = ((b[pos] & 0x7f) << 24) + 
+				  (b[pos + 1] << 16) + 
+				  (b[pos + 2] << 8) + b[pos + 3];
+			pos += 4;
+			remain -= 4;
 		} else {
 			valsz = b[pos];
 			pos++;
 			remain--;
 		}
+
+		/* Make sure we have room for data. */
 		if (pos + keysz + valsz > hdr->contentLength) {
-			XWARNX("invalid fcgi params");
+			XWARNX("invalid FastCGI params data");
 			return(0);
 		}
 		remain -= keysz;
 		remain -= valsz;
+
+		/* Look up the key in our existing keys. */
 		for (i = 0; i < *envsz; i++) {
 			if ((*envs)[i].keysz != keysz)
 				continue;
@@ -1452,6 +1536,10 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				break;
 		}
 
+		/* 
+		 * If we don't have the key: expand our table. 
+		 * If we do, clear the current value.
+		 */
 		if (i == *envsz) {
 			ptr = XREALLOCARRAY
 				(*envs, *envsz + 1, 
@@ -1471,6 +1559,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 
 		pos += keysz;
 
+		/* Copy the value. */
 		(*envs)[i].val = XMALLOC(valsz + 1);
 		if (NULL == (*envs)[i].val)
 			return(0);
@@ -1478,7 +1567,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		(*envs)[i].val[valsz] = '\0';
 		(*envs)[i].valsz = valsz;
 		pos += valsz;
-		fprintf(stderr, "%s: params: %s=%s\n", 
+		fprintf(stderr, "%s: DEBUG: params: %s=%s\n", 
 			__func__, (*envs)[i].key, (*envs)[i].val);
 	}
 	return(1);
@@ -1524,12 +1613,13 @@ kworker_fcgi_child(const struct kworker *work,
 	for (;;) {
 		free(sbuf);
 		ssz = 0;
-		fprintf(stderr, "%s: new sequence\n", __func__);
+		fprintf(stderr, "%s: DEBUG: sequence wait\n", __func__);
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],
 			 &realbgn, &buf, &bsz);
 		if (NULL == bgn)
 			break;
+		fprintf(stderr, "%s: DEBUG: new sequence\n", __func__);
 
 		/*
 		 * Now read one or more parameters.
@@ -1543,7 +1633,7 @@ kworker_fcgi_child(const struct kworker *work,
 				 &realhdr, buf);
 			if (NULL == hdr)
 				break;
-			if (4 != hdr->type)
+			if (FCGI_PARAMS != hdr->type)
 				break;
 			if (kworker_fcgi_params
 				(work->control[KWORKER_READ],
@@ -1556,13 +1646,11 @@ kworker_fcgi_child(const struct kworker *work,
 		if (NULL == hdr)
 			break;
 
-		if (5 != hdr->type) {
-			XWARNX("unknown fcgi header type");
+		if (FCGI_STDIN != hdr->type) {
+			XWARNX("unexpected FastCGI header type");
 			break;
 		}
 
-		fprintf(stderr, "%s: report "
-			"sequence parameters\n", __func__);
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
 		kworker_child_auth(envs, wfd, envsz);
@@ -1587,9 +1675,9 @@ kworker_fcgi_child(const struct kworker *work,
 				 &realhdr, buf);
 			if (NULL == hdr)
 				break;
-			if (5 == hdr->type) 
+			if (FCGI_STDIN == hdr->type) 
 				continue;
-			XWARNX("unknown fcgi header type");
+			XWARNX("unexpected FastCGI header type");
 			hdr = NULL;
 			break;
 		}
@@ -1602,7 +1690,6 @@ kworker_fcgi_child(const struct kworker *work,
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
-		fprintf(stderr, "%s: finished sequence\n", __func__);
 	}
 
 	for (i = 0; i < envmaxsz; i++) {
@@ -1613,4 +1700,5 @@ kworker_fcgi_child(const struct kworker *work,
 	free(sbuf);
 	free(buf);
 	free(envs);
+	fprintf(stderr, "%s: DEBUG: tearing down\n", __func__);
 }
