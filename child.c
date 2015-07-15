@@ -1284,11 +1284,11 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 		__func__, hdr->version);
 	fprintf(stderr, "%s: type: %" PRIu8 "\n", 
 		__func__, hdr->type);
-	fprintf(stderr, "%s: id: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: id: %" PRIu16 "\n", 
 		__func__, hdr->requestId);
 	fprintf(stderr, "%s: content-length: %" PRIu16 "\n", 
 		__func__, hdr->contentLength);
-	fprintf(stderr, "%s: padding-length: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: padding-length: %" PRIu8 "\n", 
 		__func__, hdr->paddingLength);
 	return(hdr);
 }
@@ -1598,7 +1598,7 @@ kworker_fcgi_child(const struct kworker *work,
 
 		/* And now the message body itself. */
 		kworker_child_body(envs, wfd, envsz, &pp, 
-			meth, NULL, sbuf, ssz);
+			meth, NULL, (char *)sbuf, ssz);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
