@@ -1161,6 +1161,14 @@ kworker_child_cookies(struct env *env,
 	}
 }
 
+static void
+kworker_child_last(int fd)
+{
+	enum input last = IN__MAX;
+
+	fullwrite(fd, &last, sizeof(enum input));
+}
+
 /*
  * This is the child kcgi process that's going to do the unsafe reading
  * of network data to parse input.
@@ -1233,6 +1241,7 @@ kworker_child(const struct kworker *work,
 		meth, work, NULL, 0);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
+	kworker_child_last(wfd);
 
 	/* Note: the "val" is from within the key. */
 	for (i = 0; i < envsz; i++) 
@@ -1592,7 +1601,7 @@ kworker_fcgi_child(const struct kworker *work,
 			meth, NULL, sbuf, ssz);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
-
+		kworker_child_last(wfd);
 		fprintf(stderr, "%s: finished sequence\n", __func__);
 	}
 
