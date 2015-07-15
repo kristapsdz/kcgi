@@ -189,6 +189,8 @@ kdata_free(struct kdata *p, int flush)
 	uint16_t requestId, contentLength;
 	uint32_t appStatus;
 
+	if (NULL == p)
+		return;
 #ifdef HAVE_ZLIB
 	if (NULL != p->gz)
 		gzclose(p->gz);

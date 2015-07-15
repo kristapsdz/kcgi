@@ -105,8 +105,10 @@ void
 kworker_prep_child(struct kworker *p)
 {
 
-	close(p->sock[KWORKER_READ]);
-	p->sock[KWORKER_READ] = -1;
+	if (-1 != p->sock[KWORKER_READ]) {
+		close(p->sock[KWORKER_READ]);
+		p->sock[KWORKER_READ] = -1;
+	}
 	if (-1 != p->control[KWORKER_WRITE]) {
 		close(p->control[KWORKER_WRITE]);
 		p->control[KWORKER_WRITE] = -1;
