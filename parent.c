@@ -50,7 +50,10 @@ input(enum input *type, struct kpair *kp, int fd, enum kcgi_err *ke)
 	else if (rc < 0)
 		return(-1);
 
-	if (*type >= IN__MAX) {
+	if (*type == IN__MAX)
+		return(0);
+
+	if (*type > IN__MAX) {
 		XWARNX("unknown input type %d", *type);
 		*ke = KCGI_FORM;
 		return(-1);
@@ -234,8 +237,6 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 		goto out;
 	}
 
-	fprintf(stderr, "%s: moopy>>\n", __func__);
-
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
 		/*
 		 * We have a parsed field from the child process.
@@ -255,8 +256,6 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 
 		*kpp = kp;
 	}
-
-	fprintf(stderr, "%s: moopy<<\n", __func__);
 
 	if (rc < 0)
 		goto out;
