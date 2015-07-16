@@ -260,6 +260,8 @@ const struct kmimemap ksuffixmap[] = {
 	{ "shtml", KMIME_TEXT_HTML },
 	{ "svg", KMIME_IMAGE_SVG_XML },
 	{ "svgz", KMIME_IMAGE_SVG_XML },
+	{ "txt", KMIME_TEXT_PLAIN },
+	{ "xml", KMIME_TEXT_XML },
 	{ NULL, KMIME__MAX },
 };
 
