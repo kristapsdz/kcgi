@@ -27,10 +27,6 @@
 #include <string.h>
 #include <unistd.h>
 
-struct	fcgi {
-	pid_t	 pid;
-};
-
 static	volatile sig_atomic_t stop = 0;
 
 static void
@@ -44,7 +40,7 @@ int
 main(int argc, char *argv[])
 {
 	int			 c, fd, rc;
-	struct fcgi		*ws;
+	pid_t			*ws;
 	size_t			 wsz, i, sz;
 	const char		*pname, *sockpath;
 	struct sockaddr_un	 sun;
@@ -124,10 +120,8 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	fprintf(stderr, "%s: ready: %s\n", pname, sockpath);
-
 	/* Allocate worker array. */
-	if (NULL == (ws = calloc(sizeof(struct fcgi), wsz))) {
+	if (NULL == (ws = calloc(sizeof(pid_t), wsz))) {
 		fprintf(stderr, "%s: memory failure\n", pname);
 		return(EXIT_FAILURE);
 	}
@@ -139,10 +133,10 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sighandle);
 
 	for (i = 0; i < wsz; i++) {
-		if (-1 == (ws[i].pid = fork())) {
+		if (-1 == (ws[i] = fork())) {
 			perror("fork");
 			break;
-		} else if (0 == ws[i].pid) {
+		} else if (0 == ws[i]) {
 			/*
 			 * Assign stdin to be the socket over which
 			 * we're going to transfer request descriptors
@@ -159,40 +153,42 @@ main(int argc, char *argv[])
 
 	/* Close local reference to server. */
 	close(fd);
-	while ( ! stop) {
-		if (0 != sleep(1))
+	while (0 == stop) {
+		if (0 != sleep(10))
 			break;
 		/*
-		 * NOTE: this is entirely for the benefit of
+		 * XXX: this is entirely for the benefit of
 		 * valgrind(1), and will be disabled in later releases.
-		 * Valgrind doesn't receive the SIGCHLD, so it needs to
-		 * manually check whether the PIDs exist.
+		 * valgrind(1) doesn't receive the SIGCHLD, so it needs
+		 * to manually check whether the PIDs exist.
 		 */
 		for (i = 0; i < wsz; i++) {
-			if (0 == waitpid(ws[i].pid, NULL, WNOHANG))
+			if (0 == waitpid(ws[i], NULL, WNOHANG))
 				continue;
-			fprintf(stderr, "%s: child exited\n", __func__);
-			ws[i].pid = -1;
-			goto out;
+			fprintf(stderr, "%s: process has died "
+				"(pid %d)\n", argv[0], ws[i]);
+			ws[i] = -1;
+			stop = 1;
+			break;
 		}
 	}
 
-out:
 	/*
 	 * Now wait on the children.
 	 * TODO: kill children if we wait too long.
 	 */
-	fprintf(stderr, "%s: waiting on children\n", pname);
 	for (i = 0; i < wsz; i++) {
-		if (-1 == ws[i].pid)
+		if (-1 == ws[i])
 			continue;
-		kill(ws[i].pid, SIGHUP);
-		if (-1 == waitpid(ws[i].pid, &c, 0))
+		kill(ws[i], SIGTERM);
+		if (-1 == waitpid(ws[i], &c, 0))
 			perror("waitpid");
 		else if ( ! WIFEXITED(c))
-			fprintf(stderr, "%s: child signalled!?\n", pname);
+			fprintf(stderr, "%s: process did not "
+				"exit (pid %d)\n", argv[0], ws[i]);
 		else if (EXIT_SUCCESS != WEXITSTATUS(c))
-			fprintf(stderr, "%s: child had bad exit\n", pname);
+			fprintf(stderr, "%s: process exited with "
+				"error (pid %d)\n", argv[0], ws[i]);
 	}
 
 	free(ws);
