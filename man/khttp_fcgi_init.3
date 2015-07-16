@@ -1,0 +1,149 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: May 18 2015 $
+.Dt KHTTP_FCGI_INIT 3
+.Os
+.Sh NAME
+.Nm khttp_fcgi_init ,
+.Nm khttp_fcgi_initx
+.Nd initialise a FastCGI context for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft "enum kcgi_err"
+.Fo khttp_fcgi_init
+.Fa "struct kfcgi **fcgi"
+.Fa "const struct kvalid *keys"
+.Fa "size_t keysz"
+.Fc
+.Ft "enum kcgi_err"
+.Fo khttp_fcgi_initx
+.Fa "struct kreq **fcgi"
+.Fa "const char *const *mimes"
+.Fa "size_t mimemax"
+.Fa "const struct kvalid *keys"
+.Fa "size_t keysz"
+.Fa "void *arg"
+.Fa "void (*argfree)(void *arg)"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm khttp_fcgi_init
+and
+.Nm khttp_fcgi_initx
+functions initialise a FastCGI context for
+.Xr kcgi 3 .
+These functions will only work if invoked as FastCGI servers, for
+example,
+.Xr kfcgi 8 .
+They should be called as early as possible in the life-span of a FastCGI
+application, preferrably directly after initialisation.
+.Pp
+The collective arguments are as follows:
+.Bl -tag -width Ds
+.It Fa arg
+A pointer to private application data.
+It is not touched unless
+.Fa argfree
+is provided.
+.It Fa argfree
+Function invoked with
+.Fa arg
+by the child process starting to parse untrusted network data.
+This makes sure that no unnecessary data is leaked into the child.
+.It Fa keys
+An array of input and validation fields.
+.It Fa keysz
+The number of elements in
+.Fa keys .
+.It Fa mimes
+An array of MIME types (e.g.,
+.Dq text/html ) ,
+mapped into a MIME index during MIME body parsing.
+.It Fa mimemax
+The MIME index used if no MIME type was matched.
+.El
+.Pp
+The first form,
+.Nm khttp_fgci_init ,
+is for applications using the system-recognised MIME types.
+This should work well enough for most applications.
+It is equivalent to invoking the second form,
+.Nm khttp_fcgi_initx ,
+as follows:
+.Bd -literal -offset indent
+khttp_fcgi_initx(fcgi,
+  kmimetypes, KIME__MAX,
+  keys, keysz, NULL, NULL);
+.Ed
+.Pp
+After invocation with a return value of
+.Dv KCGI_OK ,
+the
+.Fa fcgi
+pointer is filled in (and must be later be freed with
+.Xr khttp_fcgi_free 3 )
+and the
+.Xr khttp_fcgi_parse 3
+and
+.Xr khttp_fcgi_parsex 3
+functions may be invoked.
+.Pp
+.Em Note :
+in accordance with the FastCGI specification,
+.Nm khttp_fcgi_init
+and
+.Nm khttp_fcgi_initx
+will install signal handlers for
+.Dv SIGTERM .
+These should not be changed by the calling application.
+.Sh RETURN VALUES
+.Nm khttp_fcgi_init
+and
+.Nm khttp_fcgi_initx
+return an error code:
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Memory failure.
+This can occur in many places: spawning a child, allocating memory,
+creating sockets, etc.
+.It Dv KCGI_ENFILE
+Could not allocate file descriptors.
+.It Dv KCGI_EAGAIN
+Could not spawn a child.
+.It Dv KCGI_SYSTEM
+Opaque operating system error.
+.It Dv KCGI_HUP
+Hangup: the function was not invoked in a FastCGI context.
+.El
+.Pp
+On failure, the calling application should terminate as soon as
+possible.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_fcgi_free 3
+.Sh AUTHORS
+The
+.Nm khttp_fcgi_init
+and
+.Nm khttp_fcgi_initx
+functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
