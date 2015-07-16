@@ -909,27 +909,38 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 }
 
 /*
+ * Like getenv() but for our env structure.
+ */
+static char *
+kworker_env(struct env *env, size_t envsz, const char *key)
+{
+	size_t	 i;
+
+	for (i = 0; i < envsz; i++) 
+		if (0 == strcmp(env[i].key, key))
+			return(env[i].val);
+	return(NULL);
+}
+
+/*
  * Output the method found in our environment.
  * Returns the method.
  * Defaults to KMETHOD_GET, uses KETHOD__MAX if the method was bad.
  */
 static enum kmethod
-kworker_child_method(const struct env *env, int fd, size_t envsz)
+kworker_child_method(struct env *env, int fd, size_t envsz)
 {
 	enum kmethod	 meth;
-	size_t		 i;
+	const char	*cp;
 
 	/* RFC 3875, 4.1.12. */
 	/* We assume GET if not supplied. */
+
 	meth = KMETHOD_GET;
-	for (i = 0; i < envsz; i++) {
-		if (strcmp(env[i].key, "REQUEST_METHOD"))
-			continue;
+	if (NULL != (cp = kworker_env(env, envsz, "REQUEST_METHOD")))
 		for (meth = 0; meth < KMETHOD__MAX; meth++)
-			if (0 == strcmp(kmethods[meth], env[i].val))
+			if (0 == strcmp(kmethods[meth], cp))
 				break;
-		break;
-	}
 	fullwrite(fd, &meth, sizeof(enum kmethod));
 	return(meth);
 }
@@ -939,23 +950,21 @@ kworker_child_method(const struct env *env, int fd, size_t envsz)
  * Defaults to KAUTH_NONE.
  */
 static void
-kworker_child_auth(const struct env *env, int fd, size_t envsz)
+kworker_child_auth(struct env *env, int fd, size_t envsz)
 {
 	enum kauth	 auth;
-	size_t		 i;
+	const char	*cp;	
 
 	/* Determine authentication: RFC 3875, 4.1.1. */
+
 	auth = KAUTH_NONE;
-	for (i = 0; i < envsz; i++) {
-		if (strcmp(env[i].key, "AUTH_TYPE"))
-			continue;
+	if (NULL != (cp = kworker_env(env, envsz, "AUTH_TYPE")))
 		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {
 			if (NULL == kauths[auth])
 				continue;
-			if (0 == strcmp(kauths[auth], env[i].val))
+			if (0 == strcmp(kauths[auth], cp))
 				break;
 		}
-	}
 	fullwrite(fd, &auth, sizeof(enum kauth));
 }
 
@@ -965,27 +974,19 @@ kworker_child_auth(const struct env *env, int fd, size_t envsz)
  * Most web servers will `handle this for us'.  Ugh.
  */
 static void
-kworker_child_rawauth(const struct env *env, int fd, size_t envsz)
+kworker_child_rawauth(struct env *env, int fd, size_t envsz)
 {
-	size_t	 i;
 
-	for (i = 0; i < envsz; i++) 
-		if (0 == strcmp(env[i].key, "HTTP_AUTHORIZATION")) {
-			kworker_auth_child(fd, env[i].val);
-			break;
-		}
-
-	if (i == envsz)
-		kworker_auth_child(fd, NULL);
+	kworker_auth_child(fd, kworker_env
+		(env, envsz, "HTTP_AUTHORIZATION"));
 }
 
 /*
  * Send our HTTP scheme (secure or not) to the parent.
  */
 static void
-kworker_child_scheme(const struct env *env, int fd, size_t envsz)
+kworker_child_scheme(struct env *env, int fd, size_t envsz)
 {
-	size_t	 	 i;
 	const char	*cp;
 	enum kscheme	 scheme;
 
@@ -995,14 +996,8 @@ kworker_child_scheme(const struct env *env, int fd, size_t envsz)
 	 * as the SERVER_PROTOCOL (RFC 3875, 4.1.16) doesn't reliably
 	 * return the scheme.
 	 */
-	cp = "off";
-	for (i = 0; i < envsz; i++)
-		if (0 == strcmp(env[i].key, "HTTPS")) {
-			cp = env[i].val;
-			break;
-		}
-
-	assert(NULL != cp);
+	if (NULL == (cp = kworker_env(env, envsz, "HTTPS")))
+		cp = "off";
 	scheme = 0 == strcasecmp(cp, "on") ?
 		KSCHEME_HTTPS : KSCHEME_HTTP;
 	fullwrite(fd, &scheme, sizeof(enum kscheme));
@@ -1012,23 +1007,16 @@ kworker_child_scheme(const struct env *env, int fd, size_t envsz)
  * Send remote address to the parent.
  */
 static void
-kworker_child_remote(const struct env *env, int fd, size_t envsz)
+kworker_child_remote(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
-	size_t	 	 i, len;
 
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
-	cp = "127.0.0.1";
-	for (i = 0; i < envsz; i++)
-		if (0 == strcmp(env[i].key, "REMOTE_ADDR")) {
-			cp = env[i].val;
-			break;
-		}
 
-	len = strlen(cp);
-	fullwrite(fd, &len, sizeof(size_t));
-	fullwrite(fd, cp, len);
+	if (NULL == (cp = kworker_env(env, envsz, "REMOTE_ADDR")))
+		cp = "127.0.0.1";
+	fullwriteword(fd, cp);
 }
 
 /*
@@ -1038,28 +1026,15 @@ static void
 kworker_child_path(struct env *env, int fd, size_t envsz)
 {
 	char	*cp, *ep, *sub;
-	size_t	 i, len;
-
-	cp = NULL;
-	for (i = 0; i < envsz; i++) 
-		if (0 == strcmp(env[i].key, "PATH_INFO")) {
-			cp = env[i].val;
-			break;
-		}
+	size_t	 len;
 
 	/*
 	 * Parse the first path element (the page we want to access),
 	 * subsequent path information, and the file suffix.  We convert
 	 * suffix and path element into the respective enum's inline.
 	 */
-	if (NULL != cp) {
-		len = strlen(cp);
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, cp, len);
-	} else {
-		len = 0;
-		fullwrite(fd, &len, sizeof(size_t));
-	}
+	cp = kworker_env(env, envsz, "PATH_INFO");
+	fullwriteword(fd, cp);
 
 	/* This isn't possible in the real world. */
 	if (NULL != cp && '/' == *cp)
@@ -1073,32 +1048,19 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
 		/* Start with writing our suffix. */
 		if ('.' == *ep) {
 			*ep++ = '\0';
-			len = strlen(ep);
-			fullwrite(fd, &len, sizeof(size_t));
-			fullwrite(fd, ep, len);
-		} else {
-			len = 0;
-			fullwrite(fd, &len, sizeof(size_t));
-		}
+			fullwriteword(fd, ep);
+		} else
+			fullwriteword(fd, NULL);
 
 		/* Now find the top-most path part. */
 		if (NULL != (sub = strchr(cp, '/')))
 			*sub++ = '\0';
 
 		/* Send the base path. */
-		len = strlen(cp);
-		fullwrite(fd, &len, sizeof(size_t));
-		fullwrite(fd, cp, len);
+		fullwriteword(fd, cp);
 
 		/* Send the path part. */
-		if (NULL != sub) {
-			len = strlen(sub);
-			fullwrite(fd, &len, sizeof(size_t));
-			fullwrite(fd, sub, len);
-		} else {
-			len = 0;
-			fullwrite(fd, &len, sizeof(size_t));
-		}
+		fullwriteword(fd, sub);
 	} else {
 		len = 0;
 		/* Suffix, base path, and path part. */
@@ -1117,7 +1079,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth,
 	const struct kworker *work, char *b, size_t bsz)
 {
-	size_t 	 i, len;
+	size_t 	 len;
 	char	*cp, *bp = b;
 
 	/*
@@ -1128,12 +1090,8 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * RFC 3875, 4.1.2.
 	 */
 	len = 0;
-	for (i = 0; i < envsz; i++)
-		if (0 == strcmp(env[i].key, "CONTENT_LENGTH")) {
-			cp = env[i].val;
-			len = strtonum(cp, 0, LLONG_MAX, NULL);
-			break;
-		}
+	if (NULL != (cp = kworker_env(env, envsz, "CONTENT_LENGTH")))
+		len = strtonum(cp, 0, LLONG_MAX, NULL);
 
 	/* Check FastCGI input lengths. */
 	if (NULL != bp && bsz != len)
@@ -1148,9 +1106,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * We only support the main three content types.
 	 */
 	pp->type = IN_FORM;
-	for (i = 0; i < envsz; i++)
-		if (0 == strcmp(env[i].key, "CONTENT_TYPE"))
-			break;
+	cp = kworker_env(env, envsz, "CONTENT_TYPE");
 
 	/* If we're CGI, read the request now. */
 	if (NULL == b) {
@@ -1159,8 +1115,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	} else
 		assert(NULL == work);
 
-	if (i < envsz) {
-		cp = env[i].val;
+	if (NULL != cp) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
 			parse_pairs_urlenc(pp, b);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
@@ -1187,15 +1142,11 @@ static void
 kworker_child_query(struct env *env, 
 	int fd, size_t envsz, struct parms *pp)
 {
-	size_t	 i;
+	char 	*cp;
 
 	pp->type = IN_QUERY;
-	for (i = 0; i < envsz; i++) {
-		if (strcmp(env[i].key, "QUERY_STRING"))
-			continue;
-		parse_pairs_urlenc(pp, env[i].val);
-		break;
-	}
+	if (NULL != (cp = kworker_env(env, envsz, "QUERY_STRING")))
+		parse_pairs_urlenc(pp, cp);
 }
 
 /*
@@ -1207,15 +1158,11 @@ static void
 kworker_child_cookies(struct env *env, 
 	int fd, size_t envsz, struct parms *pp)
 {
-	size_t	 i;
+	char	*cp;
 
 	pp->type = IN_COOKIE;
-	for (i = 0; i < envsz; i++) {
-		if (strcmp(env[i].key, "HTTP_COOKIE"))
-			continue;
-		parse_pairs_urlenc(pp, env[i].val);
-		break;
-	}
+	if (NULL != (cp = kworker_env(env, envsz, "HTTP_COOKIE")))
+		parse_pairs_urlenc(pp, cp);
 }
 
 /*
@@ -1321,13 +1268,10 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	struct fcgi_hdr	*ptr;
 	int		 rc;
 
-	if ((rc = fullread(fd, buf, 8, 1, &er)) < 0) {
+	if ((rc = fullread(fd, buf, 8, 0, &er)) < 0) {
 		XWARNX("failed read FastCGI header");
 		return(NULL);
-	} else if (rc == 0) {
-		XWARNX("end of FastCGI headers");
-		return(NULL);
-	}
+	} 
 
 	/* Translate from network-byte order. */
 	ptr = (struct fcgi_hdr *)buf;
@@ -1601,9 +1545,11 @@ kworker_fcgi_child(const struct kworker *work,
 	struct parms 	 pp;
 	struct fcgi_hdr	*hdr, realhdr;
 	struct fcgi_bgn	*bgn, realbgn;
+	enum kcgi_err	 er;
 	unsigned char	*buf, *sbuf;
 	struct env	*envs;
 	uint16_t	 rid;
+	uint32_t	 cookie;
 	size_t		 i, bsz, ssz, envsz;
 	int		 wfd, rc;
 	enum kmethod	 meth;
@@ -1612,6 +1558,7 @@ kworker_fcgi_child(const struct kworker *work,
 	ssz = 0;
 	envsz = 0;
 	envs = NULL;
+	cookie = 0;
 	bsz = 8;
 	if (NULL == (buf = XMALLOC(bsz)))
 		return;
@@ -1639,6 +1586,23 @@ kworker_fcgi_child(const struct kworker *work,
 		free(envs);
 		envs = NULL;
 		envsz = 0;
+		cookie = 0;
+
+		/* 
+		 * Begin by reading our magic cookie.
+		 * This is emitted by the server at the start of our
+		 * sequence.
+		 * We'll reply with it on the control channel to
+		 * indicate that we've finished our reads.
+		 */
+		if ((rc = fullread(work->control[KWORKER_READ], 
+			 &cookie, sizeof(uint32_t), 1, &er)) < 0) {
+			XWARNX("failed read FastCGI cookie");
+			break;
+		} else if (rc == 0) {
+			XWARNX("end of FastCGI sequence");
+			break;
+		}
 
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],
@@ -1714,6 +1678,12 @@ kworker_fcgi_child(const struct kworker *work,
 			break;
 		}
 
+		/* 
+		 * Now we can reply to our request.
+		 * These are in a very specific order.
+		 * We begin with our magic cookie.
+		 */
+		fullwrite(wfd, &cookie, sizeof(uint32_t));
 		fullwrite(wfd, &rid, sizeof(uint16_t));
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
