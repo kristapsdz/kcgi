@@ -14,7 +14,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -22,27 +21,18 @@
 
 #include <errno.h>
 #include <getopt.h>
-#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-/*
- * The status of each FastCGI worker.
- * We don't really have anything here right now.
- */
 struct	fcgi {
-	pid_t	 pid; /* pid */
-	int	 control[2]; /* socketpair */
+	pid_t	 pid;
 };
 
 static	volatile sig_atomic_t stop = 0;
 
-/*
- * Handle child termination.
- */
 static void
 sighandle(int sig)
 {
@@ -50,54 +40,14 @@ sighandle(int sig)
 	stop = 1;
 }
 
-/*
- * Transfer file descriptor `fd' to the process connected to `socket'.
- * This is almost verbatim from Chapter 15 of Stevens' UNIX Network
- * Programming book.
- */
-static int 
-sendfd(int socket, int fd)
-{
-	struct msghdr	 msg;
-	char 		 buf[CMSG_SPACE(sizeof(fd))];
-	struct iovec 	 io;
-	struct cmsghdr 	*cmsg;
-	unsigned char 	 value;
-
-	memset(buf, 0, sizeof(buf));
-	memset(&msg, 0, sizeof(struct msghdr));
-	memset(&io, 0, sizeof(struct iovec));
-
-	value = 1;
-	io.iov_base = &value;
-	io.iov_len = 1;
-	msg.msg_iov = &io;
-	msg.msg_iovlen = 1;
-	msg.msg_control = buf;
-	msg.msg_controllen = sizeof(buf);
-
-	cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type = SCM_RIGHTS;
-	cmsg->cmsg_len = CMSG_LEN(sizeof(fd));
-
-	*((int *)CMSG_DATA(cmsg)) = fd;
-	msg.msg_controllen = cmsg->cmsg_len;
-	return(-1 != sendmsg(socket, &msg, 0));
-}
-
 int
 main(int argc, char *argv[])
 {
-	int			 c, fd, rc, nfd, debug;
-	const int		 on = 1;
+	int			 c, fd, rc;
 	struct fcgi		*ws;
-	size_t			 wsz, i, j, sz, total;
+	size_t			 wsz, i, sz;
 	const char		*pname, *sockpath;
 	struct sockaddr_un	 sun;
-	struct pollfd		 pfd;
-	socklen_t		 slen;
-	struct sockaddr_storage	 ss;
 	mode_t			 old_umask;
 
 	rc = EXIT_FAILURE;
@@ -110,18 +60,9 @@ main(int argc, char *argv[])
 	wsz = 5;
 	sockpath = "/var/www/run/httpd.sock";
 	ws = NULL;
-	debug = 0;
 
-	while (-1 != (c = getopt(argc, argv, "d:n:s:")))
+	while (-1 != (c = getopt(argc, argv, "n:s:")))
 		switch (c) {
-		case ('d'):
-			/* 
-			 * Not documented: this is only used during
-			 * testing to avoid needing to play with signals
-			 * too much.
-			 */
-			debug = atoi(optarg);
-			break;
 		case ('n'):
 			wsz = atoi(optarg);
 			break;	
@@ -145,57 +86,18 @@ main(int argc, char *argv[])
 	}
 	sun.sun_len = sz;
 
-	/* Allocate worker array. */
-	if (NULL == (ws = calloc(sizeof(struct fcgi), wsz))) {
-		fprintf(stderr, "%s: memory failure\n", pname);
-		return(EXIT_FAILURE);
-	}
-
-	/*
-	 * Dying children should notify us that something is horribly
-	 * wrong and we should exit.
-	 */
-	signal(SIGCHLD, sighandle);
-
-	for (i = 0; i < wsz; i++) {
-		c = socketpair(AF_UNIX, SOCK_STREAM, 0, ws[i].control);
-		if (-1 == c) {
-			perror("socketpair");
-			break;
-		} else if (-1 == (ws[i].pid = fork())) {
-			perror("fork");
-			break;
-		} else if (0 == ws[i].pid) {
-			/* Close all existing connections. */
-			for (j = 0; j < i; j++) 
-				close(ws[j].control[0]);
-			/*
-			 * Assign stdin to be the socket over which
-			 * we're going to transfer request descriptors
-			 * when we get them.
-			 */
-			close(ws[i].control[0]);
-			if (-1 == dup2(ws[i].control[1], STDIN_FILENO))
-				_exit(EXIT_FAILURE);
-			close(ws[i].control[1]);
-			execvp(argv[0], argv);
-			_exit(EXIT_FAILURE);
-		}
-		close(ws[i].control[1]);
-		ws[i].control[1] = -1;
-	}
-
 	/*
 	 * Prepare the socket then unlink any dead existing ones.
 	 * This is because we want to control the socket.
 	 */
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror("socket");
-		goto out;
+		return(EXIT_FAILURE);
 	} else if (-1 == unlink(sockpath)) {
 		if (ENOENT != errno) {
 			perror(sockpath);
-			goto out;
+			close(fd);
+			return(EXIT_FAILURE);
 		}
 	}
 
@@ -212,71 +114,79 @@ main(int argc, char *argv[])
 	 */
 	if (-1 == bind(fd, (struct sockaddr *)&sun, sizeof(sun))) {
 		perror("bind");
-		goto out;
+		close(fd);
+		return(EXIT_FAILURE);
 	}
 	umask(old_umask);
-	if (-1 == ioctl(fd, FIONBIO, &on)) {
-		perror("ioctl");
-		goto out;
-	} else if (-1 == listen(fd, wsz)) {
+	if (-1 == listen(fd, wsz)) {
 		perror("listen");
-		goto out;
+		close(fd);
+		return(EXIT_FAILURE);
 	}
 
 	fprintf(stderr, "%s: ready: %s\n", pname, sockpath);
 
-	pfd.fd = fd;
-	pfd.events = POLLIN;
-	total = 0;
+	/* Allocate worker array. */
+	if (NULL == (ws = calloc(sizeof(struct fcgi), wsz))) {
+		fprintf(stderr, "%s: memory failure\n", pname);
+		return(EXIT_FAILURE);
+	}
 
 	/*
-	 * While we have data coming over the wire, pass file
-	 * descriptors immediately to our children.
-	 * The algorithm for distributing over children is just
-	 * round-robin because we don't know anything about their
-	 * status.
+	 * Dying children should notify us that something is horribly
+	 * wrong and we should exit.
 	 */
-	while ( ! stop) {
-		c = poll(&pfd, 1, -1);
-		if (c < 0 && EINTR == errno) {
-			fprintf(stderr, "%s: interrupt caught\n", pname);
-			break;
-		} else if (c < 0) {
-			perror("poll");
-			goto out;
-		} else if ( ! (POLLIN & pfd.events)) {
-			fprintf(stderr, "%s: bad poll events\n", pname);
-			goto out;
-		}
+	signal(SIGTERM, sighandle);
 
-		slen = sizeof(ss);
-		nfd = accept(fd, (struct sockaddr *)&ss, &slen);
-		if ( ! sendfd(ws[total % wsz].control[0], nfd)) {
-			fprintf(stderr, "%s: dead child\n", pname);
-			goto out;
-		}
-		close(nfd);
-		total++;
-		if (debug > 0 && 0 == --debug)
-			break;
-	}
-
-	rc = EXIT_SUCCESS;
-out:
-	/* 
-	 * First, close the sockets.
-	 * This will make any children that are waiting exit properly.
-	 */
 	for (i = 0; i < wsz; i++) {
-		close(ws[i].control[0]);
-		ws[i].control[0] = -1;
+		if (-1 == (ws[i].pid = fork())) {
+			perror("fork");
+			break;
+		} else if (0 == ws[i].pid) {
+			/*
+			 * Assign stdin to be the socket over which
+			 * we're going to transfer request descriptors
+			 * when we get them.
+			 */
+			if (-1 == dup2(fd, STDIN_FILENO))
+				_exit(EXIT_FAILURE);
+			close(fd);
+			execvp(argv[0], argv);
+			perror(argv[0]);
+			_exit(EXIT_FAILURE);
+		}
 	}
 
+	/* Close local reference to server. */
+	close(fd);
+	while ( ! stop) {
+		if (0 != sleep(1))
+			break;
+		/*
+		 * NOTE: this is entirely for the benefit of
+		 * valgrind(1), and will be disabled in later releases.
+		 * Valgrind doesn't receive the SIGCHLD, so it needs to
+		 * manually check whether the PIDs exist.
+		 */
+		for (i = 0; i < wsz; i++) {
+			if (0 == waitpid(ws[i].pid, NULL, WNOHANG))
+				continue;
+			fprintf(stderr, "%s: child exited\n", __func__);
+			ws[i].pid = -1;
+			goto out;
+		}
+	}
+
+out:
 	/*
 	 * Now wait on the children.
 	 * TODO: kill children if we wait too long.
 	 */
+	fprintf(stderr, "%s: waiting on children\n", pname);
 	for (i = 0; i < wsz; i++) {
+		if (-1 == ws[i].pid)
+			continue;
+		kill(ws[i].pid, SIGHUP);
 		if (-1 == waitpid(ws[i].pid, &c, 0))
 			perror("waitpid");
 		else if ( ! WIFEXITED(c))
@@ -284,9 +194,6 @@ out:
 		else if (EXIT_SUCCESS != WEXITSTATUS(c))
 			fprintf(stderr, "%s: child had bad exit\n", pname);
 	}
-
-	if (-1 != fd)
-		close(fd);
 
 	free(ws);
 	return(rc);

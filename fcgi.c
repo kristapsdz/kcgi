@@ -18,6 +18,7 @@
 #include "config.h"
 #endif
 
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #include <errno.h>
@@ -41,55 +42,39 @@ struct	kfcgi {
 	struct kworker	  work;
 };
 
+static	volatile sig_atomic_t handle = 0;
+
+static void
+kfcgi_sighandle(int code)
+{
+
+	handle = 1;
+}
+
 /*
- * Set up a non-blocking read for our next 
+ * Set up a non-blocking read for our next connection.
+ * If we're interrupting during this operation, then bail out.
  */
 static int 
 kfcgi_control_read(int *newfd, int socket)
 {
-	struct msghdr 	 msg;
-	char 		 m_buffer[256];
-	struct iovec	 io;
-	char 		 c_buffer[256];
-	struct cmsghdr	*cmsg;
-	unsigned char	*data;
-	struct pollfd	 pfd;
-	ssize_t		 ssz;
+	struct sockaddr_storage	  ss;
+	socklen_t		  sslen;
+	int			  fd;
 
-	memset(&msg, 0, sizeof(struct msghdr));
-	memset(&io, 0, sizeof(struct iovec));
-
-	io.iov_base = m_buffer;
-	io.iov_len = sizeof(m_buffer);
-
-	msg.msg_iov = &io;
-	msg.msg_iovlen = 1;
-	msg.msg_control = c_buffer;
-	msg.msg_controllen = sizeof(c_buffer);
-
-	pfd.fd = socket;
-	pfd.events = POLLIN;
-again:
-	if (-1 == poll(&pfd, 1, -1)) {
-		XWARN("poll: %d, POLLIN", socket);
-		return(-1);
-	} else if ( ! (POLLIN & pfd.revents)) {
-		XWARNX("poll: unexpectedly closed", socket);
-		return(0);
-	} else if ((ssz = recvmsg(socket, &msg, 0)) < 0) {
-		if (EAGAIN == errno) {
-			XWARN("recvmsg: trying again");
-			goto again;
-		}
-		XWARN("recvmsg: %d", socket);
-		return(-1);
-	} else if (0 == ssz) 
+	if (handle)
 		return(0);
 
-	cmsg = CMSG_FIRSTHDR(&msg);
-	data = CMSG_DATA(cmsg);
+	sslen = sizeof(ss);
+	fd = accept(STDIN_FILENO, (struct sockaddr *)&ss, &sslen);
+	if (fd < 0) {
+		if (EAGAIN == errno)
+			return(0);
+		XWARN("accept");
+		return(-1);
+	} 
 
-	*newfd = *((int *)data);
+	*newfd = fd;
 	return(1);
 }
 
@@ -99,16 +84,19 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	size_t	 	 i;
 	enum kcgi_err	 er;
 
-	fprintf(stderr, "%s: freeing\n", __func__);
+	/* 
+	 * Do this first: give the child a chance to see that we've
+	 * closed the control socket and exit on its own.
+	 */
+	kworker_free(&fcgi->work);
 
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
-
 	free(fcgi->mimes);
 	free(fcgi->keys);
-
-	kworker_free(&fcgi->work);
-	/*kworker_kill(&fcgi->work);*/
+	/*
+	 * This blocks on the PID.
+	 */
 	er = kworker_close(&fcgi->work);
 	free(fcgi);
 	return(er);
@@ -117,7 +105,8 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 enum kcgi_err
 khttp_fcgi_initx(struct kfcgi **fcgip, 
 	const char *const *mimes, size_t mimesz,
-	const struct kvalid *keys, size_t keysz)
+	const struct kvalid *keys, size_t keysz, 
+	void *arg, void (*argfree)(void *))
 {
 	enum kcgi_err	 kerr;
 	struct kfcgi	*fcgi;
@@ -125,20 +114,32 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	size_t		 i;
 	struct kworker	 work;
 
-	fprintf(stderr, "%s: starting up\n", __func__);
+	/* FIXME: restore on khttp_fcgi_free(). */
+	signal(SIGHUP, kfcgi_sighandle);
 
+	/*
+	 * Begin by initialising our worker.
+	 * Everything open now (file descriptors, etc.) will be
+	 * inherited by the child, as we don't do an execve.
+	 */
 	memset(&work, 0, sizeof(struct kworker));
 	if (KCGI_OK != (kerr = kworker_fcgi_init(&work)))
 		return(kerr);
 
-	fprintf(stderr, "%s: starting worker\n", __func__);
 	if (-1 == (work.pid = fork())) {
 		er = errno;
 		XWARN("fork");
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == work.pid) {
-		/* Close the parent's control socket. */
+		if (NULL != argfree)
+			argfree(arg);
+		/* 
+		 * STDIN_FILENO isn't really stdin, it's the control
+		 * socket used to pass input sockets to us.
+		 * Thus, close the parent's control socket. 
+		 */
 		close(STDIN_FILENO);
+		signal(SIGHUP, SIG_IGN);
 		kworker_prep_child(&work);
 		kworker_fcgi_child(&work, keys, keysz, mimes, mimesz);
 		kworker_free(&work);
@@ -147,33 +148,33 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	}
 	kworker_prep_parent(&work);
 
-	fprintf(stderr, "%s: initialised\n", __func__);
-
-	kerr = KCGI_ENOMEM;
-
+	/* Now allocate our device. */
 	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));
 	if (NULL == fcgi) 
 		return(KCGI_ENOMEM);
 
+	kerr = KCGI_ENOMEM;
 	fcgi->work = work;
 	fcgi->mimes = XCALLOC(sizeof(char *), mimesz);
 	if (NULL == fcgi->mimes)
 		goto err;
-
-	for (i = 0; i < mimesz; i++) {
-		fcgi->mimes[fcgi->mimesz] = XSTRDUP(mimes[i]);
-		if (NULL == fcgi->mimes[i])
-			goto err;
-		fcgi->mimesz++;
-	}
-
+	fcgi->mimesz = mimesz;
 	fcgi->keys = XCALLOC(sizeof(struct kvalid), keysz);
+	if (NULL == fcgi->keys)
+		goto err;
+	fcgi->keysz = keysz;
 
+	for (i = 0; i < mimesz; i++)
+		if (NULL == (fcgi->mimes[i] = XSTRDUP(mimes[i])))
+			goto err;
 	for (i = 0; i < keysz; i++)
-		fcgi->keys[fcgi->keysz++] = keys[i];
+		fcgi->keys[i] = keys[i];
 
 	return(KCGI_OK);
 err:
+	/* 
+	 * Bail out: kill child process and all memory.
+	 */
 	(void)khttp_fcgi_free(fcgi);
 	return(kerr);
 }
@@ -183,8 +184,8 @@ khttp_fcgi_init(struct kfcgi **fcgi,
 	const struct kvalid *keys, size_t keysz)
 {
 
-	return(khttp_fcgi_initx(fcgi, 
-		kmimetypes, KMIME__MAX, keys, keysz));
+	return(khttp_fcgi_initx(fcgi, kmimetypes, 
+		KMIME__MAX, keys, keysz, NULL, NULL));
 }
 
 enum kcgi_err
@@ -196,7 +197,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	enum kcgi_err	 kerr;
 	const struct kmimemap *mm;
 	int		 c, fd;
-	ssize_t		 ssz, wsz;
+	ssize_t		 ssz;
 	uint16_t	 rid;
 	char		 buf[BUFSIZ];
 	struct pollfd	 pfd[2];
@@ -204,31 +205,28 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
 
-	fprintf(stderr, "%s: DEBUG: Waiting "
-		"for request...\n", __func__);
-
-	if (0 == (c = kfcgi_control_read(&fd, STDIN_FILENO))) {
-		fprintf(stderr, "%s: DEBUG: Control "
-			"socket now closed\n", __func__);
+	/*
+	 * Poll in our input socket (stdin) until the parent sends us a
+	 * file descriptor to munch.
+	 * If this returns zero, then the parent has killed our channel.
+	 */
+	if (0 == (c = kfcgi_control_read(&fd, STDIN_FILENO)))
 		return(KCGI_HUP);
-	} else if (c < 0)
+	else if (c < 0)
 		return(KCGI_SYSTEM);
 
 	fprintf(stderr, "%s: DEBUG: Reading request\n", __func__);
 
 	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+
 	pfd[1].fd = fcgi->work.sock[KWORKER_READ];
-	pfd[0].events = pfd[1].events = POLLIN;
+	pfd[1].events = POLLIN;
 
 	/*
-	 * Keep writing data into the child context.
+	 * Keep reading then writing data into the child context.
 	 * It will let us know that all data has been read and processed
 	 * when we have a write event from it.
-	 * Why is this so fucking retarded?  FastCGI.
-	 * It doesn't use an EOF (because the socket is bidirectional)
-	 * to let us know when data has finished reading.
-	 * This is also why we don't just hand the socket to the child
-	 * to read from itself.
 	 * TODO: have the first byte from the child be a cookie that
 	 * indicates that all data has been read.
 	 * Randomly generate the cookie each time.
@@ -241,7 +239,10 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 		} 
 		
 		if (POLLIN & pfd[1].revents) {
-			/* Read to roll... */
+			/* 
+			 * The child is starting to send us data.
+			 * Stop trying to read more data and roll.
+			 */
 			break;
 		} else if ( ! (POLLIN & pfd[0].revents)) {
 			XWARNX("poll: bad events");
@@ -252,15 +253,11 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			close(fd);
 			return(KCGI_SYSTEM);
 		} else if (0 == ssz) {
+			fprintf(stderr, "%s: DEBUG: Request abort\n", __func__);
 			close(fd);
 			return(KCGI_SYSTEM);
 		}
-		wsz = write(fcgi->work.control[KWORKER_WRITE], buf, ssz);
-		if (ssz != wsz) {
-			XWARN("write: control socket");
-			close(fd);
-			return(KCGI_SYSTEM);
-		}
+		fullwrite(fcgi->work.control[KWORKER_WRITE], buf, ssz);
 	}
 
 	fprintf(stderr, "%s: DEBUG: Processing request\n", __func__);

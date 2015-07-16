@@ -14,6 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <getopt.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,11 +29,22 @@ main(int argc, char *argv[])
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
 	const char	*pname;
+	int		 c, debug;
 
 	if ((pname = strrchr(argv[0], '/')) == NULL)
 		pname = argv[0];
 	else
 		++pname;
+
+	debug = 0;
+	while (-1 != (c = getopt(argc, argv, "d:")))
+		switch (c) {
+		case ('d'):
+			debug = atoi(optarg);
+			break;
+		default:
+			return(EXIT_FAILURE);
+		}
 
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0))
 		return(EXIT_FAILURE);
@@ -53,6 +65,8 @@ main(int argc, char *argv[])
 		khttp_body(&req);
 		khttp_puts(&req, "Hello, world!\n");
 		khttp_free(&req);
+		if (debug > 0 && 0 == --debug)
+			break;
 	}
 
 	khttp_fcgi_free(fcgi);
