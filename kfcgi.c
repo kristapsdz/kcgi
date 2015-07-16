@@ -14,6 +14,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -80,7 +84,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, "socket path to long\n");
 		return(EXIT_FAILURE);
 	}
+#ifndef __linux__
 	sun.sun_len = sz;
+#endif
 
 	/*
 	 * Prepare the socket then unlink any dead existing ones.
