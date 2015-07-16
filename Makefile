@@ -186,8 +186,10 @@ regress: $(REGRESS)
 		/bin/echo "ok" ; \
 	done
 
-kfcgi: kfcgi.c
-	$(CC) $(CFLAGS) -o $@ kfcgi.c
+kfcgi: kfcgi.o compat-memmem.o compat-reallocarray.o compat-strlcat.o compat-strlcpy.o compat-strtonum.o 
+	$(CC) $(CFLAGS) -o $@ kfcgi.o compat-memmem.o compat-reallocarray.o compat-strlcat.o compat-strlcpy.o compat-strtonum.o 
+
+kfcgi.o: config.h
 
 regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
@@ -339,7 +341,7 @@ kcgi.tgz:
 	gnuplot $<
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o
 	rm -f index.html $(TUTORIALHTMLS)
 	rm -f libkcgi.a $(LIBOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
