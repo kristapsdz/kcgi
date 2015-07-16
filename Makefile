@@ -2,7 +2,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-#STATIC 		 = -static
+STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -33,7 +33,7 @@ MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.6.1
+VERSION 	 = 0.6.2
 LIBOBJS 	 = child.o \
 		   fcgi.o \
 		   httpauth.o \
