@@ -238,7 +238,11 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	pfd[1].fd = fcgi->work.sock[KWORKER_READ];
 	pfd[1].events = POLLIN;
 
+#ifdef __linux__
+	cookie = random();
+#else
 	cookie = arc4random();
+#endif
 	fullwrite(fcgi->work.control[KWORKER_WRITE], 
 		&cookie, sizeof(uint32_t));
 
