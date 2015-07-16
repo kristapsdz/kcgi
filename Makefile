@@ -135,6 +135,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-gzip \
 		   regress/test-header \
 		   regress/test-nogzip \
+		   regress/test-path-check \
 		   regress/test-ping \
 		   regress/test-upload
 REGRESS_OBJS	 = regress/regress.o \
@@ -143,6 +144,7 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-gzip.o \
 		   regress/test-header.o \
 		   regress/test-nogzip.o \
+		   regress/test-path-check.o \
 		   regress/test-ping.o \
 		   regress/test-sandbox.o \
 		   regress/test-upload.o
@@ -156,6 +158,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-gzip.c \
 		   regress/test-header.c \
 		   regress/test-nogzip.c \
+		   regress/test-path-check.c \
 		   regress/test-ping.c \
 		   regress/test-sandbox.c \
 		   regress/test-upload.c
@@ -181,6 +184,9 @@ kfcgi: kfcgi.c
 
 regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-path-check: regress/test-path-check.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-path-check.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/test-nogzip: regress/test-nogzip.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-nogzip.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
