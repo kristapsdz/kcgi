@@ -306,29 +306,6 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if (fcgi->keysz && NULL == req->fieldnmap)
 		goto err;
 
-#if 0
-	if (NULL == (cp = getenv("SCRIPT_NAME")))
-		req->pname = XSTRDUP("");
-	else
-		req->pname = XSTRDUP(cp);
-
-	if (NULL == req->pname)
-		goto err;
-
-	/* Never supposed to be NULL, but to be sure... */
-	if (NULL == (cp = getenv("HTTP_HOST")))
-		req->host = XSTRDUP("localhost");
-	else
-		req->host = XSTRDUP(cp);
-
-	if (NULL == req->host)
-		goto err;
-
-	req->port = 80;
-	if (NULL != (cp = getenv("SERVER_PORT")))
-		req->port = strtonum(cp, 0, 80, NULL);
-#endif
-
 	kerr = kworker_parent
 		(fcgi->work.sock[KWORKER_READ], 
 		 req, fcgi->work.pid);
