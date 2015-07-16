@@ -191,10 +191,21 @@ kdata_free(struct kdata *p, int flush)
 
 	if (NULL == p)
 		return;
+	/*
+	 * If we're not FastCGI and we're not going to flush, then close
+	 * the file descriptors outright: we don't want gzclose()
+	 * flushing anything to the wire.
+	 */
+	if ( ! flush && -1 == p->fcgi) {
+		close(STDOUT_FILENO);
+		close(STDIN_FILENO);
+	}
+
 #ifdef HAVE_ZLIB
 	if (NULL != p->gz)
 		gzclose(p->gz);
 #endif
+
 	if (flush) {
 		if (-1 != p->fcgi) {
 			version = 1;
@@ -225,9 +236,6 @@ kdata_free(struct kdata *p, int flush)
 		if (-1 != p->fcgi) {
 			close(p->fcgi);
 			p->fcgi = -1;
-		} else {
-			close(STDOUT_FILENO);
-			close(STDIN_FILENO);
 		}
 	}
 	free(p);

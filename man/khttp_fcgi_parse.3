@@ -1,0 +1,88 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: July 16 2015 $
+.Dt KHTTP_FCGI_PARSE 3
+.Os
+.Sh NAME
+.Nm khttp_fcgi_parse ,
+.Nm khttp_fcgi_parsex
+.Nd parse a FastCGI instance for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft "enum kcgi_err"
+.Fo khttp_fcgi_parse
+.Fa "struct kfcgi *fcgi"
+.Fa "struct kreq *req"
+.Fa "const char *const *pages"
+.Fa "size_t pagesz"
+.Fa "size_t defpage"
+.Fc
+.Ft "enum kcgi_err"
+.Fo khttp_fcgi_parsex
+.Fa "struct kfcgi *fcgi"
+.Fa "struct kreq *req"
+.Fa "const struct kmimemap *suffixes"
+.Fa "const char *const *pages"
+.Fa "size_t pagesz"
+.Fa "size_t defmime"
+.Fa "size_t defpage"
+.Fa "void *arg"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm khttp_fcgi_parse
+and
+.Nm khttp_fcgi_parsex
+functions parse and validate a single FastCGI request.
+They may be invoked as many times as necessary, but must follow a call
+to
+.Xr khttp_fcgi_init 3
+and be followed by
+.Xr khttp_fcgi_free 3 .
+.Pp
+The collective arguments and return values are defined in
+.Xr khttp_parse 3 .
+.Pp
+The
+.Fa req
+object filled in by
+.Nm khttp_fcgi_parse
+or
+.Nm khttp_fcgi_parsex
+must be subsequently freed by
+.Xr khttp_free .
+.Sh RETURN VALUES
+These are the same as in
+.Xr khttp_parse 3 ,
+except the
+.Dv KCGI_HUP
+return code indicates that no more requests will arrive and the
+application should exit.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_fcgi_init 3 ,
+.Xr khttp_free 3
+.Sh AUTHORS
+The
+.Nm khttp_fcgi_parse
+and
+.Nm khttp_fcgi_parsex
+functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

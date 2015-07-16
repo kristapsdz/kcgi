@@ -200,13 +200,16 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 	if (NULL == head)
 		goto out;
 
-	rc = child(carg);
+	if (-1 != in)
+		close(in);
+	if (-1 != s)
+		close(s);
+	return(child(carg));
 out:
 	if (-1 != in)
 		close(in);
 	if (-1 != s)
 		close(s);
-
 	return(rc);
 }
 

@@ -1,0 +1,67 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: November 23 2014 $
+.Dt KHTTP_FCGI_FREE 3
+.Os
+.Sh NAME
+.Nm khttp_fcgi_free ,
+.Nm khttp_fcgi_child_free
+.Nd free a FastCGI instance for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft "enum kcgi_err"
+.Fo khttp_fcgi_free
+.Fa "struct kfcgi *fcgi"
+.Fc
+.Ft void
+.Fo khttp_fcgi_child_free
+.Fa "struct kfcgi *fcgi"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm khttp_fcgi_free
+and
+.Nm khttp_fcgi_child_free
+functions free the resources of
+.Fa fcgi
+allocated by
+.Xr khttp_fcgi_init 3 .
+After calling this function,
+.Fa fcgi
+cannot be used.
+.Pp
+The
+.Nm khttp_fcgi_child_free
+performs the same operations as
+.Nm khttp_fcgi_free ,
+but is careful not to trample on any open streams.
+Thus, it may be used after invoking
+.Xr fork 2
+without confusing the output buffer or other child processes.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr kcgi_fcgi_init 3
+.Sh AUTHORS
+The
+.Nm khttp_fcgi_free
+and
+.Nm khttp_fcgi_child_free
+functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
