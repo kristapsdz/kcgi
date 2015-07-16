@@ -86,8 +86,13 @@ An array of input and validation fields.
 .It Fa keysz
 The number of elements in
 .Fa keys .
-.It Fa maxmime
+.It Fa mimemax
 The MIME index used if no MIME type was matched.
+.It Fa mimes
+An array of MIME types (e.g.,
+.Dq text/html ) ,
+mapped into a MIME index during MIME body parsing.
+This relates both to pages and input fields with a body type.
 .It Fa pages
 An array of recognised pathnames.
 When pathnames are parsed, they're matched to indices in this array.
@@ -113,8 +118,9 @@ It is equivalent to invoking the second form,
 .Nm khttp_parsex ,
 as follows:
 .Bd -literal -offset indent
-khttp_parsex(req, ksuffixmap, KIME__MAX,
-  keys, keysz, pages, pagesz, NULL, NULL);
+khttp_parsex(req, ksuffixmap, 
+  kmimetypes, KIME__MAX, keys, keysz, 
+  pages, pagesz, NULL, NULL);
 .Ed
 .Pp
 The
