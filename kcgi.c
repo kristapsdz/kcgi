@@ -620,7 +620,6 @@ khttp_parsex(struct kreq *req,
 	size_t defmime, size_t defpage, void *arg,
 	void (*argfree)(void *arg))
 {
-	char		*cp;
 	const struct kmimemap *mm;
 	enum kcgi_err	 kerr;
 	int 		 er;
@@ -683,27 +682,6 @@ khttp_parsex(struct kreq *req,
 	req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
 	if (keysz && NULL == req->fieldnmap)
 		goto err;
-
-	if (NULL == (cp = getenv("SCRIPT_NAME")))
-		req->pname = XSTRDUP("");
-	else
-		req->pname = XSTRDUP(cp);
-
-	if (NULL == req->pname)
-		goto err;
-
-	/* Never supposed to be NULL, but to be sure... */
-	if (NULL == (cp = getenv("HTTP_HOST")))
-		req->host = XSTRDUP("localhost");
-	else
-		req->host = XSTRDUP(cp);
-
-	if (NULL == req->host)
-		goto err;
-
-	req->port = 80;
-	if (NULL != (cp = getenv("SERVER_PORT")))
-		req->port = strtonum(cp, 0, 80, NULL);
 
 	/*
 	 * Now read the input fields from the child and conditionally

@@ -1019,6 +1019,39 @@ kworker_child_remote(struct env *env, int fd, size_t envsz)
 	fullwriteword(fd, cp);
 }
 
+static void
+kworker_child_port(struct env *env, int fd, size_t envsz)
+{
+	uint16_t	 port;
+	const char	*cp;
+
+	port = 80;
+	if (NULL != (cp = kworker_env(env, envsz, "SERVER_PORT")))
+		port = strtonum(cp, 0, UINT16_MAX, NULL);
+
+	fullwrite(fd, &port, sizeof(uint16_t));
+}
+
+static void
+kworker_child_httphost(struct env *env, int fd, size_t envsz)
+{
+	const char	*cp;
+
+	if (NULL == (cp = kworker_env(env, envsz, "HTTP_HOST")))
+		cp = "localhost";
+	fullwriteword(fd, cp);
+}
+
+static void
+kworker_child_scriptname(struct env *env, int fd, size_t envsz)
+{
+	const char	*cp;
+
+	if (NULL == (cp = kworker_env(env, envsz, "SCRIPT_NAME")))
+		cp = "";
+	fullwriteword(fd, cp);
+}
+
 /*
  * Parse all path information (subpath, path, etc.) and send to parent.
  */
@@ -1242,6 +1275,9 @@ kworker_child(const struct kworker *work,
 	kworker_child_scheme(envs, wfd, envsz);
 	kworker_child_remote(envs, wfd, envsz);
 	kworker_child_path(envs, wfd, envsz);
+	kworker_child_scriptname(envs, wfd, envsz);
+	kworker_child_httphost(envs, wfd, envsz);
+	kworker_child_port(envs, wfd, envsz);
 
 	/* And now the message body itself. */
 	kworker_child_body(envs, wfd, envsz, &pp, 
@@ -1692,6 +1728,9 @@ kworker_fcgi_child(const struct kworker *work,
 		kworker_child_scheme(envs, wfd, envsz);
 		kworker_child_remote(envs, wfd, envsz);
 		kworker_child_path(envs, wfd, envsz);
+		kworker_child_scriptname(envs, wfd, envsz);
+		kworker_child_httphost(envs, wfd, envsz);
+		kworker_child_port(envs, wfd, envsz);
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 

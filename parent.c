@@ -235,6 +235,15 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 	} else if (KCGI_OK != (ke = fullreadword(fd, &r->path))) {
 		XWARNX("failed to read path part");
 		goto out;
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->pname))) {
+		XWARNX("failed to read script name");
+		goto out;
+	} else if (KCGI_OK != (ke = fullreadword(fd, &r->host))) {
+		XWARNX("failed to read host name");
+		goto out;
+	} else if (fullread(fd, &r->port, sizeof(uint16_t), 0, &ke) < 0) {
+		XWARNX("failed to read port");
+		goto out;
 	}
 
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
