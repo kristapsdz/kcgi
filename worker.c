@@ -35,6 +35,11 @@
 #include "kcgi.h"
 #include "extern.h"
 
+/*
+ * Beyond the usual worker instance, we also want to start a control
+ * socket that will be used for communication between the application
+ * process and the untrusted worker.
+ */
 enum kcgi_err
 kworker_fcgi_init(struct kworker *p)
 {
@@ -84,6 +89,10 @@ kworker_init(struct kworker *p)
 	return(KCGI_OK);
 }
 
+/*
+ * Free all resources managed by a worker.
+ * This will close out file descriptors as well.
+ */
 void
 kworker_free(struct kworker *p)
 {
