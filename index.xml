@@ -209,20 +209,28 @@ int main(void) {
 					<code>nodev</code>.
 					This complication does not exist for the other sandboxes.
 				</p>
+				<p>
+					FastCGI applications may either be started directly by the web server (which is popular with <a
+						href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
+						href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
+						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> and
+					suggested for the [future] security precautions taken by the wrapper).
+				</p>
 			</section>
 			<section id="features">
 				<h2>
 					Implementation Details
 				</h2>
 				<p>
-					The bulk of <span class="nm">kcgi</span> lies in <a href="khttp_parse.3.html">khttp_parse(3)</a>, which
-					fully parses the HTTP context.
+					The bulk of <span class="nm">kcgi</span>'s CGI handling lies in <a
+						href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses the HTTP context.
 					Application developers must invoke this function before all others.
 					It must be matched by an <a href="khttp_free.3.html">khttp_free(3)</a>, which frees all resources.
+					For FastCGI, parsing is invoked with <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
 				</p>
 				<p>
-					The <a href="khttp_parse.3.html">khttp_parse(3)</a> function isolates its parsing and validation of
-					untrusted network data within a <i>sandboxed</i> child process.
+					Both functions isolate the parsing and validation of untrusted network data within a <i>sandboxed</i>
+					child process.
 					Sandboxes limit the environment available to a process, so exploitable errors in the parsing process (or
 					validation with third-party libraries) cannot touch the system environment.
 					This parsed data is returned to the parent process over a socket.
@@ -295,6 +303,7 @@ int main(void) {
 					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
 					For internal tests, test requests are constructed with <a
 						href="http://curl.haxx.se/libcurl/">libcurl</a>.
+					This has not yet been machined for FastCGI.
 				</p>
 				<p>
 					The automated test framework, at the moment, only has a few tests for basic functionality and

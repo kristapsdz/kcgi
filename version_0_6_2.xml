@@ -7,8 +7,7 @@
 	</header>
 	<aside>
 		<div>
-			This release includes an initial implementation of <a href="http://www.fastcgi.com">FastCGI</a>, drawing from the <a
-				href="http://www.fastcgi.com/drupal/node/22">FastCGI Specification</a>.
+			This release includes an initial implementation of <a href="http://www.fastcgi.com">FastCGI</a>.
 			While the existing functionality wasn't logically altered, it was shuffled around quite a lot and abstracted to
 			accomodate for the new FastCGI functions.
 			The implementation is documented in <a href="kfcgi.8.html">kfcgi(8)</a>, <a
@@ -16,6 +15,8 @@
 				href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, and <a
 				href="khttp_fcgi_free.3.html">khttp_fcgi_free(3)</a>.
 			<strong>This functionality is experimental</strong>, and needs strong analysis before casual deployment.
+			It is also not quite feature-complete: HTTP compression is not yet functional for FastCGI applications.
+			The <a href="kfcgi.8.html">kfcgi(8)</a> launcher is also very bare-bones&#8212;this will be improved in subsequent releases.
 		</div>
 		<div>
 			Also fixed a bug where calling <a href="khttp_free.3.html">khttp_free(3)</a> after a prior <a
