@@ -70,6 +70,26 @@ Call
 to clean up.
 .El
 .Pp
+It can also accept FastCGI connections in a manner similar to the above,
+except that the parse routine is run within a loop.
+.Bl -enum
+.It
+Call
+.Xr khttp_fcgi_init 3
+as early as possible.
+.It
+Iterate over
+.Xr khttp_fcgi_parse 3
+for as many connections as desired, performing any processing on the
+created request.
+Each parse must be matched with
+.Xr khttp_free 3 .
+.It
+Call
+.Xr khttp_fcgi_free 3
+when all processing is complete.
+.El
+.Pp
 To compile applications with
 .Nm ,
 make sure
@@ -174,6 +194,9 @@ string) for the full HTTP message body.
 .Xr kcgijson 3 ,
 .Xr kcgixml 3 ,
 .Xr khttp_body 3 ,
+.Xr khttp_fcgi_free 3 ,
+.Xr khttp_fcgi_init 3 ,
+.Xr khttp_fcgi_parse 3 ,
 .Xr khttp_free 3 ,
 .Xr khttp_head 3 ,
 .Xr khttp_parse 3 ,
@@ -181,41 +204,45 @@ string) for the full HTTP message body.
 .Xr khttp_write 3 ,
 .Xr kmalloc 3 ,
 .Xr kutil_urlencode 3 ,
-.Xr kvalid_string 3
+.Xr kvalid_string 3 ,
+.Xr kfcgi 8
 .Sh STANDARDS
 Many standards are involved in the
 .Nm
-library, most generally being draft RFC 3875,
-.Qq The Common Gateway Interface (CGI) Version 1.1 .
+library, most significantly being draft RFC 3875,
+.Dq The Common Gateway Interface (CGI) Version 1.1 ,
+and the
+.Dq FastCGI Specification , 
+version 1.0, published 29 April 1996.
 .Bl -bullet
 .It
 The
-.Qq Authentication
+.Dq Authentication
 header is parsed for digest or basic tokens as defined by RFC 2617,
-.Qq HTTP Authentication: Basic and Digest Access Authentication .
+.Dq HTTP Authentication: Basic and Digest Access Authentication .
 .It
 The partial multipart form data support is defined by RFC 2388,
-.Qq Returning Values from Forms: multipart/form-data ,
+.Dq Returning Values from Forms: multipart/form-data ,
 which is further defined by RFCs 2045 and 2046,
-.Qq Multipurpose Internet Mail Extensions .
+.Dq Multipurpose Internet Mail Extensions .
 .It
 MIME type names are registered with IANA.
 .It
 URLs are formatted according to RFC 1630,
-.Qq Universal Resource Identifiers in WWW .
+.Dq Universal Resource Identifiers in WWW .
 .It
 HTTP response headers are standardised in RFC 2616,
-.Qq HTTP/1.1
+.Dq HTTP/1.1
 and further in RFC 4229,
-.Qq HTTP Header Field Registrations .
+.Dq HTTP Header Field Registrations .
 .It
 Permanent URI schemes are registered with IANA.
 .El
 .Pp
 Additional HTTP methods are defined by RFC 4918,
-.Qq HTTP Extensions for Web Distributed Authoring and Versioning ;
+.Dq HTTP Extensions for Web Distributed Authoring and Versioning ;
 and RFC 4791 ,
-.Qq Calendaring Extensions to WebDAV .
+.Dq Calendaring Extensions to WebDAV .
 .Sh AUTHORS
 The
 .Nm
