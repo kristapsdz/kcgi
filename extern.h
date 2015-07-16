@@ -52,11 +52,11 @@ enum	input {
 __BEGIN_DECLS
 
 struct kdata	*kdata_alloc(int, uint16_t);
+void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);
-void		 kdata_body(struct kdata *);
 
-enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
+void		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
@@ -64,14 +64,13 @@ void	 	 kworker_child(const struct kworker *,
 void	 	 kworker_fcgi_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
-void		 kworker_auth_child(int, const char *);
+enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
 
-void		 ksandbox_free(void *);
 void		*ksandbox_alloc(void);
 void		 ksandbox_close(void *);
+void		 ksandbox_free(void *);
 void		 ksandbox_init_child(void *, int);
 void		 ksandbox_init_parent(void *, pid_t);
-
 #ifdef HAVE_CAPSICUM
 int	 	 ksandbox_capsicum_init_child(void *, int);
 #endif
@@ -88,19 +87,20 @@ int	 	 ksandbox_systrace_init_parent(void *, pid_t);
 int	 	 ksandbox_seccomp_init_child(void *);
 #endif
 
-void	 	 kworker_prep_child(struct kworker *);
-void	 	 kworker_prep_parent(struct kworker *);
-void	 	 kworker_free(struct kworker *);
+enum kcgi_err	 kworker_close(struct kworker *);
 enum kcgi_err	 kworker_init(struct kworker *);
 enum kcgi_err	 kworker_fcgi_init(struct kworker *);
+void	 	 kworker_free(struct kworker *);
+void	 	 kworker_hup(struct kworker *);
 void		 kworker_kill(struct kworker *);
-enum kcgi_err	 kworker_close(struct kworker *);
+void	 	 kworker_prep_child(struct kworker *);
+void	 	 kworker_prep_parent(struct kworker *);
 
+int		 fulldiscard(int, size_t, enum kcgi_err *);
+int		 fullread(int, void *, size_t, int, enum kcgi_err *);
+enum kcgi_err	 fullreadword(int, char **);
 void		 fullwrite(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
-int		 fullread(int, void *, size_t, int, enum kcgi_err *);
-int		 fulldiscard(int, size_t, enum kcgi_err *);
-enum kcgi_err	 fullreadword(int, char **);
 
 /*
  * These are just wrappers over the native functions that report when
@@ -111,6 +111,7 @@ int		 xasprintf(const char *, int,
 			char **, const char *, ...);
 int		 xvasprintf(const char *, int, 
 			char **, const char *, va_list);
+
 void		*xcalloc(const char *, int, size_t, size_t);
 void		*xmalloc(const char *, int, size_t);
 void		*xrealloc(const char *, int, void *, size_t);

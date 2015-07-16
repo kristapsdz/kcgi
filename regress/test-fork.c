@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,8 +14,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <fcntl.h>
-#include <paths.h>
+#include <sys/wait.h>
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,38 +30,35 @@ parent(CURL *curl)
 {
 
 	curl_easy_setopt(curl, CURLOPT_URL, 
-		"http://localhost:17123/index.html?foo=bar");
-	return(CURLE_GOT_NOTHING == curl_easy_perform(curl));
-}
-
-static int
-kvalid_abort(struct kpair *kp)
-{
-	int	 fd;
-
-	fprintf(stderr, "Trying to break sandbox...\n");
-	fd = open(_PATH_DEVNULL, O_RDONLY, 0);
-	if (-1 != fd) {
-		fprintf(stderr, "Sandbox broken!?\n");
-		close(fd);
-	} else {
-		perror(_PATH_DEVNULL);
-		fprintf(stderr, "Sandbox (might?) be intact.\n");
-	}
-
-	return(1);
+		"http://localhost:17123/");
+	return(CURLE_OK == curl_easy_perform(curl));
 }
 
 static int
 child(void)
 {
 	struct kreq	 r;
-	struct kvalid	 key = { kvalid_abort, "foo" };
-	const char 	*page[] = { "index" };
+	const char 	*page = "index";
+	pid_t		 pid;
 
-	if (KCGI_OK != khttp_parse(&r, &key, 1, page, 1, 0))
+	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
+	khttp_head(&r, kresps[KRESP_STATUS], 
+		"%s", khttps[KHTTP_200]);
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+		"%s", kmimetypes[KMIME_TEXT_HTML]);
+	khttp_body(&r);
+	khttp_puts(&r, "Hi.\n");
+	if (-1 == (pid = fork())) {
+		perror("fork");
+		return(0);
+	} else if (0 == pid) {
+		khttp_child_free(&r);
+		_exit(EXIT_FAILURE);
+	}
+	khttp_puts(&r, "There.\n");
 	khttp_free(&r);
+	waitpid(pid, NULL, 0);
 	return(1);
 }
 

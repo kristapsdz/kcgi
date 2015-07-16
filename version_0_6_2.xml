@@ -14,11 +14,14 @@
 			The implementation is documented in <a href="kfcgi.8.html">kfcgi(8)</a>, <a
 				href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, and <a
 				href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, and <a
-				href="khttp_fcgi_free.3.html">khttp_fcgi_parse(3)</a>.
+				href="khttp_fcgi_free.3.html">khttp_fcgi_free(3)</a>.
+			<strong>This functionality is experimental</strong>, and needs strong analysis before casual deployment.
 		</div>
 		<div>
 			Also fixed a bug where calling <a href="khttp_free.3.html">khttp_free(3)</a> after a prior <a
 				href="khttp_parse.3.html">khttp_parse(3)</a> failure would cause a NULL dereference.
+			Added the missing <code>txt</code> and <code>xml</code> suffixes to the suffix table.
+			Fix that the request port number was erroneously disallowed to be &gt;80.
 		</div>
 	</aside>
 </article>

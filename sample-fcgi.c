@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
 	const char	*pname;
-	int		 c, debug;
+	int		 rc, c, debug;
 
 	if ((pname = strrchr(argv[0], '/')) == NULL)
 		pname = argv[0];
@@ -49,14 +49,13 @@ main(int argc, char *argv[])
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0))
 		return(EXIT_FAILURE);
 
-	for (;;) {
+	for (rc = 0;;) {
 		er = khttp_fcgi_parse(fcgi, &req, NULL, 0, 0);
 		if (KCGI_HUP == er) {
-			fprintf(stderr, "%s: KCGI_HUP\n", pname);
+			rc = 1;
 			khttp_free(&req);
 			break;
 		} else if (KCGI_OK != er) {
-			fprintf(stderr, "%s: !KCGI_OK\n", pname);
 			khttp_free(&req);
 			break;
 		}
@@ -70,6 +69,5 @@ main(int argc, char *argv[])
 	}
 
 	khttp_fcgi_free(fcgi);
-	return(EXIT_SUCCESS);
+	return(rc ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-
