@@ -199,6 +199,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	int		 c, fd;
 	ssize_t		 ssz;
 	uint16_t	 rid;
+	uint32_t	 cookie, test;
 	char		 buf[BUFSIZ];
 	struct pollfd	 pfd[2];
 
@@ -215,13 +216,14 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	else if (c < 0)
 		return(KCGI_SYSTEM);
 
-	fprintf(stderr, "%s: DEBUG: Reading request\n", __func__);
-
 	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
-
 	pfd[1].fd = fcgi->work.sock[KWORKER_READ];
 	pfd[1].events = POLLIN;
+
+	cookie = arc4random();
+	fullwrite(fcgi->work.control[KWORKER_WRITE], 
+		&cookie, sizeof(uint32_t));
 
 	/*
 	 * Keep reading then writing data into the child context.
@@ -253,16 +255,28 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 			close(fd);
 			return(KCGI_SYSTEM);
 		} else if (0 == ssz) {
-			fprintf(stderr, "%s: DEBUG: Request abort\n", __func__);
 			close(fd);
 			return(KCGI_SYSTEM);
 		}
 		fullwrite(fcgi->work.control[KWORKER_WRITE], buf, ssz);
 	}
 
-	fprintf(stderr, "%s: DEBUG: Processing request\n", __func__);
-
+	/*
+	 * Read our cookie and request ID.
+	 * The cookie was sent before the first transmission; in reading
+	 * it back, we add an additional check to be sure that the
+	 * process hasn't been naughty.
+	 */
 	if (fullread(fcgi->work.sock[KWORKER_READ], 
+		 &test, sizeof(uint32_t), 0, &kerr) < 0) {
+		XWARNX("failed to read FastCGI cookie");
+		close(fd);
+		return(KCGI_FORM);
+	} else if (cookie != test) {
+		XWARNX("failed to verify FastCGI cookie");
+		close(fd);
+		return(KCGI_FORM);
+	} else if (fullread(fcgi->work.sock[KWORKER_READ], 
 		 &rid, sizeof(uint16_t), 0, &kerr) < 0) {
 		XWARNX("failed to read FastCGI requestId");
 		close(fd);
