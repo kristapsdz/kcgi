@@ -17,6 +17,7 @@
 			<strong>This functionality is experimental</strong>, and needs strong analysis before casual deployment.
 			It is also not quite feature-complete: HTTP compression is not yet functional for FastCGI applications.
 			The <a href="kfcgi.8.html">kfcgi(8)</a> launcher is also very bare-bones&#8212;this will be improved in subsequent releases.
+			Again: this functionality is <strong>experimental</strong> and under development!
 		</div>
 		<div>
 			Also fixed a bug where calling <a href="khttp_free.3.html">khttp_free(3)</a> after a prior <a
