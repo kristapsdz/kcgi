@@ -481,6 +481,7 @@ enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **,
 			const struct kvalid *, size_t, 
 			void *, void (*)(void *));
 enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
+void		 khttp_fcgi_child_free(struct kfcgi *);
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *);

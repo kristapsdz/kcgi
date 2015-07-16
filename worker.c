@@ -88,16 +88,7 @@ void
 kworker_free(struct kworker *p)
 {
 
-	if (-1 != p->sock[0])
-		close(p->sock[0]);
-	if (-1 != p->sock[1])
-		close(p->sock[1]);
-	if (-1 != p->input)
-		close(p->input);
-	if (-1 != p->control[0])
-		close(p->control[0]);
-	if (-1 != p->control[1])
-		close(p->control[1]);
+	kworker_hup(p);
 	ksandbox_free(p->sand);
 }
 
@@ -141,6 +132,27 @@ kworker_kill(struct kworker *p)
 
 	if (-1 != p->pid)
 		(void)kill(p->pid, SIGKILL);
+}
+
+void
+kworker_hup(struct kworker *p)
+{
+
+	if (-1 != p->sock[0])
+		close(p->sock[0]);
+	p->sock[0] = -1;
+	if (-1 != p->sock[1])
+		close(p->sock[1]);
+	p->sock[1] = -1;
+	if (-1 != p->input)
+		close(p->input);
+	p->input = -1;
+	if (-1 != p->control[0])
+		close(p->control[0]);
+	p->control[0] = -1;
+	if (-1 != p->control[1])
+		close(p->control[1]);
+	p->control[1] = -1;
 }
 
 enum kcgi_err

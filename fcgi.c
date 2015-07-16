@@ -78,6 +78,21 @@ kfcgi_control_read(int *newfd, int socket)
 	return(1);
 }
 
+void
+khttp_fcgi_child_free(struct kfcgi *fcgi)
+{
+	size_t	 	 i;
+
+	close(STDIN_FILENO);
+	kworker_hup(&fcgi->work);
+	for (i = 0; i < fcgi->mimesz; i++)
+		free(fcgi->mimes[i]);
+	free(fcgi->mimes);
+	free(fcgi->keys);
+	kworker_free(&fcgi->work);
+	free(fcgi);
+}
+
 enum kcgi_err
 khttp_fcgi_free(struct kfcgi *fcgi)
 {
@@ -88,7 +103,7 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	 * Do this first: give the child a chance to see that we've
 	 * closed the control socket and exit on its own.
 	 */
-	kworker_free(&fcgi->work);
+	kworker_hup(&fcgi->work);
 
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
@@ -98,6 +113,7 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	 * This blocks on the PID.
 	 */
 	er = kworker_close(&fcgi->work);
+	kworker_free(&fcgi->work);
 	free(fcgi);
 	return(er);
 }

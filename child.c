@@ -1635,10 +1635,8 @@ kworker_fcgi_child(const struct kworker *work,
 			 &cookie, sizeof(uint32_t), 1, &er)) < 0) {
 			XWARNX("failed read FastCGI cookie");
 			break;
-		} else if (rc == 0) {
-			XWARNX("end of FastCGI sequence");
+		} else if (rc == 0)
 			break;
-		}
 
 		bgn = kworker_fcgi_begin
 			(work->control[KWORKER_READ],

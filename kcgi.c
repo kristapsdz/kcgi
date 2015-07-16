@@ -793,13 +793,6 @@ void
 khttp_child_free(struct kreq *req)
 {
 
-	/* 
-	 * Close the file descriptors beforehand.
-	 * This way, any stray buffered data that's written won't make
-	 * it to the actual output device.
-	 */
-	close(STDOUT_FILENO);
-	close(STDIN_FILENO);
 	kdata_free(req->kdata, 0);
 	req->kdata = NULL;
 	kreq_free(req);
