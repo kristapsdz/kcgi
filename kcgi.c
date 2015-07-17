@@ -667,7 +667,7 @@ khttp_parsex(struct kreq *req,
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
-	req->kdata = kdata_alloc(-1, 0);
+	req->kdata = kdata_alloc(-1, -1, 0);
 	if (NULL == req->kdata)
 		goto err;
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));

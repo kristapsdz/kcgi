@@ -51,7 +51,7 @@ enum	input {
 
 __BEGIN_DECLS
 
-struct kdata	*kdata_alloc(int, uint16_t);
+struct kdata	*kdata_alloc(int, int, uint16_t);
 void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);
@@ -99,8 +99,10 @@ void	 	 kworker_prep_parent(struct kworker *);
 int		 fulldiscard(int, size_t, enum kcgi_err *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);
 enum kcgi_err	 fullreadword(int, char **);
+int		 fullreadfd(int, int *, void *, size_t);
 void		 fullwrite(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
+int		 fullwritefd(int, int, void *, size_t);
 
 /*
  * These are just wrappers over the native functions that report when
