@@ -51,6 +51,7 @@ enum	kstate {
  */
 struct	kdata {
 	int		 fcgi; /* file descriptor or -1 */
+	int		 control; /* control socket or -1 */
 	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
 #ifdef	HAVE_ZLIB
@@ -171,7 +172,7 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
  * We accept the file descriptor for the FastCGI stream, if there's any.
  */
 struct kdata *
-kdata_alloc(int fcgi, uint16_t requestId)
+kdata_alloc(int control, int fcgi, uint16_t requestId)
 {
 	struct kdata	*p;
 
@@ -179,6 +180,7 @@ kdata_alloc(int fcgi, uint16_t requestId)
 		return(NULL);
 
 	p->fcgi = fcgi;
+	p->control = control;
 	p->requestId = requestId;
 	return(p);
 }
@@ -231,6 +233,9 @@ kdata_free(struct kdata *p, int flush)
 			write(p->fcgi, &protocolStatus, sizeof(uint8_t));
 			write(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
 			close(p->fcgi);
+			fprintf(stderr, "%s: DEBUG: sending ack\n", __func__);
+			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
+			p->control = -1;
 			p->fcgi = -1;
 		} else
 			fflush(stdout);

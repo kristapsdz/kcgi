@@ -2,7 +2,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-STATIC 		 = -static
+#STATIC 		 = -static
 
 # You probably don't need to change anything else...
 

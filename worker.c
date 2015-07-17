@@ -48,6 +48,7 @@ kworker_fcgi_init(struct kworker *p)
 	if (KCGI_OK != (er = kworker_init(p)))
 		return(er);
 	p->input = -1;
+	/* FIXME: send buffer. */
 	return(xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->control));
 }
 
@@ -373,3 +374,99 @@ fullreadword(int fd, char **cp)
 	return(ke);
 }
 
+int
+fullwritefd(int fd, int sendfd, void *b, size_t bsz)
+{
+	struct msghdr	 msg;
+	char		 buf[CMSG_SPACE(sizeof(fd))];
+	struct iovec 	 io;
+	struct cmsghdr	*cmsg;
+	struct pollfd	 pfd;
+
+	assert(bsz <= 256);
+
+	memset(buf, 0, sizeof(buf));
+	memset(&msg, 0, sizeof(struct msghdr));
+	memset(&io, 0, sizeof(struct iovec));
+
+	io.iov_base = b;
+	io.iov_len = bsz;
+
+	msg.msg_iov = &io;
+	msg.msg_iovlen = 1;
+	msg.msg_control = buf;
+	msg.msg_controllen = sizeof(buf);
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+	cmsg->cmsg_len = CMSG_LEN(sizeof(fd));
+
+	*((int *)CMSG_DATA(cmsg)) = sendfd;
+
+	msg.msg_controllen = cmsg->cmsg_len;
+
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+	if (poll(&pfd, 1, -1) < 0) {
+		XWARN("poll");
+		return(-1);
+	} else if ( ! (POLLOUT & pfd.revents)) {
+		XWARNX("poll: hangup");
+		return(-1);
+	} else if (sendmsg(fd, &msg, 0) < 0) {
+		XWARN("sendmsg");
+		return(0);
+	}
+	return(1);
+}
+
+int 
+fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
+{
+	struct msghdr	 msg;
+	char		 m_buffer[256];
+	char 		 c_buffer[256];
+	struct iovec	 io;
+	struct cmsghdr	*cmsg;
+	unsigned char	*data;
+	int		 rc;
+	struct pollfd	 pfd;
+
+	assert(bsz <= 256);
+
+	memset(&msg, 0, sizeof(struct msghdr));
+	memset(&io, 0, sizeof(struct iovec));
+
+	io.iov_base = m_buffer;
+	io.iov_len = sizeof(m_buffer);
+	msg.msg_iov = &io;
+	msg.msg_iovlen = 1;
+
+	msg.msg_control = c_buffer;
+	msg.msg_controllen = sizeof(c_buffer);
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	if (poll(&pfd, 1, -1) < 0) {
+		XWARN("poll");
+		return(-1);
+	} else if ( ! (POLLIN & pfd.revents)) {
+		XWARNX("poll: hangup");
+		return(-1);
+	} 
+	
+	fprintf(stderr, "%s: DEBUG: recvmsg\n", __func__);
+	if ((rc = recvmsg(fd, &msg, 0)) < 0) {
+		XWARN("recvmsg");
+		return(-1);
+	} else if (0 == rc)
+		return(0);
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	data = CMSG_DATA(cmsg);
+
+	memcpy(b, m_buffer, bsz);
+	*recvfd = *(int *)data;
+	return(1);
+}
