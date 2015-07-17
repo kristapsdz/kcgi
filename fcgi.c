@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <poll.h>
 #include <stdarg.h>
@@ -64,10 +65,38 @@ kfcgi_control(int work, int ctrl)
 	struct pollfd	 pfd[2];
 	char		 buf[BUFSIZ];
 	ssize_t		 ssz;
+	int		 flags;
 	enum kcgi_err	 kerr;
 	uint16_t	 rid, rtest;
 
+	if (-1 == (flags = fcntl(STDIN_FILENO, F_GETFL, 0))) {
+		XWARN("fcntl");
+		return(EXIT_FAILURE);
+	} 
+	flags |= O_NONBLOCK;
+	if (-1 == fcntl(STDIN_FILENO, F_SETFL, flags)) {
+		XWARN("fcntl");
+		return(EXIT_FAILURE);
+	}
+
 	for (;;) {
+		pfd[0].fd = STDIN_FILENO;
+		pfd[0].events = POLLIN;
+		pfd[1].fd = ctrl;
+		pfd[1].events = POLLIN;
+
+		fprintf(stderr, "%s: DEBUG: polling...\n", __func__);
+
+		if (poll(pfd, 2, -1) < 0) {
+			XWARN("poll");
+			return(EXIT_FAILURE);
+		} else if (POLLHUP & pfd[1].revents) {
+			break;
+		} else if ( ! (POLLIN & pfd[0].revents)) {
+			XWARNX("poll: control");
+			return(EXIT_FAILURE);
+		}
+
 		/* 
 		 * Blocking accept from FastCGI socket.
 		 * This will be round-robined by the kernel so that
@@ -182,10 +211,12 @@ kfcgi_control(int work, int ctrl)
 			return(EXIT_FAILURE);
 		}
 
+		fprintf(stderr, "%s: DEBUG: ack received\n", __func__);
 		/* We're done: try again. */
 		close(fd);
 	}
 
+	fprintf(stderr, "%s: DEBUG: controller exit\n", __func__);
 	return(EXIT_SUCCESS);
 }
 
@@ -209,13 +240,19 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 {
 	size_t	 	 i;
 
+	fprintf(stderr, "%s: DEBUG: freeing\n", __func__);
+
 	/* Allow a NULL pointer. */
 	if (NULL == fcgi)
 		return(KCGI_OK);
 
+	fprintf(stderr, "%s: DEBUG: close worker\n", __func__);
 	close(fcgi->work_dat);
+	fprintf(stderr, "%s: DEBUG: close socket\n", __func__);
 	close(fcgi->sock_ctl);
+	fprintf(stderr, "%s: DEBUG: wait worker\n", __func__);
 	waitpid(fcgi->work_pid, NULL, 0);
+	fprintf(stderr, "%s: DEBUG: wait socket\n", __func__);
 	waitpid(fcgi->sock_pid, NULL, 0);
 	ksandbox_close(fcgi->work_box);
 	ksandbox_free(fcgi->work_box);
@@ -225,6 +262,7 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	free(fcgi->mimes);
 	free(fcgi->keys);
 	free(fcgi);
+	fprintf(stderr, "%s: DEBUG: freed\n", __func__);
 	return(KCGI_OK);
 }
 
@@ -325,6 +363,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	} else if (0 == sock_pid) {
 		if (NULL != argfree)
 			argfree(arg);
+		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_PARENT]);
 		ksandbox_free(work_box);
