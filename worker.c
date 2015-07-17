@@ -72,7 +72,11 @@ kworker_init(struct kworker *p)
 		return(er);
 
 	/* Allocate the sandbox. (FIXME: ENOMEM?) */
-	p->sand = ksandbox_alloc();
+	if ( ! ksandbox_alloc(&p->sand)) {
+		close(p->sock[0]);
+		close(p->sock[1]);
+		return(KCGI_ENOMEM);
+	}
 
 	/* Enlarge the transfer buffer size. */
 	/* FIXME: is this a good idea? */
@@ -114,7 +118,7 @@ kworker_prep_child(struct kworker *p)
 		close(p->control[KWORKER_WRITE]);
 		p->control[KWORKER_WRITE] = -1;
 	}
-	ksandbox_init_child(p->sand, p->sock[KWORKER_WRITE]);
+	ksandbox_init_child(p->sand, p->sock[KWORKER_WRITE], -1);
 }
 
 void
