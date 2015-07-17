@@ -29,6 +29,8 @@
 struct	kworker {
 #define	KWORKER_READ	 1
 #define	KWORKER_WRITE	 0
+#define	KWORKER_PARENT	 1
+#define	KWORKER_CHILD	 0
 	int	 	 sock[2];
 	int		 control[2];
 	pid_t		 pid;
@@ -61,18 +63,18 @@ enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(const struct kworker *, 
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
-void	 	 kworker_fcgi_child(const struct kworker *, 
+void	 	 kworker_fcgi_child(int, int,
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
 enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
 
-void		*ksandbox_alloc(void);
+int		 ksandbox_alloc(void **);
 void		 ksandbox_close(void *);
 void		 ksandbox_free(void *);
-void		 ksandbox_init_child(void *, int);
+void		 ksandbox_init_child(void *, int, int);
 void		 ksandbox_init_parent(void *, pid_t);
 #ifdef HAVE_CAPSICUM
-int	 	 ksandbox_capsicum_init_child(void *, int);
+int	 	 ksandbox_capsicum_init_child(void *, int, int);
 #endif
 #ifdef HAVE_SANDBOX_INIT
 int	 	 ksandbox_darwin_init_child(void *);

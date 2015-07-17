@@ -1575,7 +1575,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
  * April 1996.
  */
 void
-kworker_fcgi_child(const struct kworker *work, 
+kworker_fcgi_child(int work_dat, int work_ctl,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz)
 {
@@ -1600,7 +1600,7 @@ kworker_fcgi_child(const struct kworker *work,
 	if (NULL == (buf = XMALLOC(bsz)))
 		return;
 
-	pp.fd = wfd = work->sock[KWORKER_WRITE];
+	pp.fd = wfd = work_dat;
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
@@ -1632,7 +1632,7 @@ kworker_fcgi_child(const struct kworker *work,
 		 * We'll reply with it on the control channel to
 		 * indicate that we've finished our reads.
 		 */
-		if ((rc = fullread(work->control[KWORKER_READ], 
+		if ((rc = fullread(work_ctl,
 			 &cookie, sizeof(uint32_t), 1, &er)) < 0) {
 			XWARNX("failed read FastCGI cookie");
 			break;
@@ -1640,8 +1640,7 @@ kworker_fcgi_child(const struct kworker *work,
 			break;
 
 		bgn = kworker_fcgi_begin
-			(work->control[KWORKER_READ],
-			 &realbgn, &buf, &bsz, &rid);
+			(work_ctl, &realbgn, &buf, &bsz, &rid);
 		if (NULL == bgn)
 			break;
 
@@ -1653,8 +1652,7 @@ kworker_fcgi_child(const struct kworker *work,
 		envsz = 0;
 		for (;;) {
 			hdr = kworker_fcgi_header
-				(work->control[KWORKER_READ],
-				 &realhdr, buf);
+				(work_ctl, &realhdr, buf);
 			if (NULL == hdr)
 				break;
 			if (rid != hdr->requestId) {
@@ -1664,8 +1662,7 @@ kworker_fcgi_child(const struct kworker *work,
 			} else if (FCGI_PARAMS != hdr->type)
 				break;
 			if (kworker_fcgi_params
-				(work->control[KWORKER_READ],
-				 hdr, &buf, &bsz,
+				(work_ctl, hdr, &buf, &bsz,
 				 &envs, &envsz))
 				continue;
 			hdr = NULL;
@@ -1689,13 +1686,11 @@ kworker_fcgi_child(const struct kworker *work,
 		 */
 		for (rc = 0;;) {
 			rc = kworker_fcgi_stdin
-				(work->control[KWORKER_READ],
-				 hdr, &buf, &bsz, &sbuf, &ssz);
+				(work_ctl, hdr, &buf, &bsz, &sbuf, &ssz);
 			if (rc <= 0)
 				break;
 			hdr = kworker_fcgi_header
-				(work->control[KWORKER_READ],
-				 &realhdr, buf);
+				(work_ctl, &realhdr, buf);
 			if (NULL == hdr)
 				break;
 			if (rid != hdr->requestId) {
@@ -1717,10 +1712,8 @@ kworker_fcgi_child(const struct kworker *work,
 		 * Notify the control process that we've received all of
 		 * our data by giving back the cookie and requestId.
 		 */
-		fullwrite(work->control[KWORKER_READ], 
-			&cookie, sizeof(uint32_t));
-		fullwrite(work->control[KWORKER_READ], 
-			&rid, sizeof(uint16_t));
+		fullwrite(work_ctl, &cookie, sizeof(uint32_t));
+		fullwrite(work_ctl, &rid, sizeof(uint16_t));
 		/* 
 		 * Now we can reply to our request.
 		 * These are in a very specific order.
