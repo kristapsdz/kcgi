@@ -1714,12 +1714,17 @@ kworker_fcgi_child(const struct kworker *work,
 		}
 
 		/* 
+		 * Notify the control process that we've received all of
+		 * our data by giving back the cookie and requestId.
+		 */
+		fullwrite(work->control[KWORKER_READ], 
+			&cookie, sizeof(uint32_t));
+		fullwrite(work->control[KWORKER_READ], 
+			&rid, sizeof(uint16_t));
+		/* 
 		 * Now we can reply to our request.
 		 * These are in a very specific order.
-		 * We begin with our magic cookie.
 		 */
-		fullwrite(wfd, &cookie, sizeof(uint32_t));
-		fullwrite(wfd, &rid, sizeof(uint16_t));
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
 		kworker_child_auth(envs, wfd, envsz);
