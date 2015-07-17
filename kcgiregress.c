@@ -197,9 +197,6 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		setenv(headbuf, val, 1);
 	}
 
-	if (NULL == head)
-		goto out;
-
 	if (-1 != in)
 		close(in);
 	if (-1 != s)
