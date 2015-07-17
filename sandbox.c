@@ -64,16 +64,18 @@ ksandbox_init_parent(void *arg, pid_t child)
  * This is only used by systrace, which requires extra accounting
  * information for the child.
  */
-void *
-ksandbox_alloc(void)
+int
+ksandbox_alloc(void **pp)
 {
-	void	*p = NULL;
 
+	*pp = NULL;
 #ifdef HAVE_SYSTRACE
-	if (NULL == (p = (ksandbox_systrace_alloc())))
+	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
 		XWARNX("systrace alloc failed");
+		return(0);
+	}
 #endif
-	return(p);
+	return(1);
 }
 
 void
@@ -103,11 +105,11 @@ ksandbox_close(void *arg)
  * child context is sandboxed properly.
  */
 void
-ksandbox_init_child(void *arg, int fd)
+ksandbox_init_child(void *arg, int fd1, int fd2)
 {
 
 #if defined(HAVE_CAPSICUM)
-	if ( ! ksandbox_capsicum_init_child(arg, fd))
+	if ( ! ksandbox_capsicum_init_child(arg, fd1, fd2))
 		XWARNX("capsicum sandbox failed (child)");
 #elif defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_darwin_init_child(arg))

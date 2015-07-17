@@ -39,8 +39,11 @@ struct	kfcgi {
 	size_t		  keysz;
 	char		**mimes;
 	size_t		  mimesz;
-	struct kworker	  work;
-	struct kworker	  control;
+	void		 *work_box;
+	pid_t		  work_pid;
+	pid_t		  sock_pid;
+	int		  work_dat;
+	int		  sock_ctl;
 };
 
 /*
@@ -52,7 +55,7 @@ struct	kfcgi {
  * which this passes to the main application for output.
  */
 static int
-kfcgi_control(const struct kworker *work, const struct kworker *control)
+kfcgi_control(int work, int ctrl)
 {
 	struct sockaddr_storage ss;
 	socklen_t	 sslen;
@@ -84,7 +87,7 @@ kfcgi_control(const struct kworker *work, const struct kworker *control)
 
 		pfd[0].fd = fd;
 		pfd[0].events = POLLIN;
-		pfd[1].fd = work->control[KWORKER_WRITE];
+		pfd[1].fd = work;
 		pfd[1].events = POLLIN;
 #ifdef __linux__
 		cookie = random();
@@ -157,8 +160,7 @@ kfcgi_control(const struct kworker *work, const struct kworker *control)
 		 * It will do output, so it also needs the FastCGI
 		 * socket request identifier.
 		 */
-		if ( ! fullwritefd(control->control[KWORKER_WRITE], 
-				 fd, &rid, sizeof(uint16_t))) {
+		if ( ! fullwritefd(ctrl, fd, &rid, sizeof(uint16_t))) {
 			XWARNX("failed to send FastCGI socket");
 			close(fd);
 			return(EXIT_FAILURE);
@@ -169,8 +171,7 @@ kfcgi_control(const struct kworker *work, const struct kworker *control)
 		 * It will then double-check the requestId. 
 		 */
 		fprintf(stderr, "%s: DEBUG: waiting for ack\n", __func__);
-		if (fullread(control->control[KWORKER_WRITE], &rtest,
-			 sizeof(uint16_t), 0, &kerr) < 0) {
+		if (fullread(ctrl, &rtest, sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
 			close(fd);
 			return(EXIT_FAILURE);
@@ -193,13 +194,13 @@ khttp_fcgi_child_free(struct kfcgi *fcgi)
 {
 	size_t	 	 i;
 
-	close(STDIN_FILENO);
-	kworker_hup(&fcgi->work);
+	close(fcgi->work_dat);
+	close(fcgi->sock_ctl);
+	ksandbox_free(fcgi->work_box);
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
 	free(fcgi->mimes);
 	free(fcgi->keys);
-	kworker_free(&fcgi->work);
 	free(fcgi);
 }
 
@@ -207,29 +208,24 @@ enum kcgi_err
 khttp_fcgi_free(struct kfcgi *fcgi)
 {
 	size_t	 	 i;
-	enum kcgi_err	 er;
 
 	/* Allow a NULL pointer. */
 	if (NULL == fcgi)
 		return(KCGI_OK);
 
-	/* 
-	 * Do this first: give the child a chance to see that we've
-	 * closed the control socket and exit on its own.
-	 */
-	kworker_hup(&fcgi->work);
+	close(fcgi->work_dat);
+	close(fcgi->sock_ctl);
+	waitpid(fcgi->work_pid, NULL, 0);
+	waitpid(fcgi->sock_pid, NULL, 0);
+	ksandbox_close(fcgi->work_box);
+	ksandbox_free(fcgi->work_box);
 
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
 	free(fcgi->mimes);
 	free(fcgi->keys);
-	/*
-	 * This blocks on the PID.
-	 */
-	er = kworker_close(&fcgi->work);
-	kworker_free(&fcgi->work);
 	free(fcgi);
-	return(er);
+	return(KCGI_OK);
 }
 
 enum kcgi_err
@@ -242,23 +238,39 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	struct kfcgi	*fcgi;
 	int 		 er;
 	size_t		 i;
-	struct kworker	 work, control;
+	int		 work_ctl[2], work_dat[2], sock_ctl[2];
+	void		*work_box;
+	pid_t		 work_pid, sock_pid;
 
-	memset(&work, 0, sizeof(struct kworker));
-	memset(&work, 0, sizeof(struct kworker));
+	fprintf(stderr, "%s: DEBUG: startup\n", __func__);
 
-	/*
-	 * Begin by initialising our worker.
-	 */
-	if (KCGI_OK != (kerr = kworker_fcgi_init(&work)))
-		return(kerr);
+	if ( ! ksandbox_alloc(&work_box))
+		return(KCGI_ENOMEM);
 
-	if (-1 == (work.pid = fork())) {
+	fprintf(stderr, "%s: DEBUG: socketpair(control)\n", __func__);
+	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
+		ksandbox_free(work_box);
+		return(KCGI_SYSTEM);
+	}
+
+	fprintf(stderr, "%s: DEBUG: socketpair(data)\n", __func__);
+	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
+		close(work_ctl[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_CHILD]);
+		ksandbox_free(work_box);
+		return(KCGI_SYSTEM);
+	}
+
+	if (-1 == (work_pid = fork())) {
 		er = errno;
 		XWARN("fork");
-		kworker_free(&work);
+		close(work_ctl[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_CHILD]);
+		close(work_dat[KWORKER_PARENT]);
+		close(work_dat[KWORKER_CHILD]);
+		ksandbox_free(work_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
-	} else if (0 == work.pid) {
+	} else if (0 == work_pid) {
 		if (NULL != argfree)
 			argfree(arg);
 		/* 
@@ -267,59 +279,88 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		 * Thus, close the parent's control socket. 
 		 */
 		close(STDIN_FILENO);
-		kworker_prep_child(&work);
-		kworker_fcgi_child(&work, keys, keysz, mimes, mimesz);
-		kworker_free(&work);
+		close(STDOUT_FILENO);
+		close(work_dat[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_PARENT]);
+		ksandbox_init_child(work_box, 
+			work_dat[KWORKER_CHILD],
+			work_ctl[KWORKER_CHILD]);
+		fprintf(stderr, "%s: DEBUG: child ready\n", __func__);
+		kworker_fcgi_child
+			(work_dat[KWORKER_CHILD],
+			 work_ctl[KWORKER_CHILD],
+			 keys, keysz, mimes, mimesz);
+		ksandbox_free(work_box);
+		close(work_dat[KWORKER_CHILD]);
+		close(work_ctl[KWORKER_CHILD]);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
-	kworker_prep_parent(&work);
 
-	/*
-	 * Now we open our "arbitrator" socket.
-	 */
-	if (KCGI_OK != (kerr = kworker_fcgi_init(&control))) {
-		kworker_kill(&work);
-		kworker_close(&work);
-		kworker_free(&work);
-		return(kerr);
-	} else if (-1 == (control.pid = fork())) {
+	fprintf(stderr, "%s: DEBUG: child started\n", __func__);
+	close(work_dat[KWORKER_CHILD]);
+	close(work_ctl[KWORKER_CHILD]);
+	ksandbox_init_parent(work_box, work_pid);
+
+	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
+		close(work_dat[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_PARENT]);
+		waitpid(work_pid, NULL, 0);
+		ksandbox_close(work_box);
+		ksandbox_free(work_box);
+		return(KCGI_SYSTEM);
+	}
+
+	if (-1 == (sock_pid = fork())) {
 		er = errno;
 		XWARN("fork");
-		kworker_kill(&work);
-		kworker_close(&work);
-		kworker_free(&work);
-		kworker_free(&control);
+		close(work_dat[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_PARENT]);
+		close(sock_ctl[KWORKER_CHILD]);
+		close(sock_ctl[KWORKER_PARENT]);
+		waitpid(work_pid, NULL, 0);
+		ksandbox_close(work_box);
+		ksandbox_free(work_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
-	} else if (0 == control.pid) {
+	} else if (0 == sock_pid) {
 		if (NULL != argfree)
 			argfree(arg);
-		/*kworker_prep_child(&control);*/
-		/* FIXME: needs to cap_rights_limit the control fd. */
-		er = kfcgi_control(&work, &control);
-		kworker_free(&work);
-		kworker_free(&control);
+		close(work_dat[KWORKER_PARENT]);
+		close(sock_ctl[KWORKER_PARENT]);
+		ksandbox_free(work_box);
+		er = kfcgi_control
+			(work_ctl[KWORKER_PARENT], 
+			 sock_ctl[KWORKER_CHILD]);
+		close(work_ctl[KWORKER_PARENT]);
+		close(sock_ctl[KWORKER_CHILD]);
 		_exit(er);
 		/* NOTREACHED */
 	}
 
+	close(sock_ctl[KWORKER_CHILD]);
+	close(work_ctl[KWORKER_PARENT]);
 	close(STDIN_FILENO);
 
 	/* Now allocate our device. */
 	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));
 	if (NULL == fcgi) {
-		kworker_kill(&work);
-		kworker_close(&work);
-		kworker_free(&work);
-		kworker_kill(&control);
-		kworker_close(&control);
-		kworker_free(&control);
+		close(sock_ctl[KWORKER_PARENT]);
+		close(work_dat[KWORKER_PARENT]);
+		waitpid(work_pid, NULL, 0);
+		waitpid(sock_pid, NULL, 0);
+		ksandbox_close(work_box);
+		ksandbox_free(work_box);
 		return(KCGI_ENOMEM);
 	}
 
 	kerr = KCGI_ENOMEM;
-	fcgi->work = work;
-	fcgi->control = control;
+
+	fcgi->work_box = work_box;
+	fcgi->work_pid = work_pid;
+	fcgi->work_dat = work_dat[KWORKER_PARENT];
+	fcgi->sock_pid = sock_pid;
+	fcgi->sock_ctl = sock_ctl[KWORKER_PARENT];
+
 	fcgi->mimes = XCALLOC(sizeof(char *), mimesz);
 	if (NULL == fcgi->mimes)
 		goto err;
@@ -340,7 +381,7 @@ err:
 	/* 
 	 * Bail out: kill child process and all memory.
 	 */
-	(void)khttp_fcgi_free(fcgi);
+	khttp_fcgi_free(fcgi);
 	return(kerr);
 }
 
@@ -373,8 +414,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	 * It may also decide to exit.
 	 */
 	fprintf(stderr, "%s: DEBUG: waiting for descriptor\n", __func__);
-	if ((c = fullreadfd(fcgi->control.control[KWORKER_READ], 
-		 &fd, &rid, sizeof(uint16_t))) <= 0) {
+	if ((c = fullreadfd(fcgi->sock_ctl, &fd, &rid, sizeof(uint16_t))) <= 0) {
 		if (0 == c)
 			return(KCGI_HUP);
 		XWARNX("failed to read FastCGI socket");
@@ -385,8 +425,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	req->arg = arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	if (NULL == (req->kdata = kdata_alloc
-		 (fcgi->control.control[KWORKER_READ], fd, rid)))
+	if (NULL == (req->kdata = kdata_alloc(fcgi->sock_ctl, fd, rid)))
 		goto err;
 	fd = -1;
 	req->cookiemap = XCALLOC
@@ -406,9 +445,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if (fcgi->keysz && NULL == req->fieldnmap)
 		goto err;
 
-	kerr = kworker_parent
-		(fcgi->work.sock[KWORKER_READ], 
-		 req, fcgi->work.pid);
+	kerr = kworker_parent(fcgi->work_dat, req, fcgi->work_pid);
 	if (KCGI_OK != kerr)
 		goto err;
 
