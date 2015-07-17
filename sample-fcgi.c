@@ -68,6 +68,7 @@ main(int argc, char *argv[])
 			break;
 	}
 
+	fprintf(stderr, "Exiting\n");
 	khttp_fcgi_free(fcgi);
 	return(rc ? EXIT_SUCCESS : EXIT_FAILURE);
 }

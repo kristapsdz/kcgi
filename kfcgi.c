@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 	/* Close local reference to server. */
 	close(fd);
 	while (0 == stop) {
-		if (0 != sleep(10))
+		if (0 != sleep(2))
 			break;
 		/*
 		 * XXX: this is entirely for the benefit of
