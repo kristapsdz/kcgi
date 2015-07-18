@@ -237,6 +237,7 @@ int main(void) {
 				</p>
 				<figure>
 					<img src="figure1.svg" alt="Implementation Details" />
+					<img src="figure4.svg" alt="Implementation Details" />
 				</figure>
 				<p>
 					This method of sandboxing the untrusted child process follows <a href="http://www.openssh.org">OpenSSH</a>, 
