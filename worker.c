@@ -157,26 +157,16 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
-	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	*er = KCGI_SYSTEM;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		ssz = 0;
-		if (-1 == (rc = poll(&pfd, 1, 1000))) {
+		if (-1 == poll(&pfd, 1, -1)) {
 			XWARN("poll: %d, POLLIN", fd);
 			return(-1);
 		} 
-		if (0 == rc)  {
-			XWARNX("timeout");
-			ssz = read(fd, buf + sz, bufsz - sz);
-			perror("read");
-			XWARNX("timeout: %zd", ssz);
-			continue;
-		}
-
 		ssz = read(fd, buf + sz, bufsz - sz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
