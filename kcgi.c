@@ -672,6 +672,7 @@ khttp_parsex(struct kreq *req,
 		/* NOTREACHED */
 	}
 	ksandbox_init_parent(work_box, work_pid);
+	close(work_dat[KWORKER_CHILD]);
 
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
@@ -731,7 +732,7 @@ khttp_parsex(struct kreq *req,
 	}
 
 	close(work_dat[KWORKER_PARENT]);
-	xwaitpid(work_pid);
+	kerr = xwaitpid(work_pid);
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
 	return(kerr);
