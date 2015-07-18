@@ -3,14 +3,28 @@
 	<header>
 		<h1>0.6.3</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-07-17">2015-07-17</time>
+		<time datetime="2015-07-18">2015-07-18</time>
 	</header>
 	<aside>
+		<div>
+			More FastCGI: move control socket handling into its own process.
+			The control socket is a UNIX socket (or similar) bound by the FastCGI runner, which is either the web server or an
+			application like <a href="kfcgi.8.html">kfcgi(8)</a>, then passed as <code>STDIN_FILENO</code> to the FastCGI
+			application.
+			<span class="nm">kcgi</span> will then wait on this socket for incoming connections, which are acted upon with <a
+				href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+			In this release, this logic has been moved into its own process instead of being managed by the web application itself
+			during calls to <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+			While here, I cleaned up and simplified a lot of the sandbox and inter-process socket logic.
+			The control socket is not yet sandboxed: that will come with later releases.
+			Again, the FastCGI implementation is <strong>experimental</strong>!
+		</div>
 		<div>
 			Patches for deployment on FreeBSD contributed by Baptiste Daroussin&#8212;thanks!
 			In analysis, found that the <code>argfree</code> function to <a href="khttp_parse.3.html">khttp_parse(3)</a> wasn't
 			being invoked if the <code>arg</code> was itself NULL.
 			(This is clearly bad behaviour&#8212;not all functions need that argument!)
+			This has been fixed as well.
 		</div>
 	</aside>
 </article>
