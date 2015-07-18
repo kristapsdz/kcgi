@@ -85,8 +85,6 @@ kfcgi_control(int work, int ctrl)
 		pfd[1].fd = ctrl;
 		pfd[1].events = POLLIN;
 
-		fprintf(stderr, "%s: DEBUG: polling...\n", __func__);
-
 		if (poll(pfd, 2, -1) < 0) {
 			XWARN("poll");
 			return(EXIT_FAILURE);
@@ -102,14 +100,12 @@ kfcgi_control(int work, int ctrl)
 		 * This will be round-robined by the kernel so that
 		 * other control processes are fairly notified.
 		 */
-		fprintf(stderr, "%s: DEBUG: accepting...\n", __func__);
 		sslen = sizeof(ss);
 		fd = accept(STDIN_FILENO, 
 			(struct sockaddr *)&ss, &sslen);
-		fprintf(stderr, "%s: DEBUG: accepted\n", __func__);
 		if (fd < 0) {
 			if (EAGAIN == errno)
-				break;
+				continue;
 			XWARN("accept");
 			return(EXIT_FAILURE);
 		} 
@@ -129,10 +125,8 @@ kfcgi_control(int work, int ctrl)
 		 * We don't know when the data is finished, but the
 		 * worker does, so wait for it to notify us back.
 		 */
-		fprintf(stderr, "%s: DEBUG: writing cookie\n", __func__);
 		fullwrite(pfd[1].fd, &cookie, sizeof(uint32_t));
 		for (;;) {
-			fprintf(stderr, "%s: DEBUG: waiting for data\n", __func__);
 			if (-1 == poll(pfd, 2, -1)) {
 				XWARN("poll: control socket");
 				close(fd);
@@ -153,11 +147,9 @@ kfcgi_control(int work, int ctrl)
 				close(fd);
 				return(EXIT_FAILURE);
 			}
-			fprintf(stderr, "%s: DEBUG: writing data\n", __func__);
 			fullwrite(pfd[1].fd, buf, ssz);
 		}
 
-		fprintf(stderr, "%s: DEBUG: waiting for cookie\n", __func__);
 		/* Now verify that the worker is sane. */
 		if (fullread(pfd[1].fd, &test, 
 			 sizeof(uint32_t), 0, &kerr) < 0) {
@@ -170,7 +162,6 @@ kfcgi_control(int work, int ctrl)
 			return(EXIT_FAILURE);
 		} 
 
-		fprintf(stderr, "%s: DEBUG: waiting for requestId\n", __func__);
 		if (fullread(pfd[1].fd, &rid, 
 			 sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI requestId");
@@ -182,7 +173,6 @@ kfcgi_control(int work, int ctrl)
 #else
 		cookie = arc4random();
 #endif
-		fprintf(stderr, "%s: DEBUG: writing descriptor\n", __func__);
 		/*
 		 * Pass the file descriptor, which has had its data
 		 * sucked dry, to the main application.
@@ -199,7 +189,6 @@ kfcgi_control(int work, int ctrl)
 		 * This will wait til the application is finished.
 		 * It will then double-check the requestId. 
 		 */
-		fprintf(stderr, "%s: DEBUG: waiting for ack\n", __func__);
 		if (fullread(ctrl, &rtest, sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
 			close(fd);
@@ -211,12 +200,10 @@ kfcgi_control(int work, int ctrl)
 			return(EXIT_FAILURE);
 		}
 
-		fprintf(stderr, "%s: DEBUG: ack received\n", __func__);
 		/* We're done: try again. */
 		close(fd);
 	}
 
-	fprintf(stderr, "%s: DEBUG: controller exit\n", __func__);
 	return(EXIT_SUCCESS);
 }
 
@@ -273,18 +260,14 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	void		*work_box;
 	pid_t		 work_pid, sock_pid;
 
-	fprintf(stderr, "%s: DEBUG: startup\n", __func__);
-
 	if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
 
-	fprintf(stderr, "%s: DEBUG: socketpair(control)\n", __func__);
 	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
 		ksandbox_free(work_box);
 		return(KCGI_SYSTEM);
 	}
 
-	fprintf(stderr, "%s: DEBUG: socketpair(data)\n", __func__);
 	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		close(work_ctl[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_CHILD]);
@@ -316,7 +299,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		ksandbox_init_child(work_box, 
 			work_dat[KWORKER_CHILD],
 			work_ctl[KWORKER_CHILD]);
-		fprintf(stderr, "%s: DEBUG: child ready\n", __func__);
 		kworker_fcgi_child
 			(work_dat[KWORKER_CHILD],
 			 work_ctl[KWORKER_CHILD],
@@ -328,7 +310,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		/* NOTREACHED */
 	}
 
-	fprintf(stderr, "%s: DEBUG: child started\n", __func__);
 	close(work_dat[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_CHILD]);
 	ksandbox_init_parent(work_box, work_pid);
@@ -445,14 +426,12 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	 * descriptor and requestId of the current sequence.
 	 * It may also decide to exit.
 	 */
-	fprintf(stderr, "%s: DEBUG: waiting for descriptor\n", __func__);
 	if ((c = fullreadfd(fcgi->sock_ctl, &fd, &rid, sizeof(uint16_t))) <= 0) {
 		if (0 == c)
 			return(KCGI_HUP);
 		XWARNX("failed to read FastCGI socket");
 		return(KCGI_SYSTEM);
 	}
-	fprintf(stderr, "%s: DEBUG: received descriptor\n", __func__);
 
 	req->arg = arg;
 	req->keys = fcgi->keys;

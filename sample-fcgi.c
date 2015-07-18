@@ -53,6 +53,7 @@ main(int argc, char *argv[])
 		er = khttp_fcgi_parse(fcgi, &req, NULL, 0, 0);
 		if (KCGI_HUP == er) {
 			rc = 1;
+			fprintf(stderr, "Hangup\n");
 			khttp_free(&req);
 			break;
 		} else if (KCGI_OK != er) {
