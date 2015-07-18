@@ -34,7 +34,7 @@ MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.6.2
+VERSION 	 = 0.6.3
 LIBOBJS 	 = child.o \
 		   fcgi.o \
 		   httpauth.o \
