@@ -76,6 +76,10 @@ dd				{ margin: 0 0 1em 0; }
 .sample nav a			{ color: #333; }
 .sample nav a:hover i		{ text-shadow: 1px 1px #aaa; }
 body > header nav		{ overflow: hidden; }
+body > header nav li >div:first-child
+				{ font-weight: bold; }
+body > header nav li + li	{ margin-top: 1.5em; }
+				{ font-weight: bold; }
 body > header nav li >div > div	{ margin-top: 0.5em; }
 #longnews,
 #comments			{ max-height: 0; }
