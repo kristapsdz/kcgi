@@ -181,7 +181,7 @@ afl: $(AFL)
 samples: all sample sample-fcgi
 
 regress: $(REGRESS)
-	@for f in $(REGRESS) ; do \
+	for f in $(REGRESS) ; do \
 		/bin/echo -n "./$${f}... " ; \
 		./$$f >/dev/null 2>/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
 		/bin/echo "ok" ; \
