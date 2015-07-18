@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,19 +34,6 @@
 
 #include "kcgi.h"
 #include "extern.h"
-
-#if 0
-	socksz = sizeof(sndbuf);
-	for (i = 200; i > 0; i--) {
-		sndbuf = (i + 1) * 1024;
-		if (-1 != setsockopt(p->sock[KWORKER_READ], 
-			SOL_SOCKET, SO_RCVBUF, &sndbuf, socksz) &&
-			-1 != setsockopt(p->sock[KWORKER_WRITE], 
-			SOL_SOCKET, SO_SNDBUF, &sndbuf, socksz))
-			break;
-		XWARN("sockopt");
-	}
-#endif
 
 void
 fullwriteword(int fd, const char *buf)
@@ -306,7 +293,6 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 		return(-1);
 	} 
 	
-	fprintf(stderr, "%s: DEBUG: recvmsg\n", __func__);
 	if ((rc = recvmsg(fd, &msg, 0)) < 0) {
 		XWARN("recvmsg");
 		return(-1);
