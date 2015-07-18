@@ -661,6 +661,7 @@ khttp_parsex(struct kreq *req,
 		/* Conditionally free our argument. */
 		if (NULL != argfree)
 			(*argfree)(arg);
+		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		ksandbox_init_child(work_box, 
 			work_dat[KWORKER_CHILD], -1);

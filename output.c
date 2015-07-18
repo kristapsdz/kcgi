@@ -233,7 +233,6 @@ kdata_free(struct kdata *p, int flush)
 			write(p->fcgi, &protocolStatus, sizeof(uint8_t));
 			write(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
 			close(p->fcgi);
-			fprintf(stderr, "%s: DEBUG: sending ack\n", __func__);
 			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
 			p->control = -1;
 			p->fcgi = -1;
