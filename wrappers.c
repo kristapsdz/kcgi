@@ -19,6 +19,7 @@
 #endif
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #include <errno.h>
 #include <fcntl.h>
