@@ -45,7 +45,8 @@ input(enum input *type, struct kpair *kp, int fd, enum kcgi_err *ke)
 	memset(kp, 0, sizeof(struct kpair));
 
 	/* This will return EOF for the last one. */
-	if (0 == (rc = fullread(fd, type, sizeof(enum input), 1, ke)))
+	rc = fullread(fd, type, sizeof(enum input), 1, ke);
+	if (0 == rc)
 		return(0);
 	else if (rc < 0)
 		return(-1);
@@ -163,7 +164,7 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
  * kpairs into named buckets.
  */
 enum kcgi_err
-kworker_parent(int fd, struct kreq *r, pid_t pid)
+kworker_parent(int fd, struct kreq *r)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
@@ -190,7 +191,6 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 		ke = KCGI_ENOMEM;
 		goto out;
 	}
-
 	for (i = 0; i < r->reqsz; i++) {
 		if (fullread(fd, &requ, sizeof(enum krequ), 0, &ke) < 0) {
 			XWARNX("failed to read request identifier");
@@ -247,6 +247,7 @@ kworker_parent(int fd, struct kreq *r, pid_t pid)
 	}
 
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
+		assert(type < IN__MAX);
 		/*
 		 * We have a parsed field from the child process.
 		 * Begin by expanding the number of parsed fields

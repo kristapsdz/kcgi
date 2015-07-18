@@ -304,14 +304,14 @@ output(const struct parms *pp, char *key,
  * Returns the pointer to the data.
  */
 static char *
-scanbuf(const struct kworker *work, size_t len, size_t *szp)
+scanbuf(size_t len, size_t *szp)
 {
 	ssize_t		 ssz;
 	size_t		 sz;
 	char		*p;
 	struct pollfd	 pfd;
 
-	pfd.fd = work->input;
+	pfd.fd = STDIN_FILENO;
 	pfd.events = POLLIN;
 
 	/* Allocate the entire buffer here. */
@@ -324,7 +324,7 @@ scanbuf(const struct kworker *work, size_t len, size_t *szp)
 			XWARN("poll: POLLIN");
 			_exit(EXIT_FAILURE);
 		}
-		ssz = read(work->input, p + sz, len - sz);
+		ssz = read(STDIN_FILENO, p + sz, len - sz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");
 			ssz = 0;
@@ -800,8 +800,7 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(const struct kworker *work,
-	const struct parms *pp, char *line, 
+parse_multi(const struct parms *pp, char *line, 
 	size_t len, char *b, size_t bsz)
 {
 	char		*cp;
@@ -1110,8 +1109,7 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
  */
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
-	struct parms *pp, enum kmethod meth,
-	const struct kworker *work, char *b, size_t bsz)
+	struct parms *pp, enum kmethod meth, char *b, size_t bsz)
 {
 	size_t 	 len;
 	char	*cp, *bp = b;
@@ -1126,6 +1124,9 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	len = 0;
 	if (NULL != (cp = kworker_env(env, envsz, "CONTENT_LENGTH")))
 		len = strtonum(cp, 0, LLONG_MAX, NULL);
+
+	if (0 == len)
+		return;
 
 	/* Check FastCGI input lengths. */
 	if (NULL != bp && bsz != len)
@@ -1143,17 +1144,14 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	cp = kworker_env(env, envsz, "CONTENT_TYPE");
 
 	/* If we're CGI, read the request now. */
-	if (NULL == b) {
-		assert(NULL != work);
-		b = scanbuf(work, len, &bsz);
-	} else
-		assert(NULL == work);
+	if (NULL == b)
+		b = scanbuf(len, &bsz);
 
 	if (NULL != cp) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
 			parse_pairs_urlenc(pp, b);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(work, pp, cp + 19, len, b, bsz);
+			parse_multi(pp, cp + 19, len, b, bsz);
 		else if (KMETHOD_POST == meth && 0 == strcasecmp(cp, "text/plain"))
 			parse_pairs_text(pp, b);
 		else
@@ -1218,7 +1216,7 @@ kworker_child_last(int fd)
  * We use the CGI specification in RFC 3875.
  */
 void
-kworker_child(const struct kworker *work, 
+kworker_child(int sock,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz)
 {
@@ -1232,7 +1230,7 @@ kworker_child(const struct kworker *work,
 	struct env	 *envs;
 	size_t		  envsz;
 
-	pp.fd = wfd = work->sock[KWORKER_WRITE];
+	pp.fd = wfd = sock;
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
@@ -1281,8 +1279,7 @@ kworker_child(const struct kworker *work,
 	kworker_child_port(envs, wfd, envsz);
 
 	/* And now the message body itself. */
-	kworker_child_body(envs, wfd, envsz, &pp, 
-		meth, work, NULL, 0);
+	kworker_child_body(envs, wfd, envsz, &pp, meth, NULL, 0);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
 	kworker_child_last(wfd);
@@ -1731,7 +1728,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
-			meth, NULL, (char *)sbuf, ssz);
+			meth, (char *)sbuf, ssz);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
