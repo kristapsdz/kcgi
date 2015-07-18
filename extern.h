@@ -18,27 +18,6 @@
 #define EXTERN_H
 
 /*
- * A worker extracts the HTTP document body and passes parsed key-value
- * pairs (and environment data) via the "sock".
- * If control has a positive value, the data is being passed by a
- * FastCGI socket, and the child should act accordingly.
- * Otherwise, it uses "input".
- * It's sandboxed with a configuration specified by "sand", which is
- * operating-system specific (e.g., systrace, capsicum).
- */
-struct	kworker {
-#define	KWORKER_READ	 1
-#define	KWORKER_WRITE	 0
-#define	KWORKER_PARENT	 1
-#define	KWORKER_CHILD	 0
-	int	 	 sock[2];
-	int		 control[2];
-	pid_t		 pid;
-	void		*sand;
-	int		 input;
-};
-
-/*
  * Types of field we can read from the child.
  * This governs the list of fields into which we'll assign this
  * particular field.
@@ -49,6 +28,9 @@ enum	input {
 	IN_FORM, /* any sort of standard input form */
 	IN__MAX
 };
+
+#define KWORKER_PARENT  1
+#define KWORKER_CHILD	0
 
 
 __BEGIN_DECLS
