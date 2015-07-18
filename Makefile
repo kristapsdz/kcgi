@@ -172,7 +172,8 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-upload.c
 SVGS		 = figure1.svg \
 		   figure2.png \
-		   figure3.png
+		   figure3.png \
+		   figure4.svg
 
 all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 

@@ -1,0 +1,28 @@
+digraph {
+	node [shape="ellipse"; width="0"; height="0"; margin="0.05,0.05"];
+	edge [arrowsize="0.5";];
+
+	subgraph cluster0 {
+		color="black";
+		client [label="application logic"];
+		subgraph cluster1 {
+			parser [shape="record"; label="{ HTTP parser | input validator }"];
+			color="red";
+			label="sandboxed child";
+			labelloc="b";
+		}
+		subgraph cluster2 {
+			delegator [shape="record"; label="{ Connection Delegator }"];
+			color="red";
+			label="sandboxed child";
+			labelloc="b";
+		}
+		label="FastCGI client";
+	}
+	evil [label="FastCGI socket"];
+
+	delegator -> parser [label="FastCGI Session"];
+	parser -> client [label="validated pairs"];
+	evil -> delegator [label="FastCGI"];
+	client -> evil [label="HTTP"];
+}
