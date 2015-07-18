@@ -144,9 +144,31 @@ xwarn(const char *file, int line, const char *fmt, ...)
 }
 
 enum kcgi_err
-xsocketpair(int domain, int type, int protocol, int sock[2])
+xwaitpid(pid_t pid)
 {
-	int	 rc;
+	int	 	 st;
+	enum kcgi_err	 ke;
+
+	ke = KCGI_OK;
+
+	if (-1 == waitpid(pid, &st, 0)) {
+		ke = KCGI_SYSTEM;
+		XWARN("waiting for child");
+	} else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st)) {
+		ke = KCGI_FORM;
+		XWARNX("child status %d", WEXITSTATUS(st));
+	} else if (WIFSIGNALED(st)) {
+		ke = KCGI_FORM;
+		XWARNX("child signal %d", WTERMSIG(st));
+	}
+
+	return(ke);
+}
+
+enum kcgi_err
+xsocketpair(int domain, int type, int protocol, int *sock)
+{
+	int	 rc, fl1, fl2;
 
 	rc = socketpair(domain, type, protocol, sock);
 	if (-1 == rc && (EMFILE == errno || ENFILE == errno)) {
@@ -155,15 +177,18 @@ xsocketpair(int domain, int type, int protocol, int sock[2])
 	} else if (-1 == rc) {
 		XWARN("socketpair");
 		return(KCGI_SYSTEM);
-	}
+	} else if (-1 == (fl1 = fcntl(sock[0], F_GETFL, 0))) {
+		XWARN("fcntl");
+	} else if (-1 == (fl2 = fcntl(sock[1], F_GETFL, 0))) {
+		XWARN("fcntl");
+	} else if (-1 == fcntl(sock[0], F_SETFL, fl1 | O_NONBLOCK)) {
+		XWARN("fcntl");
+	} else if (-1 == fcntl(sock[1], F_SETFL, fl2 | O_NONBLOCK)) {
+		XWARN("fcntl");
+	} else
+		return(KCGI_OK);
 
-	if (-1 == fcntl(sock[0], F_SETFL, O_NONBLOCK) || 
-		-1 == fcntl(sock[1], F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl (O_NONBLOCK)");
-		close(sock[0]);
-		close(sock[1]);
-		return(KCGI_SYSTEM);
-	}
-
-	return(KCGI_OK);
+	close(sock[0]);
+	close(sock[1]);
+	return(KCGI_SYSTEM);
 }

@@ -60,13 +60,13 @@ void		 kdata_free(struct kdata *, int);
 
 void		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
-void	 	 kworker_child(const struct kworker *, 
+void	 	 kworker_child(int,
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
 void	 	 kworker_fcgi_child(int, int,
 			const struct kvalid *, size_t, 
 			const char *const *, size_t);
-enum kcgi_err	 kworker_parent(int, struct kreq *, pid_t);
+enum kcgi_err	 kworker_parent(int, struct kreq *);
 
 int		 ksandbox_alloc(void **);
 void		 ksandbox_close(void *);
@@ -88,15 +88,6 @@ int	 	 ksandbox_systrace_init_parent(void *, pid_t);
 #ifdef HAVE_SECCOMP_FILTER
 int	 	 ksandbox_seccomp_init_child(void *);
 #endif
-
-enum kcgi_err	 kworker_close(struct kworker *);
-enum kcgi_err	 kworker_init(struct kworker *);
-enum kcgi_err	 kworker_fcgi_init(struct kworker *);
-void	 	 kworker_free(struct kworker *);
-void	 	 kworker_hup(struct kworker *);
-void		 kworker_kill(struct kworker *);
-void	 	 kworker_prep_child(struct kworker *);
-void	 	 kworker_prep_parent(struct kworker *);
 
 int		 fulldiscard(int, size_t, enum kcgi_err *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);
@@ -123,6 +114,7 @@ void		*xreallocarray(const char *,
 			int, void *, size_t, size_t);
 enum kcgi_err	 xsocketpair(int, int, int, int[2]);
 char		*xstrdup(const char *, int, const char *);
+enum kcgi_err	 xwaitpid(pid_t);
 void		 xwarn(const char *, int, const char *, ...);
 void		 xwarnx(const char *, int, const char *, ...);
 #define		 XASPRINTF(_p, ...) \

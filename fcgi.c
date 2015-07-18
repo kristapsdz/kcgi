@@ -240,20 +240,14 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 {
 	size_t	 	 i;
 
-	fprintf(stderr, "%s: DEBUG: freeing\n", __func__);
-
 	/* Allow a NULL pointer. */
 	if (NULL == fcgi)
 		return(KCGI_OK);
 
-	fprintf(stderr, "%s: DEBUG: close worker\n", __func__);
 	close(fcgi->work_dat);
-	fprintf(stderr, "%s: DEBUG: close socket\n", __func__);
 	close(fcgi->sock_ctl);
-	fprintf(stderr, "%s: DEBUG: wait worker\n", __func__);
-	waitpid(fcgi->work_pid, NULL, 0);
-	fprintf(stderr, "%s: DEBUG: wait socket\n", __func__);
-	waitpid(fcgi->sock_pid, NULL, 0);
+	xwaitpid(fcgi->work_pid);
+	xwaitpid(fcgi->sock_pid);
 	ksandbox_close(fcgi->work_box);
 	ksandbox_free(fcgi->work_box);
 
@@ -262,7 +256,6 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	free(fcgi->mimes);
 	free(fcgi->keys);
 	free(fcgi);
-	fprintf(stderr, "%s: DEBUG: freed\n", __func__);
 	return(KCGI_OK);
 }
 
@@ -343,7 +336,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		waitpid(work_pid, NULL, 0);
+		xwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		return(KCGI_SYSTEM);
@@ -356,7 +349,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_ctl[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_CHILD]);
 		close(sock_ctl[KWORKER_PARENT]);
-		waitpid(work_pid, NULL, 0);
+		xwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
@@ -385,8 +378,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (NULL == fcgi) {
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
-		waitpid(work_pid, NULL, 0);
-		waitpid(sock_pid, NULL, 0);
+		xwaitpid(work_pid);
+		xwaitpid(sock_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		return(KCGI_ENOMEM);
@@ -484,7 +477,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if (fcgi->keysz && NULL == req->fieldnmap)
 		goto err;
 
-	kerr = kworker_parent(fcgi->work_dat, req, fcgi->work_pid);
+	kerr = kworker_parent(fcgi->work_dat, req);
 	if (KCGI_OK != kerr)
 		goto err;
 

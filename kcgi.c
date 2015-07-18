@@ -621,38 +621,57 @@ khttp_parsex(struct kreq *req,
 	void (*argfree)(void *arg))
 {
 	const struct kmimemap *mm;
-	enum kcgi_err	 kerr;
-	int 		 er;
-	struct kworker	 work;
+	enum kcgi_err	  kerr;
+	int 		  er, flags;
+	void		 *work_box;
+	int		  work_dat[2];
+	pid_t		  work_pid;
 
 	/*
 	 * We'll be using poll(2) for reading our HTTP document, so this
 	 * must be non-blocking in order to make the reads not spin the
 	 * CPU.
 	 */
-	if (-1 == fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK)) {
-		XWARN("fcntl: O_NONBLOCK");
+	if (-1 == (flags = fcntl(STDIN_FILENO, F_GETFL, 0))) {
+		XWARN("fcntl");
+		return(KCGI_SYSTEM);
+	}
+	flags |= O_NONBLOCK;
+	if (-1 == fcntl(STDIN_FILENO, F_SETFL, flags)) {
+		XWARN("fcntl");
 		return(KCGI_SYSTEM);
 	}
 
-	if (KCGI_OK != (kerr = kworker_init(&work)))
-		return(kerr);
+	if ( ! ksandbox_alloc(&work_box))
+		return(KCGI_ENOMEM);
 
-	if (-1 == (work.pid = fork())) {
+	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
+		ksandbox_free(work_box);
+		return(KCGI_SYSTEM);
+	}
+
+	if (-1 == (work_pid = fork())) {
 		er = errno;
 		XWARN("fork");
+		close(work_dat[KWORKER_PARENT]);
+		close(work_dat[KWORKER_CHILD]);
+		ksandbox_free(work_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
-	} else if (0 == work.pid) {
+	} else if (0 == work_pid) {
 		/* Conditionally free our argument. */
-		if (NULL != argfree && NULL != arg)
+		if (NULL != argfree)
 			(*argfree)(arg);
-		kworker_prep_child(&work);
-		kworker_child(&work, keys, keysz, mimes, mimesz);
-		kworker_free(&work);
+		close(work_dat[KWORKER_PARENT]);
+		ksandbox_init_child(work_box, 
+			work_dat[KWORKER_CHILD], -1);
+		kworker_child(work_dat[KWORKER_CHILD], 
+			keys, keysz, mimes, mimesz);
+		ksandbox_free(work_box);
+		close(work_dat[KWORKER_CHILD]);
 		_exit(EXIT_SUCCESS);
 		/* NOTREACHED */
 	}
-	kworker_prep_parent(&work);
+	ksandbox_init_parent(work_box, work_pid);
 
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
@@ -687,7 +706,7 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
-	kerr = kworker_parent(work.sock[KWORKER_READ], req, work.pid);
+	kerr = kworker_parent(work_dat[KWORKER_PARENT], req);
 	if (KCGI_OK != kerr)
 		goto err;
 
@@ -711,14 +730,17 @@ khttp_parsex(struct kreq *req,
 			req->mime = mimesz;
 	}
 
-	kerr = kworker_close(&work);
-	kworker_free(&work);
+	close(work_dat[KWORKER_PARENT]);
+	xwaitpid(work_pid);
+	ksandbox_close(work_box);
+	ksandbox_free(work_box);
 	return(kerr);
 err:
-	kworker_kill(&work);
+	close(work_dat[KWORKER_PARENT]);
+	xwaitpid(work_pid);
+	ksandbox_close(work_box);
+	ksandbox_free(work_box);
 	kreq_free(req);
-	(void)kworker_close(&work);
-	kworker_free(&work);
 	return(kerr);
 }
 

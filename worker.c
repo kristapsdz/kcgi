@@ -35,51 +35,7 @@
 #include "kcgi.h"
 #include "extern.h"
 
-/*
- * Beyond the usual worker instance, we also want to start a control
- * socket that will be used for communication between the application
- * process and the untrusted worker.
- */
-enum kcgi_err
-kworker_fcgi_init(struct kworker *p)
-{
-	enum kcgi_err	 er;
-
-	if (KCGI_OK != (er = kworker_init(p)))
-		return(er);
-	p->input = -1;
-	/* FIXME: send buffer. */
-	return(xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->control));
-}
-
-enum kcgi_err
-kworker_init(struct kworker *p)
-{
-	size_t		 i;
-	int 	 	 sndbuf;
-	socklen_t	 socksz;
-	enum kcgi_err	 er;
-
-	memset(p, 0, sizeof(struct kworker));
-	p->pid = -1;
-	p->sock[0] = p->sock[1] = -1;
-	p->control[0] = p->control[1] = -1;
-	p->input = STDIN_FILENO;
-
-	/* Allocate the communication sockets. */
-	er = xsocketpair(AF_UNIX, SOCK_STREAM, 0, p->sock);
-	if (KCGI_OK != er)
-		return(er);
-
-	/* Allocate the sandbox. (FIXME: ENOMEM?) */
-	if ( ! ksandbox_alloc(&p->sand)) {
-		close(p->sock[0]);
-		close(p->sock[1]);
-		return(KCGI_ENOMEM);
-	}
-
-	/* Enlarge the transfer buffer size. */
-	/* FIXME: is this a good idea? */
+#if 0
 	socksz = sizeof(sndbuf);
 	for (i = 200; i > 0; i--) {
 		sndbuf = (i + 1) * 1024;
@@ -90,117 +46,7 @@ kworker_init(struct kworker *p)
 			break;
 		XWARN("sockopt");
 	}
-
-	return(KCGI_OK);
-}
-
-/*
- * Free all resources managed by a worker.
- * This will close out file descriptors as well.
- */
-void
-kworker_free(struct kworker *p)
-{
-
-	kworker_hup(p);
-	ksandbox_free(p->sand);
-}
-
-void
-kworker_prep_child(struct kworker *p)
-{
-
-	if (-1 != p->sock[KWORKER_READ]) {
-		close(p->sock[KWORKER_READ]);
-		p->sock[KWORKER_READ] = -1;
-	}
-	if (-1 != p->control[KWORKER_WRITE]) {
-		close(p->control[KWORKER_WRITE]);
-		p->control[KWORKER_WRITE] = -1;
-	}
-	ksandbox_init_child(p->sand, p->sock[KWORKER_WRITE], -1);
-}
-
-void
-kworker_prep_parent(struct kworker *p)
-{
-
-	if (-1 != p->sock[KWORKER_WRITE]) {
-		close(p->sock[KWORKER_WRITE]);
-		p->sock[KWORKER_WRITE] = -1;
-	}
-	if (-1 != p->control[KWORKER_READ]) {
-		close(p->control[KWORKER_READ]);
-		p->control[KWORKER_READ] = -1;
-	}
-	ksandbox_init_parent(p->sand, p->pid);
-	if (-1 != p->input) {
-		close(p->input);
-		p->input = -1;
-	}
-}
-
-void
-kworker_kill(struct kworker *p)
-{
-
-	if (-1 != p->pid)
-		(void)kill(p->pid, SIGKILL);
-}
-
-void
-kworker_hup(struct kworker *p)
-{
-
-	if (-1 != p->sock[0])
-		close(p->sock[0]);
-	p->sock[0] = -1;
-	if (-1 != p->sock[1])
-		close(p->sock[1]);
-	p->sock[1] = -1;
-	if (-1 != p->input)
-		close(p->input);
-	p->input = -1;
-	if (-1 != p->control[0])
-		close(p->control[0]);
-	p->control[0] = -1;
-	if (-1 != p->control[1])
-		close(p->control[1]);
-	p->control[1] = -1;
-}
-
-enum kcgi_err
-kworker_close(struct kworker *p)
-{
-	pid_t	 	 rp;
-	int	 	 st;
-	enum kcgi_err	 ke;
-
-	ke = KCGI_OK;
-
-	if (-1 == p->pid) {
-		ksandbox_close(p->sand);
-		return(ke);
-	}
-
-	do
-		rp = waitpid(p->pid, &st, 0);
-	while (rp == -1 && errno == EINTR);
-
-	if (-1 == rp) {
-		ke = KCGI_SYSTEM;
-		XWARN("waiting for child");
-	} else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st)) {
-		ke = KCGI_FORM;
-		XWARNX("child status %d", WEXITSTATUS(st));
-	} else if (WIFSIGNALED(st)) {
-		ke = KCGI_FORM;
-		XWARNX("child signal %d", WTERMSIG(st));
-	}
-
-	ksandbox_close(p->sand);
-	return(ke);
-}
+#endif
 
 void
 fullwriteword(int fd, const char *buf)
@@ -311,16 +157,26 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	*er = KCGI_SYSTEM;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1)) {
+		ssz = 0;
+		if (-1 == (rc = poll(&pfd, 1, 1000))) {
 			XWARN("poll: %d, POLLIN", fd);
 			return(-1);
+		} 
+		if (0 == rc)  {
+			XWARNX("timeout");
+			ssz = read(fd, buf + sz, bufsz - sz);
+			perror("read");
+			XWARNX("timeout: %zd", ssz);
+			continue;
 		}
+
 		ssz = read(fd, buf + sz, bufsz - sz);
 		if (ssz < 0 && EAGAIN == errno) {
 			XWARN("read: trying again");

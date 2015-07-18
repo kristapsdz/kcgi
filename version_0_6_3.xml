@@ -8,6 +8,9 @@
 	<aside>
 		<div>
 			Patches for deployment on FreeBSD contributed by Baptiste Daroussin&#8212;thanks!
+			In analysis, found that the <code>argfree</code> function to <a href="khttp_parse.3.html">khttp_parse(3)</a> wasn't
+			being invoked if the <code>arg</code> was itself NULL.
+			(This is clearly bad behaviour&#8212;not all functions need that argument!)
 		</div>
 	</aside>
 </article>
