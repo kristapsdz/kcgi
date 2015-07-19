@@ -41,11 +41,21 @@ struct	kfcgi {
 	char		**mimes;
 	size_t		  mimesz;
 	void		 *work_box;
+	void		 *sock_box;
 	pid_t		  work_pid;
 	pid_t		  sock_pid;
 	int		  work_dat;
 	int		  sock_ctl;
 };
+
+static	volatile sig_atomic_t sig = 0;
+
+static void
+dosignal(int arg)
+{
+
+	sig = 1;
+}
 
 /*
  * This is our control process.
@@ -65,19 +75,13 @@ kfcgi_control(int work, int ctrl)
 	struct pollfd	 pfd[2];
 	char		 buf[BUFSIZ];
 	ssize_t		 ssz;
-	int		 flags;
 	enum kcgi_err	 kerr;
 	uint16_t	 rid, rtest;
 
-	if (-1 == (flags = fcntl(STDIN_FILENO, F_GETFL, 0))) {
-		XWARN("fcntl");
+	if (KCGI_OK != xsocketprep(STDIN_FILENO)) {
+		XWARNX("xsocketprep");
 		return(EXIT_FAILURE);
 	} 
-	flags |= O_NONBLOCK;
-	if (-1 == fcntl(STDIN_FILENO, F_SETFL, flags)) {
-		XWARN("fcntl");
-		return(EXIT_FAILURE);
-	}
 
 	for (;;) {
 		pfd[0].fd = STDIN_FILENO;
@@ -237,6 +241,8 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	xwaitpid(fcgi->sock_pid);
 	ksandbox_close(fcgi->work_box);
 	ksandbox_free(fcgi->work_box);
+	ksandbox_close(fcgi->sock_box);
+	ksandbox_free(fcgi->sock_box);
 
 	for (i = 0; i < fcgi->mimesz; i++)
 		free(fcgi->mimes[i]);
@@ -257,21 +263,38 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	int 		 er;
 	size_t		 i;
 	int		 work_ctl[2], work_dat[2], sock_ctl[2];
-	void		*work_box;
+	void		*work_box, *sock_box;
 	pid_t		 work_pid, sock_pid;
+
+	/*
+	 * FIXME: block this signal unless we're right at the fullreadfd
+	 * function, at which point unblock and let it interrupt us.
+	 * This will have a "race condition" where we might receive a
+	 * signal and ignore it.
+	 */
+	signal(SIGTERM, dosignal);
 
 	if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
 
-	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
+	if ( ! ksandbox_alloc(&sock_box)) {
 		ksandbox_free(work_box);
+		return(KCGI_ENOMEM);
+	}
+
+	if (KCGI_OK != xsocketpair
+		 (AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
+		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
-	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
+	if (KCGI_OK != xsocketpair
+		 (AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		close(work_ctl[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_CHILD]);
 		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
@@ -283,6 +306,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
 		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == work_pid) {
 		if (NULL != argfree)
@@ -296,30 +320,49 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		ksandbox_init_child(work_box, 
-			work_dat[KWORKER_CHILD],
-			work_ctl[KWORKER_CHILD]);
-		kworker_fcgi_child
-			(work_dat[KWORKER_CHILD],
-			 work_ctl[KWORKER_CHILD],
-			 keys, keysz, mimes, mimesz);
+		if ( ! ksandbox_init_child(work_box, 
+			 SAND_WORKER,
+			 work_dat[KWORKER_CHILD],
+			 work_ctl[KWORKER_CHILD])) {
+			XWARNX("ksandbox_init_child");
+			er = EXIT_FAILURE;
+		} else {
+			kworker_fcgi_child
+				(work_dat[KWORKER_CHILD],
+				 work_ctl[KWORKER_CHILD],
+				 keys, keysz, mimes, mimesz);
+			er = EXIT_SUCCESS;
+		}
 		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		close(work_dat[KWORKER_CHILD]);
 		close(work_ctl[KWORKER_CHILD]);
-		_exit(EXIT_SUCCESS);
+		_exit(er);
 		/* NOTREACHED */
 	}
 
 	close(work_dat[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_CHILD]);
-	ksandbox_init_parent(work_box, work_pid);
 
-	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
+	if ( ! ksandbox_init_parent
+		 (work_box, SAND_WORKER, work_pid)) {
+		XWARNX("ksandbox_init_parent");
+		close(work_dat[KWORKER_PARENT]);
+		close(work_ctl[KWORKER_PARENT]);
+		xwaitpid(work_pid);
+		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
+		return(KCGI_SYSTEM);
+	}
+
+	if (KCGI_OK != xsocketpair
+		 (AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
 		xwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
@@ -333,6 +376,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		xwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
+		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == sock_pid) {
 		if (NULL != argfree)
@@ -341,11 +385,18 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_PARENT]);
 		ksandbox_free(work_box);
-		er = kfcgi_control
-			(work_ctl[KWORKER_PARENT], 
-			 sock_ctl[KWORKER_CHILD]);
+		if ( ! ksandbox_init_child(sock_box, 
+			 SAND_CONTROL,
+			 sock_ctl[KWORKER_CHILD], -1)) {
+			XWARNX("ksandbox_init_child");
+			er = EXIT_FAILURE;
+		} else 
+			er = kfcgi_control
+				(work_ctl[KWORKER_PARENT], 
+				 sock_ctl[KWORKER_CHILD]);
 		close(work_ctl[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_CHILD]);
+		ksandbox_free(sock_box);
 		_exit(er);
 		/* NOTREACHED */
 	}
@@ -353,6 +404,20 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	close(sock_ctl[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_PARENT]);
 	close(STDIN_FILENO);
+
+	if ( ! ksandbox_init_parent
+		 (work_box, SAND_CONTROL, work_pid)) {
+		XWARNX("ksandbox_init_parent");
+		close(sock_ctl[KWORKER_PARENT]);
+		close(work_dat[KWORKER_PARENT]);
+		xwaitpid(work_pid);
+		xwaitpid(sock_pid);
+		ksandbox_close(work_box);
+		ksandbox_free(work_box);
+		ksandbox_close(sock_box);
+		ksandbox_free(sock_box);
+		return(KCGI_SYSTEM);
+	}
 
 	/* Now allocate our device. */
 	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));
@@ -363,6 +428,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		xwaitpid(sock_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
+		ksandbox_close(sock_box);
+		ksandbox_free(sock_box);
 		return(KCGI_ENOMEM);
 	}
 
@@ -371,6 +438,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	fcgi->work_box = work_box;
 	fcgi->work_pid = work_pid;
 	fcgi->work_dat = work_dat[KWORKER_PARENT];
+	fcgi->sock_box = sock_box;
 	fcgi->sock_pid = sock_pid;
 	fcgi->sock_ctl = sock_ctl[KWORKER_PARENT];
 
@@ -422,16 +490,17 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	kerr = KCGI_ENOMEM;
 
 	/*
-	 * Blocking wait until our control process sends us the file
-	 * descriptor and requestId of the current sequence.
-	 * It may also decide to exit.
+	 * Blocking wait until our control process sends us the file descriptor
+	 * and requestId of the current sequence.
+	 * It may also decide to exit, which we note by seeing that
+	 * "sig" has been set or the channel closed gracefully.
 	 */
-	if ((c = fullreadfd(fcgi->sock_ctl, &fd, &rid, sizeof(uint16_t))) <= 0) {
-		if (0 == c)
-			return(KCGI_HUP);
-		XWARNX("failed to read FastCGI socket");
+	c = fullreadfd(fcgi->sock_ctl, &fd, &rid, sizeof(uint16_t));
+	if (c < 0 && ! sig) {
+		XWARNX("fullreadfd");
 		return(KCGI_SYSTEM);
-	}
+	} else if (0 == c || (c < 0 && sig))
+		return(KCGI_HUP);
 
 	req->arg = arg;
 	req->keys = fcgi->keys;
@@ -456,8 +525,18 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	if (fcgi->keysz && NULL == req->fieldnmap)
 		goto err;
 
+	/*
+	 * Now read the request itself from the worker child.
+	 * We'll wait perpetually on data until the channel closes or
+	 * until we're interrupted during a read by the parent.
+	 * FIXME: set a signal mask and ignore SIGTERM while we're
+	 * processing the request itself!
+	 */
 	kerr = kworker_parent(fcgi->work_dat, req);
-	if (KCGI_OK != kerr)
+	if (sig) {
+		kerr = KCGI_OK;
+		goto err;
+	} else if (KCGI_OK != kerr)
 		goto err;
 
 	/* Look up page type from component. */

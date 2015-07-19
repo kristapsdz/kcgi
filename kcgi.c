@@ -622,7 +622,7 @@ khttp_parsex(struct kreq *req,
 {
 	const struct kmimemap *mm;
 	enum kcgi_err	  kerr;
-	int 		  er, flags;
+	int 		  er;
 	void		 *work_box;
 	int		  work_dat[2];
 	pid_t		  work_pid;
@@ -632,17 +632,10 @@ khttp_parsex(struct kreq *req,
 	 * must be non-blocking in order to make the reads not spin the
 	 * CPU.
 	 */
-	if (-1 == (flags = fcntl(STDIN_FILENO, F_GETFL, 0))) {
-		XWARN("fcntl");
+	if (KCGI_OK != xsocketprep(STDIN_FILENO)) {
+		XWARNX("xsocketprep");
 		return(KCGI_SYSTEM);
-	}
-	flags |= O_NONBLOCK;
-	if (-1 == fcntl(STDIN_FILENO, F_SETFL, flags)) {
-		XWARN("fcntl");
-		return(KCGI_SYSTEM);
-	}
-
-	if ( ! ksandbox_alloc(&work_box))
+	} else if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
 
 	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
@@ -663,17 +656,31 @@ khttp_parsex(struct kreq *req,
 			(*argfree)(arg);
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
-		ksandbox_init_child(work_box, 
-			work_dat[KWORKER_CHILD], -1);
-		kworker_child(work_dat[KWORKER_CHILD], 
-			keys, keysz, mimes, mimesz);
+		if ( ! ksandbox_init_child
+			(work_box, 
+			 SAND_WORKER,
+			 work_dat[KWORKER_CHILD], -1)) {
+			XWARNX("ksandbox_init_child");
+			er = EXIT_FAILURE;
+		} else {
+			kworker_child(work_dat[KWORKER_CHILD], 
+				keys, keysz, mimes, mimesz);
+			er = EXIT_SUCCESS;
+		}
 		ksandbox_free(work_box);
 		close(work_dat[KWORKER_CHILD]);
-		_exit(EXIT_SUCCESS);
+		_exit(er);
 		/* NOTREACHED */
 	}
-	ksandbox_init_parent(work_box, work_pid);
+
 	close(work_dat[KWORKER_CHILD]);
+
+	if ( ! ksandbox_init_parent
+		 (work_box, SAND_WORKER, work_pid)) {
+		XWARNX("ksandbox_init_parent");
+		kerr = KCGI_SYSTEM;
+		goto err;
+	}
 
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;

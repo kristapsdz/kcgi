@@ -109,9 +109,12 @@ ksandbox_systrace_alloc(void)
 }
 
 int
-ksandbox_systrace_init_child(void *arg)
+ksandbox_systrace_init_child(void *arg, enum sandtype type)
 {
 	struct systrace_sandbox *box = arg;
+
+	if (SAND_CONTROL == type)
+		return(1);
 
 	if (NULL == arg) {
 		XWARNX("systrace child passed null config");
@@ -123,46 +126,50 @@ ksandbox_systrace_init_child(void *arg)
 		return(1);
 
 	XWARN("kill: SIGSTOP");
-	_exit(EXIT_FAILURE);
+	return(0);
 }
 
 int
-ksandbox_systrace_init_parent(void *arg, pid_t child)
+ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 {
 	struct systrace_sandbox *box = arg;
 	int		dev, i, j, found, st, rc;
 	pid_t		pid;
 	struct systrace_policy policy;
 
+	assert(NULL != arg);
+
+	if (SAND_CONTROL == type)
+		return(1);
+
 	rc = 0;
 
-	if (NULL == arg) {
-		XWARNX("systrace parent passed null config");
-		return(0);
-	}
-
-	/* Wait for the child to send itself a SIGSTOP */
-	do {
+	/* 
+	 * Wait for the child to send itself a SIGSTOP.
+	 * When we receive it, the child is waiting to be sandboxed.
+	 */
+	do
 		pid = waitpid(child, &st, WUNTRACED);
-	} while (pid == -1 && errno == EINTR);
+	while (pid == -1 && errno == EINTR);
 
 	if (-1 == pid) {
 		XWARN("waitpid");
-		exit(EXIT_FAILURE);
+		return(0);
 	}
 
+	/* Catch if it exits. */
 	signal(SIGCHLD, box->osigchld);
 
 	if ( ! WIFSTOPPED(st)) {
 		if (WIFSIGNALED(st)) {
 			XWARNX("child signal %d", WTERMSIG(st));
-			exit(EXIT_FAILURE);
+			return(0);
 		} else if (WIFEXITED(st)) {
 			XWARNX("child exit %d", WEXITSTATUS(st));
-			exit(EXIT_FAILURE);
+			return(0);
 		}
 		XWARNX("child not stopped");
-		exit(EXIT_FAILURE);
+		return(0);
 	}
 
 	box->child_pid = child;
@@ -232,7 +239,7 @@ out:
 		return(rc);
 
 	XWARN("kill: SIGCONT");
-	exit(EXIT_FAILURE);
+	return(0);
 }
 
 void

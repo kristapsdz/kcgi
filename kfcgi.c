@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,24 +46,34 @@ main(int argc, char *argv[])
 {
 	int			 c, fd, rc;
 	pid_t			*ws;
+	struct passwd		*pw;
 	size_t			 wsz, i, sz;
-	const char		*pname, *sockpath, *chpath;
+	const char		*pname, *sockpath, *chpath,
+	      			*sockuser, *procuser;
 	struct sockaddr_un	 sun;
 	mode_t			 old_umask;
-
-	rc = EXIT_FAILURE;
+	uid_t		 	 sockuid, procuid;
+	gid_t			 sockgid, procgid;
 
 	if ((pname = strrchr(argv[0], '/')) == NULL)
 		pname = argv[0];
 	else
 		++pname;
 
+	if (0 != geteuid()) {
+		fprintf(stderr, "%s: need root privileges", pname);
+		return(EXIT_FAILURE);
+	}
+
+	rc = EXIT_FAILURE;
+	sockuid = procuid = sockgid = procgid = -1;
 	wsz = 5;
 	sockpath = "/var/www/run/httpd.sock";
 	chpath = "/var/www";
 	ws = NULL;
+	sockuser = procuser = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "p:n:s:")))
+	while (-1 != (c = getopt(argc, argv, "p:n:s:u:U:")))
 		switch (c) {
 		case ('n'):
 			wsz = atoi(optarg);
@@ -73,12 +84,36 @@ main(int argc, char *argv[])
 		case ('s'):
 			sockpath = optarg;
 			break;	
+		case ('u'):
+			sockuser = optarg;
+			break;	
+		case ('U'):
+			procuser = optarg;
+			break;	
 		default:
 			goto usage;
 		}
 
 	argc -= optind;
 	argv += optind;
+
+	pw = NULL;
+	if (NULL != procuser && NULL == (pw = getpwnam(procuser))) { 
+		fprintf(stderr, "%s: no such user\n", procuser);
+		return(EXIT_FAILURE);
+	} else if (NULL != pw) {
+		procuid = pw->pw_uid;
+		procgid = pw->pw_gid;
+	}
+
+	pw = NULL;
+	if (NULL != sockuser && NULL == (pw = getpwnam(sockuser))) { 
+		fprintf(stderr, "%s: no such user\n", sockuser);
+		return(EXIT_FAILURE);
+	} else if (NULL != pw) {
+		sockuid = pw->pw_uid;
+		sockgid = pw->pw_gid;
+	}
 
 	/* Do the usual dance to set up UNIX sockets. */
 	memset(&sun, 0, sizeof(sun));
@@ -107,15 +142,12 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* 
-	 * Set permissions for 0666.
-	 * FIXME: use user/group identifier and 0660. 
-	 */
-	old_umask = umask(S_IXUSR|S_IXGRP|S_IXOTH|S_IXOTH);
+	old_umask = umask(S_IXUSR|S_IXGRP|S_IWOTH|S_IROTH|S_IXOTH);
 
 	/* 
-	 * Now actually bind to the FastCGI socket, set up our
+	 * Now actually bind to the FastCGI socket set up our
 	 * listeners, and make sure that we're not blocking.
+	 * If necessary, change the file's ownership.
 	 * We buffer up to the number of available workers.
 	 */
 	if (-1 == bind(fd, (struct sockaddr *)&sun, sizeof(sun))) {
@@ -124,8 +156,16 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 	umask(old_umask);
+
+	if (NULL != sockuser) 
+		if (chown(sockpath, sockuid, sockgid) == -1) {
+			perror(sockpath);
+			close(fd);
+			return(EXIT_FAILURE);
+		}
+
 	if (-1 == listen(fd, wsz)) {
-		perror("listen");
+		perror(sockpath);
 		close(fd);
 		return(EXIT_FAILURE);
 	}
@@ -140,12 +180,32 @@ main(int argc, char *argv[])
 	} else if (-1 == chdir("/")) {
 		perror("/");
 		close(fd);
+		unlink(sockpath);
 		return(EXIT_FAILURE);
+	}
+
+	if (NULL != procuser)  {
+		if (0 != setgid(procgid)) {
+			perror(procuser);
+			close(fd);
+			return(EXIT_FAILURE);
+		} else if (0 != setuid(procuid)) {
+			perror(procuser);
+			close(fd);
+			return(EXIT_FAILURE);
+		} else if (-1 != setuid(0)) {
+			fprintf(stderr, "%s: managed to regain "
+				"root privileges: aborting\n", pname);
+			close(fd);
+			return(EXIT_FAILURE);
+		}
 	}
 
 	/* Allocate worker array. */
 	if (NULL == (ws = calloc(sizeof(pid_t), wsz))) {
-		fprintf(stderr, "%s: memory failure\n", pname);
+		perror(NULL);
+		close(fd);
+		unlink(sockpath);
 		return(EXIT_FAILURE);
 	}
 
@@ -198,12 +258,19 @@ main(int argc, char *argv[])
 
 	/*
 	 * Now wait on the children.
-	 * TODO: kill children if we wait too long.
 	 */
 	for (i = 0; i < wsz; i++) {
 		if (-1 == ws[i])
 			continue;
-		kill(ws[i], SIGTERM);
+		if (-1 == kill(ws[i], SIGTERM))
+			perror("kill");
+	}
+
+	sleep(1);
+
+	for (i = 0; i < wsz; i++) {
+		if (-1 == ws[i])
+			continue;
 		if (-1 == waitpid(ws[i], &c, 0))
 			perror("waitpid");
 		else if ( ! WIFEXITED(c))
@@ -221,6 +288,8 @@ usage:
 		"[-n workers] "
 		"[-p chroot] "
 		"[-s sockpath] "
+		"[-u sockuser] "
+		"[-U procuser] "
 		"-- prog [arg1...]\n", pname);
 	return(EXIT_FAILURE);
 }
