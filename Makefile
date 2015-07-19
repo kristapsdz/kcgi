@@ -36,15 +36,15 @@ MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.6.3
+LIBCONFIGOBJS	 = compat-memmem.o \
+		   compat-reallocarray.o \
+		   compat-strlcat.o \
+		   compat-strlcpy.o \
+		   compat-strtonum.o
 LIBOBJS 	 = child.o \
 		   fcgi.o \
 		   httpauth.o \
 		   kcgi.o \
-		   compat-memmem.o \
-		   compat-reallocarray.o \
-		   compat-strlcat.o \
-		   compat-strlcpy.o \
-		   compat-strtonum.o \
 		   output.o \
 		   parent.o \
 		   sandbox.o \
@@ -52,7 +52,6 @@ LIBOBJS 	 = child.o \
 		   sandbox-darwin.o \
 		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
-		   worker.o \
 		   wrappers.o
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
@@ -131,7 +130,6 @@ SRCS 		 = child.c \
      		   sandbox-darwin.c \
      		   sandbox-seccomp-filter.c \
      		   sandbox-systrace.c \
-		   worker.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
@@ -189,8 +187,11 @@ regress: $(REGRESS)
 		/bin/echo "ok" ; \
 	done
 
-kfcgi: kfcgi.o compat-memmem.o compat-reallocarray.o compat-strlcat.o compat-strlcpy.o compat-strtonum.o 
-	$(CC) $(CFLAGS) -o $@ kfcgi.o compat-memmem.o compat-reallocarray.o compat-strlcat.o compat-strlcpy.o compat-strtonum.o 
+libconfig.a: config.h $(LIBCONFIGOBJS)
+	$(AR) rs $@ $(LIBCONFIGOBJS)
+
+kfcgi: kfcgi.o libconfig.a
+	$(CC) $(CFLAGS) -o $@ kfcgi.o libconfig.a
 
 kfcgi.o: config.h
 
@@ -233,8 +234,8 @@ afl/afl-plain: afl/afl-plain.c libkcgi.a
 afl/afl-urlencoded: afl/afl-urlencoded.c libkcgi.a
 	$(CC) $(CFLAGS) -o $@ afl/afl-urlencoded.c libkcgi.a -lz
 
-libkcgi.a: $(LIBOBJS)
-	$(AR) rs $@ $(LIBOBJS)
+libkcgi.a: $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
+	$(AR) rs $@ $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
 
 kcgihtml.o: kcgihtml.h
 
@@ -259,6 +260,8 @@ libkcgiregress.a: kcgiregress.o
 $(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
+
+$(LIBCONFIGOBJS): config.h
 
 config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
@@ -346,7 +349,7 @@ kcgi.tgz:
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o
 	rm -f index.html $(TUTORIALHTMLS)
-	rm -f libkcgi.a $(LIBOBJS)
+	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
 	rm -f libkcgixml.a kcgixml.o

@@ -31,11 +31,15 @@
 #include "extern.h"
 
 int
-ksandbox_capsicum_init_child(void *arg, int fd1, int fd2)
+ksandbox_capsicum_init_child(void *arg, 
+	enum sandtype type, int fd1, int fd2)
 {
 	int rc;
 	struct rlimit	 rl_zero;
 	cap_rights_t	 rights;
+
+	if (SAND_CONTROL == type)
+		return(1);
 
 	cap_rights_init(&rights);
 

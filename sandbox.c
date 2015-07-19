@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -49,14 +49,17 @@ struct	ksandbox {
  * This is only used by systrace(4), which requires the parent to
  * register the child's systrace hooks.
  */
-void
-ksandbox_init_parent(void *arg, pid_t child)
+int
+ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 {
 
 #if defined(HAVE_SYSTRACE)
-	if ( ! ksandbox_systrace_init_parent(arg, child))
-		XWARNX("systrace sandbox failed (parent)");
+	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
+		XWARNX("ksandbox_systrace_init_parent");
+		return(0);
+	}
 #endif
+	return(1);
 }
 
 /*
@@ -71,7 +74,7 @@ ksandbox_alloc(void **pp)
 	*pp = NULL;
 #ifdef HAVE_SYSTRACE
 	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
-		XWARNX("systrace alloc failed");
+		XWARNX("ksandbox_systrace_alloc");
 		return(0);
 	}
 #endif
@@ -104,21 +107,31 @@ ksandbox_close(void *arg)
  * Each sandbox will want to do something here to make sure that the
  * child context is sandboxed properly.
  */
-void
-ksandbox_init_child(void *arg, int fd1, int fd2)
+int
+ksandbox_init_child(void *arg, 
+	enum sandtype type, int fd1, int fd2)
 {
 
 #if defined(HAVE_CAPSICUM)
-	if ( ! ksandbox_capsicum_init_child(arg, fd1, fd2))
-		XWARNX("capsicum sandbox failed (child)");
+	if ( ! ksandbox_capsicum_init_child(arg, type, fd1, fd2)) {
+		XWARNX("ksandbox_capsicum_init_child");
+		return(0);
+	}
 #elif defined(HAVE_SANDBOX_INIT)
-	if ( ! ksandbox_darwin_init_child(arg))
-		XWARNX("darwin sandbox failed (child)");
+	if ( ! ksandbox_darwin_init_child(arg, type)) {
+		XWARNX("ksandbox_darwin_init_child");
+		return(0);
+	}
 #elif defined(HAVE_SYSTRACE)
-	if ( ! ksandbox_systrace_init_child(arg))
-		XWARNX("systrace sandbox failed (child)");
+	if ( ! ksandbox_systrace_init_child(arg, type)) {
+		XWARNX("ksandbox_systrace_init_child");
+		return(0);
+	}
 #elif defined(HAVE_SECCOMP_FILTER)
-	if ( ! ksandbox_seccomp_init_child(arg))
-		XWARNX("systrace sandbox failed (child)");
+	if ( ! ksandbox_seccomp_init_child(arg, type)) {
+		XWARNX("ksandbox_seccomp_init_child");
+		return(0);
+	}
 #endif
+	return(1);
 }

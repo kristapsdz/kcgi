@@ -166,10 +166,13 @@ ssh_sandbox_child_debugging(void)
 #endif /* SANDBOX_SECCOMP_DEBUG */
 
 int
-ksandbox_seccomp_init_child(void *arg)
+ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 {
 	struct rlimit rl_zero;
 	int nnp_failed = 0;
+
+	if (SAND_CONTROL == type)
+		return(1);
 
 	/* Set rlimits for completeness if possible. */
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
