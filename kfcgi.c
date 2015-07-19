@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	int			 c, fd, rc;
 	pid_t			*ws;
 	size_t			 wsz, i, sz;
-	const char		*pname, *sockpath;
+	const char		*pname, *sockpath, *chpath;
 	struct sockaddr_un	 sun;
 	mode_t			 old_umask;
 
@@ -59,12 +59,16 @@ main(int argc, char *argv[])
 
 	wsz = 5;
 	sockpath = "/var/www/run/httpd.sock";
+	chpath = "/var/www";
 	ws = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "n:s:")))
+	while (-1 != (c = getopt(argc, argv, "p:n:s:")))
 		switch (c) {
 		case ('n'):
 			wsz = atoi(optarg);
+			break;	
+		case ('p'):
+			chpath = optarg;
 			break;	
 		case ('s'):
 			sockpath = optarg;
@@ -122,6 +126,19 @@ main(int argc, char *argv[])
 	umask(old_umask);
 	if (-1 == listen(fd, wsz)) {
 		perror("listen");
+		close(fd);
+		return(EXIT_FAILURE);
+	}
+
+	/* 
+	 * Jail our file-system.
+	 */
+	if (-1 == chroot(chpath)) {
+		perror(chpath);
+		close(fd);
+		return(EXIT_FAILURE);
+	} else if (-1 == chdir("/")) {
+		perror("/");
 		close(fd);
 		return(EXIT_FAILURE);
 	}
@@ -202,6 +219,7 @@ main(int argc, char *argv[])
 usage:
 	fprintf(stderr, "usage: %s "
 		"[-n workers] "
+		"[-p chroot] "
 		"[-s sockpath] "
 		"-- prog [arg1...]\n", pname);
 	return(EXIT_FAILURE);

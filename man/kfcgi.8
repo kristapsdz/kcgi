@@ -10,6 +10,7 @@
 .Sh SYNOPSIS
 .Nm kfcgi
 .Op Fl n Ar workers
+.Op Fl p Ar chroot
 .Op Fl s Ar sockpath
 .Ar prog Op arg0...
 .Sh DESCRIPTION
@@ -20,13 +21,19 @@ server starts up
 processes of
 .Ar prog
 to handle FastCGI connections.
-By default, it uses 3 workers for
-.Pa /var/www/run/httpd.sock .
-The socket is created in mode 0666 under the current user.
+By default, it opens the socket
+.Pa /var/www/run/httpd.sock
+in mode 0666 under the current user, changes to a file-system jail in
+.Pa /var/www ,
+then starts 3 workers.
 The arguments are as follows:
 .Bl -tag -width Ds
 .It Fl n Ar workers
 The number of workers >1.
+.It Fl p Ar chroot
+Location of file-system jail.
+This is mandatory: use the root directory if you insist on being
+insecure.
 .It Fl s Ar sockpath
 Alternative socket path.
 .El
