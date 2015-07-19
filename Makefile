@@ -1,4 +1,5 @@
 .SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html
+.PHONY: regress
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
