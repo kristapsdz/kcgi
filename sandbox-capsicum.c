@@ -39,12 +39,7 @@ ksandbox_capsicum_init_child(void *arg, int fd1, int fd2)
 
 	cap_rights_init(&rights);
 
-	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && errno != ENOSYS)
-		XWARN("cap_rights_limit: STDIN_FILENO");
-
 	cap_rights_init(&rights, CAP_WRITE);
-	if (cap_rights_limit(STDOUT_FILENO, &rights) < 0 && errno != ENOSYS)
-		XWARN("cap_rights_limit: STDOUT_FILENO");
 	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && errno != ENOSYS)
 		XWARN("cap_rights_limit: STDERR_FILENO");
 
