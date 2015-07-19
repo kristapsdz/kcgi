@@ -29,6 +29,11 @@ enum	input {
 	IN__MAX
 };
 
+enum	sandtype {
+	SAND_WORKER,
+	SAND_CONTROL
+};
+
 #define KWORKER_PARENT  1
 #define KWORKER_CHILD	0
 
@@ -50,27 +55,6 @@ void	 	 kworker_fcgi_child(int, int,
 			const char *const *, size_t);
 enum kcgi_err	 kworker_parent(int, struct kreq *);
 
-int		 ksandbox_alloc(void **);
-void		 ksandbox_close(void *);
-void		 ksandbox_free(void *);
-void		 ksandbox_init_child(void *, int, int);
-void		 ksandbox_init_parent(void *, pid_t);
-#ifdef HAVE_CAPSICUM
-int	 	 ksandbox_capsicum_init_child(void *, int, int);
-#endif
-#ifdef HAVE_SANDBOX_INIT
-int	 	 ksandbox_darwin_init_child(void *);
-#endif
-#ifdef HAVE_SYSTRACE
-void		*ksandbox_systrace_alloc(void);
-void	 	 ksandbox_systrace_close(void *);
-int	 	 ksandbox_systrace_init_child(void *);
-int	 	 ksandbox_systrace_init_parent(void *, pid_t);
-#endif
-#ifdef HAVE_SECCOMP_FILTER
-int	 	 ksandbox_seccomp_init_child(void *);
-#endif
-
 int		 fulldiscard(int, size_t, enum kcgi_err *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);
 enum kcgi_err	 fullreadword(int, char **);
@@ -78,6 +62,27 @@ int		 fullreadfd(int, int *, void *, size_t);
 void		 fullwrite(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
 int		 fullwritefd(int, int, void *, size_t);
+
+int		 ksandbox_alloc(void **);
+void		 ksandbox_close(void *);
+void		 ksandbox_free(void *);
+int		 ksandbox_init_child(void *, enum sandtype, int, int);
+int		 ksandbox_init_parent(void *, enum sandtype, pid_t);
+#ifdef HAVE_CAPSICUM
+int	 	 ksandbox_capsicum_init_child(void *, enum sandtype, int, int);
+#endif
+#ifdef HAVE_SANDBOX_INIT
+int	 	 ksandbox_darwin_init_child(void *, enum sandtype);
+#endif
+#ifdef HAVE_SYSTRACE
+void		*ksandbox_systrace_alloc(void);
+void	 	 ksandbox_systrace_close(void *);
+int	 	 ksandbox_systrace_init_child(void *, enum sandtype);
+int	 	 ksandbox_systrace_init_parent(void *, pid_t, enum sandtype);
+#endif
+#ifdef HAVE_SECCOMP_FILTER
+int	 	 ksandbox_seccomp_init_child(void *);
+#endif
 
 /*
  * These are just wrappers over the native functions that report when
@@ -95,6 +100,7 @@ void		*xrealloc(const char *, int, void *, size_t);
 void		*xreallocarray(const char *, 
 			int, void *, size_t, size_t);
 enum kcgi_err	 xsocketpair(int, int, int, int[2]);
+enum kcgi_err	 xsocketprep(int);
 char		*xstrdup(const char *, int, const char *);
 enum kcgi_err	 xwaitpid(pid_t);
 void		 xwarn(const char *, int, const char *, ...);

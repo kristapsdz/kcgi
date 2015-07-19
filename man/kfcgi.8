@@ -1,4 +1,4 @@
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: July 19 2015 $
 .Dt KFCGI 8
 .Os
 .Sh NAME
@@ -12,6 +12,8 @@
 .Op Fl n Ar workers
 .Op Fl p Ar chroot
 .Op Fl s Ar sockpath
+.Op Fl u Ar sockuser
+.Op Fl U Ar procuser
 .Ar prog Op arg0...
 .Sh DESCRIPTION
 The
@@ -36,6 +38,10 @@ This is mandatory: use the root directory if you insist on being
 insecure.
 .It Fl s Ar sockpath
 Alternative socket path.
+.It Fl u Ar sockuser
+The user in whose name the socket is created.
+.It Fl U Ar procuser
+The user in whose name the process is dropped.
 .El
 .\" .Sh CONTEXT
 .\" For section 9 functions only.

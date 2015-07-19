@@ -223,25 +223,30 @@ int main(void) {
 				</h2>
 				<p>
 					The bulk of <span class="nm">kcgi</span>'s CGI handling lies in <a
-						href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses the HTTP context.
+						href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses the HTTP request.
 					Application developers must invoke this function before all others.
-					It must be matched by an <a href="khttp_free.3.html">khttp_free(3)</a>, which frees all resources.
-					For FastCGI, parsing is invoked with <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+					For FastCGI, it's split between <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, which
+					initialises context; and <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, which receives new
+					parsed requests.
+					In either case, requests must be freed by an <a href="khttp_free.3.html">khttp_free(3)</a>.
 				</p>
 				<p>
-					Both functions isolate the parsing and validation of untrusted network data within a <i>sandboxed</i>
+					All functions isolate the parsing and validation of untrusted network data within a <i>sandboxed</i>
 					child process.
 					Sandboxes limit the environment available to a process, so exploitable errors in the parsing process (or
 					validation with third-party libraries) cannot touch the system environment.
 					This parsed data is returned to the parent process over a socket.
+					In the following, the <i>HTTP parser</i> and <i>input validator</i> manage a single HTTP request, while
+					<i>connection delegator</i> accepts new HTTP requests and passes them along.
 				</p>
 				<figure>
 					<img src="figure1.svg" alt="Implementation Details" />
 					<img src="figure4.svg" alt="Implementation Details" />
 				</figure>
 				<p>
-					This method of sandboxing the untrusted child process follows <a href="http://www.openssh.org">OpenSSH</a>, 
-					and requires special handling for each operating system:
+					This method of sandboxing the untrusted parsing process follows <a
+						href="http://www.openssh.org">OpenSSH</a>, and requires special handling for each operating
+					system:
 				</p>
 				<dl>
 					<dt>
@@ -289,6 +294,10 @@ int main(void) {
 					<strong>might</strong> be abruptly killed by the sandbox facility.
 					(Not all sandboxes do this.)
 					If required, this kind of validation can take place after the parse validation sequence.
+				</p>
+				<p>
+					The connection delegator is similar, but has different sandboxing rules, as it must manage an open
+					socket connection and respond to new requests.
 				</p>
 			</section>
 			<section>

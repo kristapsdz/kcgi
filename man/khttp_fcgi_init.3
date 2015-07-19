@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 18 2015 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KHTTP_FCGI_INIT 3
 .Os
 .Sh NAME
@@ -112,7 +112,13 @@ and
 .Nm khttp_fcgi_initx
 will install signal handlers for
 .Dv SIGTERM .
-These should not be changed by the calling application.
+These should not be changed by the calling application, but are not
+prohibited from doing so.
+The consequences are that a server wishing to halt the application must
+use
+.Dv SIGKILL
+inside of the FastCGI-specified
+.Dv SIGTERM .
 .Sh RETURN VALUES
 .Nm khttp_fcgi_init
 and

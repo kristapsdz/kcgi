@@ -31,15 +31,17 @@
 #include "extern.h"
 
 int
-ksandbox_darwin_init_child(void *arg)
+ksandbox_darwin_init_child(void *arg, enum sandtype type)
 {
 	int	 	 rc;
 	char		*er;
 	struct rlimit	 rl_zero;
 
-	rc = sandbox_init
-		(kSBXProfilePureComputation, 
-		 SANDBOX_NAMED, &er);
+	rc = SAND_WORKER == type ?
+		sandbox_init(kSBXProfilePureComputation, 
+			SANDBOX_NAMED, &er) :
+		sandbox_init(kSBXProfileNoWrite, 
+			SANDBOX_NAMED, &er);
 
 	if (0 != rc) {
 		XWARNX("sandbox_init: %s", er);

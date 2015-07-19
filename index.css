@@ -102,4 +102,6 @@ footer				{ padding: 1ex;
 h1				{ font-size: 16pt; }
 h1 .nd				{ font-size: 14pt; }
 pre				{ font-size: 8pt; }
+figure img			{ display: block;
+				  width: 100%; }
 }
