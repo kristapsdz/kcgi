@@ -12,7 +12,7 @@ digraph {
 			labelloc="b";
 		}
 		subgraph cluster2 {
-			delegator [shape="record"; label="{ Connection Delegator }"];
+			delegator [shape="record"; label="{ connection delegator }"];
 			color="red";
 			label="sandboxed child";
 			labelloc="b";
@@ -21,6 +21,7 @@ digraph {
 	}
 	evil [label="FastCGI socket"];
 
+	delegator -> client [label="channel"];
 	delegator -> parser [label="FastCGI Session"];
 	parser -> client [label="validated pairs"];
 	evil -> delegator [label="FastCGI"];
