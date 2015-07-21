@@ -214,7 +214,7 @@ int main(void) {
 						href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
 						href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
 						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> and
-					suggested for the [future] security precautions taken by the wrapper).
+					suggested for the security precautions taken by the wrapper).
 				</p>
 			</section>
 			<section id="features">
