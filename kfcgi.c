@@ -228,7 +228,7 @@ main(int argc, char *argv[])
 			if (-1 == dup2(fd, STDIN_FILENO))
 				_exit(EXIT_FAILURE);
 			close(fd);
-			execvp(argv[0], argv);
+			execv(argv[0], argv);
 			perror(argv[0]);
 			_exit(EXIT_FAILURE);
 		}
