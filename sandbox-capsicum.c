@@ -43,24 +43,48 @@ ksandbox_capsicum_init_child(void *arg,
 
 	cap_rights_init(&rights);
 
-	cap_rights_init(&rights, CAP_WRITE);
-	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && errno != ENOSYS)
+	/* 
+	 * Test for EBADF because STDIN_FILENO is usually closed by the
+	 * caller.
+	 */
+	cap_rights_init(&rights, CAP_READ|CAP_FSTAT);
+	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && 
+		 errno != ENOSYS && errno != EBADF) {
+ 		XWARN("cap_rights_limit: STDIN_FILENO");
+		return(0);
+	}
+
+	cap_rights_init(&rights, CAP_WRITE|CAP_FSTAT);
+	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && 
+		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: STDERR_FILENO");
+		return(0);
+	}
 
 	cap_rights_init(&rights, CAP_READ|CAP_WRITE);
-	if (-1 != fd1 && cap_rights_limit(fd1, &rights) < 0 && errno != ENOSYS)
+	if (-1 != fd1 && cap_rights_limit(fd1, &rights) < 0 && 
+		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
-	if (-1 != fd2 && cap_rights_limit(fd2, &rights) < 0 && errno != ENOSYS)
+		return(0);
+	}
+	if (-1 != fd2 && cap_rights_limit(fd2, &rights) < 0 && 
+		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
+		return(0);
+	}
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
-	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero))
+	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero)) {
 		XWARNX("setrlimit: rlimit_fsize");
-	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero))
+		return(0);
+	} else if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
 		XWARNX("setrlimit: rlimit_fsize");
-	if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero))
+		return(0);
+	} else if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero)) {
 		XWARNX("setrlimit: rlimit_nproc");
+		return(0);
+	}
 
 	rc = cap_enter();
 	if (0 != rc && errno != ENOSYS) {
