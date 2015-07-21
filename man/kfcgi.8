@@ -25,9 +25,12 @@ processes of
 to handle FastCGI connections.
 By default, it opens the socket
 .Pa /var/www/run/httpd.sock
-in mode 0666 under the current user, changes to a file-system jail in
+in mode 0660 under the current user and group, changes to a file-system
+jail in
 .Pa /var/www ,
-then starts 3 workers.
+then starts 3 workers executing
+.Ar prog ,
+which must exist relative to the file-system jail root.
 The arguments are as follows:
 .Bl -tag -width Ds
 .It Fl n Ar workers
@@ -39,7 +42,7 @@ insecure.
 .It Fl s Ar sockpath
 Alternative socket path.
 .It Fl u Ar sockuser
-The user in whose name the socket is created.
+The user in whose name (user and group) the socket is created.
 .It Fl U Ar procuser
 The user in whose name the process is dropped.
 .El
@@ -55,7 +58,24 @@ The user in whose name the process is dropped.
 .Sh EXIT STATUS
 .Ex -std
 .\" For sections 1, 6, and 8 only.
-.\" .Sh EXAMPLES
+.Sh EXAMPLES
+On OpenBSD, the default user for the web server is
+.Dq www .
+Assuming we have a server that doesn't need any files, we can run the
+following to keep it in a safe jail:
+.Pp
+.D1 # kfcgi -u www -U www -- /fcgi-bin/prog
+.Pp
+This will execute
+.Pa /fcgi-bin/prog
+within the default file-system jail of
+.Pa /var/www
+as user
+.Dq www .
+It will create the default socket
+.Pa /var/www/run/httpd.sock
+in mode 0660 as user
+.Dq www .
 .\" .Sh DIAGNOSTICS
 .\" For sections 1, 4, 6, 7, 8, and 9 printf/stderr messages only.
 .\" .Sh ERRORS
