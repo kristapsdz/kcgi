@@ -78,7 +78,7 @@ int	 	 ksandbox_darwin_init_child(void *, enum sandtype);
 void		*ksandbox_systrace_alloc(void);
 void	 	 ksandbox_systrace_close(void *);
 int	 	 ksandbox_systrace_init_child(void *, enum sandtype);
-int	 	 ksandbox_systrace_init_parent(void *, pid_t, enum sandtype);
+int	 	 ksandbox_systrace_init_parent(void *, enum sandtype, pid_t);
 #endif
 #ifdef HAVE_SECCOMP_FILTER
 int	 	 ksandbox_seccomp_init_child(void *);
