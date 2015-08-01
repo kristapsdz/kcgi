@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: July 19 2015 $
 .Dt KHTTP_FCGI_INIT 3
 .Os
 .Sh NAME
@@ -31,6 +31,9 @@
 .Fa "struct kfcgi **fcgi"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keysz"
+.Fa "const char *const *pages"
+.Fa "size_t pagesz"
+.Fa "size_t defpage"
 .Fc
 .Ft "enum kcgi_err"
 .Fo khttp_fcgi_initx
@@ -39,6 +42,11 @@
 .Fa "size_t mimemax"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keysz"
+.Fa "const struct kmimemap *mimemap"
+.Fa "size_t defmime"
+.Fa "const char *const *pages"
+.Fa "size_t pagesz"
+.Fa "size_t defpage"
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
 .Fc
@@ -55,30 +63,11 @@ example,
 They should be called as early as possible in the life-span of a FastCGI
 application, preferrably directly after initialisation.
 .Pp
-The collective arguments are as follows:
-.Bl -tag -width Ds
-.It Fa arg
-A pointer to private application data.
-It is not touched unless
-.Fa argfree
-is provided.
-.It Fa argfree
-Function invoked with
-.Fa arg
-by the child process starting to parse untrusted network data.
-This makes sure that no unnecessary data is leaked into the child.
-.It Fa keys
-An array of input and validation fields.
-.It Fa keysz
-The number of elements in
-.Fa keys .
-.It Fa mimes
-An array of MIME types (e.g.,
-.Dq text/html ) ,
-mapped into a MIME index during MIME body parsing.
-.It Fa mimemax
-The MIME index used if no MIME type was matched.
-.El
+The collective arguments are defined in
+.Xr khttp_parse 3 .
+.Em Function arguments are not copied :
+all pointers are passed by reference and used in later invocations of
+.Xr khttp_fcgi_parse 3 .
 .Pp
 The first form,
 .Nm khttp_fgci_init ,
@@ -88,9 +77,9 @@ It is equivalent to invoking the second form,
 .Nm khttp_fcgi_initx ,
 as follows:
 .Bd -literal -offset indent
-khttp_fcgi_initx(fcgi,
-  kmimetypes, KIME__MAX,
-  keys, keysz, NULL, NULL);
+khttp_fcgi_initx(fcgi, kmimetypes, KIME__MAX,
+  keys, keysz, ksuffixmap, KMIME_TEXT_HTML, 
+  pages, pagesz, defpage, NULL, NULL);
 .Ed
 .Pp
 After invocation with a return value of
@@ -145,7 +134,9 @@ On failure, the calling application should terminate as soon as
 possible.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
-.Xr khttp_fcgi_free 3
+.Xr khttp_fcgi_free 3 ,
+.Xr khttp_fcgi_parse 3 ,
+.Xr khttp_parse 3
 .Sh AUTHORS
 The
 .Nm khttp_fcgi_init
