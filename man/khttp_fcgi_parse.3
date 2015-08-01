@@ -18,8 +18,7 @@
 .Dt KHTTP_FCGI_PARSE 3
 .Os
 .Sh NAME
-.Nm khttp_fcgi_parse ,
-.Nm khttp_fcgi_parsex
+.Nm khttp_fcgi_parse
 .Nd parse a FastCGI instance for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -30,42 +29,20 @@
 .Fo khttp_fcgi_parse
 .Fa "struct kfcgi *fcgi"
 .Fa "struct kreq *req"
-.Fa "const char *const *pages"
-.Fa "size_t pagesz"
-.Fa "size_t defpage"
-.Fc
-.Ft "enum kcgi_err"
-.Fo khttp_fcgi_parsex
-.Fa "struct kfcgi *fcgi"
-.Fa "struct kreq *req"
-.Fa "const struct kmimemap *suffixes"
-.Fa "const char *const *pages"
-.Fa "size_t pagesz"
-.Fa "size_t defmime"
-.Fa "size_t defpage"
-.Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_fcgi_parse
-and
-.Nm khttp_fcgi_parsex
-functions parse and validate a single FastCGI request.
+.Nm
+function parses and validates a single FastCGI request.
 They may be invoked as many times as necessary, but must follow a call
 to
 .Xr khttp_fcgi_init 3
 and be followed by
 .Xr khttp_fcgi_free 3 .
-.Pp
-The collective arguments and return values are defined in
-.Xr khttp_parse 3 .
-.Pp
 The
 .Fa req
 object filled in by
-.Nm khttp_fcgi_parse
-or
-.Nm khttp_fcgi_parsex
+.Nm
 must be subsequently freed by
 .Xr khttp_free .
 .Sh RETURN VALUES
@@ -78,11 +55,10 @@ application should exit.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_fcgi_init 3 ,
-.Xr khttp_free 3
+.Xr khttp_free 3 ,
+.Xr khttp_parse 3
 .Sh AUTHORS
 The
-.Nm khttp_fcgi_parse
-and
-.Nm khttp_fcgi_parsex
-functions were written by
+.Nm
+function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
