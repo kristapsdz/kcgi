@@ -1,10 +1,8 @@
-
-
 <article data-sblg-article="1" data-sblg-tags="version">
 	<header>
 		<h1>0.6.4</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-07-21">2015-07-21</time>
+		<time datetime="2015-08-01">2015-08-01</time>
 	</header>
 	<aside>
 		<div>
@@ -12,9 +10,17 @@
 			drop privileges, and ensure proper ownership of the socket.
 			While here, begin sandbox mechanisms for the FastCGI control process.
 			This only works for Mac OSX for now, but will expand to others.
+			Again, until the next minor version bump, <strong>FastCGI support is experimental</strong>.
 		</div>
 		<div>
-			Incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.
+			On that note, begin finalising the API for FastCGI calls.
+			This involved moving most function arguments previously in <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>
+			into <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>.
+			To wit, the <code>khttp_fcgi_parsex()</code> function has been removed: all of the logic has been moved to the
+			initialisation function, making the parse function much simpler.
+		</div>
+		<div>
+			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.
 		</div>
 	</aside>
 </article>
