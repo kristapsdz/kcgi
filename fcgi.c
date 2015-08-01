@@ -37,16 +37,22 @@
 #include "extern.h"
 
 struct	kfcgi {
-	struct kvalid	 *keys;
-	size_t		  keysz;
-	char		**mimes;
-	size_t		  mimesz;
-	void		 *work_box;
-	void		 *sock_box;
-	pid_t		  work_pid;
-	pid_t		  sock_pid;
-	int		  work_dat;
-	int		  sock_ctl;
+	const struct kvalid	 *keys;
+	size_t			  keysz;
+	const char *const	 *mimes;
+	size_t			  mimesz;
+	size_t			  defmime;
+	const char *const	 *pages;
+	size_t			  pagesz;
+	size_t			  defpage;
+	const struct kmimemap 	 *mimemap;
+	void			 *work_box;
+	void			 *sock_box;
+	pid_t			  work_pid;
+	pid_t			  sock_pid;
+	int			  work_dat;
+	int			  sock_ctl;
+	void			 *arg;
 };
 
 static	volatile sig_atomic_t sig = 0;
@@ -215,22 +221,16 @@ kfcgi_control(int work, int ctrl)
 void
 khttp_fcgi_child_free(struct kfcgi *fcgi)
 {
-	size_t	 	 i;
 
 	close(fcgi->work_dat);
 	close(fcgi->sock_ctl);
 	ksandbox_free(fcgi->work_box);
-	for (i = 0; i < fcgi->mimesz; i++)
-		free(fcgi->mimes[i]);
-	free(fcgi->mimes);
-	free(fcgi->keys);
 	free(fcgi);
 }
 
 enum kcgi_err
 khttp_fcgi_free(struct kfcgi *fcgi)
 {
-	size_t	 	 i;
 
 	/* Allow a NULL pointer. */
 	if (NULL == fcgi)
@@ -244,11 +244,6 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	ksandbox_free(fcgi->work_box);
 	ksandbox_close(fcgi->sock_box);
 	ksandbox_free(fcgi->sock_box);
-
-	for (i = 0; i < fcgi->mimesz; i++)
-		free(fcgi->mimes[i]);
-	free(fcgi->mimes);
-	free(fcgi->keys);
 	free(fcgi);
 	return(KCGI_OK);
 }
@@ -257,12 +252,12 @@ enum kcgi_err
 khttp_fcgi_initx(struct kfcgi **fcgip, 
 	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz, 
-	void *arg, void (*argfree)(void *))
+	const struct kmimemap *mimemap, size_t defmime,
+	const char *const *pages, size_t pagesz,
+	size_t defpage, void *arg, void (*argfree)(void *))
 {
-	enum kcgi_err	 kerr;
 	struct kfcgi	*fcgi;
 	int 		 er;
-	size_t		 i;
 	int		 work_ctl[2], work_dat[2], sock_ctl[2];
 	void		*work_box, *sock_box;
 	pid_t		 work_pid, sock_pid;
@@ -434,53 +429,40 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		return(KCGI_ENOMEM);
 	}
 
-	kerr = KCGI_ENOMEM;
-
 	fcgi->work_box = work_box;
 	fcgi->work_pid = work_pid;
 	fcgi->work_dat = work_dat[KWORKER_PARENT];
 	fcgi->sock_box = sock_box;
 	fcgi->sock_pid = sock_pid;
 	fcgi->sock_ctl = sock_ctl[KWORKER_PARENT];
-
-	fcgi->mimes = XCALLOC(sizeof(char *), mimesz);
-	if (NULL == fcgi->mimes)
-		goto err;
+	fcgi->arg = arg;
+	fcgi->mimes = mimes;
 	fcgi->mimesz = mimesz;
-	fcgi->keys = XCALLOC(sizeof(struct kvalid), keysz);
-	if (NULL == fcgi->keys)
-		goto err;
+	fcgi->defmime = defmime;
+	fcgi->keys = keys;
 	fcgi->keysz = keysz;
-
-	for (i = 0; i < mimesz; i++)
-		if (NULL == (fcgi->mimes[i] = XSTRDUP(mimes[i])))
-			goto err;
-	for (i = 0; i < keysz; i++)
-		fcgi->keys[i] = keys[i];
-
+	fcgi->mimemap = mimemap;
+	fcgi->pages = pages;
+	fcgi->pagesz = pagesz;
+	fcgi->defpage = defpage;
 	return(KCGI_OK);
-err:
-	/* 
-	 * Bail out: kill child process and all memory.
-	 */
-	khttp_fcgi_free(fcgi);
-	return(kerr);
 }
 
 enum kcgi_err
 khttp_fcgi_init(struct kfcgi **fcgi, 
-	const struct kvalid *keys, size_t keysz)
+	const struct kvalid *keys, size_t keysz,
+	const char *const *pages, size_t pagesz,
+	size_t defpage)
 {
 
 	return(khttp_fcgi_initx(fcgi, kmimetypes, 
-		KMIME__MAX, keys, keysz, NULL, NULL));
+		KMIME__MAX, keys, keysz, ksuffixmap,
+		KMIME_TEXT_HTML, pages, pagesz, defpage, 
+		NULL, NULL));
 }
 
 enum kcgi_err
-khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req, 
-	const struct kmimemap *suffixmap, 
-	const char *const *pages, size_t pagesz,
-	size_t defmime, size_t defpage, void *arg)
+khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 {
 	enum kcgi_err	 kerr;
 	const struct kmimemap *mm;
@@ -503,7 +485,7 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 	} else if (0 == c || (c < 0 && sig))
 		return(KCGI_HUP);
 
-	req->arg = arg;
+	req->arg = fcgi->arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
 	if (NULL == (req->kdata = kdata_alloc(fcgi->sock_ctl, fd, rid)))
@@ -541,16 +523,16 @@ khttp_fcgi_parsex(struct kfcgi *fcgi, struct kreq *req,
 		goto err;
 
 	/* Look up page type from component. */
-	req->page = defpage;
+	req->page = fcgi->defpage;
 	if ('\0' != *req->pagename)
-		for (req->page = 0; req->page < pagesz; req->page++)
-			if (0 == strcasecmp(pages[req->page], req->pagename))
+		for (req->page = 0; req->page < fcgi->pagesz; req->page++)
+			if (0 == strcasecmp(fcgi->pages[req->page], req->pagename))
 				break;
 
 	/* Start with the default. */
-	req->mime = defmime;
+	req->mime = fcgi->defmime;
 	if ('\0' != *req->suffix) {
-		for (mm = suffixmap; NULL != mm->name; mm++)
+		for (mm = fcgi->mimemap; NULL != mm->name; mm++)
 			if (0 == strcasecmp(mm->name, req->suffix)) {
 				req->mime = mm->mime;
 				break;
@@ -567,14 +549,4 @@ err:
 	/*kreq_free(req);*/
 	khttp_free(req);
 	return(kerr);
-}
-
-enum kcgi_err
-khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req, 
-	const char *const *pages, size_t pagesz,
-	size_t defpage)
-{
-
-	return(khttp_fcgi_parsex(fcgi, req, ksuffixmap, 
-		pages, pagesz, KMIME_TEXT_HTML, defpage, NULL));
 }

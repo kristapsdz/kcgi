@@ -468,17 +468,15 @@ int		 kvalid_stringne(struct kpair *);
 int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
-enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *, 
-			const char *const *, size_t, size_t);
-enum kcgi_err	 khttp_fcgi_parsex(struct kfcgi *, struct kreq *, 
-			const struct kmimemap *, 
-			const char *const *, size_t,
-			size_t, size_t, void *);
+enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *);
 enum kcgi_err	 khttp_fcgi_init(struct kfcgi **, 
-			const struct kvalid *, size_t);
+			const struct kvalid *, size_t,
+			const char *const *, size_t, size_t);
 enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **, 
 			const char *const *, size_t,
 			const struct kvalid *, size_t, 
+			const struct kmimemap *, size_t,
+			const char *const *, size_t, size_t,
 			void *, void (*)(void *));
 enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
