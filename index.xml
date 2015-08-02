@@ -313,7 +313,6 @@ int main(void) {
 					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
 					For internal tests, test requests are constructed with <a
 						href="http://curl.haxx.se/libcurl/">libcurl</a>.
-					This has not yet been machined for FastCGI.
 				</p>
 				<p>
 					The automated test framework, at the moment, only has a few tests for basic functionality and
