@@ -125,6 +125,7 @@ child(void)
 {
 	struct kreq	 r;
 	const char 	*page = "index";
+	size_t		 i;
 
 	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
@@ -135,6 +136,10 @@ child(void)
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
+	fprintf(stderr, "fields = %zu\n", r.fieldsz);
+	for (i = 0; i < r.fieldsz; i++) {
+		fprintf(stderr, "%s\n", r.fields[i].key);
+	}
 	khttp_free(&r);
 	return(1);
 }
