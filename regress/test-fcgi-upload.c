@@ -142,7 +142,8 @@ child(void)
 			"%s", kmimetypes[KMIME_TEXT_HTML]);
 		khttp_body(&r);
 		if (11 != r.fieldsz)
-			return(0);
+			for (i = 0; i < r.fieldsz; i++)
+				fprintf(stderr, "[%zu] %s\n", i, r.fields[i].key);
 		for (i = 0; i < r.fieldsz; i++) {
 			if (strcmp(r.fields[i].key, "picture"))
 				continue;
