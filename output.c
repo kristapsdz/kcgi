@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 
 #include <assert.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -89,18 +90,48 @@ fcgi_write(const struct kdata *p, const char *buf, size_t sz)
 void
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
+	size_t		 pos;
+	ssize_t		 len;
+	struct pollfd	 pfd;
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);
 #ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz) {
-		gzwrite(req->kdata->gz, buf, sz);
+		pos = 0;
+		while (sz > 0) {
+			len = gzwrite(req->kdata->gz, buf + pos, sz);
+			if (0 == len) {
+				XWARN("gzwrite");
+				break;
+			}
+			sz -= len;
+			pos += len;
+		}
 		return;
 	}
 #endif
-	if (-1 == req->kdata->fcgi) 
-		fwrite(buf, 1, sz, stdout);
-	else
+	if (-1 == req->kdata->fcgi)  {
+		pos = 0;
+		while (sz > 0) {
+			pfd.fd = STDOUT_FILENO;
+			pfd.events = POLLOUT;
+			if (-1 == poll(&pfd, 1, -1)) {
+				XWARN("poll");
+				break;
+			} else if ( ! (POLLOUT & pfd.revents)) {
+				XWARNX("poll: bad revents");
+				break;
+			}
+			len = write(STDOUT_FILENO, buf + pos, sz);
+			if (-1 == len) {
+				XWARN("write");
+				break;
+			}
+			sz -= len;
+			pos += len;
+		} 
+	} else
 		fcgi_write(req->kdata, buf, sz);
 }
 
@@ -108,18 +139,7 @@ void
 khttp_puts(struct kreq *req, const char *cp)
 {
 
-	assert(NULL != req->kdata);
-	assert(KSTATE_BODY == req->kdata->state);
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz) {
-		gzputs(req->kdata->gz, cp);
-		return;
-	}
-#endif
-	if (-1 == req->kdata->fcgi) 
-		fputs(cp, stdout);
-	else
-		fcgi_write(req->kdata, cp, strlen(cp));
+	khttp_write(req, cp, strlen(cp));
 }
 
 void
@@ -127,18 +147,7 @@ khttp_putc(struct kreq *req, int c)
 {
 	char		cc = c;
 
-	assert(NULL != req->kdata);
-	assert(KSTATE_BODY == req->kdata->state);
-#ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz) {
-		gzputc(req->kdata->gz, c);
-		return;
-	}
-#endif
-	if (-1 == req->kdata->fcgi) 
-		putchar(c);
-	else
-		fcgi_write(req->kdata, &cc, 1);
+	khttp_write(req, &c, 1);
 }
 
 void
@@ -236,8 +245,7 @@ kdata_free(struct kdata *p, int flush)
 			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
 			p->control = -1;
 			p->fcgi = -1;
-		} else
-			fflush(stdout);
+		} 
 	} else {
 		if (-1 != p->fcgi) {
 			close(p->fcgi);

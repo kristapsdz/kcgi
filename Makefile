@@ -138,6 +138,7 @@ AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
 		   afl/afl-urlencoded
 REGRESS		 = regress/test-abort-validator \
+		   regress/test-bigfile \
 		   regress/test-fcgi-file-get \
 		   regress/test-fcgi-path-check \
 		   regress/test-fcgi-ping \
@@ -145,6 +146,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-file-get \
 		   regress/test-fork \
 		   regress/test-gzip \
+		   regress/test-gzip-bigfile \
 		   regress/test-header \
 		   regress/test-nogzip \
 		   regress/test-path-check \
@@ -152,6 +154,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-upload
 REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-abort-validator.o \
+		   regress/test-bigfile.o \
 		   regress/test-fcgi-file-get.o \
 		   regress/test-fcgi-path-check.o \
 		   regress/test-fcgi-ping.o \
@@ -159,6 +162,7 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-file-get.o \
 		   regress/test-fork.o \
 		   regress/test-gzip.o \
+		   regress/test-gzip-bigfile.o \
 		   regress/test-header.o \
 		   regress/test-nogzip.o \
 		   regress/test-path-check.o \
@@ -170,6 +174,7 @@ AFL_SRCS	 = afl/afl-multipart.c \
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
+		   regress/test-bigfile.c \
 		   regress/test-fcgi-file-get.c \
 		   regress/test-fcgi-path-check.c \
 		   regress/test-fcgi-ping.c \
@@ -177,6 +182,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-file-get.c \
 		   regress/test-fork.c \
 		   regress/test-gzip.c \
+		   regress/test-gzip-bigfile.c \
 		   regress/test-header.c \
 		   regress/test-nogzip.c \
 		   regress/test-path-check.c \
@@ -194,7 +200,7 @@ afl: $(AFL)
 samples: all sample sample-fcgi
 
 regress: $(REGRESS)
-	for f in $(REGRESS) ; do \
+	@for f in $(REGRESS) ; do \
 		/bin/echo -n "./$${f}... " ; \
 		./$$f >/dev/null 2>/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
 		/bin/echo "ok" ; \
@@ -207,6 +213,9 @@ kfcgi: kfcgi.o libconfig.a
 	$(CC) $(CFLAGS) -o $@ kfcgi.o libconfig.a
 
 kfcgi.o: config.h
+
+regress/test-bigfile: regress/test-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
@@ -234,6 +243,9 @@ regress/test-fork: regress/test-fork.c regress/regress.o libkcgiregress.a libkcg
 
 regress/test-gzip: regress/test-gzip.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-gzip.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-gzip-bigfile: regress/test-gzip-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-gzip-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/test-header: regress/test-header.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-header.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
