@@ -81,7 +81,7 @@ int	 	 ksandbox_systrace_init_child(void *, enum sandtype);
 int	 	 ksandbox_systrace_init_parent(void *, enum sandtype, pid_t);
 #endif
 #ifdef HAVE_SECCOMP_FILTER
-int	 	 ksandbox_seccomp_init_child(void *);
+int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
 #endif
 
 /*
