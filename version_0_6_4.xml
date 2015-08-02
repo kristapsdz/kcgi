@@ -18,6 +18,9 @@
 			into <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>.
 			To wit, the <code>khttp_fcgi_parsex()</code> function has been removed: all of the logic has been moved to the
 			initialisation function, making the parse function much simpler.
+			Cement this by adding several new regression tests that exercise the FastCGI functionality.
+			These, of course, required that FastCGI functionality be added to the regression suite.
+			This is documented in <a href="kcgiregress.3.html">kcgiregress(3)</a>.
 		</div>
 		<div>
 			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.

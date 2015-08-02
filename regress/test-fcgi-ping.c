@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,59 +14,51 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <netinet/in.h>
-
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <curl/curl.h>
 
-#include "../kcgiregress.h"
+#include "../kcgi.h"
 #include "regress.h"
 
 static int
-dochild(void *arg)
+parent(CURL *curl)
 {
-	cb_child	child = arg;
 
-	return(child());
+	curl_easy_setopt(curl, CURLOPT_URL, 
+		"http://localhost:17123/");
+	return(CURLE_OK == curl_easy_perform(curl));
 }
 
 static int
-doparent(void *arg)
+child(void)
 {
-	CURL		*curl;
-	cb_parent	 parent = arg;
-	int		 rc;
+	struct kreq	 r;
+	const char 	*page = "index";
+	struct kfcgi	*fcgi;
+	enum kcgi_err	 er;
 
-	if (NULL == (curl = curl_easy_init())) {
-		perror(NULL);
-		exit(EXIT_FAILURE);
+	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, &page, 1, 0))
+		return(0);
+
+	while (KCGI_OK == (er = khttp_fcgi_parse(fcgi, &r))) {
+		khttp_head(&r, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+			"%s", kmimetypes[KMIME_TEXT_HTML]);
+		khttp_body(&r);
+		khttp_free(&r);
 	}
 
-	rc = parent(curl);
-	curl_easy_cleanup(curl);
-	curl_global_cleanup();
-	return(rc);
+	khttp_fcgi_free(fcgi);
+	return(KCGI_HUP == er ? 1 : 0);
 }
 
 int
-regress_cgi(cb_parent parent, cb_child child)
+main(int argc, char *argv[])
 {
 
-	return(kcgi_regress_cgi(doparent, parent, dochild, child));
-}
-
-int
-regress_fcgi(cb_parent parent, cb_child child)
-{
-
-	return(kcgi_regress_fcgi(doparent, parent, dochild, child));
+	return(regress_fcgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

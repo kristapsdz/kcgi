@@ -138,6 +138,8 @@ AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
 		   afl/afl-urlencoded
 REGRESS		 = regress/test-abort-validator \
+		   regress/test-fcgi-ping \
+		   regress/test-fcgi-upload \
 		   regress/test-file-get \
 		   regress/test-fork \
 		   regress/test-gzip \
@@ -148,6 +150,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-upload
 REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-abort-validator.o \
+		   regress/test-fcgi-ping.o \
+		   regress/test-fcgi-upload.o \
 		   regress/test-file-get.o \
 		   regress/test-fork.o \
 		   regress/test-gzip.o \
@@ -162,6 +166,8 @@ AFL_SRCS	 = afl/afl-multipart.c \
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
+		   regress/test-fcgi-ping.o \
+		   regress/test-fcgi-upload.o \
 		   regress/test-file-get.c \
 		   regress/test-fork.c \
 		   regress/test-gzip.c \
@@ -198,6 +204,12 @@ kfcgi.o: config.h
 
 regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-fcgi-ping: regress/test-fcgi-ping.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-fcgi-upload: regress/test-fcgi-upload.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-upload.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/test-path-check: regress/test-path-check.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-path-check.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
