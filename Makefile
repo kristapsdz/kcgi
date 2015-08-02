@@ -57,8 +57,8 @@ LIBOBJS 	 = child.o \
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
 		   man/kcgijson.3.html \
+		   man/kcgiregress.3.html \
 		   man/kcgixml.3.html \
-		   man/kcgi_regress.3.html \
 		   man/kfcgi.8.html \
 		   man/khttp_body.3.html \
 		   man/khttp_fcgi_free.3.html \
@@ -85,8 +85,8 @@ TESTS 		 = test-memmem.c \
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
+		   man/kcgiregress.3 \
 		   man/kcgixml.3 \
-		   man/kcgi_regress.3 \
 		   man/khttp_body.3 \
 		   man/khttp_fcgi_free.3 \
 		   man/khttp_fcgi_init.3 \
@@ -166,8 +166,8 @@ AFL_SRCS	 = afl/afl-multipart.c \
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   regress/test-abort-validator.c \
-		   regress/test-fcgi-ping.o \
-		   regress/test-fcgi-upload.o \
+		   regress/test-fcgi-ping.c \
+		   regress/test-fcgi-upload.c \
 		   regress/test-file-get.c \
 		   regress/test-fork.c \
 		   regress/test-gzip.c \

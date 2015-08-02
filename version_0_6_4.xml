@@ -20,7 +20,7 @@
 			initialisation function, making the parse function much simpler.
 			Cement this by adding several new regression tests that exercise the FastCGI functionality.
 			These, of course, required that FastCGI functionality be added to the regression suite.
-			This is documented in <a href="kcgiregress.3.html">kcgiregress(3)</a>.
+			This is documented in <a href="kcgiregress.3.html">kcgiregress(3)</a> (the manpage was renamed from <code>kcgi_regress</code>).
 		</div>
 		<div>
 			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.

@@ -308,7 +308,7 @@ int main(void) {
 					<span class="nm">kcgi</span> is shipped with a fully automated testing framework executed with
 					<code>make regress</code>.
 					Interfacing systems can also make use of this by working with the <a
-						href="kcgi_regress.3.html">kcgi_regress(3)</a> function library.
+						href="kcgiregress.3.html">kcgiregress(3)</a> library.
 					This framework acts as a mini-webserver, listening on a local port, translating an HTTP document into a
 					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
 					For internal tests, test requests are constructed with <a
