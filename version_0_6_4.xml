@@ -24,6 +24,8 @@
 		</div>
 		<div>
 			In adding the regression suite, one critical FastCGI bug was found (and fixed) for forms &gt;1 kB.
+			Fix another critical bug when writing large contiguous blocks, which would be silently truncated.
+			(A regression test has been added for this.)
 		</div>
 		<div>
 			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.
