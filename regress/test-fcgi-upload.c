@@ -113,7 +113,6 @@ parent(CURL *curl)
 
 	/* Set the form info */
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
 	rc = curl_easy_perform(curl);
@@ -128,6 +127,7 @@ child(void)
 	const char 	*page = "index";
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
+	size_t		 i;
 
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, &page, 1, 0))
 		return(0);
@@ -138,6 +138,12 @@ child(void)
 		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 			"%s", kmimetypes[KMIME_TEXT_HTML]);
 		khttp_body(&r);
+
+		fprintf(stderr, "fields = %zu\n", r.fieldsz);
+		for (i = 0; i < r.fieldsz; i++) {
+			fprintf(stderr, "%s\n", r.fields[i].key);
+		}
+
 		khttp_free(&r);
 	}
 
