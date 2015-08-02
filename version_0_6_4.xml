@@ -23,6 +23,9 @@
 			This is documented in <a href="kcgiregress.3.html">kcgiregress(3)</a> (the manpage was renamed from <code>kcgi_regress</code>).
 		</div>
 		<div>
+			In adding the regression suite, one critical FastCGI bug was found (and fixed) for forms &gt;1 kB.
+		</div>
+		<div>
 			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.
 		</div>
 	</aside>
