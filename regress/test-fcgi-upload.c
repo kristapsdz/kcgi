@@ -141,9 +141,6 @@ child(void)
 		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 			"%s", kmimetypes[KMIME_TEXT_HTML]);
 		khttp_body(&r);
-		if (11 != r.fieldsz)
-			for (i = 0; i < r.fieldsz; i++)
-				fprintf(stderr, "[%zu] %s\n", i, r.fields[i].key);
 		for (i = 0; i < r.fieldsz; i++) {
 			if (strcmp(r.fields[i].key, "picture"))
 				continue;
