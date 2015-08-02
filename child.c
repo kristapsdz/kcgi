@@ -668,6 +668,7 @@ parse_multiform(const struct parms *pp, char *name,
 		XWARN("asprintf");
 		_exit(EXIT_FAILURE);
 	}
+
 	assert(bbsz > 0);
 	memset(&mime, 0, sizeof(struct mime));
 
@@ -1431,7 +1432,7 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	if (NULL == ptr)
 		return(-1);
 	*sbp = ptr;
-	memcpy(*sbp, *bp, hdr->contentLength);
+	memcpy(*sbp + *ssz, *bp, hdr->contentLength);
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
 #if 0
@@ -1694,8 +1695,9 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 				XWARNX("unexpected FastCGI requestId");
 				hdr = NULL;
 				break;
-			} else if (FCGI_STDIN == hdr->type) 
+			} else if (FCGI_STDIN == hdr->type)
 				continue;
+
 			XWARNX("unexpected FastCGI header type");
 			hdr = NULL;
 			break;
