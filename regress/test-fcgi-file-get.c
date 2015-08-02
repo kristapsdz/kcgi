@@ -37,7 +37,6 @@ child(void)
 {
 	struct kreq	 r;
 	const char 	*page[] = { "index", "test" };
-	int		 rc = 0;
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
 
