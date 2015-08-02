@@ -246,7 +246,10 @@ kworker_parent(int fd, struct kreq *r)
 		goto out;
 	}
 
+	fprintf(stderr, "here\n");
+
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
+		fprintf(stderr, "fieldsz = %zu\n", r->fieldsz);
 		assert(type < IN__MAX);
 		/*
 		 * We have a parsed field from the child process.
@@ -266,6 +269,8 @@ kworker_parent(int fd, struct kreq *r)
 
 		*kpp = kp;
 	}
+
+	fprintf(stderr, "fieldsz (final) = %zu\n", r->fieldsz);
 
 	if (rc < 0)
 		goto out;
