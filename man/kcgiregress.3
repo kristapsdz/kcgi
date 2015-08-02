@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -15,40 +15,56 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KCGI_REGRESS 3
+.Dt KCGIREGRESS 3
 .Os
 .Sh NAME
-.Nm kcgi_regress
-.Nd automated testing framework for kcgi
+.Nm kcgiregress ,
+.Nm kcgi_regress_cgi ,
+.Nm kcgi_regress_fcgi
+.Nd regression framework for kcgi
 .Sh LIBRARY
 .Lb libkcgiregress
 .Sh SYNOPSIS
 .In kcgiregress.h
 .Ft int
-.Fo kcgi_regress
-.Fa "kcgi_regress_client client"
-.Fa "void *client_arg"
-.Fa "kcgi_regress_server server"
-.Fa "void *server_arg"
+.Fo kcgi_regress_cgi
+.Fa "int (*client)(void *)"
+.Fa "void *clientData"
+.Fa "int (*server)(void *)"
+.Fa "void *serverData"
+.Fc
+.Ft int
+.Fo kcgi_regress_fcgi
+.Fa "int (*client)(void *)"
+.Fa "void *clientData"
+.Fa "int (*server)(void *)"
+.Fa "void *serverData"
 .Fc
 .Sh DESCRIPTION
 The
-.Nm kcgi_regress
-function is the single function in a library used for automated testing
-of
+.Nm kcgi_regress_cgi
+and
+.Nm kcgi_regress_fcgi
+functions are used for automated testing of
 .Xr kcgi 3
-systems.
+systems, both as CGI and FastCGI scripts.
 It is the mechanism used for internal regression tests as well.
 .Pp
 Applications wishing to use this framework provide callback functions to
-.Fn kcgi_regress ,
-which invokes
+.Fn kcgi_regress_cgi
+and
+.Fn kcgi_regress_fcgi ,
+which invoke
 .Fa server
 with argument
-.Fa server_arg
-within a CGI environment as if it were spawned by a web server, upon
-which the usual
+.Fa serverArg
+within a CGI or FastCGI environment as if it were spawned by a web
+server, upon which the usual
 .Xr khttp_parse 3
+or
+.Xr khttp_fcgi_init 3
+and
+.Xr khttp_fcgi_parse 3
 functions are used to test behaviour.
 Meanwhile, the
 .Fa client
@@ -56,14 +72,24 @@ function is invoked for communicating with the server over port 17123.
 The
 .Xr libcurl 3
 library is used for internal testing on the client side.
+.Pp
+In most applications, the main function invokes
+.Nm kcgi_regress_cgi
+or
+.Nm kcgi_regress_fcgi ,
+prepares a libCURL request in the client callback, then runs the usual
+.Xr kcgi 3
+sequence in the server callback.
 .Sh RETURN VALUES
 Both the
 .Fa client
 and
 .Fa server
 functions should return zero on test failure.
-.Fn kcgi_regress
-returns 0 if any tests or internal machinery fail.
+.Fn kcgi_regress_cgi
+and
+.Fn kcgi_regress_fcgi
+return zero if any tests or internal machinery fail.
 .Sh AUTHORS
 The
 .Nm kcgihtml

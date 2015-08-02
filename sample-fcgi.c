@@ -46,11 +46,11 @@ main(int argc, char *argv[])
 			return(EXIT_FAILURE);
 		}
 
-	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0))
+	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0))
 		return(EXIT_FAILURE);
 
 	for (rc = 0;;) {
-		er = khttp_fcgi_parse(fcgi, &req, NULL, 0, 0);
+		er = khttp_fcgi_parse(fcgi, &req);
 		if (KCGI_HUP == er) {
 			rc = 1;
 			khttp_free(&req);
