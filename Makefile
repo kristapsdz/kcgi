@@ -8,6 +8,7 @@
 # You probably don't need to change anything else...
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
+CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \

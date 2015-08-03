@@ -25,6 +25,9 @@
 #include "regress.h"
 
 #define	BUFSZ	(1024 * 1024)
+#ifdef __linux__
+#define arc4random random
+#endif
 
 static size_t
 doign(void *ptr, size_t sz, size_t nm, void *arg)
