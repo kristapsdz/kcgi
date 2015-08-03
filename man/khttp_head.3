@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 21 2015 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KHTTP_HEAD 3
 .Os
 .Sh NAME
@@ -86,3 +86,6 @@ The
 .Nm
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+Long headers (collectively more than 1024 Bytes) may not work properly
+at this time.
