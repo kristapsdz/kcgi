@@ -27,6 +27,7 @@
 			Fix another critical bug when writing large contiguous blocks, which would be silently truncated.
 			(A regression test has been added for this.)
 			Internally, the behaviour of read and write sockets is consistently non-blocking.
+			There has been a report of large compressed output failing on FreeBSD, but this has not yet been verified.
 		</div>
 		<div>
 			Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.

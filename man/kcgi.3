@@ -146,6 +146,36 @@ int main(void) {
 }
 .Ed
 .Pp
+This can be extended to work with the FastCGI interface by allowing the
+request parser to operate within a loop.
+.Bd -literal
+#include <stdint.h>
+#include <stdlib.h>
+#include <kcgi.h>
+ 
+int main(void) {
+  struct kreq r;
+  struct kfcgi *fcgi;
+  const char *page = "index";
+
+  if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, &page, 1, 0))
+      return(EXIT_FAILURE);
+
+  while (KCGI_OK == khttp_fcgi_parse(fcgi, &req)) {
+    khttp_head(&r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[r.mime]);
+    khttp_body(&r);
+    khttp_puts(&r, "Hello, world!");
+    khttp_free(&r);
+  }
+
+  khttp_fcgi_free(fcgi);
+  return(EXIT_SUCCESS);
+}
+.Ed
+.Pp
 In a more complicated example,
 .Nm
 accepts a single parameter
@@ -192,6 +222,7 @@ string) for the full HTTP message body.
 .Xr kcgi 3 ,
 .Xr kcgihtml 3 ,
 .Xr kcgijson 3 ,
+.Xr kcgiregress 3 ,
 .Xr kcgixml 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_fcgi_free 3 ,
