@@ -47,21 +47,21 @@ ksandbox_capsicum_init_child(void *arg,
 	 * Test for EBADF because STDIN_FILENO is usually closed by the
 	 * caller.
 	 */
-	cap_rights_init(&rights, CAP_READ|CAP_FSTAT);
+	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_FSTAT);
 	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && 
 		 errno != ENOSYS && errno != EBADF) {
  		XWARN("cap_rights_limit: STDIN_FILENO");
 		return(0);
 	}
 
-	cap_rights_init(&rights, CAP_WRITE|CAP_FSTAT);
+	cap_rights_init(&rights, CAP_EVENT, CAP_WRITE, CAP_FSTAT);
 	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && 
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: STDERR_FILENO");
 		return(0);
 	}
 
-	cap_rights_init(&rights, CAP_READ|CAP_WRITE);
+	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_WRITE, CAP_FSTAT);
 	if (-1 != fd1 && cap_rights_limit(fd1, &rights) < 0 && 
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
