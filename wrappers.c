@@ -197,15 +197,15 @@ xsocketpair(int domain, int type, int protocol, int *sock)
 	} else if (-1 == rc) {
 		XWARN("socketpair");
 		return(KCGI_SYSTEM);
-	} else if (-1 == (fl1 = fcntl(sock[0], F_GETFL, 0))) {
+	} else if (-1 == (fl1 = fcntl(sock[0], F_GETFL, 0)))
 		XWARN("fcntl");
-	} else if (-1 == (fl2 = fcntl(sock[1], F_GETFL, 0))) {
+	else if (-1 == (fl2 = fcntl(sock[1], F_GETFL, 0)))
 		XWARN("fcntl");
-	} else if (-1 == fcntl(sock[0], F_SETFL, fl1 | O_NONBLOCK)) {
+	else if (-1 == fcntl(sock[0], F_SETFL, fl1 | O_NONBLOCK))
 		XWARN("fcntl");
-	} else if (-1 == fcntl(sock[1], F_SETFL, fl2 | O_NONBLOCK)) {
+	else if (-1 == fcntl(sock[1], F_SETFL, fl2 | O_NONBLOCK))
 		XWARN("fcntl");
-	} else
+	else
 		return(KCGI_OK);
 
 	close(sock[0]);
@@ -229,6 +229,11 @@ fullwriteword(int fd, const char *buf)
 	fullwrite(fd, buf, sz);
 }
 
+/*
+ * Write the full contents of "buf" to the non-blocking stream.
+ * This will loop on "fd" until all data has been sent.
+ * On error (which shouldn't happen), this will kill the process.
+ */
 void
 fullwrite(int fd, const void *buf, size_t bufsz)
 {
@@ -240,28 +245,26 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	pfd.events = POLLOUT;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1)) {
+		if (-1 == poll(&pfd, 1, -1))
 			XWARN("poll: %d, POLLOUT", fd);
-			_exit(EXIT_FAILURE);
-		}
-
-		ssz = write(fd, buf + sz, bufsz - sz);
-		if (ssz < 0 && EAGAIN == errno) {
-			XWARN("write: trying again");
-			ssz = 0;
-			continue;
-		} else if (ssz < 0) {
+		else if ( ! (POLLOUT & pfd.revents))
+			XWARNX("poll: not POLLOUT");
+		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
 			XWARN("write: %d, %zu", fd, bufsz - sz);
-			_exit(EXIT_FAILURE);
-		}
-		/* Additive overflow check. */
-		if (sz > SIZE_MAX - (size_t)ssz) {
+		else if (sz > SIZE_MAX - (size_t)ssz)
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
-			_exit(EXIT_FAILURE);
-		}
+		else
+			continue;
+		_exit(EXIT_FAILURE);
 	}
 }
 
+/*
+ * Read in "bufsz" bytes and just discard them.
+ * This will do so one byte at a time, so this shouldn't be used for any
+ * large buffers.
+ * Returns zero on failure, non-zero on success.
+ */
 int
 fulldiscard(int fd, size_t bufsz, enum kcgi_err *er)
 {
@@ -272,37 +275,30 @@ fulldiscard(int fd, size_t bufsz, enum kcgi_err *er)
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
-	*er = KCGI_SYSTEM;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
 			XWARN("poll: %d, POLLIN", fd);
-			return(-1);
-		}
-		ssz = read(fd, &buf, 1);
-		if (ssz < 0 && EAGAIN == errno) {
-			XWARN("read: trying again");
-			ssz = 0;
-			continue;
-		} else if (ssz < 0) {
+			*er = KCGI_SYSTEM;
+		} else if ( ! (POLLIN & pfd.revents)) {
+			XWARNX("poll: unexpected hup");
+			*er = KCGI_FORM;
+		} else if ((ssz = read(fd, &buf, 1)) < 0) {
 			XWARN("read: %d, %zu", fd, bufsz - sz);
-			return(-1);
+			*er = KCGI_SYSTEM;
 		} else if (0 == ssz && sz > 0) {
 			XWARN("read: short read");
 			*er = KCGI_FORM;
-			return(-1);
 		} else if (0 == ssz && sz == 0) {
 			XWARNX("read: unexpected eof");
 			*er = KCGI_FORM;
-			return(-1);
-		}
-
-		/* Additive overflow check. */
-		if (sz > SIZE_MAX - (size_t)ssz) {
+		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("read: overflow: %zu, %zd", sz, ssz);
 			*er = KCGI_FORM;
-			return(-1);
-		}
+		} else
+			continue;
+
+		return(0);
 	}
 
 	*er = KCGI_OK;
@@ -311,10 +307,12 @@ fulldiscard(int fd, size_t bufsz, enum kcgi_err *er)
 
 /*
  * Read the contents of buf, size bufsz, entirely, using non-blocking
- * reads (i.e., poll(2) then read(2)).
- * This will exit with -1 on fatal errors (the child didn't return
- * enough data or we received an unexpected EOF) or 0 on EOF (only if
- * it's allowed), otherwise 1.
+ * reads.
+ * If "eofok" is set, we return zero if there is no data to read (HUP on
+ * descriptor or zero from read function).
+ * If not (and moreover), this will exit with -1 on fatal errors (the
+ * child didn't return enough data or we received an unexpected EOF),
+ * otherwise 1.
  */
 int
 fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
@@ -325,19 +323,21 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
-	*er = KCGI_SYSTEM;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1)) {
-			XWARN("poll: %d, POLLIN", fd);
+			XWARN("poll");
+			*er = KCGI_SYSTEM;
 			return(-1);
-		} 
-		ssz = read(fd, buf + sz, bufsz - sz);
-		if (ssz < 0 && EAGAIN == errno) {
-			XWARN("read: trying again");
-			ssz = 0;
-			continue;
-		} else if (ssz < 0) {
+		} else if ( ! (POLLIN & pfd.revents)) {
+			if (eofok && 0 == sz) {
+				*er = KCGI_OK;
+				return(0);
+			}
+			XWARNX("poll: hangup");
+			*er = KCGI_FORM;
+			return(-1);
+		} else if ((ssz = read(fd, buf + sz, bufsz - sz)) < 0) {
 			XWARN("read: %d, %zu", fd, bufsz - sz);
 			return(-1);
 		} else if (0 == ssz && sz > 0) {
@@ -351,10 +351,7 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 		} else if (0 == ssz && sz == 0 && eofok) {
 			*er = KCGI_OK;
 			return(0);
-		}
-
-		/* Additive overflow check. */
-		if (sz > SIZE_MAX - (size_t)ssz) {
+		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("read: overflow: %zu, %zd", sz, ssz);
 			*er = KCGI_FORM;
 			return(-1);

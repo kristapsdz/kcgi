@@ -209,6 +209,12 @@ regress: $(REGRESS)
 		/bin/echo "ok" ; \
 	done
 
+regresslog: $(REGRESS)
+	@for f in $(REGRESS) ; do \
+		echo "./$${f}... " ; \
+		./$$f >/dev/null || exit 1 ; \
+	done
+
 libconfig.a: config.h $(LIBCONFIGOBJS)
 	$(AR) rs $@ $(LIBCONFIGOBJS)
 

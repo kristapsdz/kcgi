@@ -302,6 +302,8 @@ output(const struct parms *pp, char *key,
  * length of which may be less than "len" and is stored in *szp if not
  * NULL.
  * Returns the pointer to the data.
+ * NOTE: we can't use fullread() here because we may not get the total
+ * number of bytes requested.
  */
 static char *
 scanbuf(size_t len, size_t *szp)
@@ -323,18 +325,19 @@ scanbuf(size_t len, size_t *szp)
 		if (-1 == poll(&pfd, 1, -1)) {
 			XWARN("poll: POLLIN");
 			_exit(EXIT_FAILURE);
-		}
-		ssz = read(STDIN_FILENO, p + sz, len - sz);
-		if (ssz < 0 && EAGAIN == errno) {
-			XWARN("read: trying again");
-			ssz = 0;
-			continue;
-		} else if (ssz < 0) {
-			XWARN("short read: %zu", len - sz);
+		} else if ( ! (POLLIN & pfd.revents))
+			break;
+
+		if ((ssz = read(STDIN_FILENO, p + sz, len - sz)) < 0) {
+			XWARNX("read");
 			_exit(EXIT_FAILURE);
 		} else if (0 == ssz)
 			break;
 	}
+
+	if (sz < len)
+		XWARNX("content size mismatch: have "
+			"%zu, wanted %zu\n", sz, len);
 
 	/* ALWAYS nil-terminate. */
 	p[sz] = '\0';
