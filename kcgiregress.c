@@ -62,6 +62,7 @@ fcgi_write(int fd, const void *buf, size_t sz)
 
 	wsz = 0;
 	while (sz > 0) {
+		/*fprintf(stderr, "writing: %zu\n", sz);*/
 		if (-1 == (ssz = write(fd, buf + wsz, sz))) {
 			perror("write");
 			return(0);
@@ -613,14 +614,18 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 			len : sizeof(buf), f);
 		if (0 == sz)
 			break;
-		if ( ! fcgi_data_write(fd, buf, sz))
+		if ( ! fcgi_data_write(fd, buf, sz)) {
+			fprintf(stderr, "%s: stdout\n", __func__);
 			goto out;
+		}
 		len -= sz;
 	}
 	
 	/* Indicate end of input. */
-	if ( ! fcgi_data_write(fd, NULL, 0))
+	if ( ! fcgi_data_write(fd, NULL, 0)) {
+		fprintf(stderr, "%s: stdout (FIN)\n", __func__);
 		goto out;
+	}
 
 	/*
 	 * Now we read the response, funneling it to the output.
@@ -630,8 +635,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	while (fcgi_hdr_read(fd, &hdr)) {
 		if (3 == hdr.type) {
 			/* End of message. */
-			if ( ! fcgi_end_read(fd, &rc)) 
+			if ( ! fcgi_end_read(fd, &rc)) {
+				fprintf(stderr, "%s: bad fin\n", __func__);
 				goto out;
+			}
 			break;
 		} else if (6 != hdr.type) {
 			fprintf(stderr, "%s: bad type: %" PRIu8 "\n", __func__, hdr.type);
@@ -674,6 +681,9 @@ out:
 
 	/*
 	 * Now mandate that the child dies and reap its resources.
+	 * FIXME: we might kill the process before it's done actually
+	 * terminating, which is unfair and will raise spurrious
+	 * warnings elsewhere.
 	 */
 	if (-1 == kill(pid, SIGKILL))
 		perror("kill");
