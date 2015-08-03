@@ -24,12 +24,11 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-#define	BUFSZ	(1024 * 1024)
-
 static size_t
 doign(void *ptr, size_t sz, size_t nm, void *arg)
 {
 
+	*(size_t *)arg += sz * nm;
 	return(sz * nm);
 }
 
@@ -39,27 +38,24 @@ parent(CURL *curl)
 	char		*p;
 	size_t		 i;
 
-	if (NULL == (p = malloc(BUFSZ + 5))) {
-		perror(NULL);
-		return(0);
-	}
+	p = malloc(1024 * 1024 + 5);
 	strncpy(p, "tag=", 5);
-	for (i = 0; i < BUFSZ ; i++)
-		p[i + 4] = 
-			(0 == i % 2) ? (arc4random() % 26) + 65 :
-			((0 == i % 2) ? (arc4random() % 26) + 97 :
-			 (arc4random() % 9) + 48);
-	p[BUFSZ + 4] = '\0';
+	for (i = 0; i < 1024 * 1024; i++)
+		p[i + 4] = (i % 10) + 65;
+	p[1024 * 1024 + 4] = '\0';
 
+	i = 0;
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, doign);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &i);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
-	curl_easy_setopt(curl, CURLOPT_ENCODING, "gzip");
-	if (CURLE_OK != curl_easy_perform(curl))
+	if (CURLE_OK != curl_easy_perform(curl)) {
+		fprintf(stderr, "no4\n");
 		return(0);
+	}
 	free(p);
-	return(1);
+	return(i >= 1024 * 1024);
 }
 
 static int
@@ -68,31 +64,50 @@ child(void)
 	struct kreq	 r;
 	const char 	*page = "index";
 	struct kvalid	 valid = { NULL, "tag" };
+	size_t		 i;
+	struct kfcgi	*fcgi;
+	enum kcgi_err	 er;
 
-	if (KCGI_OK != khttp_parse(&r, &valid, 1, &page, 1, 0))
+	if (KCGI_OK != khttp_fcgi_init(&fcgi, &valid, 1, &page, 1, 0))
 		return(0);
 
-	if (NULL == r.fieldmap[0]) {
+	while (KCGI_OK == (er = khttp_fcgi_parse(fcgi, &r))) {
+		if (NULL == r.fieldmap[0]) {
+			khttp_free(&r);
+			khttp_fcgi_free(fcgi);
+			fprintf(stderr, "no2\n");
+			return(0);
+		} else if (1024 * 1024 != r.fieldmap[0]->valsz) {
+			khttp_free(&r);
+			khttp_fcgi_free(fcgi);
+			fprintf(stderr, "no1\n");
+			return(0);
+		}
+
+		for (i = 0; i < 1024 * 1024; i++)
+			if (r.fieldmap[0]->val[i] != (i % 10) + 65) {
+				khttp_free(&r);
+				khttp_fcgi_free(fcgi);
+				fprintf(stderr, "no3\n");
+				return(0);
+			}
+
+		khttp_head(&r, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+			"%s", kmimetypes[KMIME_TEXT_HTML]);
+		khttp_body(&r);
+		khttp_write(&r, r.fieldmap[0]->val, r.fieldmap[0]->valsz);
 		khttp_free(&r);
-		return(0);
-	} else if (BUFSZ != r.fieldmap[0]->valsz) {
-		khttp_free(&r);
-		return(0);
 	}
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
-		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[KMIME_TEXT_HTML]);
-	khttp_body(&r);
-	khttp_write(&r, r.fieldmap[0]->val, r.fieldmap[0]->valsz);
-	khttp_free(&r);
-	return(1);
+	khttp_fcgi_free(fcgi);
+	return(KCGI_HUP == er ? 1 : 0);
 }
 
 int
 main(int argc, char *argv[])
 {
 
-	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
+	return(regress_fcgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

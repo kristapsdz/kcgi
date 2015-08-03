@@ -110,6 +110,9 @@ kfcgi_control(int work, int ctrl)
 		 * Blocking accept from FastCGI socket.
 		 * This will be round-robined by the kernel so that
 		 * other control processes are fairly notified.
+		 * We then set that the FastCGI socket is non-blocking,
+		 * making it consistent with the behaviour of the CGI
+		 * socket, which is also set as such.
 		 */
 		sslen = sizeof(ss);
 		fd = accept(STDIN_FILENO, 
@@ -119,7 +122,10 @@ kfcgi_control(int work, int ctrl)
 				continue;
 			XWARN("accept");
 			return(EXIT_FAILURE);
-		} 
+		} else if (KCGI_OK != xsocketprep(fd)) {
+			XWARNX("xsocketprep");
+			return(EXIT_FAILURE);
+		}
 
 		pfd[0].fd = fd;
 		pfd[0].events = POLLIN;
