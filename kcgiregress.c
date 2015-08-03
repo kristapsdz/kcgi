@@ -634,7 +634,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 				goto out;
 			break;
 		} else if (6 != hdr.type) {
-			fprintf(stderr, "%s: bad type\n", __func__);
+			fprintf(stderr, "%s: bad type: %" PRIu8 "\n", __func__, hdr.type);
 			goto out;
 		}
 
@@ -651,7 +651,8 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 					hdr.contentLength -= len;
 				}
 				continue;
-			}
+			} else
+				fprintf(stderr, "%s: bad read\n", __func__);
 			goto out;
 		}
 	}

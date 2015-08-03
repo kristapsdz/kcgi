@@ -20,7 +20,6 @@
 #include <arpa/inet.h>
 
 #include <assert.h>
-#include <poll.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -60,6 +59,10 @@ struct	kdata {
 #endif
 };
 
+/*
+ * Write a `stdout' FastCGI packet.
+ * This involves writing the header, then the data itself.
+ */
 static void
 fcgi_write(const struct kdata *p, const char *buf, size_t sz)
 {
@@ -67,6 +70,7 @@ fcgi_write(const struct kdata *p, const char *buf, size_t sz)
 	uint16_t requestId, contentLength;
 	size_t	 rsz;
 
+	/* Break up the data stream into FastCGI-capable chunks. */
 	while (sz > 0) {
 		version = 1;
 		type = 6;
@@ -75,63 +79,44 @@ fcgi_write(const struct kdata *p, const char *buf, size_t sz)
 		requestId = htons(p->requestId);
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
 		contentLength = htons(rsz);
-		write(p->fcgi, &version, sizeof(uint8_t));
-		write(p->fcgi, &type, sizeof(uint8_t));
-		write(p->fcgi, &requestId, sizeof(uint16_t));
-		write(p->fcgi, &contentLength, sizeof(uint16_t));
-		write(p->fcgi, &paddingLength, sizeof(uint8_t));
-		write(p->fcgi, &reserved, sizeof(uint8_t));
-		write(p->fcgi, buf, rsz);
+		fullwrite(p->fcgi, &version, sizeof(uint8_t));
+		fullwrite(p->fcgi, &type, sizeof(uint8_t));
+		fullwrite(p->fcgi, &requestId, sizeof(uint16_t));
+		fullwrite(p->fcgi, &contentLength, sizeof(uint16_t));
+		fullwrite(p->fcgi, &paddingLength, sizeof(uint8_t));
+		fullwrite(p->fcgi, &reserved, sizeof(uint8_t));
+		fullwrite(p->fcgi, buf, rsz);
 		sz -= rsz;
 		buf += rsz;
 	}
 }
 
+/*
+ * In this function, we need to handle FastCGI, gzip, or raw.
+ * FastCGI requests can't (yet) be gzip'd.
+ */
 void
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
-	size_t		 pos;
-	ssize_t		 len;
-	struct pollfd	 pfd;
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_BODY == req->kdata->state);
 #ifdef HAVE_ZLIB
 	if (NULL != req->kdata->gz) {
-		pos = 0;
-		while (sz > 0) {
-			len = gzwrite(req->kdata->gz, buf + pos, sz);
-			if (0 == len) {
-				XWARN("gzwrite");
-				break;
-			}
-			sz -= len;
-			pos += len;
-		}
+		/*
+		 * FIXME: make this work properly on all systems.
+		 * This is known to break on FreeBSD: we may need to
+		 * break the uncompressed buffer into chunks that will
+		 * not cause EAGAIN to be raised.
+		 */
+		if (0 == gzwrite(req->kdata->gz, buf, sz))
+			XWARNX("gzwrite");
 		return;
 	}
 #endif
-	if (-1 == req->kdata->fcgi)  {
-		pos = 0;
-		while (sz > 0) {
-			pfd.fd = STDOUT_FILENO;
-			pfd.events = POLLOUT;
-			if (-1 == poll(&pfd, 1, -1)) {
-				XWARN("poll");
-				break;
-			} else if ( ! (POLLOUT & pfd.revents)) {
-				XWARNX("poll: bad revents");
-				break;
-			}
-			len = write(STDOUT_FILENO, buf + pos, sz);
-			if (-1 == len) {
-				XWARN("write");
-				break;
-			}
-			sz -= len;
-			pos += len;
-		} 
-	} else
+	if (-1 == req->kdata->fcgi) 
+		fullwrite(STDOUT_FILENO, buf, sz);
+	else
 		fcgi_write(req->kdata, buf, sz);
 }
 
@@ -147,9 +132,13 @@ khttp_putc(struct kreq *req, int c)
 {
 	char		cc = c;
 
-	khttp_write(req, &c, 1);
+	khttp_write(req, &cc, 1);
 }
 
+/*
+ * Headers are uncompressed, so all we care about is whether we're
+ * FastCGI or not.
+ */
 void
 khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 {
@@ -159,6 +148,11 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 	assert(NULL != req->kdata);
 	assert(KSTATE_HEAD == req->kdata->state);
 
+	/*
+	 * FIXME: does this work with really, really long headers?
+	 * I'm not sure if this will break considering that stdout has
+	 * been initialised with a non-blocking descriptor.
+	 */
 	if (-1 == req->kdata->fcgi) {
 		printf("%s: ", key);
 		va_start(ap, fmt);
@@ -232,15 +226,15 @@ kdata_free(struct kdata *p, int flush)
 			requestId = htons(p->requestId);
 			contentLength = htons(8);
 			appStatus = htonl(EXIT_SUCCESS);
-			write(p->fcgi, &version, sizeof(uint8_t));
-			write(p->fcgi, &type, sizeof(uint8_t));
-			write(p->fcgi, &requestId, sizeof(uint16_t));
-			write(p->fcgi, &contentLength, sizeof(uint16_t));
-			write(p->fcgi, &paddingLength, sizeof(uint8_t));
-			write(p->fcgi, &reserved, sizeof(uint8_t));
-			write(p->fcgi, &appStatus, sizeof(uint32_t));
-			write(p->fcgi, &protocolStatus, sizeof(uint8_t));
-			write(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
+			fullwrite(p->fcgi, &version, sizeof(uint8_t));
+			fullwrite(p->fcgi, &type, sizeof(uint8_t));
+			fullwrite(p->fcgi, &requestId, sizeof(uint16_t));
+			fullwrite(p->fcgi, &contentLength, sizeof(uint16_t));
+			fullwrite(p->fcgi, &paddingLength, sizeof(uint8_t));
+			fullwrite(p->fcgi, &reserved, sizeof(uint8_t));
+			fullwrite(p->fcgi, &appStatus, sizeof(uint32_t));
+			fullwrite(p->fcgi, &protocolStatus, sizeof(uint8_t));
+			fullwrite(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
 			close(p->fcgi);
 			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
 			p->control = -1;
