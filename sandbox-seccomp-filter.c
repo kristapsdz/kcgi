@@ -64,7 +64,7 @@
 #include "extern.h"
 
 /* Linux seccomp_filter sandbox */
-#ifdef SECCOMP_SECCOMP_DEBUG
+#ifdef SANDBOX_SECCOMP_DEBUG
 # define SECCOMP_FILTER_FAIL SECCOMP_RET_TRAP
 #else
 # define SECCOMP_FILTER_FAIL SECCOMP_RET_KILL
@@ -115,6 +115,7 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_mmap
 	SC_ALLOW(mmap),
 #endif
+	SC_ALLOW(mremap),
 	SC_ALLOW(munmap),
 	SC_ALLOW(exit_group),
 #ifdef __NR_rt_sigprocmask

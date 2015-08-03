@@ -50,10 +50,8 @@ parent(CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
-	if (CURLE_OK != curl_easy_perform(curl)) {
-		fprintf(stderr, "no4\n");
+	if (CURLE_OK != curl_easy_perform(curl))
 		return(0);
-	}
 	free(p);
 	return(i >= 1024 * 1024);
 }
@@ -75,12 +73,10 @@ child(void)
 		if (NULL == r.fieldmap[0]) {
 			khttp_free(&r);
 			khttp_fcgi_free(fcgi);
-			fprintf(stderr, "no2\n");
 			return(0);
 		} else if (1024 * 1024 != r.fieldmap[0]->valsz) {
 			khttp_free(&r);
 			khttp_fcgi_free(fcgi);
-			fprintf(stderr, "no1\n");
 			return(0);
 		}
 
@@ -88,7 +84,6 @@ child(void)
 			if (r.fieldmap[0]->val[i] != (i % 10) + 65) {
 				khttp_free(&r);
 				khttp_fcgi_free(fcgi);
-				fprintf(stderr, "no3\n");
 				return(0);
 			}
 

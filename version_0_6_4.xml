@@ -26,6 +26,7 @@
 			In adding the regression suite, one critical FastCGI bug was found (and fixed) for forms &gt;1 kB.
 			Fix another critical bug when writing large contiguous blocks, which would be silently truncated.
 			(A regression test has been added for this.)
+			The same would trigger a failure on Linux due to the sandbox: this has also been fixed.
 			Internally, the behaviour of read and write sockets is consistently non-blocking.
 			There has been a report of large compressed output failing on FreeBSD, but this has not yet been verified.
 		</div>
