@@ -1,6 +1,7 @@
 /*	$Id$ */
 /*
  * Copyright (c) 2014 Baptiste Daroussin <bapt@freebsd.org>
+ * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,9 +39,10 @@ ksandbox_capsicum_init_control(void *arg, int fd1, int fd2)
 	cap_rights_t	 rights;
 
 	cap_rights_init(&rights);
-	cap_rights_init(&rights, CAP_EVENT, CAP_ACCEPT);
 
-	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && errno != ENOSYS) {
+	cap_rights_init(&rights, CAP_EVENT, CAP_FCNTL, CAP_ACCEPT);
+	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && 
+		 errno != ENOSYS) {
  		XWARN("cap_rights_limit: STDIN_FILENO");
 		return(0);
 	}
@@ -52,7 +54,8 @@ ksandbox_capsicum_init_control(void *arg, int fd1, int fd2)
 		return(0);
 	}
 
-	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_WRITE);
+	cap_rights_init(&rights, CAP_EVENT, 
+		CAP_FCNTL, CAP_READ, CAP_WRITE);
 	if (cap_rights_limit(fd1, &rights) < 0 && 
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
@@ -61,10 +64,7 @@ ksandbox_capsicum_init_control(void *arg, int fd1, int fd2)
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
-	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero)) {
-		XWARNX("setrlimit: rlimit_fsize");
-		return(0);
-	} else if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
+	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
 		XWARNX("setrlimit: rlimit_fsize");
 		return(0);
 	} else if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero)) {
