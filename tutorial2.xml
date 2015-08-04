@@ -85,6 +85,7 @@ main(void)
 		that we'll change our paths around a bit.
 		First, let's configure the web server.
 		I'll assume this is OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
+		The file-format documentation is <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man5/httpd.conf.5">httpd.conf(5)</a>.
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint lang-sh linenums">server "me.local" {
