@@ -30,16 +30,64 @@
 #include "kcgi.h"
 #include "extern.h"
 
-int
-ksandbox_capsicum_init_child(void *arg, 
-	enum sandtype type, int fd1, int fd2)
+static int
+ksandbox_capsicum_init_control(void *arg, int fd1, int fd2)
 {
 	int rc;
 	struct rlimit	 rl_zero;
 	cap_rights_t	 rights;
 
-	if (SAND_CONTROL == type)
-		return(1);
+	cap_rights_init(&rights);
+	cap_rights_init(&rights, CAP_EVENT, CAP_ACCEPT);
+
+	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && errno != ENOSYS) {
+ 		XWARN("cap_rights_limit: STDIN_FILENO");
+		return(0);
+	}
+
+	cap_rights_init(&rights, CAP_WRITE, CAP_FSTAT);
+	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && 
+		 errno != ENOSYS) {
+		XWARN("cap_rights_limit: STDERR_FILENO");
+		return(0);
+	}
+
+	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_WRITE);
+	if (cap_rights_limit(fd1, &rights) < 0 && 
+		 errno != ENOSYS) {
+		XWARN("cap_rights_limit: internal socket");
+		return(0);
+	}
+
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+
+	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero)) {
+		XWARNX("setrlimit: rlimit_fsize");
+		return(0);
+	} else if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero)) {
+		XWARNX("setrlimit: rlimit_fsize");
+		return(0);
+	} else if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero)) {
+		XWARNX("setrlimit: rlimit_nproc");
+		return(0);
+	}
+
+	rc = cap_enter();
+	if (0 != rc && errno != ENOSYS) {
+		XWARN("cap_enter");
+		rc = 0;
+	} else
+		rc = 1;
+
+	return(rc);
+}
+
+static int
+ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
+{
+	int rc;
+	struct rlimit	 rl_zero;
+	cap_rights_t	 rights;
 
 	cap_rights_init(&rights);
 
@@ -94,6 +142,16 @@ ksandbox_capsicum_init_child(void *arg,
 		rc = 1;
 
 	return(rc);
+}
+
+int
+ksandbox_capsicum_init_child(void *arg, 
+	enum sandtype type, int fd1, int fd2)
+{
+
+	return(SAND_WORKER == type ?
+		ksandbox_capsicum_init_worker(arg, fd1, fd2) :
+		ksandbox_capsicum_init_control(arg, fd1, fd2));
 }
 
 #else
