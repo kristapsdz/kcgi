@@ -8,7 +8,7 @@
 # You probably don't need to change anything else...
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
-CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
+#CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 VERSIONS	 = version_0_4_2.xml \
@@ -30,14 +30,16 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_6_3.xml \
 		   version_0_6_4.xml
 TUTORIALXMLS	 = tutorial0.xml \
-		   tutorial1.xml
+		   tutorial1.xml \
+		   tutorial2.xml
 TUTORIALHTMLS	 = tutorial0.html \
-		   tutorial1.html
+		   tutorial1.html \
+		   tutorial2.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.6.3
+VERSION 	 = 0.6.4
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
