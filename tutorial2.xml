@@ -1,0 +1,122 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			FastCGI Deployments
+		</h2>
+		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2015-08-05">5 August, 2015</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			FastCGI allows for much higher throughput by running web applications as daemons.
+			In this tutorial, I'll describe how to deploy a simple FastCGI application using <a href="kfcgi.8.html">kfcgi(8)</a>.
+		</aside>
+	</p>
+	<p>
+		The target system will be OpenBSD.
+		Our FastCGI script will be deployed using the socket interface, which is the default on OpenBSD and supported on other web
+		servers, such as Apache, as well.
+		In this method, the FastCGI application creates a socket that listens for connections.
+		The web server maps a web page to a socket, then connects to the socket and transmits requests.
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		Let's start with the server itself.
+		This will be brutally simple: it will respond to all requests and simply print <q>Hello, World</q> and nothing more.
+		The difference between this and the usual CGI method is that all processing occurs in a loop instead of as the entire body of
+		the program.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;kcgi.h&gt;
+
+int
+main(void)
+{
+  struct kreq req;
+  struct kfcgi *fcgi;
+
+  if (KCGI_OK != khttp_fcgi_init
+     (&amp;fcgi, NULL, 0, NULL, 0, 0))
+    return(EXIT_FAILURE);
+
+  while (KCGI_OK == khttp_fcgi_parse(fcgi, &amp;req))) {
+    khttp_head(&amp;req, kresps[KRESP_STATUS], 
+      "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;req, kresps[KRESP_CONTENT_TYPE], 
+      "%s", kmimetypes[req.mime]);
+    khttp_body(&amp;req);
+    khttp_puts(&amp;req, "Hello, world!\n");
+    khttp_free(&amp;req);
+  }
+
+  khttp_fcgi_free(fcgi);
+  return(EXIT_SUCCESS);
+}</pre>
+	</figure>
+	<p>
+		This example doesn't do any real error checking or content validation, so it's pretty easy to understand.
+		Consult the <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>,
+		and <a href="khttp_fcgi_free.3.html">khttp_fcgi_free(3)</a> manpages to see how these work properly.
+		Next comes the more tricky part: deploying as a FastCGI application.
+	</p>
+	<h3>
+		Compile and Link
+	</h3>
+	<p>
+		Compiling and linking follow the same logic as in the <a href="tutorial0.html">Getting Started with CGI in C</a>.
+		Since we're going to install our application in a file-system jail, we'll statically compile it.
+		If your operating system doesn't support static linking, you won't be able to run your application with a file-system jail
+		unless you copy over all libraries into the jail.
+		(This is not covered by this tutorial.)
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% cc -I/usr/local/include -c -o tutorial2.o tutorial2.c
+% cc -static -L/usr/local/lib -o tutorial2 tutorial2.o -lkcgi -lz</pre>
+	</figure>
+	<h3>
+		Install
+	</h3>
+	<p>
+		Our installation process will look a great deal like that of <a href="tutorial0.html">Getting Started with CGI in C</a> except
+		that we'll change our paths around a bit.
+		First, let's configure the web server.
+		I'll assume this is OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">server "me.local" {
+  listen on * port 80
+  location "/cgi-bin/*" {
+    fastcgi socket "/run/httpd.sock"
+    root "/"
+  }
+}</pre>
+	</figure>
+	<p>
+		This will cause CGI requests to <span class="file">/cgi-bin</span> to be routed into the socket at <span
+			class="file">/run/httpd.sock</span>, which is relative to the server root <span class="file">/var/www</span>.
+		Let's first install our web application within the server root.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% sudo mkdir -p /var/www/fcgi-bin
+% sudo install -m 0555 tutorial2 /var/www/fcgi-bin</pre>
+	</figure>
+	<p>
+		We must now set up the socket by executing our server.
+		We do this by using the <a href="kfcgi.8.html">kfcgi(8)</a> utility, which will securely create the FastCGI socket, enact the
+		file-system jail, then execute a pool of applications.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% sudo kfcgi -U www -u www -- /fcgi-bin/tutorial2</pre>
+	</figure>
+	<p>
+		That's it!  
+		At this point, the web application (running as user <q>www</q>) is executing under the <a href="kfcgi.8.html">kfcgi(8)</a>
+		daemon within the file-system jail at <span class="file">/var/www</span>.
+		It has created the socket in <span class="file">/var/www/run/httpd.sock</span> as user <q>www</q>.
+		The web server will now be able to connect to this socket for its requests.
+	</p>
+</article>
