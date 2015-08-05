@@ -226,9 +226,6 @@ ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 	struct rlimit rl_zero;
 	int nnp_failed = 0;
 
-	if (SAND_CONTROL == type)
-		return(1);
-
 	/* Set rlimits for completeness if possible. */
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
@@ -252,7 +249,10 @@ ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 		XWARN("prctl(PR_SET_NO_NEW_PRIVS)");
 		nnp_failed = 1;
 	}
-	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &preauth_prog_work) == -1)
+	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 
+		 SAND_CONTROL == type ?
+		 &preauth_prog_ctrl :
+		 &preauth_prog_work) == -1)
 		XWARN("prctl(PR_SET_SECCOMP)");
 	else if (nnp_failed) {
 		XWARNX("SECCOMP_MODE_FILTER activated but "
