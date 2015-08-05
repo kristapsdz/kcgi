@@ -6,7 +6,7 @@
 	</header>
 	<aside>
 		<div>
-			Implement the FastCGI control socket's sandbox for Capsicum, systrace(4), and seccomp.
+			Implement the FastCGI control socket's sandbox for all supported operating systems.
 		</div>
 	</aside>
 </article>
