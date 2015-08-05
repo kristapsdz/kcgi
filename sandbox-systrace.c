@@ -67,11 +67,39 @@ struct systrace_preauth {
 	int	  action;
 };
 
+static const struct systrace_preauth preauth_control[] = {
+	{ SYS_open, SYSTR_POLICY_NEVER },
+
+	{ SYS_accept, SYSTR_POLICY_PERMIT },
+	{ SYS_fcntl, SYSTR_POLICY_PERMIT },
+	{ SYS_sendmsg, SYSTR_POLICY_PERMIT },
+
+	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
+	{ SYS_close, SYSTR_POLICY_PERMIT },
+	{ SYS_exit, SYSTR_POLICY_PERMIT },
+	{ SYS_getpid, SYSTR_POLICY_PERMIT },
+	{ SYS_gettimeofday, SYSTR_POLICY_PERMIT },
+#ifdef SYS_getentropy
+	{ SYS_getentropy, SYSTR_POLICY_PERMIT },
+#endif
+	{ SYS_clock_gettime, SYSTR_POLICY_PERMIT },
+	{ SYS_madvise, SYSTR_POLICY_PERMIT },
+	{ SYS_mmap, SYSTR_POLICY_PERMIT },
+	{ SYS_mprotect, SYSTR_POLICY_PERMIT },
+	{ SYS_mquery, SYSTR_POLICY_PERMIT },
+	{ SYS_poll, SYSTR_POLICY_PERMIT },
+	{ SYS_munmap, SYSTR_POLICY_PERMIT },
+	{ SYS_read, SYSTR_POLICY_PERMIT },
+	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
+	{ SYS_write, SYSTR_POLICY_PERMIT },
+	{ -1, -1 }
+}
+
 /* 
  * Permitted syscalls in preauth. 
  * Unlisted syscalls get SYSTR_POLICY_KILL.
  */
-static const struct systrace_preauth preauth_policy[] = {
+static const struct systrace_preauth preauth_worker[] = {
 	{ SYS_open, SYSTR_POLICY_NEVER },
 
 	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
@@ -137,11 +165,11 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 	int		dev, i, j, found, st, rc;
 	pid_t		pid;
 	struct systrace_policy policy;
+	struct systrace_preauth *preauth;
 
 	assert(NULL != arg);
 
-	if (SAND_CONTROL == type)
-		return(1);
+	preauth = SAND_CONTROL == type ? preauth_control : preauth_worker;
 
 	rc = 0;
 
@@ -217,8 +245,8 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 	/* Set per-syscall policy */
 	for (i = 0; i < SYS_MAXSYSCALL; i++) {
 		found = 0;
-		for (j = 0; preauth_policy[j].syscall != -1; j++) {
-			if (preauth_policy[j].syscall == i) {
+		for (j = 0; preauth[j].syscall != -1; j++) {
+			if (preauth[j].syscall == i) {
 				found = 1;
 				break;
 			}
@@ -226,7 +254,7 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 		policy.strp_op = SYSTR_POLICY_MODIFY;
 		policy.strp_code = i;
 		policy.strp_policy = found ?
-		    preauth_policy[j].action : SYSTR_POLICY_KILL;
+		    preauth[j].action : SYSTR_POLICY_KILL;
 		if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1) {
 			XWARN("ioctl: STRIOCPOLICY (modify)");
 			goto out;
