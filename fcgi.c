@@ -408,7 +408,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	close(STDIN_FILENO);
 
 	if ( ! ksandbox_init_parent
-		 (work_box, SAND_CONTROL, work_pid)) {
+		 (sock_box, SAND_CONTROL, sock_pid)) {
 		XWARNX("ksandbox_init_parent");
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
