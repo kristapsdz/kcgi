@@ -1,0 +1,12 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.6.5</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-08-01">2015-08-01</time>
+	</header>
+	<aside>
+		<div>
+			Implement the FastCGI control socket's sandbox for FreeBSD.
+		</div>
+	</aside>
+</article>
