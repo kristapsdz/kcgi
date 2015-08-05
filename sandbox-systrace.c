@@ -93,7 +93,7 @@ static const struct systrace_preauth preauth_control[] = {
 	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
 	{ SYS_write, SYSTR_POLICY_PERMIT },
 	{ -1, -1 }
-}
+};
 
 /* 
  * Permitted syscalls in preauth. 
@@ -142,9 +142,6 @@ ksandbox_systrace_init_child(void *arg, enum sandtype type)
 {
 	struct systrace_sandbox *box = arg;
 
-	if (SAND_CONTROL == type)
-		return(1);
-
 	if (NULL == arg) {
 		XWARNX("systrace child passed null config");
 		return(0);
@@ -165,11 +162,12 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 	int		dev, i, j, found, st, rc;
 	pid_t		pid;
 	struct systrace_policy policy;
-	struct systrace_preauth *preauth;
+	const struct systrace_preauth *preauth;
 
 	assert(NULL != arg);
 
-	preauth = SAND_CONTROL == type ? preauth_control : preauth_worker;
+	preauth = SAND_CONTROL == type ? 
+		preauth_control : preauth_worker;
 
 	rc = 0;
 
