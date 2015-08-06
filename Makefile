@@ -57,6 +57,7 @@ LIBOBJS 	 = child.o \
 		   sandbox-darwin.o \
 		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
+		   sandbox-tame.o \
 		   wrappers.o
 HTMLS		 = man/kcgi.3.html \
 		   man/kcgihtml.3.html \
@@ -85,6 +86,7 @@ TESTS 		 = test-memmem.c \
       		   test-strtonum.c \
       		   test-seccomp-filter.c \
       		   test-systrace.c \
+      		   test-tame.c \
       		   test-zlib.c
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
@@ -135,6 +137,7 @@ SRCS 		 = child.c \
      		   sandbox-darwin.c \
      		   sandbox-seccomp-filter.c \
      		   sandbox-systrace.c \
+     		   sandbox-tame.c \
      		   wrappers.c \
      		   $(MANS) \
      		   $(TESTS)
