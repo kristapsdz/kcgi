@@ -2,11 +2,16 @@
 	<header>
 		<h1>0.6.5</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-08-01">2015-08-01</time>
+		<time datetime="2015-08-06">2015-08-06</time>
 	</header>
 	<aside>
 		<div>
-			Implement the FastCGI control socket's sandbox for all supported operating systems.
+			Implement the <a href="http://www.fastcgi.com/drupal/node/6?q=node/22">FastCGI</a> control process's sandbox for all
+			supported operating systems.
+			(The FastCGI control process is forked from each application process, and is responsible for accepting new FastCGI
+			connections and passing the descriptors to the application for output and worker process for parsing.)
+			This is the last <q>feature</q> for the FastCGI implementation: it now has the same protection as the CGI implementation
+			for all child processes.
 		</div>
 	</aside>
 </article>

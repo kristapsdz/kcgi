@@ -18,11 +18,11 @@
 				console.log('maxheight = ' + show.style.maxHeight);
 
 				if (show.style.maxHeight == '' || show.style.maxHeight == '0px') {
-					show.style.maxHeight = '100em';
+					show.style.maxHeight = '500em';
 					noshow.style.maxHeight = 0;
 				} else {
 					show.style.maxHeight = 0;
-					noshow.style.maxHeight = '100em';
+					noshow.style.maxHeight = '500em';
 				}
 			}
 		</script>
@@ -334,42 +334,30 @@ int main(void) {
 					Performance
 				</h2>
 				<p>
-					Security comes at a price.
+					Security comes at a price&#8212;but not a stiff price.
 					By design, <span class="nm">kcgi</span> incurs overhead in three ways: first, spawning a child to
 					process the untrusted network data; second, enacting the sandbox framework; and third, passing parsed
 					pairs back to the parent context.
+					In the case of running CGI scripts, <span class="nm">kcgi</span> performance is bound to the operating
+					system's ability to spawn and reap processes.
+					For FastCGI, the bottleneck becomes the transfer of data.
+					In the following graph, I graph the responsiveness of <span class="nm">kcgi</span> against the baseline
+					web-server performance.
 				</p>
 				<figure>
 					<img src="figure2.png" />
 				</figure>
 				<p>
-					This figure illustrates the cost of running <span class="nm">kcgi</span> against a baseline on OpenBSD
-					5.5 running <a href="http://nginx.org">nginx</a> and <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/slowcgi.8">slowcgi(8)</a>, i386.
-					It shows the empirical cumulative distribution of a statisically-significant number of page requests
-					(&gt;1000) as measured by <a href="https://httpd.apache.org/docs/2.2/programs/ab.html">ab(1)</a>.
-				</p>
-				<p>
-					Line (1) shows a static file being served by the web server.
-					The high speed is due to the file (most likely) being cached by the web server and/or kernel.
-					Moving right, line (2) shows a basic CGI request producing no content.
-					The CGI simply exits with an HTTP 200.
-					This reflects the cost of invoking <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/slowcgi.8">slowcgi(8)</a>.
-					Line (3) is a simple <span class="nm">kcgi</span> that simply emits an HTTP 200.
-					This instance is neither sandboxed nor does it compress output.
-					The overhead from line (2) is due to the additional child being spawned.
-					Line (4) shows the addition of sandboxing without compression, in this case via 
-					<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>.
-					Lastly, line (5) shows both compression and sandboxing.
-				</p>
-				<figure>
-					<img src="figure3.png" />
-				</figure>
-				<p>
-					In this bar chart, I show the same but for relative comparison of the distribution means.
-					The similarity between the compressed and non-compressed versions are due to the small amount of data
-					being transmitted in the response body.
+					This shows the empirical cumulative distribution of a statisically-significant number of page requests
+					as measured by <a href="https://httpd.apache.org/docs/2.2/programs/ab.html">ab(1)</a> with 10 concurrent
+					requests.
+					The <strong>CGI</strong> line is the CGI sample included in the source;
+					the <strong>FastCGI</strong> line is the FastCGI sample;
+					the <strong>CGI (simple)</strong> simply emits a 200 HTTP status and <q>Hello, World</q>; and
+					the <strong>static</strong> is a small static file on the web server.
+					The operating system is Mac OS X 10.7.5 <q>Air</q> laptop (1.86 GHz Intel Core 2 Duo, 2 GB RAM) with the
+					stock Apache.
+					The FastCGI server was started using the <a href="kfcgi.8.html">kfcgi(8)</a> defaults.
 				</p>
 			</section>
 		</article>
