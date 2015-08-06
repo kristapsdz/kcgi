@@ -84,7 +84,7 @@ body > header nav li >div > div	{ margin-top: 0.5em; }
 #longnews,
 #comments			{ max-height: 0; }
 #nolongnews,
-#nocomments			{ max-height: 100em; }
+#nocomments			{ max-height: 500em; }
 pre.prettyprint			{ border: none; 
 				  line-height: 150%;
 				  margin: 0; 

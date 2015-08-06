@@ -197,14 +197,13 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-upload.c
 SVGS		 = figure1.svg \
 		   figure2.png \
-		   figure3.png \
 		   figure4.svg
 
 all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
 afl: $(AFL)
 
-samples: all sample sample-fcgi
+samples: all sample sample-fcgi sample-cgi
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -320,10 +319,10 @@ config.h: config.h.pre config.h.post configure $(TESTS)
 	rm -f config.log
 	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
 
-installcgi: sample  sample-fcgi
+installcgi: sample  sample-fcgi sample-cgi
 	install -m 0755 sample $(PREFIX)/sample.cgi
+	install -m 0755 sample-cgi $(PREFIX)/sample-simple.cgi
 	install -m 0755 sample-fcgi $(PREFIX)/sample-fcgi.cgi
-	install -m 0755 sample sample-fcgi $(PREFIX)
 	install -m 0444 template.xml $(PREFIX)
 
 install: all
@@ -336,7 +335,7 @@ install: all
 	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
-	install -m 0444 template.xml sample.c sample-fcgi.c $(DESTDIR)$(DATADIR)
+	install -m 0444 template.xml sample.c sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
 
 sample: sample.o libkcgi.a libkcgihtml.a
@@ -344,6 +343,9 @@ sample: sample.o libkcgi.a libkcgihtml.a
 
 sample-fcgi: sample-fcgi.o libkcgi.a 
 	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a -lz
+
+sample-cgi: sample-cgi.o 
+	$(CC) -o $@ $(STATIC) sample-cgi.o 
 
 www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS)
 
@@ -400,7 +402,7 @@ kcgi.tgz:
 	gnuplot $<
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f index.html $(TUTORIALHTMLS)
 	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
