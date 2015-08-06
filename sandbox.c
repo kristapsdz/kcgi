@@ -55,13 +55,22 @@ int
 ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 {
 
-#if defined(HAVE_SYSTRACE)
-	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
-		XWARNX("ksandbox_systrace_init_parent");
+#if defined(HAVE_CAPSICUM)
+	return(1);
+#elif defined(HAVE_SANDBOX_INIT)
+	return(1);
+#elif defined(HAVE_TAME)
+	return(1);
+#elif defined(HAVE_SYSTRACE)
+	if ( ! ksandbox_systrace_init_child(arg, type)) {
+		XWARNX("ksandbox_systrace_init_child");
 		return(0);
 	}
-#endif
+#elif defined(HAVE_SECCOMP_FILTER)
 	return(1);
+#else
+	return(1);
+#endif
 }
 
 /*
@@ -74,11 +83,20 @@ ksandbox_alloc(void **pp)
 {
 
 	*pp = NULL;
-#ifdef HAVE_SYSTRACE
+
+#if defined(HAVE_CAPSICUM)
+	return(1);
+#elif defined(HAVE_SANDBOX_INIT)
+	return(1);
+#elif defined(HAVE_TAME)
+	return(1);
+#elif defined(HAVE_SYSTRACE)
 	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
 		XWARNX("ksandbox_systrace_alloc");
 		return(0);
 	}
+#elif defined(HAVE_SECCOMP_FILTER)
+	return(1);
 #endif
 	return(1);
 }
@@ -98,9 +116,16 @@ void
 ksandbox_close(void *arg)
 {
 
-	/* Run system-specific closure stuff. */
-#ifdef HAVE_SYSTRACE
+#if defined(HAVE_CAPSICUM)
+	return;
+#elif defined(HAVE_SANDBOX_INIT)
+	return;
+#elif defined(HAVE_TAME)
+	return;
+#elif defined(HAVE_SYSTRACE)
 	ksandbox_systrace_close(arg);
+#elif defined(HAVE_SECCOMP_FILTER)
+	return;
 #endif
 }
 

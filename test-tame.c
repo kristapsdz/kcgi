@@ -1,8 +1,13 @@
 #include <sys/tame.h>
 
+#include <stdio.h>
+
 int
 main(void)
 {
-	tame(0);
+	if (-1 == tame(0)) {
+		perror("tame");
+		return(1);
+	}
 	return(0);
 }

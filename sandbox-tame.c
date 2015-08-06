@@ -22,8 +22,6 @@
 
 #include <sys/tame.h>
 
-#include <unistd.h>
-#include <errno.h>
 #include <stdarg.h>
 
 #include "kcgi.h"
@@ -39,7 +37,9 @@ ksandbox_tame_init_child(void *arg, enum sandtype type)
 		fl |= TAME_UNIX | TAME_CMSG;
 
 	if (-1 == tame(fl)) {
-		XWARN("tame");
+		XWARN("tame: %s", 
+			SAND_CONTROL == type ?  
+			"control" : "worker");
 		return(0);
 	}
 	return(1);
