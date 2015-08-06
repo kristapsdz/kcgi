@@ -71,6 +71,9 @@ int		 ksandbox_init_parent(void *, enum sandtype, pid_t);
 #ifdef HAVE_CAPSICUM
 int	 	 ksandbox_capsicum_init_child(void *, enum sandtype, int, int);
 #endif
+#ifdef HAVE_TAME
+int	 	 ksandbox_tame_init_child(void *, enum sandtype);
+#endif
 #ifdef HAVE_SANDBOX_INIT
 int	 	 ksandbox_darwin_init_child(void *, enum sandtype);
 #endif

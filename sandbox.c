@@ -18,11 +18,13 @@
 #include "config.h"
 #endif
 
+#ifndef HAVE_TAME
 #ifndef HAVE_SYSTRACE
 #ifndef HAVE_SECCOMP_FILTER
 #ifndef HAVE_CAPSICUM
 #ifndef HAVE_SANDBOX_INIT
 #warning Compiling without a sandbox!?
+#endif
 #endif
 #endif
 #endif
@@ -120,6 +122,11 @@ ksandbox_init_child(void *arg,
 #elif defined(HAVE_SANDBOX_INIT)
 	if ( ! ksandbox_darwin_init_child(arg, type)) {
 		XWARNX("ksandbox_darwin_init_child");
+		return(0);
+	}
+#elif defined(HAVE_TAME)
+	if ( ! ksandbox_tame_init_child(arg, type)) {
+		XWARNX("ksandbox_tame_init_child");
 		return(0);
 	}
 #elif defined(HAVE_SYSTRACE)
