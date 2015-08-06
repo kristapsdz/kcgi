@@ -62,15 +62,14 @@ ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 #elif defined(HAVE_TAME)
 	return(1);
 #elif defined(HAVE_SYSTRACE)
-	if ( ! ksandbox_systrace_init_child(arg, type)) {
+	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
 		XWARNX("ksandbox_systrace_init_child");
 		return(0);
 	}
 #elif defined(HAVE_SECCOMP_FILTER)
 	return(1);
-#else
-	return(1);
 #endif
+	return(1);
 }
 
 /*
