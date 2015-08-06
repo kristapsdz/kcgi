@@ -15,13 +15,21 @@ set tics nomirror out scale 0.75
 set style line 12 lc rgb'#808080' lt 0 lw 1
 set grid back ls 12
 #########################################################
+set key bottom right
 set xlabel 'milliseconds'
-set size 0.8,0.8
-set key outside right
-set ytics 0.25
-unset title
-plot 'perf-time-openbsd-base.dat' u 2:($1/100) w l lw 3 ti '(1)', \
-     'perf-time-openbsd-base-cgi.dat' u 2:($1/100) w l lw 3 ti '(2)', \
-     'perf-time-openbsd-kcgi-nosandbox.dat' u 2:($1/100) w l lw 3 ti '(3)', \
-     'perf-time-openbsd-kcgi-nocompress.dat' u 2:($1/100) w l lw 3 ti '(4)', \
-     'perf-time-openbsd-kcgi.dat' u 2:($1/100) w l lw 3 ti '(5)'
+set datafile separator '\t'
+
+stats 'figure2-cgi.tsv' u 5 nooutput
+nr1=STATS_records
+stats 'figure2-fcgi.tsv' u 5 nooutput
+nr2=STATS_records
+stats 'figure2-static.tsv' u 5 nooutput
+nr3=STATS_records
+stats 'figure2-cgi-naked.tsv' u 5 nooutput
+nr4=STATS_records
+
+set xrange [0:60]
+plot 'figure2-static.tsv'    u 5:(1.0/nr3) s cum lw 4 ti 'static', \
+     'figure2-cgi.tsv'       u 5:(1.0/nr1) s cum lw 4 ti 'CGI', \
+     'figure2-cgi-naked.tsv' u 5:(1.0/nr4) s cum lw 4 ti 'CGI (simple)', \
+     'figure2-fcgi.tsv'      u 5:(1.0/nr2) s cum lw 4 ti 'FastCGI'
