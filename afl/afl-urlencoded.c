@@ -58,11 +58,6 @@ main(int argc, char *argv[])
 		close(fdout);
 		close(fdin);
 		return(EXIT_FAILURE);
-	} else if (KCGI_OK != xsocketprep(fdout)) {
-		perror(argv[1]);
-		close(fdout);
-		close(fdin);
-		return(EXIT_FAILURE);
 	} else if (-1 == dup2(fdin, STDIN_FILENO)) {
 		perror(argv[1]);
 		close(fdout);

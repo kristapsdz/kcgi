@@ -156,6 +156,7 @@ kauth_nexttoken(size_t *val, const char **cp,
 {
 	struct pdigbuf	 buf;
 
+	memset(&buf, 0, sizeof(struct pdigbuf));
 	kauth_nextvalue(&buf, cp);
 
 	for (*val = 0; *val < valsz; (*val)++) {
@@ -196,6 +197,8 @@ kauth_count(size_t *count, const char **cp)
 	unsigned long long ll;
 
 	*count = 0;
+
+	memset(&buf, 0, sizeof(struct pdigbuf));
 
 	/* According to the RFC, this is 8 bytes long. */
 	kauth_nextvalue(&buf, cp);
