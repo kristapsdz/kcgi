@@ -2,7 +2,7 @@
 	<header>
 		<h1>0.6.5</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2015-08-06">2015-08-06</time>
+		<time datetime="2015-08-07">2015-08-07</time>
 	</header>
 	<aside>
 		<div>
@@ -12,6 +12,17 @@
 			connections and passing the descriptors to the application for output and worker process for parsing.)
 			This is the last <q>feature</q> for the FastCGI implementation: it now has the same protection as the CGI implementation
 			for all child processes.
+		</div>
+		<div>
+			Add initial (full) sandbox for OpenBSD's <a
+				href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/tame.2">tame(2)</a>, although this technically
+			isn't supported yet (in snapshots, anyway) and returns ENOSYS.
+			On OpenBSD machines with both sandboxes, this is tried first.
+		</div>
+		<div>
+			This is the last release before the FastCGI implementation is marked as stable.
+			In addition to the above, some variables were added to the manpages (which were also cleaned up a bit) and the AFL
+			system was updated with the socket re-write.
 		</div>
 	</aside>
 </article>
