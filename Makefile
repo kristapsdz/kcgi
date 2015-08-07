@@ -29,7 +29,7 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_6_2.xml \
 		   version_0_6_3.xml \
 		   version_0_6_4.xml \
-		   version_0_7.xml
+		   version_0_7_0.xml
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml
