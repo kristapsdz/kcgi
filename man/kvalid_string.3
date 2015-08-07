@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 23 2014 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KVALID_STRING 3
 .Os
 .Sh NAME
@@ -65,8 +65,9 @@ and
 functions are basic validators for
 .Xr kcgi 3
 and are passed into the
-.Xr khttp_parse 3
-function to validate input data.
+.Xr khttp_parse 3 or
+.Xr khttp_fcgi_init 3
+functions to validate input data.
 If a field is checked for validation during parse, it will first be
 noted in
 .Va fields

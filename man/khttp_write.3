@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: December 16 2014 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KHTTP_WRITE 3
 .Os
 .Sh NAME
@@ -52,7 +52,9 @@ and
 functions write HTTP content for a
 .Xr kcgi 3
 context allocated with
-.Xr khttp_parse 3 .
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3 .
 These functions may only be invoked after
 .Xr khttp_body 3 ,
 else their behaviour is undefined.
