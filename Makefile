@@ -29,7 +29,7 @@ VERSIONS	 = version_0_4_2.xml \
 		   version_0_6_2.xml \
 		   version_0_6_3.xml \
 		   version_0_6_4.xml \
-		   version_0_6_5.xml
+		   version_0_7.xml
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml
@@ -40,7 +40,7 @@ MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.6.4
+VERSION 	 = 0.7.0
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
