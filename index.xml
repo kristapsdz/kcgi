@@ -58,7 +58,8 @@
 				<p>
 					<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
 						source</a> CGI and FastCGI library for C web applications.
-					It is minimal, secure, and auditable.
+					It is minimal, secure, and auditable&#8212;a useful addition to the <a
+						href="http://www.learnbchs.org">BCHS</a> application stack.
 					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
 					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
 					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
@@ -271,6 +272,18 @@ int main(void) {
 						mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
 					</dd>
 					<dt>
+						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/tame.2">tame(2)</a>
+						(<a href="http://www.openbsd.org">OpenBSD</a>)
+					</dt>
+					<dd>
+						This will only work on OpenBSD &#x2265;5.8.
+						(As of this note, this has not been officially released: the system will compile with snapshots,
+						but the function will not register as enabled during configuration.)
+						It is selected with higher priority over <a
+							href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+						on OpenBSD machines.
+					</dd>
+					<dt>
 						<a href="https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man3/sandbox_init.3.html">sandbox_init(3)</a>
 						(<a href="https://www.apple.com/osx/">Apple OSX</a>)
 					</dt>
@@ -313,11 +326,7 @@ int main(void) {
 					minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
 					For internal tests, test requests are constructed with <a
 						href="http://curl.haxx.se/libcurl/">libcurl</a>.
-				</p>
-				<p>
-					The automated test framework, at the moment, only has a few tests for basic functionality and
-					sandboxing.
-					The binding local port is fixed, too; so if you plan on running the regression suite, you may need to
+					The binding local port is fixed: if you plan on running the regression suite, you may need to
 					tweak its access port.
 				</p>
 				<p>

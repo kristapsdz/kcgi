@@ -247,8 +247,23 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1))
 			XWARN("poll: %d, POLLOUT", fd);
+		else if (POLLHUP & pfd.revents)
+			XWARNX("poll: POLLHUP");
+		else if (POLLERR & pfd.revents)
+			XWARNX("poll: POLLER");
+		/*
+		 * This CPP exists because testing on Mac OS X will have
+		 * `fd' point to a device and poll(2) returns POLLNVAL if
+		 * the descriptor is to a device.
+		 * This is documented in the BUGS section of poll(2).
+		 */
+#ifdef __APPLE__
+		else if ( ! (POLLOUT & pfd.revents) && ! (POLLNVAL & pfd.revents))
+			XWARNX("poll: not POLLOUT");
+#else
 		else if ( ! (POLLOUT & pfd.revents))
 			XWARNX("poll: not POLLOUT");
+#endif
 		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
 			XWARN("write: %d, %zu", fd, bufsz - sz);
 		else if (sz > SIZE_MAX - (size_t)ssz)
