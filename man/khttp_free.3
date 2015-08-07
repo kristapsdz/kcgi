@@ -42,7 +42,9 @@ and
 functions free the resources of
 .Fa req
 allocated by
-.Xr khttp_parse 3 ,
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3 ,
 flushing the HTTP data stream in the process.
 After calling this function, the members of
 .Fa req
@@ -58,7 +60,7 @@ Thus, it may be used after invoking
 without confusing the output buffer.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
-.Xr kcgi_parse 3
+.Xr khttp_parse 3
 .Sh AUTHORS
 The
 .Nm khttp_free
