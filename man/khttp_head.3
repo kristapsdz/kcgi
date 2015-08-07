@@ -18,7 +18,7 @@
 .Dt KHTTP_HEAD 3
 .Os
 .Sh NAME
-.Nm khttp_head ,
+.Nm khttp_head
 .Nd emit HTTP headers for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -32,7 +32,6 @@
 .Fa "const char *fmt"
 .Fa "..."
 .Fc
-.Va "const char *const kresps[KHTTP__MAX];"
 .Sh DESCRIPTION
 The
 .Nm
@@ -54,8 +53,11 @@ syntax, should be the HTTP response pair value.
 .Pp
 The
 .Va kresps
-global array provides indexed HTTP response keys.
-Use them!
+global array, defined in
+.Xr khttp_parse 3 ,
+provides indexed HTTP response keys for the default
+.Vt enum kresp .
+Use it!
 .Pp
 See
 .Xr khttp_body 3

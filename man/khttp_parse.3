@@ -50,6 +50,13 @@
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
 .Fc
+.Vt extern const char *const kmimetypes[KMIME__MAX];
+.Vt extern const char *const khttps[KHTTP__MAX];
+.Vt extern const char *const kschemes[KSCHEME__MAX];
+.Vt extern const char *const kresps[KRESP__MAX];
+.Vt extern const char *const kmethods[KMETHOD__MAX];
+.Vt extern const struct kmimemap ksuffixmap[];
+.Vt extern const char *const ksuffixes[KMIME__MAX];
 .Sh DESCRIPTION
 The
 .Nm khttp_parse
@@ -602,6 +609,69 @@ but the reconstituted HTTP name (e.g.,
 .Li Coookie ) .
 .It Va val
 The opaque header value, which may be an empty string.
+.El
+.Ss Variables
+A number of variables are defined 
+.In kcgi.h
+to simplify invocations of the
+.Nm khttp_parse
+family.
+Applications are strongly suggested to use these variables (and
+associated enumerations) in
+.Nm khttp_parse
+instead of overriding them with hand-rolled sets in
+.Nm khttp_parsex .
+.Bl -tag -width Ds
+.It Va kmimetypes
+Indexed list of common MIME types, for example,
+.Dq text/html
+and
+.Dq application/json .
+Corresponds to
+.Vt enum kmime
+.Vt enum khttp .
+.It Va khttps
+Indexed list of HTTP status code and identifier, for example,
+.Dq 200 OK .
+Corresponds to
+.Vt enum khttp .
+.It Va kschemes
+Indexed list of URL schemes, for example,
+.Dq https
+or
+.Dq ftp .
+Corresponds to
+.Vt enum kscheme .
+.It Va kresps
+Indexed list of header response names, for example,
+.Dq Cache-Control
+or
+.Dq Content-Length .
+Corresponds to
+.Vt enum kresp .
+.It Va kmethods
+Indexed list of HTTP methods, for example,
+.Dq GET
+and
+.Dq POST .
+Corresponds to
+.Vt enum kmethod .
+.It Va ksuffixmap
+Map of MIME types defined in
+.Vt enum kmime
+to possible suffixes.
+This array is terminated with a MIME type of
+.Dv KMIME__MAX
+and name
+.Dv NULL .
+.It Va ksuffixes
+Indexed list of canonical suffixes for MIME types corresponding to
+.Vt enum kmime .
+.Em Note :
+this may be a
+.Dv NULL
+pointer for types that have no canonical suffix, for example.
+.Dq application/octet-stream .
 .El
 .Sh RETURN VALUES
 .Nm khttp_parse

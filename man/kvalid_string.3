@@ -65,8 +65,9 @@ and
 functions are basic validators for
 .Xr kcgi 3
 and are passed into the
-.Xr khttp_parse 3
-function to validate input data.
+.Xr khttp_parse 3 or
+.Xr khttp_fcgi_init 3
+functions to validate input data.
 If a field is checked for validation during parse, it will first be
 noted in
 .Va fields

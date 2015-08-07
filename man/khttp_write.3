@@ -52,7 +52,9 @@ and
 functions write HTTP content for a
 .Xr kcgi 3
 context allocated with
-.Xr khttp_parse 3 .
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3 .
 These functions may only be invoked after
 .Xr khttp_body 3 ,
 else their behaviour is undefined.
