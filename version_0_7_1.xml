@@ -1,0 +1,15 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.7.1</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-08-07">2015-08-07</time>
+	</header>
+	<aside>
+		<div>
+			Fix: forgot to install <a href="kfcgi.8.html">kfcgi(8)</a>.
+			Add flag to <a href="kfcgi.8.html">kfcgi(8)</a> to specify the connection backlog.
+			Add <a href="khttp_fcgi_test.3.html">khttp_fcgi_test(3)</a> to see if an application should use the FastCGI or regular
+			CGI functions.
+		</div>
+	</aside>
+</article>
