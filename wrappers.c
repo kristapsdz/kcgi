@@ -456,7 +456,6 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 	char 		 c_buffer[256];
 	struct iovec	 io;
 	struct cmsghdr	*cmsg;
-	unsigned char	*data;
 	int		 rc;
 	struct pollfd	 pfd;
 
@@ -487,10 +486,17 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 	} else if (0 == rc)
 		return(0);
 
-	cmsg = CMSG_FIRSTHDR(&msg);
-	data = CMSG_DATA(cmsg);
 
 	memcpy(b, m_buffer, bsz);
-	*recvfd = *(int *)data;
-	return(1);
+	for (cmsg = CMSG_FIRSTHDR(&msg); NULL != cmsg;
+		 cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		if (cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
+		    cmsg->cmsg_level == SOL_SOCKET &&
+		    cmsg->cmsg_type == SCM_RIGHTS) {
+			*recvfd = *(int *)CMSG_DATA(cmsg);
+			return(1);
+		}
+	}
+	XWARNX("recvmsg: no SCM_RIGHTS!?");
+	return(-1);
 }
