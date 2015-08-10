@@ -556,3 +556,13 @@ err:
 	khttp_free(req);
 	return(kerr);
 }
+
+int
+khttp_fcgi_test(void)
+{
+	socklen_t	len = 0;
+
+	if (-1 != getpeername(STDIN_FILENO, NULL, &len))
+		return(0);
+	return(ENOTCONN == errno);
+}
