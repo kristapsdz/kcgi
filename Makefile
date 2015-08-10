@@ -38,6 +38,7 @@ TUTORIALHTMLS	 = tutorial0.html \
 		   tutorial2.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
+SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.7.0
@@ -334,10 +335,12 @@ install: all
 	mkdir -p $(DESTDIR)$(DATADIR)
 	mkdir -p $(DESTDIR)$(MAN3DIR)
 	mkdir -p $(DESTDIR)$(MAN8DIR)
+	mkdir -p $(DESTDIR)$(SBINDIR)
 	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a $(DESTDIR)$(LIBDIR)
 	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
+	install -m 0555 kfcgi $(DESTDIR)$(SBINDIR)
 	install -m 0444 template.xml sample.c sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
 	rm -f kcgi.h~
 
