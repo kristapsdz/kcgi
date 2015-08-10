@@ -1,4 +1,4 @@
-.Dd $Mdocdate: July 19 2015 $
+.Dd $Mdocdate: July 21 2015 $
 .Dt KFCGI 8
 .Os
 .Sh NAME
@@ -9,6 +9,7 @@
 .\" Not used in OpenBSD.
 .Sh SYNOPSIS
 .Nm kfcgi
+.Op Fl l Ar backlog
 .Op Fl n Ar workers
 .Op Fl p Ar chroot
 .Op Fl s Ar sockpath
@@ -33,6 +34,11 @@ then starts 3 workers executing
 which must exist relative to the file-system jail root.
 The arguments are as follows:
 .Bl -tag -width Ds
+.It Fl l Ar backlog
+The connection backlog.
+If unspecified or zero, this is set to the value of
+.Fl n .
+If too small, the web-server will not be able to pass in new connections.
 .It Fl n Ar workers
 The number of workers >1.
 .It Fl p Ar chroot
