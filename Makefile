@@ -70,6 +70,7 @@ HTMLS		 = man/kcgi.3.html \
 		   man/khttp_fcgi_free.3.html \
 		   man/khttp_fcgi_init.3.html \
 		   man/khttp_fcgi_parse.3.html \
+		   man/khttp_fcgi_test.3.html \
 		   man/khttp_free.3.html \
 		   man/khttp_head.3.html \
 		   man/khttp_parse.3.html \
@@ -98,6 +99,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_fcgi_free.3 \
 		   man/khttp_fcgi_init.3 \
 		   man/khttp_fcgi_parse.3 \
+		   man/khttp_fcgi_test.3 \
 		   man/khttp_free.3 \
 		   man/khttp_head.3 \
 		   man/khttp_parse.3 \
