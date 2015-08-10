@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	int			 c, fd, rc;
 	pid_t			*ws;
 	struct passwd		*pw;
-	size_t			 wsz, i, sz;
+	size_t			 wsz, i, sz, lsz;
 	const char		*pname, *sockpath, *chpath,
 	      			*sockuser, *procuser;
 	struct sockaddr_un	 sun;
@@ -61,10 +61,11 @@ main(int argc, char *argv[])
 		++pname;
 
 	if (0 != geteuid()) {
-		fprintf(stderr, "%s: need root privileges", pname);
+		fprintf(stderr, "%s: need root privileges\n", pname);
 		return(EXIT_FAILURE);
 	}
 
+	lsz = 0;
 	rc = EXIT_FAILURE;
 	sockuid = procuid = sockgid = procgid = -1;
 	wsz = 5;
@@ -73,8 +74,11 @@ main(int argc, char *argv[])
 	ws = NULL;
 	sockuser = procuser = NULL;
 
-	while (-1 != (c = getopt(argc, argv, "p:n:s:u:U:")))
+	while (-1 != (c = getopt(argc, argv, "l:p:n:s:u:U:")))
 		switch (c) {
+		case ('l'):
+			lsz = atoi(optarg);
+			break;	
 		case ('n'):
 			wsz = atoi(optarg);
 			break;	
@@ -164,7 +168,7 @@ main(int argc, char *argv[])
 			return(EXIT_FAILURE);
 		}
 
-	if (-1 == listen(fd, wsz)) {
+	if (-1 == listen(fd, 0 == lsz ? wsz : lsz)) {
 		perror(sockpath);
 		close(fd);
 		return(EXIT_FAILURE);
@@ -285,6 +289,7 @@ main(int argc, char *argv[])
 	return(rc);
 usage:
 	fprintf(stderr, "usage: %s "
+		"[-l backlog] "
 		"[-n workers] "
 		"[-p chroot] "
 		"[-s sockpath] "
