@@ -57,7 +57,8 @@
 			<section id="intro">
 				<p>
 					<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
-						source</a> CGI and FastCGI library for C web applications.
+						source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C web
+						applications</span>.
 					It is minimal, secure, and auditable&#8212;a useful addition to the <a
 						href="http://www.learnbchs.org">BCHS</a> application stack.
 					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
@@ -143,11 +144,12 @@ int main(void) {
 					If so, install using that system.
 				</p>
 				<p>
-					If not, you'll need a modern UNIX system.
-					To date, <span class="nm">kcgi</span> has been built and run on GNU/<a
-						href="http://www.linux.org">Linux</a> machines, BSD (<a
-						href="http://www.openbsd.org">OpenBSD</a>, <a href="http://www.freebsd.org">FreeBSD</a>), and <a
-						href="http://www.apple.com/osx">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
+					If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
+					To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="http://www.linux.org"
+						itemprop="operatingSystem">Linux</a> machines, BSD (<a href="http://www.openbsd.org"
+						itemprop="operatingSystem">OpenBSD</a>, <a href="http://www.freebsd.org"
+						itemprop="operatingSystem">FreeBSD</a>), and <a href="http://www.apple.com/osx"
+						itemprop="operatingSystem">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
 					It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 						href="http://nginx.org">nginx</a>, and OpenBSD's <a
 						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8?query=httpd">httpd(8)</a>
@@ -183,7 +185,7 @@ int main(void) {
 					${sblg-aside}
 				</nav>
 			</section>
-			<section id="features">
+			<section id="deploying">
 				<h2>
 					Deploying
 				</h2>
@@ -354,7 +356,7 @@ int main(void) {
 					web-server performance.
 				</p>
 				<figure>
-					<img src="figure2.png" />
+					<img src="figure2.png" alt="Performance Graph" />
 				</figure>
 				<p>
 					This shows the empirical cumulative distribution of a statisically-significant number of page requests
