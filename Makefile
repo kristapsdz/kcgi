@@ -42,7 +42,7 @@ MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.7.0
+VERSION 	 = 0.7.1
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
@@ -135,6 +135,7 @@ SRCS 		 = child.c \
 		   output.c \
 		   parent.c \
      		   sample.c \
+     		   sample-cgi.c \
      		   sample-fcgi.c \
      		   sandbox.c \
      		   sandbox-capsicum.c \
