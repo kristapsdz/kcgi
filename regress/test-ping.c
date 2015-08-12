@@ -38,6 +38,9 @@ child(void)
 	struct kreq	 r;
 	const char 	*page = "index";
 
+	if (khttp_fcgi_test())
+		return(0);
+
 	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
 	khttp_head(&r, kresps[KRESP_STATUS], 
