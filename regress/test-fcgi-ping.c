@@ -40,6 +40,9 @@ child(void)
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
 
+	if ( ! khttp_fcgi_test())
+		return(0);
+
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, &page, 1, 0))
 		return(0);
 
