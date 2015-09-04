@@ -77,7 +77,7 @@ kfcgi_control(int work, int ctrl)
 {
 	struct sockaddr_storage ss;
 	socklen_t	 sslen;
-	int		 fd;
+	int		 fd, rc;
 	uint32_t	 cookie, test;
 	struct pollfd	 pfd[2];
 	char		 buf[BUFSIZ];
@@ -93,16 +93,36 @@ kfcgi_control(int work, int ctrl)
 	for (;;) {
 		pfd[0].fd = STDIN_FILENO;
 		pfd[0].events = POLLIN;
+		pfd[0].revents = 0;
 		pfd[1].fd = ctrl;
 		pfd[1].events = POLLIN;
+		pfd[1].revents = 0;
 
-		if (poll(pfd, 2, -1) < 0) {
+		if ((rc = poll(pfd, 2, -1)) < 0) {
 			XWARN("poll");
 			return(EXIT_FAILURE);
+		} else if (0 == rc) {
+			/*
+			 * This seems to happen on Mac OSX from time to
+			 * time and I have no idea why: it's blatantly
+			 * bad behaviour.
+			 */
+			XWARNX("poll expired!?");
+			continue;
 		} else if (POLLHUP & pfd[1].revents) {
 			break;
 		} else if ( ! (POLLIN & pfd[0].revents)) {
-			XWARNX("poll: control");
+			XWARNX("poll: control (%d, %d | %d, %d; %d, %d; %d, %d; %d, %d)",
+				pfd[0].revents,
+				pfd[1].revents,
+				POLLIN & pfd[0].revents,
+				POLLIN & pfd[1].revents,
+				POLLHUP & pfd[0].revents,
+				POLLHUP & pfd[1].revents,
+				POLLNVAL & pfd[0].revents,
+				POLLNVAL & pfd[1].revents,
+				POLLERR & pfd[0].revents,
+				POLLERR & pfd[1].revents);
 			return(EXIT_FAILURE);
 		}
 
