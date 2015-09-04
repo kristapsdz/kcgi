@@ -1,0 +1,17 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.7.2</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-09-04">2015-09-04</time>
+	</header>
+	<aside>
+		<div>
+			If a FastCGI connection closes, don't make
+			failing writes to that connection bring down the
+			application.
+			Also work around a very weird Mac OS X bug
+			wherein a poll will return a timeout even though
+			the poll request is blocking.
+		</div>
+	</aside>
+</article>
