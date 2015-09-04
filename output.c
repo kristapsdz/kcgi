@@ -79,13 +79,13 @@ fcgi_write(const struct kdata *p, const char *buf, size_t sz)
 		requestId = htons(p->requestId);
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
 		contentLength = htons(rsz);
-		fullwrite(p->fcgi, &version, sizeof(uint8_t));
-		fullwrite(p->fcgi, &type, sizeof(uint8_t));
-		fullwrite(p->fcgi, &requestId, sizeof(uint16_t));
-		fullwrite(p->fcgi, &contentLength, sizeof(uint16_t));
-		fullwrite(p->fcgi, &paddingLength, sizeof(uint8_t));
-		fullwrite(p->fcgi, &reserved, sizeof(uint8_t));
-		fullwrite(p->fcgi, buf, rsz);
+		fullwritenoerr(p->fcgi, &version, sizeof(uint8_t));
+		fullwritenoerr(p->fcgi, &type, sizeof(uint8_t));
+		fullwritenoerr(p->fcgi, &requestId, sizeof(uint16_t));
+		fullwritenoerr(p->fcgi, &contentLength, sizeof(uint16_t));
+		fullwritenoerr(p->fcgi, &paddingLength, sizeof(uint8_t));
+		fullwritenoerr(p->fcgi, &reserved, sizeof(uint8_t));
+		fullwritenoerr(p->fcgi, buf, rsz);
 		sz -= rsz;
 		buf += rsz;
 	}
@@ -115,7 +115,7 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	}
 #endif
 	if (-1 == req->kdata->fcgi) 
-		fullwrite(STDOUT_FILENO, buf, sz);
+		fullwritenoerr(STDOUT_FILENO, buf, sz);
 	else
 		fcgi_write(req->kdata, buf, sz);
 }
@@ -226,15 +226,15 @@ kdata_free(struct kdata *p, int flush)
 			requestId = htons(p->requestId);
 			contentLength = htons(8);
 			appStatus = htonl(EXIT_SUCCESS);
-			fullwrite(p->fcgi, &version, sizeof(uint8_t));
-			fullwrite(p->fcgi, &type, sizeof(uint8_t));
-			fullwrite(p->fcgi, &requestId, sizeof(uint16_t));
-			fullwrite(p->fcgi, &contentLength, sizeof(uint16_t));
-			fullwrite(p->fcgi, &paddingLength, sizeof(uint8_t));
-			fullwrite(p->fcgi, &reserved, sizeof(uint8_t));
-			fullwrite(p->fcgi, &appStatus, sizeof(uint32_t));
-			fullwrite(p->fcgi, &protocolStatus, sizeof(uint8_t));
-			fullwrite(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, &version, sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, &type, sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, &requestId, sizeof(uint16_t));
+			fullwritenoerr(p->fcgi, &contentLength, sizeof(uint16_t));
+			fullwritenoerr(p->fcgi, &paddingLength, sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, &reserved, sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, &appStatus, sizeof(uint32_t));
+			fullwritenoerr(p->fcgi, &protocolStatus, sizeof(uint8_t));
+			fullwritenoerr(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
 			close(p->fcgi);
 			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
 			p->control = -1;

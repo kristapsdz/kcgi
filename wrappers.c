@@ -230,6 +230,42 @@ fullwriteword(int fd, const char *buf)
 }
 
 /*
+ * This is like fullwrite() but it does not bail out on errors.
+ * We need this for writing our response to a socket that may be closed
+ * at any time, like the FastCGI one.
+ * It is exactly the same as fullwrite() except for that.
+ */
+void
+fullwritenoerr(int fd, const void *buf, size_t bufsz)
+{
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz)
+		if (-1 == poll(&pfd, 1, -1))
+			XWARN("poll: %d, POLLOUT", fd);
+		else if (POLLHUP & pfd.revents)
+			XWARNX("poll: POLLHUP");
+		else if (POLLERR & pfd.revents)
+			XWARNX("poll: POLLER");
+#ifdef __APPLE__
+		else if ( ! (POLLOUT & pfd.revents) && ! (POLLNVAL & pfd.revents))
+			XWARNX("poll: not POLLOUT");
+#else
+		else if ( ! (POLLOUT & pfd.revents))
+			XWARNX("poll: not POLLOUT");
+#endif
+		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
+			XWARN("write: %d, %zu", fd, bufsz - sz);
+		else if (sz > SIZE_MAX - (size_t)ssz)
+			XWARNX("write: overflow: %zu, %zd", sz, ssz);
+}
+
+/*
  * Write the full contents of "buf" to the non-blocking stream.
  * This will loop on "fd" until all data has been sent.
  * On error (which shouldn't happen), this will kill the process.
