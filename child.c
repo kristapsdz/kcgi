@@ -311,6 +311,7 @@ scanbuf(size_t len, size_t *szp)
 	ssize_t		 ssz;
 	size_t		 sz;
 	char		*p;
+	int		 rc;
 	struct pollfd	 pfd;
 
 	pfd.fd = STDIN_FILENO;
@@ -322,9 +323,13 @@ scanbuf(size_t len, size_t *szp)
 
 	/* Keep reading til we get all the data. */
 	for (sz = 0; sz < len; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1)) {
+		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: POLLIN");
 			_exit(EXIT_FAILURE);
+		} else if (0 == rc) {
+			XWARNX("poll: timeout!?");
+			ssz = 0;
+			continue;
 		} else if ( ! (POLLIN & pfd.revents))
 			break;
 

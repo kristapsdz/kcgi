@@ -241,14 +241,19 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1))
+		if ((rc = poll(&pfd, 1, -1)) < 0)
 			XWARN("poll: %d, POLLOUT", fd);
-		else if (POLLHUP & pfd.revents)
+		else if (0 == rc) {
+			XWARNX("poll: timeout!?");
+			ssz = 0;
+			continue;
+		} else if (POLLHUP & pfd.revents)
 			XWARNX("poll: POLLHUP");
 		else if (POLLERR & pfd.revents)
 			XWARNX("poll: POLLER");
@@ -280,14 +285,19 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1))
+		if ((rc = poll(&pfd, 1, -1)) < 0) 
 			XWARN("poll: %d, POLLOUT", fd);
-		else if (POLLHUP & pfd.revents)
+		else if (0 == rc) {
+			XWARNX("poll: timeout!?");
+			ssz = 0;
+			continue;
+		} else if (POLLHUP & pfd.revents)
 			XWARNX("poll: POLLHUP");
 		else if (POLLERR & pfd.revents)
 			XWARNX("poll: POLLER");
@@ -327,14 +337,19 @@ fulldiscard(int fd, size_t bufsz, enum kcgi_err *er)
 	size_t	 	 sz;
 	struct pollfd	 pfd;
 	char		 buf;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1)) {
+		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: %d, POLLIN", fd);
 			*er = KCGI_SYSTEM;
+		} else if (0 == rc) {
+			XWARNX("poll: timeout!?");
+			ssz = 0;
+			continue;
 		} else if ( ! (POLLIN & pfd.revents)) {
 			XWARNX("poll: unexpected hup");
 			*er = KCGI_FORM;
@@ -375,15 +390,20 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if (-1 == poll(&pfd, 1, -1)) {
+		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll");
 			*er = KCGI_SYSTEM;
 			return(-1);
+		} else if (0 == rc) {
+			XWARNX("poll: timeout!?");
+			ssz = 0;
+			continue;
 		} else if ( ! (POLLIN & pfd.revents)) {
 			if (eofok && 0 == sz) {
 				*er = KCGI_OK;
@@ -445,6 +465,7 @@ int
 fullwritefd(int fd, int sendfd, void *b, size_t bsz)
 {
 	struct msghdr	 msg;
+	int		 rc;
 	char		 buf[CMSG_SPACE(sizeof(fd))];
 	struct iovec 	 io;
 	struct cmsghdr	*cmsg;
@@ -475,9 +496,13 @@ fullwritefd(int fd, int sendfd, void *b, size_t bsz)
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
-	if (poll(&pfd, 1, -1) < 0) {
+again:
+	if ((rc = poll(&pfd, 1, -1)) < 0) {
 		XWARN("poll");
 		return(-1);
+	} else if (0 == rc) {
+		XWARNX("poll: timeout!?");
+		goto again;
 	} else if ( ! (POLLOUT & pfd.revents)) {
 		XWARNX("poll: hangup");
 		return(-1);
@@ -514,9 +539,13 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
-	if (poll(&pfd, 1, -1) < 0) {
+again:
+	if ((rc = poll(&pfd, 1, -1)) < 0) {
 		XWARN("poll");
 		return(-1);
+	} else if (0 == rc) {
+		XWARNX("poll: timeout!?");
+		goto again;
 	} else if ( ! (POLLIN & pfd.revents)) {
 		XWARNX("poll: hangup");
 		return(0);
