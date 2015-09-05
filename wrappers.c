@@ -245,7 +245,7 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
 
-	for (sz = 0; sz < bufsz; sz += (size_t)ssz)
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if (-1 == poll(&pfd, 1, -1))
 			XWARN("poll: %d, POLLOUT", fd);
 		else if (POLLHUP & pfd.revents)
@@ -263,6 +263,10 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 			XWARN("write: %d, %zu", fd, bufsz - sz);
 		else if (sz > SIZE_MAX - (size_t)ssz)
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
+		else
+			continue;
+		break;
+	}
 }
 
 /*
