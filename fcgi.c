@@ -102,11 +102,6 @@ kfcgi_control(int work, int ctrl)
 			XWARN("poll");
 			return(EXIT_FAILURE);
 		} else if (0 == rc) {
-			/*
-			 * This seems to happen on Mac OSX from time to
-			 * time and I have no idea why: it's blatantly
-			 * bad behaviour.
-			 */
 			XWARNX("poll expired!?");
 			continue;
 		} else if (POLLHUP & pfd[1].revents) {
@@ -164,11 +159,14 @@ kfcgi_control(int work, int ctrl)
 		 */
 		fullwrite(pfd[1].fd, &cookie, sizeof(uint32_t));
 		for (;;) {
-			if (-1 == poll(pfd, 2, -1)) {
+			if ((rc = poll(pfd, 2, -1)) < 0) {
 				XWARN("poll: control socket");
 				close(fd);
 				return(EXIT_FAILURE);
-			} 
+			} else if (0 == rc) {
+				XWARNX("poll: timeout!?");
+				continue;
+			}
 			if (POLLIN & pfd[1].revents) {
 				/* Child is responding! */
 				break;
