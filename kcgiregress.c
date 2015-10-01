@@ -74,6 +74,26 @@ fcgi_write(int fd, const void *buf, size_t sz)
 }
 
 static int
+fcgi_ignore(int fd, size_t sz)
+{
+	ssize_t	 ssz;
+	char	 buf;
+
+	while (sz > 0) {
+		if (-1 == (ssz = read(fd, &buf, 1))) {
+			perror("read");
+			return(0);
+		} else if (0 == ssz) {
+			fputs("read: unexpected EOF\n", stderr);
+			return(0);
+		}
+		sz--;
+	}
+
+	return(1);
+}
+
+static int
 fcgi_read(int fd, void *buf, size_t sz)
 {
 	ssize_t	 ssz;
@@ -662,6 +682,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 				fprintf(stderr, "%s: bad read\n", __func__);
 			goto out;
 		}
+		if (0 == fcgi_ignore(fd, hdr.paddingLength)) {
+			fprintf(stderr, "%s: bad ignore\n", __func__);
+			goto out;
+		} 
 	}
 out:
 	/* 
