@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -59,36 +60,67 @@ struct	kdata {
 #endif
 };
 
+static char *
+fcgi_header(uint8_t type, uint16_t requestId, 
+	size_t contentLength, size_t paddingLength)
+{
+	static char	header[8];
+	uint8_t		byte;
+
+	byte = 1;
+	memcpy(header, &byte, sizeof(uint8_t));
+	memcpy(header + 1, &type, sizeof(uint8_t));
+	byte = (requestId >> 8) & 0xff;
+	memcpy(header + 2, &byte, sizeof(uint8_t));
+	byte = requestId & 0xff;
+	memcpy(header + 3, &byte, sizeof(uint8_t));
+	byte = (contentLength >> 8) & 0xff;
+	memcpy(header + 4, &byte, sizeof(uint8_t));
+	byte = contentLength & 0xff;
+	memcpy(header + 5, &byte, sizeof(uint8_t));
+	memcpy(header + 6, &paddingLength, sizeof(uint8_t));
+	byte = 0;
+	memcpy(header + 7, &byte, sizeof(uint8_t));
+	return(header);
+}
+
+
 /*
  * Write a `stdout' FastCGI packet.
  * This involves writing the header, then the data itself.
  */
 static void
-fcgi_write(const struct kdata *p, const char *buf, size_t sz)
+fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 {
-	uint8_t	 version, type, reserved, paddingLength;
-	uint16_t requestId, contentLength;
-	size_t	 rsz;
+	char	 padding[256];
+	size_t	 rsz, paddingLength;
 
 	/* Break up the data stream into FastCGI-capable chunks. */
-	while (sz > 0) {
-		version = 1;
-		type = 6;
-		reserved = 0;
+	do {
 		paddingLength = 0;
-		requestId = htons(p->requestId);
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
-		contentLength = htons(rsz);
-		fullwritenoerr(p->fcgi, &version, sizeof(uint8_t));
-		fullwritenoerr(p->fcgi, &type, sizeof(uint8_t));
-		fullwritenoerr(p->fcgi, &requestId, sizeof(uint16_t));
-		fullwritenoerr(p->fcgi, &contentLength, sizeof(uint16_t));
-		fullwritenoerr(p->fcgi, &paddingLength, sizeof(uint8_t));
-		fullwritenoerr(p->fcgi, &reserved, sizeof(uint8_t));
+		/* Pad to 8-byte boundary. */
+		while (0 != ((rsz + paddingLength) % 8)) {
+			assert(paddingLength < 256);
+			paddingLength++;
+		}
+#if 0
+		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n", 
+			__func__, type);
+		fprintf(stderr, "%s: DEBUG send requestId: %" PRIu16 "\n", 
+			__func__, p->requestId);
+		fprintf(stderr, "%s: DEBUG send contentLength: %zu\n", 
+			__func__, rsz);
+		fprintf(stderr, "%s: DEBUG send paddingLength: %zu\n", 
+			__func__, paddingLength);
+#endif
+		fullwritenoerr(p->fcgi, fcgi_header
+			(type, p->requestId, rsz, paddingLength), 8);
 		fullwritenoerr(p->fcgi, buf, rsz);
+		fullwritenoerr(p->fcgi, padding, paddingLength);
 		sz -= rsz;
 		buf += rsz;
-	}
+	} while (sz > 0);
 }
 
 /*
@@ -117,7 +149,7 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	if (-1 == req->kdata->fcgi) 
 		fullwritenoerr(STDOUT_FILENO, buf, sz);
 	else
-		fcgi_write(req->kdata, buf, sz);
+		fcgi_write(6, req->kdata, buf, sz);
 }
 
 void
@@ -160,13 +192,13 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 		va_end(ap);
 		printf("\r\n");
 	} else {
-		fcgi_write(req->kdata, key, strlen(key));
-		fcgi_write(req->kdata, ": ", 2);
+		fcgi_write(6, req->kdata, key, strlen(key));
+		fcgi_write(6, req->kdata, ": ", 2);
 		va_start(ap, fmt);
 		vsnprintf(buf, sizeof(buf), fmt, ap);
 		va_end(ap);
-		fcgi_write(req->kdata, buf, strlen(buf));
-		fcgi_write(req->kdata, "\r\n", 2);
+		fcgi_write(6, req->kdata, buf, strlen(buf));
+		fcgi_write(6, req->kdata, "\r\n", 2);
 	}
 }
 
@@ -191,9 +223,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId)
 void
 kdata_free(struct kdata *p, int flush)
 {
-	uint8_t	 version, type, reserved, paddingLength,
-		 protocolStatus, reservedbuf[3];
-	uint16_t requestId, contentLength;
+	uint8_t	 protocolStatus, reservedbuf[3];
 	uint32_t appStatus;
 
 	if (NULL == p)
@@ -212,40 +242,38 @@ kdata_free(struct kdata *p, int flush)
 	if (NULL != p->gz)
 		gzclose(p->gz);
 #endif
+	if (-1 == p->fcgi) {
+		free(p);
+		return;
+	}
 
 	if (flush) {
-		if (-1 != p->fcgi) {
-			version = 1;
-			type = 3;
-			reserved = 0;
-			paddingLength = 0;
-			protocolStatus = 0;
-			reservedbuf[0] =
-			 	reservedbuf[1] =
-			 	reservedbuf[2] = 0;
-			requestId = htons(p->requestId);
-			contentLength = htons(8);
-			appStatus = htonl(EXIT_SUCCESS);
-			fullwritenoerr(p->fcgi, &version, sizeof(uint8_t));
-			fullwritenoerr(p->fcgi, &type, sizeof(uint8_t));
-			fullwritenoerr(p->fcgi, &requestId, sizeof(uint16_t));
-			fullwritenoerr(p->fcgi, &contentLength, sizeof(uint16_t));
-			fullwritenoerr(p->fcgi, &paddingLength, sizeof(uint8_t));
-			fullwritenoerr(p->fcgi, &reserved, sizeof(uint8_t));
-			fullwritenoerr(p->fcgi, &appStatus, sizeof(uint32_t));
-			fullwritenoerr(p->fcgi, &protocolStatus, sizeof(uint8_t));
-			fullwritenoerr(p->fcgi, reservedbuf, 3 * sizeof(uint8_t));
-			close(p->fcgi);
-			fullwrite(p->control, &p->requestId, sizeof(uint16_t));
-			p->control = -1;
-			p->fcgi = -1;
-		} 
+		fprintf(stderr, "here\n");
+		/* End of stream. */
+		fcgi_write(6, p, "", 0);
+		/* End of request. */
+		fcgi_write(3, p, "", 8);
+		protocolStatus = 0;
+		reservedbuf[0] =
+		 	reservedbuf[1] =
+		 	reservedbuf[2] = 0;
+		appStatus = htonl(EXIT_SUCCESS);
+		fullwritenoerr(p->fcgi, 
+			&appStatus, sizeof(uint32_t));
+		fullwritenoerr(p->fcgi, 
+			&protocolStatus, sizeof(uint8_t));
+		fullwritenoerr(p->fcgi, 
+			reservedbuf, 3 * sizeof(uint8_t));
+		close(p->fcgi);
+		fullwrite(p->control, 
+			&p->requestId, sizeof(uint16_t));
+		p->control = -1;
+		p->fcgi = -1;
 	} else {
-		if (-1 != p->fcgi) {
-			close(p->fcgi);
-			p->fcgi = -1;
-		}
+		close(p->fcgi);
+		p->fcgi = -1;
 	}
+
 	free(p);
 }
 
@@ -287,7 +315,7 @@ kdata_body(struct kdata *p)
 		fputs("\r\n", stdout);
 		fflush(stdout);
 	} else
-		fcgi_write(p, "\r\n", 2);
+		fcgi_write(6, p, "\r\n", 2);
 
 	p->state = KSTATE_BODY;
 }
