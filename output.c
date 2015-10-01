@@ -102,7 +102,7 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 		/* Pad to 8-byte boundary. */
 		while (0 != ((rsz + paddingLength) % 8)) {
 			assert(paddingLength < 256);
-			paddingLength++;
+			padding[paddingLength++] = '\0';
 		}
 #if 0
 		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n", 
@@ -223,7 +223,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId)
 void
 kdata_free(struct kdata *p, int flush)
 {
-	uint8_t	 protocolStatus, reservedbuf[3];
+	char	 buf[8];
 	uint32_t appStatus;
 
 	if (NULL == p)
@@ -248,25 +248,16 @@ kdata_free(struct kdata *p, int flush)
 	}
 
 	if (flush) {
-		fprintf(stderr, "here\n");
 		/* End of stream. */
 		fcgi_write(6, p, "", 0);
-		/* End of request. */
-		fcgi_write(3, p, "", 8);
-		protocolStatus = 0;
-		reservedbuf[0] =
-		 	reservedbuf[1] =
-		 	reservedbuf[2] = 0;
 		appStatus = htonl(EXIT_SUCCESS);
-		fullwritenoerr(p->fcgi, 
-			&appStatus, sizeof(uint32_t));
-		fullwritenoerr(p->fcgi, 
-			&protocolStatus, sizeof(uint8_t));
-		fullwritenoerr(p->fcgi, 
-			reservedbuf, 3 * sizeof(uint8_t));
+		memset(buf, 0, 8);
+		memcpy(buf, &appStatus, sizeof(uint32_t));
+		/* End of request. */
+		fcgi_write(3, p, buf, 8);
+		/* Close out. */
 		close(p->fcgi);
-		fullwrite(p->control, 
-			&p->requestId, sizeof(uint16_t));
+		fullwrite(p->control, &p->requestId, sizeof(uint16_t));
 		p->control = -1;
 		p->fcgi = -1;
 	} else {
