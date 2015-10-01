@@ -1322,11 +1322,7 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	hdr->type = ptr->type;
 	hdr->requestId = ntohs(ptr->requestId);
 	hdr->contentLength = ntohs(ptr->contentLength);
-	hdr->paddingLength = ntohs(ptr->paddingLength);
-	if (1 != hdr->version) {
-		XWARNX("bad FastCGI header version");
-		return(NULL);
-	}
+	hdr->paddingLength = ptr->paddingLength;
 #if 0
 	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n", 
 		__func__, hdr->version);
@@ -1339,6 +1335,10 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n", 
 		__func__, hdr->paddingLength);
 #endif
+	if (1 != hdr->version) {
+		XWARNX("bad FastCGI header version");
+		return(NULL);
+	}
 	return(hdr);
 }
 
