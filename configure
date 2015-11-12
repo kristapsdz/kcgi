@@ -28,17 +28,17 @@ runtest() {
 }
 
 cat config.h.pre
+runtest capsicum CAPSICUM ""
+runtest memmem MEMMEM ""
+runtest pledge PLEDGE ""
+runtest reallocarray REALLOCARRAY ""
+runtest sandbox_init SANDBOX_INIT ""
+runtest seccomp-filter SECCOMP_FILTER ""
 runtest strlcat STRLCAT ""
 runtest strlcpy STRLCPY ""
 runtest strtonum STRTONUM ""
-runtest memmem MEMMEM ""
-runtest reallocarray REALLOCARRAY ""
-runtest sandbox_init SANDBOX_INIT ""
 runtest systrace SYSTRACE ""
-runtest tame TAME ""
 runtest zlib ZLIB "-lz"
-runtest capsicum CAPSICUM ""
-runtest seccomp-filter SECCOMP_FILTER ""
 arch=`uname -m 2>/dev/null || echo unknown`
 case "$arch" in
 x86_64)
