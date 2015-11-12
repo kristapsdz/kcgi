@@ -76,7 +76,7 @@ child(void)
 	}
 
 	for (i = 0; i < 1024 * 1024; i++)
-		if (r.fieldmap[0]->val[i] != (i % 10) + 65) {
+		if (r.fieldmap[0]->val[i] != (char)(i % 10) + 65) {
 			khttp_free(&r);
 			return(0);
 		}
