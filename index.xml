@@ -274,13 +274,11 @@ int main(void) {
 						mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
 					</dd>
 					<dt>
-						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/tame.2">tame(2)</a>
+						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/pledge.2">pledge(2)</a>
 						(<a href="http://www.openbsd.org">OpenBSD</a>)
 					</dt>
 					<dd>
-						This will only work on OpenBSD &#x2265;5.8.
-						(As of this note, this has not been officially released: the system will compile with snapshots,
-						but the function will not register as enabled during configuration.)
+						This will only work on OpenBSD &gt;5.8.
 						It is selected with higher priority over <a
 							href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
 						on OpenBSD machines.
