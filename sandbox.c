@@ -18,7 +18,7 @@
 #include "config.h"
 #endif
 
-#ifndef HAVE_TAME
+#ifndef HAVE_PLEDGE
 #ifndef HAVE_SYSTRACE
 #ifndef HAVE_SECCOMP_FILTER
 #ifndef HAVE_CAPSICUM
@@ -59,7 +59,7 @@ ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 	return(1);
 #elif defined(HAVE_SANDBOX_INIT)
 	return(1);
-#elif defined(HAVE_TAME)
+#elif defined(HAVE_PLEDGE)
 	return(1);
 #elif defined(HAVE_SYSTRACE)
 	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
@@ -87,7 +87,7 @@ ksandbox_alloc(void **pp)
 	return(1);
 #elif defined(HAVE_SANDBOX_INIT)
 	return(1);
-#elif defined(HAVE_TAME)
+#elif defined(HAVE_PLEDGE)
 	return(1);
 #elif defined(HAVE_SYSTRACE)
 	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
@@ -119,7 +119,7 @@ ksandbox_close(void *arg)
 	return;
 #elif defined(HAVE_SANDBOX_INIT)
 	return;
-#elif defined(HAVE_TAME)
+#elif defined(HAVE_PLEDGE)
 	return;
 #elif defined(HAVE_SYSTRACE)
 	ksandbox_systrace_close(arg);
@@ -148,9 +148,9 @@ ksandbox_init_child(void *arg,
 		XWARNX("ksandbox_darwin_init_child");
 		return(0);
 	}
-#elif defined(HAVE_TAME)
-	if ( ! ksandbox_tame_init_child(arg, type)) {
-		XWARNX("ksandbox_tame_init_child");
+#elif defined(HAVE_PLEDGE)
+	if ( ! ksandbox_pledge_init_child(arg, type)) {
+		XWARNX("ksandbox_pledge_init_child");
 		return(0);
 	}
 #elif defined(HAVE_SYSTRACE)

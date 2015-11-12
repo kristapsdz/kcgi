@@ -74,7 +74,12 @@ static const struct systrace_preauth preauth_control[] = {
 	{ SYS_fcntl, SYSTR_POLICY_PERMIT },
 	{ SYS_sendmsg, SYSTR_POLICY_PERMIT },
 
-	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
+#ifdef SYS__sysctl
+	{ SYS__sysctl, SYSTR_POLICY_PERMIT },
+#endif
+#ifdef SYS_sysctl
+	{ SYS_sysctl, SYSTR_POLICY_PERMIT },
+#endif
 	{ SYS_close, SYSTR_POLICY_PERMIT },
 	{ SYS_exit, SYSTR_POLICY_PERMIT },
 	{ SYS_getpid, SYSTR_POLICY_PERMIT },
@@ -102,7 +107,12 @@ static const struct systrace_preauth preauth_control[] = {
 static const struct systrace_preauth preauth_worker[] = {
 	{ SYS_open, SYSTR_POLICY_NEVER },
 
-	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
+#ifdef SYS_sysctl
+	{ SYS_sysctl, SYSTR_POLICY_PERMIT },
+#endif
+#ifdef SYS__sysctl
+	{ SYS__sysctl, SYSTR_POLICY_PERMIT },
+#endif
 	{ SYS_close, SYSTR_POLICY_PERMIT },
 	{ SYS_exit, SYSTR_POLICY_PERMIT },
 	{ SYS_getpid, SYSTR_POLICY_PERMIT },
