@@ -1,0 +1,14 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.7.4</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2015-11-12">2015-11-12</time>
+	</header>
+	<aside>
+		<div>
+			Replace support for tame(2) (which was never enabled in the operating system) with the renamed <a
+				href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/pledge.2">pledge(2)</a>.
+			From a patch by James Turner&#8212;thank you!
+		</div>
+	</aside>
+</article>
