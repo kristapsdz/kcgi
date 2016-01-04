@@ -294,6 +294,9 @@ enum	kpairstate {
 	KPAIR_INVALID
 };
 
+#define KREQ_DEBUG_WRITE	  0x01
+#define KREQ_DEBUG_READ_BODY	  0x02
+
 struct	kpair {
 	char		*key; /* key name */
 	size_t		 keypos; /* bucket (if assigned) */
@@ -446,7 +449,8 @@ enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *,
 			const char *const *, size_t, 
 			const struct kvalid *, size_t,
 			const char *const *, size_t,
-			size_t, size_t, void *, void (*)(void *));
+			size_t, size_t, void *, void (*)(void *),
+			unsigned int);
 void		 khttp_putc(struct kreq *, int);
 void		 khttp_puts(struct kreq *, const char *);
 int		 khttp_template(struct kreq *, 
@@ -477,7 +481,7 @@ enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **,
 			const struct kvalid *, size_t, 
 			const struct kmimemap *, size_t,
 			const char *const *, size_t, size_t,
-			void *, void (*)(void *));
+			void *, void (*)(void *), unsigned int);
 enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
 int		 khttp_fcgi_test(void);

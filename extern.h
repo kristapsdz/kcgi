@@ -40,7 +40,7 @@ enum	sandtype {
 
 __BEGIN_DECLS
 
-struct kdata	*kdata_alloc(int, int, uint16_t);
+struct kdata	*kdata_alloc(int, int, uint16_t, unsigned int);
 void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);
@@ -49,10 +49,12 @@ void		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(int,
 			const struct kvalid *, size_t, 
-			const char *const *, size_t);
+			const char *const *, size_t,
+			unsigned int);
 void	 	 kworker_fcgi_child(int, int,
 			const struct kvalid *, size_t, 
-			const char *const *, size_t);
+			const char *const *, size_t,
+			unsigned int);
 enum kcgi_err	 kworker_parent(int, struct kreq *);
 
 int		 fulldiscard(int, size_t, enum kcgi_err *);

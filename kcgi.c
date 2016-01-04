@@ -608,7 +608,7 @@ khttp_parse(struct kreq *req,
 
 	return(khttp_parsex(req, ksuffixmap, kmimetypes, 
 		KMIME__MAX, keys, keysz, pages, pagesz, 
-		KMIME_TEXT_HTML, defpage, NULL, NULL));
+		KMIME_TEXT_HTML, defpage, NULL, NULL, 0));
 }
 
 enum kcgi_err
@@ -618,7 +618,7 @@ khttp_parsex(struct kreq *req,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defmime, size_t defpage, void *arg,
-	void (*argfree)(void *arg))
+	void (*argfree)(void *arg), unsigned debugging)
 {
 	const struct kmimemap *mm;
 	enum kcgi_err	  kerr;
@@ -664,7 +664,8 @@ khttp_parsex(struct kreq *req,
 			er = EXIT_FAILURE;
 		} else {
 			kworker_child(work_dat[KWORKER_CHILD], 
-				keys, keysz, mimes, mimesz);
+				keys, keysz, mimes, mimesz,
+				debugging);
 			er = EXIT_SUCCESS;
 		}
 		ksandbox_free(work_box);
@@ -695,7 +696,7 @@ khttp_parsex(struct kreq *req,
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
-	req->kdata = kdata_alloc(-1, -1, 0);
+	req->kdata = kdata_alloc(-1, -1, 0, debugging);
 	if (NULL == req->kdata)
 		goto err;
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));

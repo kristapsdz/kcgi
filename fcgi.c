@@ -42,6 +42,7 @@ struct	kfcgi {
 	const char *const	 *mimes;
 	size_t			  mimesz;
 	size_t			  defmime;
+	unsigned int		  debugging;
 	const char *const	 *pages;
 	size_t			  pagesz;
 	size_t			  defpage;
@@ -278,7 +279,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	const struct kvalid *keys, size_t keysz, 
 	const struct kmimemap *mimemap, size_t defmime,
 	const char *const *pages, size_t pagesz,
-	size_t defpage, void *arg, void (*argfree)(void *))
+	size_t defpage, void *arg, void (*argfree)(void *),
+	unsigned int debugging)
 {
 	struct kfcgi	*fcgi;
 	int 		 er;
@@ -350,7 +352,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 			kworker_fcgi_child
 				(work_dat[KWORKER_CHILD],
 				 work_ctl[KWORKER_CHILD],
-				 keys, keysz, mimes, mimesz);
+				 keys, keysz, mimes, mimesz,
+				 debugging);
 			er = EXIT_SUCCESS;
 		}
 		ksandbox_free(work_box);
@@ -469,6 +472,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	fcgi->pages = pages;
 	fcgi->pagesz = pagesz;
 	fcgi->defpage = defpage;
+	fcgi->debugging = debugging;
 	return(KCGI_OK);
 }
 
@@ -482,7 +486,7 @@ khttp_fcgi_init(struct kfcgi **fcgi,
 	return(khttp_fcgi_initx(fcgi, kmimetypes, 
 		KMIME__MAX, keys, keysz, ksuffixmap,
 		KMIME_TEXT_HTML, pages, pagesz, defpage, 
-		NULL, NULL));
+		NULL, NULL, 0));
 }
 
 enum kcgi_err
@@ -512,7 +516,8 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	req->arg = fcgi->arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	if (NULL == (req->kdata = kdata_alloc(fcgi->sock_ctl, fd, rid)))
+	req->kdata = kdata_alloc(fcgi->sock_ctl, fd, rid, fcgi->debugging);
+	if (NULL == req->kdata)
 		goto err;
 	fd = -1;
 	req->cookiemap = XCALLOC

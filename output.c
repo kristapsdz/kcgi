@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 
 #include <assert.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -51,8 +52,13 @@ enum	kstate {
  * This is used for managing HTTP compression.
  */
 struct	kdata {
+	int		 debugging; /* debugging flags */
 	int		 fcgi; /* file descriptor or -1 */
 	int		 control; /* control socket or -1 */
+	char		*linebuf; /* output line buffer */
+	size_t		 linebufpos; /* output line buffer */
+	size_t		 linebufsz;
+	uint64_t	 bytes; /* total bytes written */
 	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
 #ifdef	HAVE_ZLIB
@@ -123,6 +129,29 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 	} while (sz > 0);
 }
 
+static void
+linebuf_init(struct kreq *req)
+{
+
+	if (NULL != req->kdata->linebuf) 
+		return;
+	req->kdata->linebufsz = BUFSIZ;
+	req->kdata->linebuf = kmalloc(req->kdata->linebufsz);
+	req->kdata->linebuf[0] = '\0';
+	req->kdata->linebufpos = 0;
+}
+
+static void
+linebuf_flush(struct kdata *p, int newln)
+{
+
+	fprintf(stderr, "%u: %s%s", getpid(), 
+		p->linebuf, newln ? "\n" : "");
+	fflush(stderr);
+	p->linebufpos = 0;
+	p->linebuf[0] = '\0';
+}
+
 /*
  * In this function, we need to handle FastCGI, gzip, or raw.
  * FastCGI requests can't (yet) be gzip'd.
@@ -130,26 +159,68 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 void
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
+	size_t	 	 i;
+	struct kdata	*p = req->kdata;
 
-	assert(NULL != req->kdata);
-	assert(KSTATE_BODY == req->kdata->state);
+	assert(NULL != p);
+	assert(KSTATE_BODY == p->state);
+
+	/*
+	 * We want to debug writes.
+	 * To do so, we write into a line buffer.
+	 * Whenever we hit a newline (or the line buffer is filled),
+	 * flush the buffer to stderr.
+	 */
+	if (KREQ_DEBUG_WRITE & p->debugging) {
+		linebuf_init(req);
+		for (i = 0; i < sz; i++, p->bytes++) {
+			if (p->linebufpos + 4 >= p->linebufsz)
+				linebuf_flush(p, 1);
+			if (isprint((int)buf[i]) || '\n' == buf[i]) {
+				p->linebuf[p->linebufpos++] = buf[i];
+				p->linebuf[p->linebufpos] = '\0';
+			} else if ('\t' == buf[i]) {
+				p->linebuf[p->linebufpos++] = '\\';
+				p->linebuf[p->linebufpos++] = 't';
+				p->linebuf[p->linebufpos] = '\0';
+			} else if ('\r' == buf[i]) {
+				p->linebuf[p->linebufpos++] = '\\';
+				p->linebuf[p->linebufpos++] = 'r';
+				p->linebuf[p->linebufpos] = '\0';
+			} else if ('\v' == buf[i]) {
+				p->linebuf[p->linebufpos++] = '\\';
+				p->linebuf[p->linebufpos++] = 'v';
+				p->linebuf[p->linebufpos] = '\0';
+			} else if ('\b' == buf[i]) {
+				p->linebuf[p->linebufpos++] = '\\';
+				p->linebuf[p->linebufpos++] = 'b';
+				p->linebuf[p->linebufpos] = '\0';
+			} else {
+				p->linebuf[p->linebufpos++] = '?';
+				p->linebuf[p->linebufpos] = '\0';
+			}
+			if ('\n' == buf[i])
+				linebuf_flush(p, 0);
+		}
+	}
+
 #ifdef HAVE_ZLIB
-	if (NULL != req->kdata->gz) {
+	if (NULL != p->gz) {
 		/*
 		 * FIXME: make this work properly on all systems.
 		 * This is known to break on FreeBSD: we may need to
 		 * break the uncompressed buffer into chunks that will
 		 * not cause EAGAIN to be raised.
 		 */
-		if (0 == gzwrite(req->kdata->gz, buf, sz))
+		if (0 == gzwrite(p->gz, buf, sz))
 			XWARNX("gzwrite");
 		return;
 	}
 #endif
-	if (-1 == req->kdata->fcgi) 
+	if (-1 == p->fcgi) 
 		fullwritenoerr(STDOUT_FILENO, buf, sz);
 	else
-		fcgi_write(6, req->kdata, buf, sz);
+		fcgi_write(6, p, buf, sz);
 }
 
 void
@@ -180,6 +251,18 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 	assert(NULL != req->kdata);
 	assert(KSTATE_HEAD == req->kdata->state);
 
+	if (KREQ_DEBUG_WRITE & req->kdata->debugging) {
+		linebuf_init(req);
+		va_start(ap, fmt);
+		vsnprintf(buf, sizeof(buf), fmt, ap);
+		va_end(ap);
+		req->kdata->bytes += snprintf
+			(req->kdata->linebuf, 
+			 req->kdata->linebufsz, 
+			 "%s: %s\\r", key, buf);
+		linebuf_flush(req->kdata, 1);
+	}
+
 	/*
 	 * FIXME: does this work with really, really long headers?
 	 * I'm not sure if this will break considering that stdout has
@@ -207,13 +290,15 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
  * We accept the file descriptor for the FastCGI stream, if there's any.
  */
 struct kdata *
-kdata_alloc(int control, int fcgi, uint16_t requestId)
+kdata_alloc(int control, int fcgi, 
+	uint16_t requestId, unsigned int debugging)
 {
 	struct kdata	*p;
 
 	if (NULL == (p = XCALLOC(1, sizeof(struct kdata))))
 		return(NULL);
 
+	p->debugging = debugging;
 	p->fcgi = fcgi;
 	p->control = control;
 	p->requestId = requestId;
@@ -223,11 +308,23 @@ kdata_alloc(int control, int fcgi, uint16_t requestId)
 void
 kdata_free(struct kdata *p, int flush)
 {
-	char	 buf[8];
-	uint32_t appStatus;
+	char	 	 buf[8];
+	uint32_t 	 appStatus;
 
 	if (NULL == p)
 		return;
+
+	if (KREQ_DEBUG_WRITE & p->debugging && p->linebufpos > 0)
+		linebuf_flush(p, 1);
+
+	if (KREQ_DEBUG_WRITE & p->debugging) {
+		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
+			getpid(), p->bytes);
+		fflush(stderr);
+	}
+
+	free(p->linebuf); 
+
 	/*
 	 * If we're not FastCGI and we're not going to flush, then close
 	 * the file descriptors outright: we don't want gzclose()

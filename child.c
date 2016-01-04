@@ -1118,9 +1118,10 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
  */
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
-	struct parms *pp, enum kmethod meth, char *b, size_t bsz)
+	struct parms *pp, enum kmethod meth, char *b, 
+	size_t bsz, unsigned int debugging)
 {
-	size_t 	 len;
+	size_t 	 i, len;
 	char	*cp, *bp = b;
 
 	/*
@@ -1155,6 +1156,32 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	/* If we're CGI, read the request now. */
 	if (NULL == b)
 		b = scanbuf(len, &bsz);
+
+	if (NULL != b && bsz && KREQ_DEBUG_READ_BODY & debugging) {
+		fprintf(stderr, "%u: ", getpid());
+		for (i = 0; i < bsz; i++) {
+			if (isprint((int)b[i]) || '\n' == b[i])
+				fputc(b[i], stderr);
+			else if ('\t' == b[i])
+				fputs("\\t", stderr);
+			else if ('\r' == b[i])
+				fputs("\\r", stderr);
+			else if ('\v' == b[i])
+				fputs("\\v", stderr);
+			else if ('\b' == b[i])
+				fputs("\\b", stderr);
+			else
+				fputc('?', stderr);
+			if ('\n' == b[i]) {
+				fflush(stderr);
+				fprintf(stderr, "%u: ", getpid());
+			}
+		}
+		if ('\n' != b[bsz - 1])
+			fputc('\n', stderr);
+		fprintf(stderr, "%u: %zu B rx\n", getpid(), bsz);
+		fflush(stderr);
+	}
 
 	if (NULL != cp) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
@@ -1227,7 +1254,8 @@ kworker_child_last(int fd)
 void
 kworker_child(int sock,
 	const struct kvalid *keys, size_t keysz, 
-	const char *const *mimes, size_t mimesz)
+	const char *const *mimes, size_t mimesz,
+	unsigned int debugging)
 {
 	struct parms	  pp;
 	char		 *cp;
@@ -1288,7 +1316,8 @@ kworker_child(int sock,
 	kworker_child_port(envs, wfd, envsz);
 
 	/* And now the message body itself. */
-	kworker_child_body(envs, wfd, envsz, &pp, meth, NULL, 0);
+	kworker_child_body(envs, wfd, envsz, 
+		&pp, meth, NULL, 0, debugging);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
 	kworker_child_last(wfd);
@@ -1583,7 +1612,8 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 void
 kworker_fcgi_child(int work_dat, int work_ctl,
 	const struct kvalid *keys, size_t keysz, 
-	const char *const *mimes, size_t mimesz)
+	const char *const *mimes, size_t mimesz,
+	unsigned int debugging)
 {
 	struct parms 	 pp;
 	struct fcgi_hdr	*hdr, realhdr;
@@ -1738,7 +1768,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
-			meth, (char *)sbuf, ssz);
+			meth, (char *)sbuf, ssz, debugging);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
