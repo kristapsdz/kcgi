@@ -1121,7 +1121,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth, char *b, 
 	size_t bsz, unsigned int debugging)
 {
-	size_t 	 i, len;
+	size_t 	 i, len, cur;
 	char	*cp, *bp = b;
 
 	/*
@@ -1159,7 +1159,16 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	if (NULL != b && bsz && KREQ_DEBUG_READ_BODY & debugging) {
 		fprintf(stderr, "%u: ", getpid());
-		for (i = 0; i < bsz; i++) {
+		for (cur = i = 0; i < bsz; i++, cur++) {
+			/* Print at most BUFSIZ characters. */
+			if (BUFSIZ == cur) {
+				fputc('\n', stderr);
+				fflush(stderr);
+				fprintf(stderr, "%u: ", getpid());
+				cur = 0;
+			}
+
+			/* Filter output. */
 			if (isprint((int)b[i]) || '\n' == b[i])
 				fputc(b[i], stderr);
 			else if ('\t' == b[i])
@@ -1172,13 +1181,18 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 				fputs("\\b", stderr);
 			else
 				fputc('?', stderr);
+
+			/* Handle newline. */
 			if ('\n' == b[i]) {
+				cur = 0;
 				fflush(stderr);
 				fprintf(stderr, "%u: ", getpid());
 			}
 		}
+		/* Terminate with newline. */
 		if ('\n' != b[bsz - 1])
 			fputc('\n', stderr);
+		/* Print some statistics. */
 		fprintf(stderr, "%u: %zu B rx\n", getpid(), bsz);
 		fflush(stderr);
 	}
