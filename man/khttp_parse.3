@@ -49,6 +49,7 @@
 .Fa "size_t defpage"
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
+.Fa "unsigned int debugging"
 .Fc
 .Vt extern const char *const kmimetypes[KMIME__MAX];
 .Vt extern const char *const khttps[KHTTP__MAX];
@@ -81,6 +82,28 @@ Function invoked with
 .Fa arg
 by the child process starting to parse untrusted network data.  This
 makes sure that no unnecessary data is leaked into the child.
+.It Fa debugging
+This bit-field sets debugging of the underlying parse and/or write
+routines.
+Debugging messages are sent to
+.Dv stderr
+and consist of the process ID, a colon, then the logged data.
+Logged data consists of printable ASCII characters and spaces.
+A newline will flush the existing line.
+Other characters are either escaped (\ev, \er, \eb) or replaced with a
+question mark.
+If the
+.Li KREQ_DEBUG_WRITE
+bit is set, write operations directly or indirectly via
+.Xr khttp_write 3
+will be logged.
+When the request is torn down with
+.Xr khttp_free 3 , 
+the process ID and total logged bytes are printed on their own line.
+If
+.Li KREQ_DEBUG_READ_BODY
+bit is set, the entire input body is logged.
+The total byte count is printed on its own line afterward.
 .It Fa defmime
 If no MIME type is specified (that is, there's no suffix to the
 page request), use this index in the
@@ -127,8 +150,9 @@ It is equivalent to invoking the second form,
 as follows:
 .Bd -literal -offset indent
 khttp_parsex(req, ksuffixmap, 
-  kmimetypes, KIME__MAX, keys, keysz, 
-  pages, pagesz, NULL, NULL);
+  kmimetypes, KMIME__MAX, keys, keysz, 
+  pages, pagesz, KMIME_TEXT_HTML,
+  defpage, NULL, NULL, 0);
 .Ed
 .Pp
 The
