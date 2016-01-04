@@ -90,6 +90,9 @@ Debugging messages are sent to
 and consist of the process ID, a colon, then the logged data.
 Logged data consists of printable ASCII characters and spaces.
 A newline will flush the existing line.
+There are at most
+.Dv BUFSIZ
+characters per line.
 Other characters are either escaped (\ev, \er, \eb) or replaced with a
 question mark.
 If the
@@ -100,7 +103,7 @@ will be logged.
 When the request is torn down with
 .Xr khttp_free 3 , 
 the process ID and total logged bytes are printed on their own line.
-If
+If the
 .Li KREQ_DEBUG_READ_BODY
 bit is set, the entire input body is logged.
 The total byte count is printed on its own line afterward.
