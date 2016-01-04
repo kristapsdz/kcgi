@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 19 2015 $
+.Dd $Mdocdate: August 1 2015 $
 .Dt KHTTP_FCGI_INIT 3
 .Os
 .Sh NAME
@@ -49,6 +49,7 @@
 .Fa "size_t defpage"
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
+.Fa "unsigned int debugging"
 .Fc
 .Sh DESCRIPTION
 The
@@ -77,9 +78,9 @@ It is equivalent to invoking the second form,
 .Nm khttp_fcgi_initx ,
 as follows:
 .Bd -literal -offset indent
-khttp_fcgi_initx(fcgi, kmimetypes, KIME__MAX,
+khttp_fcgi_initx(fcgi, kmimetypes, KMIME__MAX,
   keys, keysz, ksuffixmap, KMIME_TEXT_HTML, 
-  pages, pagesz, defpage, NULL, NULL);
+  pages, pagesz, defpage, NULL, NULL, 0);
 .Ed
 .Pp
 After invocation with a return value of
