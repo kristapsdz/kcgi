@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 27 2015 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KCGIJSON 3
 .Os
 .Sh NAME
@@ -229,7 +229,7 @@ Close an array context with or without a name.
 .Fn kjson_string_open
 This and
 .Fn kjson_stringp_open
-start an string context with or without a name.
+start a string context with or without a name.
 This is usually used for complex values, or those create dynamically
 with
 .Xr khttp_template 3 .
@@ -241,8 +241,8 @@ and
 .Fn kjson_string_write
 functions may be used for serialising value data.
 .It Fn kjson_string_close
-Close an string context with or without a name.
-.Fn kjson_obj_open
+Close a string context with or without a name.
+.It Fn kjson_obj_open
 This and
 .Fn kjson_objp_open
 start an object context with or without a name.

@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: August 7 2015 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -229,7 +229,7 @@ The
 .Dv KMETHOD_COPY ,
 .Dv KMETHOD_DELETE ,
 .Dv KMETHOD_GET ,
-.Dv KMETHOD_HEAD
+.Dv KMETHOD_HEAD ,
 .Dv KMETHOD_LOCK ,
 .Dv KMETHOD_MKCALENDAR ,
 .Dv KMETHOD_MKCOL ,
@@ -285,7 +285,7 @@ value passed to
 or the default
 .Dv KMIME__MAX
 if using
-.Fn khttp_parse .
+.Fn khttp_parse
 when no suffix is specified or when the suffix is specified but not known.
 .It Va page
 The page index as defined by the
