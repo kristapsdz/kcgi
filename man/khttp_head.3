@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: August 3 2015 $
+.Dd $Mdocdate: August 7 2015 $
 .Dt KHTTP_HEAD 3
 .Os
 .Sh NAME
@@ -65,19 +65,17 @@ for a discussion on the
 .Dq Content-Encoding
 header: do not specify this header before doing so!
 .Sh EXAMPLES
-To emit a cookie with key
+To emit a session cookie (no expiration date) with key
 .Dq foo
 and value
 .Dq bar
-for the global path and without an expiration date, one may invoke the
-following.
+for the global path, one may invoke the following.
 Assume that
 .Fa r
 is a context allocated by
 .Xr khttp_parse 3 .
 .Bd -literal
-khttp_head(r, kresps[KRESP_SET_COOKIE],
-    "%s", "foo=bar; path=/; expires=");
+khttp_head(r, kresps[KRESP_SET_COOKIE], "%s", "foo=bar; path=/");
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
@@ -89,5 +87,4 @@ The
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
-Long headers (collectively more than 1024 Bytes) may not work properly
-at this time.
+Long header values (\(>= 1024 B) will be truncated.
