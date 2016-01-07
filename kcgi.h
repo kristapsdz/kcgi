@@ -364,6 +364,7 @@ struct	khttpbasic {
 struct	khttpauth {
 	enum kauth	 type;
 	int		 authorised;
+	char		*digest;
 	union {
 		struct khttpdigest digest;
 		struct khttpbasic basic;
@@ -462,6 +463,8 @@ int		 khttp_templatex(const struct ktemplate *,
 int		 khttp_templatex_buf(const struct ktemplate *, 
 			const char *, size_t, ktemplate_writef, void *);
 void		 khttp_write(struct kreq *, const char *, size_t);
+
+int		 khttpdigest_validate(const struct kreq *, const char *);
 
 int		 kvalid_date(struct kpair *);
 int		 kvalid_double(struct kpair *);

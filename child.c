@@ -35,6 +35,7 @@
 
 #include "kcgi.h"
 #include "extern.h"
+#include "md5.h"
 
 /*
  * For handling HTTP multipart forms.
@@ -982,12 +983,12 @@ kworker_child_auth(struct env *env, int fd, size_t envsz)
  * parent.
  * Most web servers will `handle this for us'.  Ugh.
  */
-static void
+static int
 kworker_child_rawauth(struct env *env, int fd, size_t envsz)
 {
 
-	kworker_auth_child(fd, kworker_env
-		(env, envsz, "HTTP_AUTHORIZATION"));
+	return(kworker_auth_child(fd, kworker_env
+		(env, envsz, "HTTP_AUTHORIZATION")));
 }
 
 /*
@@ -1113,13 +1114,59 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
 }
 
 /*
+ * Construct the "HA2" component of an HTTP digest hash.
+ * See RFC 2617.
+ * We only do this if our authorisation requires it!
+ */
+static void
+kworker_child_bodymd5(struct env *env, int fd, 
+	size_t envsz, const char *b, size_t bsz, int md5)
+{
+	MD5_CTX		 ctx;
+	unsigned char 	 ha2[MD5_DIGEST_LENGTH];
+	const char 	*uri, *script, *method;
+	size_t		 sz;
+
+	if ( ! md5) {
+		sz = 0;
+		fullwrite(fd, &sz, sizeof(size_t));
+		return;
+	}
+
+	uri = kworker_env(env, envsz, "PATH_INFO");
+	script = kworker_env(env, envsz, "SCRIPT_NAME");
+	method = kworker_env(env, envsz, "REQUEST_METHOD");
+
+	if (NULL == uri)
+		uri = "";
+	if (NULL == script)
+		script = "";
+	if (NULL == method)
+		method = "";
+
+	MD5Init(&ctx);
+	MD5Update(&ctx, method, strlen(method));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, script, strlen(script));
+	MD5Update(&ctx, uri, strlen(uri));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, b, bsz);
+	MD5Final(ha2, &ctx);
+
+	/* This is a binary write! */
+	sz = MD5_DIGEST_LENGTH;
+	fullwrite(fd, &sz, sizeof(size_t));
+	fullwrite(fd, ha2, sz);
+}
+
+/*
  * Parse and send the body of the request to the parent.
  * This is arguably the most complex part of the system.
  */
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth, char *b, 
-	size_t bsz, unsigned int debugging)
+	size_t bsz, unsigned int debugging, int md5)
 {
 	size_t 	 i, len, cur;
 	char	*cp, *bp = b;
@@ -1135,8 +1182,11 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	if (NULL != (cp = kworker_env(env, envsz, "CONTENT_LENGTH")))
 		len = strtonum(cp, 0, LLONG_MAX, NULL);
 
-	if (0 == len)
+	if (0 == len) {
+		/* Remember to print our MD5 value. */
+		kworker_child_bodymd5(env, fd, envsz, "", 0, md5);
 		return;
+	}
 
 	/* Check FastCGI input lengths. */
 	if (NULL != bp && bsz != len)
@@ -1156,6 +1206,10 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	/* If we're CGI, read the request now. */
 	if (NULL == b)
 		b = scanbuf(len, &bsz);
+
+	/* If requested, print our MD5 value. */
+	assert(NULL != b);
+	kworker_child_bodymd5(env, fd, envsz, b, bsz, md5);
 
 	if (NULL != b && bsz && KREQ_DEBUG_READ_BODY & debugging) {
 		fprintf(stderr, "%u: ", getpid());
@@ -1274,7 +1328,7 @@ kworker_child(int sock,
 	struct parms	  pp;
 	char		 *cp;
 	char		**evp;
-	int		  wfd;
+	int		  wfd, md5;
 	enum kmethod	  meth;
 	size_t	 	  i;
 	extern char	**environ;
@@ -1321,7 +1375,7 @@ kworker_child(int sock,
 	kworker_child_env(envs, wfd, envsz);
 	meth = kworker_child_method(envs, wfd, envsz);
 	kworker_child_auth(envs, wfd, envsz);
-	kworker_child_rawauth(envs, wfd, envsz);
+	md5 = kworker_child_rawauth(envs, wfd, envsz);
 	kworker_child_scheme(envs, wfd, envsz);
 	kworker_child_remote(envs, wfd, envsz);
 	kworker_child_path(envs, wfd, envsz);
@@ -1331,7 +1385,7 @@ kworker_child(int sock,
 
 	/* And now the message body itself. */
 	kworker_child_body(envs, wfd, envsz, 
-		&pp, meth, NULL, 0, debugging);
+		&pp, meth, NULL, 0, debugging, md5);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
 	kworker_child_last(wfd);
@@ -1638,7 +1692,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 	uint16_t	 rid;
 	uint32_t	 cookie;
 	size_t		 i, bsz, ssz, envsz;
-	int		 wfd, rc;
+	int		 wfd, rc, md5;
 	enum kmethod	 meth;
 
 	sbuf = NULL;
@@ -1772,7 +1826,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
 		kworker_child_auth(envs, wfd, envsz);
-		kworker_child_rawauth(envs, wfd, envsz);
+		md5 = kworker_child_rawauth(envs, wfd, envsz);
 		kworker_child_scheme(envs, wfd, envsz);
 		kworker_child_remote(envs, wfd, envsz);
 		kworker_child_path(envs, wfd, envsz);
@@ -1782,7 +1836,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
-			meth, (char *)sbuf, ssz, debugging);
+			meth, (char *)sbuf, ssz, debugging, md5);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);

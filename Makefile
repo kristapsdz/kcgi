@@ -52,10 +52,12 @@ LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-strlcat.o \
 		   compat-strlcpy.o \
 		   compat-strtonum.o
-LIBOBJS 	 = child.o \
+LIBOBJS 	 = auth.o \
+		   child.o \
 		   fcgi.o \
 		   httpauth.o \
 		   kcgi.o \
+		   md5.o \
 		   output.o \
 		   parent.o \
 		   sandbox.o \
@@ -116,7 +118,8 @@ MAN3S		 = man/kcgi.3 \
 MAN8S		 = man/kfcgi.8 
 MANS		 = $(MAN3S) \
 		   $(MAN8S)
-SRCS 		 = child.c \
+SRCS 		 = auth.c \
+		   child.c \
 		   compat-memmem.c \
      		   compat-reallocarray.c \
      		   compat-strlcat.c \
@@ -125,6 +128,8 @@ SRCS 		 = child.c \
      		   extern.h \
 		   fcgi.c \
 		   httpauth.c \
+		   md5.c \
+		   md5.h \
      		   kcgi.c \
      		   kcgihtml.c \
 		   kcgijson.c \

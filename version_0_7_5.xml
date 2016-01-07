@@ -6,6 +6,12 @@
 	</header>
 	<aside>
 		<div>
+			Added ability to easily perform HTTP digest authentication, which is heavily used in <a
+				href="http://kristaps.bsd.lv/kcaldav">kcaldav</a> and a few other systems.
+			This manages all of the aspects of the sequences, from the child process performing an MD5 hash on the full data stream
+			to the end check against a hash.
+		</div>
+		<div>
 			Add an experimental feature for debugging input and output streams.
 			One can set debugging fields with <a href="khttp_parse.3.html">khttp_parsex(3)</a> or <a
 				href="khttp_fcgi_init.3.html">khttp_fcgi_initx(3)</a> and have request reads or response writes logged to
