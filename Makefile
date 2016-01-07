@@ -83,6 +83,7 @@ HTMLS		 = man/kcgi.3.html \
 		   man/khttp_parse.3.html \
 		   man/khttp_template.3.html \
 		   man/khttp_write.3.html \
+		   man/khttpdigest_validate.3.html \
 		   man/kmalloc.3.html \
 		   man/kutil_urlencode.3.html \
 		   man/kvalid_string.3.html
@@ -112,6 +113,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_parse.3 \
 		   man/khttp_template.3 \
 		   man/khttp_write.3 \
+		   man/khttpdigest_validate.3 \
 		   man/kmalloc.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
@@ -329,6 +331,8 @@ libkcgiregress.a: kcgiregress.o
 $(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
+
+auth.c child.c md5.c parent.c: md5.h
 
 $(LIBCONFIGOBJS): config.h
 
