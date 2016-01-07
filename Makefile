@@ -46,7 +46,7 @@ MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.7.4
+VERSION 	 = 0.7.5
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
