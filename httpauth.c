@@ -255,7 +255,7 @@ khttpbasic_input(int fd, const char *cp)
  * Parse HTTP ``Digest'' authentication tokens from the nil-terminated
  * string, which can be NULL or malformed.
  */
-static void
+static int
 khttpdigest_input(int fd, const char *cp)
 {
 	enum kauth	 auth;
@@ -317,7 +317,7 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, &authorised, sizeof(int));
 
 	if ( ! authorised)
-		return;
+		return(0);
 
 	fullwrite(fd, &d.alg, sizeof(enum khttpalg));
 	fullwrite(fd, &d.qop, sizeof(enum khttpqop));
@@ -336,6 +336,9 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, &d.count, sizeof(size_t));
 	fullwrite(fd, &d.opaque.sz, sizeof(size_t));
 	fullwrite(fd, d.opaque.pos, d.opaque.sz);
+
+	/* Do we need to MD5-hash our contents? */
+	return(KHTTPQOP_AUTH_INT == d.qop);
 }
 
 enum kcgi_err
@@ -388,7 +391,12 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 	return(KCGI_OK);
 }
 
-void
+/*
+ * Parse the "basic" or "digest" authorisation from the request.
+ * We return non-zero if the body of the request needs to be MD5-hashed,
+ * i.e., if we have auth-int digest QOP.
+ */
+int
 kworker_auth_child(int fd, const char *cp)
 {
 	const char	*start;
@@ -398,18 +406,18 @@ kworker_auth_child(int fd, const char *cp)
 	if (NULL == cp || '\0' == *cp) {
 		auth = KAUTH_NONE;
 		fullwrite(fd, &auth, sizeof(enum kauth));
-		return;
+		return(0);
 	}
 
 	start = kauth_nexttok(&cp, '\0', &sz);
 	if (sz == 6 && 0 == strncasecmp(start, "digest", sz)) {
-		khttpdigest_input(fd, cp);
-		return;
+		return(khttpdigest_input(fd, cp));
 	} else if (sz == 5 && 0 == strncasecmp(start, "basic", sz)) {
 		khttpbasic_input(fd, cp);
-		return;
+		return(0);
 	}
 
 	auth = KAUTH_UNKNOWN;
 	fullwrite(fd, &auth, sizeof(enum kauth));
+	return(0);
 }

@@ -45,7 +45,7 @@ void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);
 
-void		 kworker_auth_child(int, const char *);
+int		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(int,
 			const struct kvalid *, size_t, 

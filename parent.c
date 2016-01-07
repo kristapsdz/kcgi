@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "kcgi.h"
+#include "md5.h"
 #include "extern.h"
 
 /*
@@ -172,7 +173,7 @@ kworker_parent(int fd, struct kreq *r)
 	enum input	 type;
 	int		 rc;
 	enum kcgi_err	 ke;
-	size_t		 i;
+	size_t		 i, dgsz;
 
 	/* Pointers freed at "out" label. */
 	memset(&kp, 0, sizeof(struct kpair));
@@ -244,6 +245,17 @@ kworker_parent(int fd, struct kreq *r)
 	} else if (fullread(fd, &r->port, sizeof(uint16_t), 0, &ke) < 0) {
 		XWARNX("failed to read port");
 		goto out;
+	} else if (fullread(fd, &dgsz, sizeof(size_t), 0, &ke) < 0) {
+		XWARNX("failed to read digest length");
+		goto out;
+	} else if (MD5_DIGEST_LENGTH == dgsz) {
+		/* This is a binary value. */
+		if (NULL == (r->rawauth.digest = XMALLOC(dgsz)))
+			goto out;
+		if (fullread(fd, r->rawauth.digest, dgsz, 0, &ke) < 0) {
+			XWARNX("failed to read digest");
+			goto out;
+		}
 	}
 
 	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
