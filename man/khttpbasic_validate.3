@@ -15,47 +15,45 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate: January 7 2016 $
-.Dt KHTTPDIGEST_VALIDATE 3
+.Dt KHTTPBASIC_VALIDATE 3
 .Os
 .Sh NAME
-.Nm khttpdigest_validate
-.Nd validate an HTTP digest request
+.Nm khttpbasic_validate
+.Nd validate an HTTP basic authorisation request
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
 .In stdint.h
 .In kcgi.h
 .Ft int
-.Fo khttpdigest_validate
+.Fo khttpbasic_validate
 .Fa "struct kreq *req"
+.Fa "const char *user"
 .Fa "const char *password"
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttpdigest_validate
+.Nm khttpbasic_validate
 function validates the given
+.Fa user
+and
 .Fa password
-with the HTTP digest-authorised request
+with the HTTP basic-authorised request
 .Fa req
 as returned by
 .Xr khttp_parse 3
 or
 .Xr khttp_fcgi_parse 3 .
-It fully implements all components of the digest: QOP, MD5 types, etc.
-It
-.Em does not
-check that the URI component of the digest matches that of the request,
-as these values are known to be mutable.
 .Sh RETURN VALUES
 .Nm
 will return zero if validation failed, less than zero if the request was
-not properly set up for HTTP digest validation, or greater than zero if
+not properly set up for HTTP basic validation, or greater than zero if
 the validation succeeded.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_fcgi_parse 3 ,
 .Xr khttp_parse 3 ,
-.Xr khttpbasic_validate 3
+.Xr khttpdigest_validate
 .Sh AUTHORS
 The
 .Nm
