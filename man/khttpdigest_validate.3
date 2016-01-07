@@ -1,0 +1,58 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: January 4 2016 $
+.Dt KHTTPDIGEST_VALIDATE 3
+.Os
+.Sh NAME
+.Nm khttpdigest_validate
+.Nd validate an HTTP digest request
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft int
+.Fo khttpdigest_validate
+.Fa "struct kreq *req"
+.Fa "const char *hash"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm
+function validates the given
+.Fa hash
+with the HTTP request
+.Fa req
+as returned by
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3 .
+It fully implements all components of the digest: QOP, MD5 types, etc.
+.Sh RETURN VALUES
+.Nm
+will return zero if validation failed, less than zero if the request was
+not properly set up for HTTP digest validation, or greater than zero if
+the validation succeeded.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_fcgi_parse 3 ,
+.Xr khttp_parse 3
+.Sh AUTHORS
+The
+.Nm
+function was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
