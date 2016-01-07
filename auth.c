@@ -32,26 +32,93 @@
 #include "md5.h"
 #include "extern.h"
 
-/*
- * Hash validation.
- * This takes the HTTP digest fields in "auth", constructs the
- * "response" field given the information at hand, then compares the
- * response fields to see if they're different.
- * Depending on the HTTP options, this might involve a lot.
- * RFC 2617 has a handy source code guide on how to do this.
- * Returns 0 on failure, >0 on success, <0 if there is not a valid
- * digest on the request.
- */
+static const char b64[] = 
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	"abcdefghijklmnopqrstuvwxyz"
+	"0123456789+/";
+
+static size_t 
+base64len(size_t len)
+{
+
+	return((len + 2) / 3 * 4) + 1;
+}
+
+static size_t 
+base64buf(char *enc, const char *str, size_t len)
+{
+	size_t 	i;
+	char 	*p;
+
+	p = enc;
+
+	for (i = 0; i < len - 2; i += 3) {
+		*p++ = b64[(str[i] >> 2) & 0x3F];
+		*p++ = b64[((str[i] & 0x3) << 4) |
+			((int)(str[i + 1] & 0xF0) >> 4)];
+		*p++ = b64[((str[i + 1] & 0xF) << 2) |
+			((int)(str[i + 2] & 0xC0) >> 6)];
+		*p++ = b64[str[i + 2] & 0x3F];
+	}
+
+	if (i < len) {
+		*p++ = b64[(str[i] >> 2) & 0x3F];
+		if (i == (len - 1)) {
+			*p++ = b64[((str[i] & 0x3) << 4)];
+			*p++ = '=';
+		} else {
+			*p++ = b64[((str[i] & 0x3) << 4) |
+				((int)(str[i + 1] & 0xF0) >> 4)];
+			*p++ = b64[((str[i + 1] & 0xF) << 2)];
+		}
+		*p++ = '=';
+	}
+
+	*p++ = '\0';
+	return(p - enc);
+}
+
 int
-khttpdigest_validate(const struct kreq *req, const char *hash)
+khttpbasic_validate(const struct kreq *req, 
+	const char *user, const char *pass)
+{
+	char	*buf, *enc;
+	size_t	 sz;
+	int	 rc;
+
+	if (KAUTH_BASIC != req->rawauth.type)
+		return(-1);
+	else if (0 == req->rawauth.authorised)
+		return(-1);
+
+	/* Make sure we don't bail on memory allocation. */
+	sz = strlen(user) + 1 + strlen(pass) + 1;
+	if (NULL == (buf = XMALLOC(sz)))
+		return(-1);
+	sz = snprintf(buf, sz, "%s:%s", user, pass);
+	if (NULL == (enc = XMALLOC(base64len(sz)))) {
+		free(buf);
+		return(-1);
+	}
+	base64buf(enc, buf, sz);
+	rc = 0 == strcmp(enc, req->rawauth.d.basic.response);
+	free(enc);
+	free(buf);
+	return(rc);
+}
+
+int
+khttpdigest_validate(const struct kreq *req, const char *pass)
 {
 	MD5_CTX	 	 ctx;
 	unsigned char	 ha1[MD5_DIGEST_LENGTH],
 			 ha2[MD5_DIGEST_LENGTH],
-			 ha3[MD5_DIGEST_LENGTH];
+			 ha3[MD5_DIGEST_LENGTH],
+			 ha4[MD5_DIGEST_LENGTH];
 	char		 skey1[MD5_DIGEST_LENGTH * 2 + 1],
 			 skey2[MD5_DIGEST_LENGTH * 2 + 1],
 			 skey3[MD5_DIGEST_LENGTH * 2 + 1],
+			 skey4[MD5_DIGEST_LENGTH * 2 + 1],
 			 count[9];
 	size_t		 i;
 	const struct khttpdigest *auth;
@@ -59,19 +126,22 @@ khttpdigest_validate(const struct kreq *req, const char *hash)
 	/*
 	 * Make sure we're a digest with all fields intact.
 	 */
-	if (KAUTH_DIGEST != req->auth)
+	if (KAUTH_DIGEST != req->rawauth.type)
 		return(-1);
 	else if (0 == req->rawauth.authorised)
 		return(-1);
 
-	for (i = 0; i < req->fieldsz; i++) {
-		assert(NULL != req->fields[i].key);
-		if ('\0' == req->fields[i].key[0])
-			break;
-	}
-
 	auth = &req->rawauth.d.digest;
 
+	MD5Init(&ctx);
+	MD5Update(&ctx, auth->user, strlen(auth->user));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, auth->realm, strlen(auth->realm));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, pass, strlen(pass));
+	MD5Final(ha4, &ctx);
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
 
 	/*
 	 * MD5-sess hashes the nonce and client nonce as well as the
@@ -81,7 +151,7 @@ khttpdigest_validate(const struct kreq *req, const char *hash)
 	 */
 	if (KHTTPALG_MD5_SESS == auth->alg) {
 		MD5Init(&ctx);
-		MD5Update(&ctx, hash, strlen(hash));
+		MD5Update(&ctx, skey4, strlen(skey4));
 		MD5Update(&ctx, ":", 1);
 		MD5Update(&ctx, auth->nonce, strlen(auth->nonce));
 		MD5Update(&ctx, ":", 1);
@@ -90,9 +160,10 @@ khttpdigest_validate(const struct kreq *req, const char *hash)
 		for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
 			snprintf(&skey1[i * 2], 3, "%02x", ha1[i]);
 	} else 
-		strlcpy(skey1, hash, sizeof(skey1));
+		strlcpy(skey1, skey4, sizeof(skey1));
 
 	if (KHTTPQOP_AUTH_INT == auth->qop) {
+		/* This shouldn't happen... */
 		if (NULL == req->rawauth.digest)
 			return(-1);
 		memcpy(ha2, req->rawauth.digest, sizeof(ha2));
