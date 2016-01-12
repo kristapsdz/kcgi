@@ -104,4 +104,9 @@ h1 .nd				{ font-size: 14pt; }
 pre				{ font-size: 8pt; }
 figure img			{ display: block;
 				  width: 100%; }
+article[data-sblg-article],
+article section,
+#permlink,
+figure nav,
+article figcaption		{ padding: 1ex 2%; }
 }

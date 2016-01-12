@@ -3,7 +3,7 @@
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
-		<title>kcgi | minimal CGI library for C</title>
+		<title>kcgi | minimal CGI and FastCGI library for C</title>
 		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
 		<link rel="stylesheet" href="index.css" type="text/css" />
@@ -33,7 +33,7 @@
 				<h1>
 					<span itemprop="name" class="nm">kcgi</span> 
 					&#8211; 
-					<span itemprop="description" class="nd">minimal CGI library in C</span>
+					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
 				<nav>
 					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
@@ -109,7 +109,7 @@ int main(void) {
    * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
    * defined in the <q>method</q> variable) then switch on which
    * page was requested (<q>page</q> variable).
-   * But for the same of example, just output a response.
+   * But for brevity's sake, just output a response.
    */
 
   /* Emit the HTTP status 200 header: everything's ok. */
@@ -205,7 +205,9 @@ int main(void) {
 					this is the case, you'll need to statically link your binary.
 					If running within a <a
 						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/chroot.2">chroot(2)</a> and on
-					OpenBSD, be aware that the sandbox method requires <span class="file">/dev/systrace</span> within the
+					OpenBSD prior to 5.9 (i.e., with <a
+						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>),
+					be aware that the sandbox method requires <span class="file">/dev/systrace</span> within the
 					server root.
 					By default, this file does not exist in the web server root.
 					Moreover, the default web server root mount-point, <span class="file">/var</span>, is mounted
