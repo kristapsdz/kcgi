@@ -240,7 +240,7 @@ khttpbasic_input(int fd, const char *cp)
 	while (isspace((int)*cp))
 		cp++;
 
-	if ('\0' == cp) {
+	if ('\0' == *cp) {
 		authorised = 0;
 		fullwrite(fd, &authorised, sizeof(int));
 		return;
