@@ -19,6 +19,7 @@
 #endif
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 
@@ -523,12 +524,15 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	char			 buf[BUFSIZ];
 	FILE			*f;
 	struct fcgi_hdr		 hdr;
+	mode_t		  	 mode;
 
 	/* 
 	 * Create a temporary file, close it, then unlink it.
 	 * The child will recreate this as a socket.
 	 */
 	strlcpy(sfn, "/tmp/kfcgi.XXXXXXXXXX", sizeof(sfn));
+	/* This shuts up Coverity. */
+	mode = umask(S_IXUSR | S_IRWXG | S_IRWXO);
 	if (-1 == (fd = mkstemp(sfn))) {
 		perror(sfn);
 		return(EXIT_FAILURE);
@@ -536,6 +540,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		perror(sfn);
 		return(EXIT_FAILURE);
 	}
+	umask(mode);
 
 	/* Do the usual dance to set up UNIX sockets. */
 	ss = (struct sockaddr *)&sun;
