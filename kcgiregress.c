@@ -472,6 +472,7 @@ dochild_prepare(void)
 	} else if (-1 == setsockopt(s, SOL_SOCKET, 
 		 SO_REUSEADDR, &opt, sizeof(opt))) {
 		perror("setsockopt");
+		close(s);
 		return(-1);
 	}
 
