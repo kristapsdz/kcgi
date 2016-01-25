@@ -462,7 +462,12 @@ fullreadword(int fd, char **cp)
 	if (0 == sz)
 		return(KCGI_OK);
 
-	fullread(fd, *cp, sz, 0, &ke);
+	/* 
+	 * Silence Coverity warning.
+	 * This will set "ke" regardless of the return value, and we
+	 * want to pass that back to the caller.
+	 */
+	(void)fullread(fd, *cp, sz, 0, &ke);
 	return(ke);
 }
 
