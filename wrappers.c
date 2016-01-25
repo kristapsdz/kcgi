@@ -275,7 +275,8 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 }
 
 /*
- * Write the full contents of "buf" to the non-blocking stream.
+ * Write the full contents of "buf", which can be NULL so long as bufsz
+ * is zero, to the non-blocking stream.
  * This will loop on "fd" until all data has been sent.
  * On error (which shouldn't happen), this will kill the process.
  */
@@ -286,6 +287,10 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	size_t	 	 sz;
 	struct pollfd	 pfd;
 	int		 rc;
+
+	/* Make coverity be silent. */
+	if (NULL == buf || 0 == bufsz)
+		return;
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
