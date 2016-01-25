@@ -15,8 +15,6 @@
 				show = document.getElementById(name);
 				noshow = document.getElementById('no' + name);
 
-				console.log('maxheight = ' + show.style.maxHeight);
-
 				if (show.style.maxHeight == '' || show.style.maxHeight == '0px') {
 					show.style.maxHeight = '500em';
 					noshow.style.maxHeight = 0;
@@ -160,6 +158,12 @@ int main(void) {
 					configuration script to conditionally deploy portability glue.
 					Finally, install the software using <code>make install</code>, optionally specifying the
 					<code>PREFIX</code> if you don't intend to use <span class="file">/usr/local</span>.
+				</p>
+				<p>
+					If you'd like to contribute to <span class="nm">kcgi</span>, the CVS repository is mirrored on <a
+						href="https://github.com">GitHub</a> at <a
+						href="https://github.com/kristapsdz/kcgi.git">kcgi.git</a>.
+					You can use this and follow the same instructions as above.
 				</p>
 				<p>
 					If <span class="nm">kcgi</span> doesn't compile, please send me the <span class="file">config.log</span>

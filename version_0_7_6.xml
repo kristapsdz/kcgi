@@ -1,0 +1,12 @@
+<article data-sblg-article="1" data-sblg-tags="version">
+	<header>
+		<h1>0.7.6</h1>
+		<address>Kristaps Dzonsons</address>
+		<time datetime="2016-xx-xx">2016-xx-xx</time>
+	</header>
+	<aside>
+		<div>
+			Push read-only repository to <a href="https://github.com/kristapsdz/kcgi.git">GitHub</a>.
+		</div>
+	</aside>
+</article>
