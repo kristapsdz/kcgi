@@ -140,6 +140,7 @@ kfcgi_control(int work, int ctrl)
 			return(EXIT_FAILURE);
 		} else if (KCGI_OK != xsocketprep(fd)) {
 			XWARNX("xsocketprep");
+			close(fd);
 			return(EXIT_FAILURE);
 		}
 
