@@ -467,6 +467,7 @@ fullreadword(int fd, char **cp)
 	 * This will set "ke" regardless of the return value, and we
 	 * want to pass that back to the caller.
 	 */
+	/* coverity[check_return] */
 	(void)fullread(fd, *cp, sz, 0, &ke);
 	return(ke);
 }
