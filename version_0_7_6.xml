@@ -2,14 +2,16 @@
 	<header>
 		<h1>0.7.6</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2016-xx-xx">2016-xx-xx</time>
+		<time datetime="2016-01-25">2016-01-25</time>
 	</header>
 	<aside>
 		<div>
 			Push read-only repository to <a href="https://github.com/kristapsdz/kcgi.git">GitHub</a>.
 			The project has been accepted as a <a href="https://scan.coverity.com/projects/kcgi">Coverity</a> project.
 			The initial scan revealed a pair of error-path resource links and some false positives.
-			It found one legitimate bug in the newly-installed HTTP basic authentication code.
+			(All of these are visible on the Coverity project site.)
+			It did find one legitimate bug in the newly-installed HTTP basic authentication code.
+			This, obviously, has been fixed.
 		</div>
 	</aside>
 </article>
