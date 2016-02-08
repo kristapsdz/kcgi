@@ -64,6 +64,9 @@ struct	kdata {
 #ifdef	HAVE_ZLIB
 	gzFile		 gz;
 #endif
+	char		*outbuf;
+	size_t		 outbufpos;
+	size_t		 outbufsz;
 };
 
 static char *
@@ -153,6 +156,35 @@ linebuf_flush(struct kdata *p, int newln)
 }
 
 /*
+ * Flushes a buffer "buf" of size "sz" to the output.
+ * If sz is zero or buf is NULL, this is a no-op.
+ */
+static void
+kdata_flush(struct kdata *p, const char *buf, size_t sz)
+{
+
+	if (0 == sz || NULL == buf)
+		return;
+#ifdef HAVE_ZLIB
+	if (NULL != p->gz) {
+		/*
+		 * FIXME: make this work properly on all systems.
+		 * This is known to break on FreeBSD: we may need to
+		 * break the uncompressed buffer into chunks that will
+		 * not cause EAGAIN to be raised.
+		 */
+		if (0 == gzwrite(p->gz, buf, sz))
+			XWARNX("gzwrite");
+		return;
+	}
+#endif
+	if (-1 == p->fcgi) 
+		fullwritenoerr(STDOUT_FILENO, buf, sz);
+	else
+		fcgi_write(6, p, buf, sz);
+}
+
+/*
  * In this function, we need to handle FastCGI, gzip, or raw.
  * FastCGI requests can't (yet) be gzip'd.
  */
@@ -204,23 +236,36 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 		}
 	}
 
-#ifdef HAVE_ZLIB
-	if (NULL != p->gz) {
-		/*
-		 * FIXME: make this work properly on all systems.
-		 * This is known to break on FreeBSD: we may need to
-		 * break the uncompressed buffer into chunks that will
-		 * not cause EAGAIN to be raised.
-		 */
-		if (0 == gzwrite(p->gz, buf, sz))
-			XWARNX("gzwrite");
+	/* 
+	 * Short-circuit: if we have no output buffer, flush directly to
+	 * the wire.
+	 */
+	if (0 == p->outbufsz) {
+		kdata_flush(p, buf, sz);
 		return;
 	}
-#endif
-	if (-1 == p->fcgi) 
-		fullwritenoerr(STDOUT_FILENO, buf, sz);
-	else
-		fcgi_write(6, p, buf, sz);
+
+	/*
+	 * If we want to accept new data and it exceeds the buffer size,
+	 * push out the entire existing buffer to start.
+	 * Then re-check if we exceed our buffer size.
+	 * If we do, then instead of filling into the temporary buffer
+	 * and looping until the new buffer is exhausted, just push the
+	 * whole thing out.
+	 * If we don't, then copy it into the buffer.
+	 */
+	if (p->outbufpos + sz > p->outbufsz) {
+		kdata_flush(p, p->outbuf, p->outbufsz);
+		p->outbufpos = 0;
+		if (p->outbufpos + sz > p->outbufsz) {
+			kdata_flush(p, buf, sz);
+			return;
+		}
+	}
+
+	assert(p->outbufpos + sz <= p->outbufsz);
+	memcpy(p->outbuf + p->outbufpos, buf, sz);
+	p->outbufpos += sz;
 }
 
 void
@@ -290,8 +335,8 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
  * We accept the file descriptor for the FastCGI stream, if there's any.
  */
 struct kdata *
-kdata_alloc(int control, int fcgi, 
-	uint16_t requestId, unsigned int debugging)
+kdata_alloc(int control, int fcgi, uint16_t requestId, 
+	unsigned int debugging, const struct kopts *opts)
 {
 	struct kdata	*p;
 
@@ -302,6 +347,21 @@ kdata_alloc(int control, int fcgi,
 	p->fcgi = fcgi;
 	p->control = control;
 	p->requestId = requestId;
+
+	if (opts->sndbufsz < 0) {
+		p->outbufsz = 1024 * 8;
+		if (NULL == (p->outbuf = XMALLOC(p->outbufsz))) {
+			free(p);
+			return(NULL);
+		}
+	} else if (opts->sndbufsz > 0) {
+		p->outbufsz = opts->sndbufsz;
+		if (NULL == (p->outbuf = XMALLOC(p->outbufsz))) {
+			free(p);
+			return(NULL);
+		}
+	} 
+
 	return(p);
 }
 
@@ -324,6 +384,11 @@ kdata_free(struct kdata *p, int flush)
 	}
 
 	free(p->linebuf); 
+
+	if (flush) 
+		kdata_flush(p, p->outbuf, p->outbufpos);
+
+	free(p->outbuf);
 
 	/*
 	 * If we're not FastCGI and we're not going to flush, then close
