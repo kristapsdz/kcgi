@@ -458,10 +458,13 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		return(KCGI_ENOMEM);
 	}
 
-	if (NULL == opts) {
+	if (NULL == opts)
 		fcgi->opts.sndbufsz = -1;
-	} else
+	else
 		memcpy(&fcgi->opts, opts, sizeof(struct kopts));
+
+	if (fcgi->opts.sndbufsz < 0)
+		fcgi->opts.sndbufsz = UINT16_MAX;
 
 	fcgi->work_box = work_box;
 	fcgi->work_pid = work_pid;
