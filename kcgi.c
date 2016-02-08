@@ -690,6 +690,9 @@ khttp_parsex(struct kreq *req,
 	else
 		memcpy(&kopts, opts, sizeof(struct kopts));
 
+	if (kopts.sndbufsz < 0)
+		kopts.sndbufsz = 1024 * 8;
+
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
 
