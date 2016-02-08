@@ -40,7 +40,8 @@ enum	sandtype {
 
 __BEGIN_DECLS
 
-struct kdata	*kdata_alloc(int, int, uint16_t, unsigned int);
+struct kdata	*kdata_alloc(int, int, uint16_t, 
+			unsigned int, const struct kopts *);
 void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
 void		 kdata_free(struct kdata *, int);

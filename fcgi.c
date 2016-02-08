@@ -53,6 +53,7 @@ struct	kfcgi {
 	pid_t			  sock_pid;
 	int			  work_dat;
 	int			  sock_ctl;
+	struct kopts		  opts;
 	void			 *arg;
 };
 
@@ -281,7 +282,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	const struct kmimemap *mimemap, size_t defmime,
 	const char *const *pages, size_t pagesz,
 	size_t defpage, void *arg, void (*argfree)(void *),
-	unsigned int debugging)
+	unsigned int debugging, const struct kopts *opts)
 {
 	struct kfcgi	*fcgi;
 	int 		 er;
@@ -457,6 +458,11 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		return(KCGI_ENOMEM);
 	}
 
+	if (NULL == opts) {
+		fcgi->opts.sndbufsz = -1;
+	} else
+		memcpy(&fcgi->opts, opts, sizeof(struct kopts));
+
 	fcgi->work_box = work_box;
 	fcgi->work_pid = work_pid;
 	fcgi->work_dat = work_dat[KWORKER_PARENT];
@@ -487,7 +493,7 @@ khttp_fcgi_init(struct kfcgi **fcgi,
 	return(khttp_fcgi_initx(fcgi, kmimetypes, 
 		KMIME__MAX, keys, keysz, ksuffixmap,
 		KMIME_TEXT_HTML, pages, pagesz, defpage, 
-		NULL, NULL, 0));
+		NULL, NULL, 0, NULL));
 }
 
 enum kcgi_err
@@ -517,7 +523,8 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	req->arg = fcgi->arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	req->kdata = kdata_alloc(fcgi->sock_ctl, fd, rid, fcgi->debugging);
+	req->kdata = kdata_alloc(fcgi->sock_ctl, 
+		fd, rid, fcgi->debugging, &fcgi->opts);
 	if (NULL == req->kdata)
 		goto err;
 	fd = -1;

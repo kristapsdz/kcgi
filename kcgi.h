@@ -410,6 +410,10 @@ struct	kreq {
 	void			 *arg; 
 };
 
+struct	kopts {
+	ssize_t		  	  sndbufsz;
+};
+
 struct	ktemplate {
 	const char *const	 *key;
 	size_t		 	  keysz;
@@ -451,7 +455,7 @@ enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *,
 			const struct kvalid *, size_t,
 			const char *const *, size_t,
 			size_t, size_t, void *, void (*)(void *),
-			unsigned int);
+			unsigned int, const struct kopts *);
 void		 khttp_putc(struct kreq *, int);
 void		 khttp_puts(struct kreq *, const char *);
 int		 khttp_template(struct kreq *, 
@@ -487,7 +491,8 @@ enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **,
 			const struct kvalid *, size_t, 
 			const struct kmimemap *, size_t,
 			const char *const *, size_t, size_t,
-			void *, void (*)(void *), unsigned int);
+			void *, void (*)(void *), unsigned int,
+			const struct kopts *);
 enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
 int		 khttp_fcgi_test(void);
