@@ -608,7 +608,7 @@ khttp_parse(struct kreq *req,
 
 	return(khttp_parsex(req, ksuffixmap, kmimetypes, 
 		KMIME__MAX, keys, keysz, pages, pagesz, 
-		KMIME_TEXT_HTML, defpage, NULL, NULL, 0));
+		KMIME_TEXT_HTML, defpage, NULL, NULL, 0, NULL));
 }
 
 enum kcgi_err
@@ -618,11 +618,13 @@ khttp_parsex(struct kreq *req,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defmime, size_t defpage, void *arg,
-	void (*argfree)(void *arg), unsigned debugging)
+	void (*argfree)(void *arg), unsigned debugging,
+	const struct kopts *opts)
 {
 	const struct kmimemap *mm;
 	enum kcgi_err	  kerr;
 	int 		  er;
+	struct kopts	  kopts;
 	void		 *work_box;
 	int		  work_dat[2];
 	pid_t		  work_pid;
@@ -683,6 +685,11 @@ khttp_parsex(struct kreq *req,
 		goto err;
 	}
 
+	if (NULL == opts)
+		kopts.sndbufsz = -1;
+	else
+		memcpy(&kopts, opts, sizeof(struct kopts));
+
 	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
 
@@ -696,7 +703,7 @@ khttp_parsex(struct kreq *req,
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
-	req->kdata = kdata_alloc(-1, -1, 0, debugging);
+	req->kdata = kdata_alloc(-1, -1, 0, debugging, &kopts);
 	if (NULL == req->kdata)
 		goto err;
 	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));

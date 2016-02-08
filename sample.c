@@ -30,6 +30,7 @@
 enum	page {
 	PAGE_INDEX,
 	PAGE_TEMPLATE,
+	PAGE_SENDDATA,
 	PAGE__MAX
 };
 
@@ -63,12 +64,14 @@ enum	templ {
  */
 typedef	void (*disp)(struct kreq *);
 
+static void senddata(struct kreq *);
 static void sendindex(struct kreq *);
 static void sendtemplate(struct kreq *);
 
 static const disp disps[PAGE__MAX] = {
 	sendindex, /* PAGE_INDEX */
 	sendtemplate, /* PAGE_TEMPLATE */
+	senddata, /* PAGE_SENDDATA */
 };
 
 static const struct kvalid keys[KEY__MAX] = {
@@ -90,7 +93,8 @@ static const char *const templs[TEMPL__MAX] = {
  */
 static const char *const pages[PAGE__MAX] = {
 	"index", /* PAGE_INDEX */
-	"template" /* PAGE_TEMPLATE */
+	"template", /* PAGE_TEMPLATE */
+	"senddata" /* PAGE_SENDDATA */
 };
 
 /*
@@ -159,6 +163,23 @@ sendtemplate(struct kreq *req)
 
 	resp_open(req, KHTTP_200);
 	khttp_template(req, &t, "template.xml");
+}
+
+static void
+senddata(struct kreq *req)
+{
+	int64_t	 i, len;
+	char	 c;
+
+	len = 1024 * 1024;
+	if (NULL != req->fieldmap[KEY_INTEGER])
+		len = req->fieldmap[KEY_INTEGER]->parsed.i;
+
+	resp_open(req, KHTTP_200);
+	for (i = 0; i < len; i++) {
+		c = 65 * arc4random_uniform(26);
+		khttp_putc(req, c);
+	}
 }
 
 /*
