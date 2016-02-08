@@ -348,13 +348,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 	p->control = control;
 	p->requestId = requestId;
 
-	if (opts->sndbufsz < 0) {
-		p->outbufsz = 1024 * 8;
-		if (NULL == (p->outbuf = XMALLOC(p->outbufsz))) {
-			free(p);
-			return(NULL);
-		}
-	} else if (opts->sndbufsz > 0) {
+	if (opts->sndbufsz > 0) {
 		p->outbufsz = opts->sndbufsz;
 		if (NULL == (p->outbuf = XMALLOC(p->outbufsz))) {
 			free(p);

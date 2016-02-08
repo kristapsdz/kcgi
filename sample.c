@@ -42,6 +42,8 @@ enum	page {
 enum	key {
 	KEY_INTEGER, 
 	KEY_FILE,
+	KEY_PAGECOUNT,
+	KEY_PAGESIZE,
 	KEY__MAX
 };
 
@@ -77,6 +79,8 @@ static const disp disps[PAGE__MAX] = {
 static const struct kvalid keys[KEY__MAX] = {
 	{ kvalid_int, "integer" }, /* KEY_INTEGER */
 	{ NULL, "file" }, /* KEY_FILE */
+	{ kvalid_uint, "count" }, /* KEY_PAGECOUNT */
+	{ kvalid_uint, "size" }, /* KEY_PAGESIZE */
 };
 
 /*
@@ -165,21 +169,41 @@ sendtemplate(struct kreq *req)
 	khttp_template(req, &t, "template.xml");
 }
 
+/*
+ * Send a random amount of data.
+ * This tests how well the application performs under load.
+ * We accept two optional parameters: page size and count.
+ * Page count is the number of times we flush a page (with the given
+ * size) to the wire.
+ */
 static void
 senddata(struct kreq *req)
 {
-	int64_t	 i, len;
-	char	 c;
+	int64_t	  i, j, nm, sz;
+	char	 *buf;
 
-	len = 1024 * 1024;
-	if (NULL != req->fieldmap[KEY_INTEGER])
-		len = req->fieldmap[KEY_INTEGER]->parsed.i;
+	nm = 1024 * 1024;
+	if (NULL != req->fieldmap[KEY_PAGECOUNT])
+		nm = req->fieldmap[KEY_PAGECOUNT]->parsed.i;
+	if (0 == nm)
+		nm = 1;
+
+	sz = 1;
+	if (NULL != req->fieldmap[KEY_PAGESIZE])
+		sz = req->fieldmap[KEY_PAGESIZE]->parsed.i;
+	if (0 == sz || (uint64_t)sz > SIZE_MAX)
+		sz = 1;
+	
+	buf = kmalloc(sz);
 
 	resp_open(req, KHTTP_200);
-	for (i = 0; i < len; i++) {
-		c = 65 * arc4random_uniform(26);
-		khttp_putc(req, c);
+	for (i = 0; i < nm; i++) {
+		for (j = 0; j < sz; j++)
+			buf[j] = 65 + arc4random_uniform(24);
+		khttp_write(req, buf, sz);
 	}
+
+	free(buf);
 }
 
 /*
