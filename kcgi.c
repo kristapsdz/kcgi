@@ -634,13 +634,13 @@ khttp_parsex(struct kreq *req,
 	 * must be non-blocking in order to make the reads not spin the
 	 * CPU.
 	 */
-	if (KCGI_OK != xsocketprep(STDIN_FILENO)) {
-		XWARNX("xsocketprep");
+	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
+		XWARNX("kxsocketprep");
 		return(KCGI_SYSTEM);
 	} else if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
 
-	if (KCGI_OK != xsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
+	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		ksandbox_free(work_box);
 		return(KCGI_SYSTEM);
 	}
@@ -751,13 +751,13 @@ khttp_parsex(struct kreq *req,
 	}
 
 	close(work_dat[KWORKER_PARENT]);
-	kerr = xwaitpid(work_pid);
+	kerr = kxwaitpid(work_pid);
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
 	return(kerr);
 err:
 	close(work_dat[KWORKER_PARENT]);
-	xwaitpid(work_pid);
+	kxwaitpid(work_pid);
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
 	kreq_free(req);
@@ -1218,6 +1218,11 @@ khttp_templatex(const struct ktemplate *t,
 		close(fd);
 		return(1);
 	}
+
+#ifdef	HAVE_SENDFILE
+	if (NULL == t && khttp_templatex_write == fp) {
+	}
+#endif
 
 	sz = (size_t)st.st_size;
 	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);

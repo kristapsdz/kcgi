@@ -87,8 +87,8 @@ kfcgi_control(int work, int ctrl)
 	enum kcgi_err	 kerr;
 	uint16_t	 rid, rtest;
 
-	if (KCGI_OK != xsocketprep(STDIN_FILENO)) {
-		XWARNX("xsocketprep");
+	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
+		XWARNX("kxsocketprep");
 		return(EXIT_FAILURE);
 	} 
 
@@ -139,7 +139,7 @@ kfcgi_control(int work, int ctrl)
 				continue;
 			XWARN("accept");
 			return(EXIT_FAILURE);
-		} else if (KCGI_OK != xsocketprep(fd)) {
+		} else if (KCGI_OK != kxsocketprep(fd)) {
 			XWARNX("xsocketprep");
 			close(fd);
 			return(EXIT_FAILURE);
@@ -265,8 +265,8 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 
 	close(fcgi->work_dat);
 	close(fcgi->sock_ctl);
-	xwaitpid(fcgi->work_pid);
-	xwaitpid(fcgi->sock_pid);
+	kxwaitpid(fcgi->work_pid);
+	kxwaitpid(fcgi->sock_pid);
 	ksandbox_close(fcgi->work_box);
 	ksandbox_free(fcgi->work_box);
 	ksandbox_close(fcgi->sock_box);
@@ -306,14 +306,14 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		return(KCGI_ENOMEM);
 	}
 
-	if (KCGI_OK != xsocketpair
+	if (KCGI_OK != kxsocketpair
 		 (AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
 		ksandbox_free(work_box);
 		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
-	if (KCGI_OK != xsocketpair
+	if (KCGI_OK != kxsocketpair
 		 (AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		close(work_ctl[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_CHILD]);
@@ -374,17 +374,17 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		XWARNX("ksandbox_init_parent");
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		xwaitpid(work_pid);
+		kxwaitpid(work_pid);
 		ksandbox_free(work_box);
 		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
-	if (KCGI_OK != xsocketpair
+	if (KCGI_OK != kxsocketpair
 		 (AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		xwaitpid(work_pid);
+		kxwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		ksandbox_free(sock_box);
@@ -398,7 +398,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_ctl[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_CHILD]);
 		close(sock_ctl[KWORKER_PARENT]);
-		xwaitpid(work_pid);
+		kxwaitpid(work_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		ksandbox_free(sock_box);
@@ -435,8 +435,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		XWARNX("ksandbox_init_parent");
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
-		xwaitpid(work_pid);
-		xwaitpid(sock_pid);
+		kxwaitpid(work_pid);
+		kxwaitpid(sock_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		ksandbox_close(sock_box);
@@ -449,8 +449,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (NULL == fcgi) {
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
-		xwaitpid(work_pid);
-		xwaitpid(sock_pid);
+		kxwaitpid(work_pid);
+		kxwaitpid(sock_pid);
 		ksandbox_close(work_box);
 		ksandbox_free(work_box);
 		ksandbox_close(sock_box);
