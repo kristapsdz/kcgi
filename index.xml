@@ -382,7 +382,7 @@ int main(void) {
 			</section>
 		</article>
 		<footer>
-			<div>&#169; 2014&#8211;2015 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2016 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
