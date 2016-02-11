@@ -389,6 +389,11 @@ int main(void) {
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
 			</div>
+			<div>
+				<a href="https://scan.coverity.com/projects/kcgi">
+					<img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/7727/badge.svg" />
+				</a>
+			</div>
 		</footer>
 	</body>
 </html>
