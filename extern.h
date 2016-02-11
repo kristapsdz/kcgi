@@ -96,40 +96,40 @@ int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
  * failure has occured.
  * They do nothing else and return the normal values.
  */
-int		 xasprintf(const char *, int, 
+int		 kxasprintf(const char *, int, 
 			char **, const char *, ...);
-int		 xvasprintf(const char *, int, 
+int		 kxvasprintf(const char *, int, 
 			char **, const char *, va_list);
 
-void		*xcalloc(const char *, int, size_t, size_t);
-void		*xmalloc(const char *, int, size_t);
-void		*xrealloc(const char *, int, void *, size_t);
-void		*xreallocarray(const char *, 
+void		*kxcalloc(const char *, int, size_t, size_t);
+void		*kxmalloc(const char *, int, size_t);
+void		*kxrealloc(const char *, int, void *, size_t);
+void		*kxreallocarray(const char *, 
 			int, void *, size_t, size_t);
-enum kcgi_err	 xsocketpair(int, int, int, int[2]);
-enum kcgi_err	 xsocketprep(int);
-char		*xstrdup(const char *, int, const char *);
-enum kcgi_err	 xwaitpid(pid_t);
-void		 xwarn(const char *, int, const char *, ...);
-void		 xwarnx(const char *, int, const char *, ...);
+enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
+enum kcgi_err	 kxsocketprep(int);
+char		*kxstrdup(const char *, int, const char *);
+enum kcgi_err	 kxwaitpid(pid_t);
+void		 kxwarn(const char *, int, const char *, ...);
+void		 kxwarnx(const char *, int, const char *, ...);
 #define		 XASPRINTF(_p, ...) \
-		 xasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
+		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \
-		 xvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
+		 kxvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
 #define		 XCALLOC(_nm, _sz) \
-		 xcalloc(__FILE__, __LINE__, (_nm), (_sz))
+		 kxcalloc(__FILE__, __LINE__, (_nm), (_sz))
 #define		 XMALLOC(_sz) \
-		 xmalloc(__FILE__, __LINE__, (_sz))
+		 kxmalloc(__FILE__, __LINE__, (_sz))
 #define		 XREALLOC(_p, _sz) \
-		 xrealloc(__FILE__, __LINE__, (_p), (_sz))
+		 kxrealloc(__FILE__, __LINE__, (_p), (_sz))
 #define		 XREALLOCARRAY(_p, _nm, _sz) \
-		 xreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
+		 kxreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
 #define		 XSTRDUP(_p) \
-		 xstrdup(__FILE__, __LINE__, (_p))
+		 kxstrdup(__FILE__, __LINE__, (_p))
 #define		 XWARN(...) \
-		 xwarn(__FILE__, __LINE__, __VA_ARGS__)
+		 kxwarn(__FILE__, __LINE__, __VA_ARGS__)
 #define		 XWARNX(...) \
-		 xwarnx(__FILE__, __LINE__, __VA_ARGS__)
+		 kxwarnx(__FILE__, __LINE__, __VA_ARGS__)
 
 __END_DECLS
 
