@@ -1,8 +1,8 @@
 <article data-sblg-article="1" data-sblg-tags="version">
 	<header>
-		<h1>0.7.6</h1>
+		<h1>0.7.7</h1>
 		<address>Kristaps Dzonsons</address>
-		<time datetime="2016-02-08">2016-02-08</time>
+		<time datetime="2016-02-10">2016-02-10</time>
 	</header>
 	<aside>
 		<div>
@@ -15,6 +15,9 @@
 			libraries such as <a href="kcgijson.3.html">kcgijson(3)</a>.
 			The buffer is flushed when its size is exceeded or when <a href="khttp_free.3.html">khttp_free(3)</a> is invoked.
 			If not provided, the default is 8 KiB for CGI and 65 KiB for FastCGI.
+			Also renamed the <code>xmalloc</code>-style internal functions so as not to override weak symbols in any interfacing
+			applications.
+			This was noted by Okan Demirmen&#8212;thanks!
 		</div>
 	</aside>
 </article>
