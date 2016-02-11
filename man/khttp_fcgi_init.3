@@ -50,6 +50,7 @@
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
 .Fa "unsigned int debugging"
+.Fa "const struct kopts *opts"
 .Fc
 .Sh DESCRIPTION
 The
@@ -80,7 +81,7 @@ as follows:
 .Bd -literal -offset indent
 khttp_fcgi_initx(fcgi, kmimetypes, KMIME__MAX,
   keys, keysz, ksuffixmap, KMIME_TEXT_HTML, 
-  pages, pagesz, defpage, NULL, NULL, 0);
+  pages, pagesz, defpage, NULL, NULL, 0, NULL);
 .Ed
 .Pp
 After invocation with a return value of
