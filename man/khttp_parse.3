@@ -50,6 +50,7 @@
 .Fa "void *arg"
 .Fa "void (*argfree)(void *arg)"
 .Fa "unsigned int debugging"
+.Fa "const struct kopts *opts"
 .Fc
 .Vt extern const char *const kmimetypes[KMIME__MAX];
 .Vt extern const char *const khttps[KHTTP__MAX];
@@ -127,6 +128,11 @@ An array of MIME types (e.g.,
 .Dq text/html ) ,
 mapped into a MIME index during MIME body parsing.
 This relates both to pages and input fields with a body type.
+.It Fa opts
+Tunable options regarding socket buffer sizes and so on.
+If set to
+.Dv NULL ,
+meaningful defaults are used.
 .It Fa pages
 An array of recognised pathnames.
 When pathnames are parsed, they're matched to indices in this array.
@@ -155,7 +161,7 @@ as follows:
 khttp_parsex(req, ksuffixmap, 
   kmimetypes, KMIME__MAX, keys, keysz, 
   pages, pagesz, KMIME_TEXT_HTML,
-  defpage, NULL, NULL, 0);
+  defpage, NULL, NULL, 0, NULL);
 .Ed
 .Pp
 The
@@ -622,6 +628,25 @@ The (optional)
 counter.
 .It Va opaque
 The (optional) opaque string requested by the server.
+.El
+.Pp
+The
+.Vt struct kopts
+structure consists of tunables for network performance.
+You probably don't want to use these unless you really know what you're
+doing!
+.Bl -tag -width Ds
+.It Va sndbufsz
+The size of the output buffer.
+The output buffer is a heap-allocated region into which writes (via
+.Xr khttp_write 3 ) ,
+are buffered instead of being flushed directly to the wire.
+The buffer is flushed when it is full or when
+.Xr khttp_free 3
+is invoked.
+If the buffer size is zero, writes are flushed immediately to the wire.
+If the buffer size is less than zero, it is filled with a meaningful
+default.
 .El
 .Pp
 Lastly, the
