@@ -37,7 +37,7 @@
 #include "extern.h"
 
 int
-xvasprintf(const char *file, int line, 
+kxvasprintf(const char *file, int line, 
 	char **p, const char *fmt, va_list ap)
 {
 	int	 len;
@@ -45,12 +45,12 @@ xvasprintf(const char *file, int line,
 	if (-1 != (len = vasprintf(p, fmt, ap)))
 		return(len);
 
-	xwarn(file, line, "vasprintf");
+	kxwarn(file, line, "vasprintf");
 	return(-1);
 }
 
 int
-xasprintf(const char *file, int line, char **p, const char *fmt, ...)
+kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
 {
 	va_list	 ap;
 	int	 len;
@@ -61,68 +61,68 @@ xasprintf(const char *file, int line, char **p, const char *fmt, ...)
 	if (len != -1)
 		return(len);
 
-	xwarn(file, line, "vasprintf");
+	kxwarn(file, line, "vasprintf");
 	return(-1);
 }
 
 void *
-xcalloc(const char *file, int line, size_t nm, size_t sz)
+kxcalloc(const char *file, int line, size_t nm, size_t sz)
 {
 	void	 *p;
 
 	if (NULL != (p = calloc(nm, sz)))
 		return(p);
-	xwarn(file, line, "calloc(%zu, %zu)", nm, sz);
+	kxwarn(file, line, "calloc(%zu, %zu)", nm, sz);
 	return(p);
 }
 
 void *
-xmalloc(const char *file, int line, size_t sz)
+kxmalloc(const char *file, int line, size_t sz)
 {
 	void	 *p;
 
 	if (NULL != (p = malloc(sz)))
 		return(p);
-	xwarn(file, line, "malloc(%zu)", sz);
+	kxwarn(file, line, "malloc(%zu)", sz);
 	return(p);
 }
 
 void *
-xrealloc(const char *file, int line, void *pp, size_t sz)
+kxrealloc(const char *file, int line, void *pp, size_t sz)
 {
 	void	 *p;
 
 	if (NULL != (p = realloc(pp, sz)))
 		return(p);
-	xwarn(file, line, "realloc(%p, %zu)", pp, sz);
+	kxwarn(file, line, "realloc(%p, %zu)", pp, sz);
 	return(p);
 }
 
 void *
-xreallocarray(const char *file, 
+kxreallocarray(const char *file, 
 	int line, void *pp, size_t nm, size_t sz)
 {
 	void	 *p;
 
 	if (NULL != (p = reallocarray(pp, nm, sz)))
 		return(p);
-	xwarn(file, line, "reallocarray(%p, %zu, %zu)", pp, nm, sz);
+	kxwarn(file, line, "reallocarray(%p, %zu, %zu)", pp, nm, sz);
 	return(p);
 }
 
 char *
-xstrdup(const char *file, int line, const char *cp)
+kxstrdup(const char *file, int line, const char *cp)
 {
 	char	*p;
 
 	if (NULL != (p = strdup(cp)))
 		return(p);
-	xwarn(file, line, "strdup(%p)", cp);
+	kxwarn(file, line, "strdup(%p)", cp);
 	return(p);
 }
 
 void
-xwarnx(const char *file, int line, const char *fmt, ...)
+kxwarnx(const char *file, int line, const char *fmt, ...)
 {
 	char		buf[1024];
 	va_list		ap;
@@ -134,7 +134,7 @@ xwarnx(const char *file, int line, const char *fmt, ...)
 }
 
 void
-xwarn(const char *file, int line, const char *fmt, ...)
+kxwarn(const char *file, int line, const char *fmt, ...)
 {
 	int		e = errno;
 	char		buf[1024];
@@ -148,7 +148,7 @@ xwarn(const char *file, int line, const char *fmt, ...)
 }
 
 enum kcgi_err
-xwaitpid(pid_t pid)
+kxwaitpid(pid_t pid)
 {
 	int	 	 st;
 	enum kcgi_err	 ke;
@@ -170,7 +170,7 @@ xwaitpid(pid_t pid)
 }
 
 enum kcgi_err
-xsocketprep(int sock)
+kxsocketprep(int sock)
 {
 	int	 fl;
 
@@ -186,7 +186,7 @@ xsocketprep(int sock)
 }
 
 enum kcgi_err
-xsocketpair(int domain, int type, int protocol, int *sock)
+kxsocketpair(int domain, int type, int protocol, int *sock)
 {
 	int	 rc, fl1, fl2;
 
