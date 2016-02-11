@@ -255,9 +255,9 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	 * If we don't, then copy it into the buffer.
 	 */
 	if (p->outbufpos + sz > p->outbufsz) {
-		kdata_flush(p, p->outbuf, p->outbufsz);
+		kdata_flush(p, p->outbuf, p->outbufpos);
 		p->outbufpos = 0;
-		if (p->outbufpos + sz > p->outbufsz) {
+		if (sz > p->outbufsz) {
 			kdata_flush(p, buf, sz);
 			return;
 		}
