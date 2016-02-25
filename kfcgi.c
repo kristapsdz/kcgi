@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <limits.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -49,7 +50,7 @@ main(int argc, char *argv[])
 	struct passwd		*pw;
 	size_t			 wsz, i, sz, lsz;
 	const char		*pname, *sockpath, *chpath,
-	      			*sockuser, *procuser;
+	      			*sockuser, *procuser, *errstr;
 	struct sockaddr_un	 sun;
 	mode_t			 old_umask;
 	uid_t		 	 sockuid, procuid;
@@ -77,11 +78,19 @@ main(int argc, char *argv[])
 	while (-1 != (c = getopt(argc, argv, "l:p:n:s:u:U:")))
 		switch (c) {
 		case ('l'):
-			lsz = atoi(optarg);
-			break;	
+			lsz = strtonum(optarg, 0, INT_MAX, &errstr);
+			if (NULL == errstr)
+				break;
+			fprintf(stderr, "-l must be "
+				"between 0 and %d\n", INT_MAX);
+			return(EXIT_FAILURE);	
 		case ('n'):
-			wsz = atoi(optarg);
-			break;	
+			wsz = strtonum(optarg, 0, INT_MAX, &errstr);
+			if (NULL == errstr)
+				break;
+			fprintf(stderr, "-n must be "
+				"between 0 and %d\n", INT_MAX);
+			return(EXIT_FAILURE);	
 		case ('p'):
 			chpath = optarg;
 			break;	
