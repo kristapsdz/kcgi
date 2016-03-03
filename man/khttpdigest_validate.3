@@ -18,7 +18,8 @@
 .Dt KHTTPDIGEST_VALIDATE 3
 .Os
 .Sh NAME
-.Nm khttpdigest_validate
+.Nm khttpdigest_validate ,
+.Nm khttpdigest_validatehash
 .Nd validate an HTTP digest request
 .Sh LIBRARY
 .Lb libkcgi
@@ -30,11 +31,20 @@
 .Fa "struct kreq *req"
 .Fa "const char *password"
 .Fc
+.Ft int
+.Fo khttpdigest_validatehash
+.Fa "struct kreq *req"
+.Fa "const char *hash"
+.Fc
 .Sh DESCRIPTION
 The
 .Nm khttpdigest_validate
-function validates the given
+and
+.Nm khttpdigest_validatehash
+functions validate the given
 .Fa password
+(or a pre-combined
+.Fa hash )
 with the HTTP digest-authorised request
 .Fa req
 as returned by
@@ -46,8 +56,16 @@ It
 .Em does not
 check that the URI component of the digest matches that of the request,
 as these values are known to be mutable.
+.Pp
+The
+.Nm khttpdigest_validate
+function will compute a hash from the request and password; the
+.Nm khttpdigest_validatehash
+operates on a pre-computed hash value.
 .Sh RETURN VALUES
-.Nm
+.Nm khttpdigest_validate
+and
+.Nm khttpdigest_validatehash
 will return zero if validation failed, less than zero if the request was
 not properly set up for HTTP digest validation, or greater than zero if
 the validation succeeded.
@@ -58,6 +76,8 @@ the validation succeeded.
 .Xr khttpbasic_validate 3
 .Sh AUTHORS
 The
-.Nm
-function was written by
+.Nm khttpdigest_validate
+and
+.Nm khttpdigest_validatehash
+functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
