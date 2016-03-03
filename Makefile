@@ -444,6 +444,7 @@ kcgi.tgz:
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f index.html $(TUTORIALHTMLS)
+	rm -f libconfig.a
 	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
