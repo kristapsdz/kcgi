@@ -108,17 +108,15 @@ khttpbasic_validate(const struct kreq *req,
 }
 
 int
-khttpdigest_validate(const struct kreq *req, const char *pass)
+khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 {
 	MD5_CTX	 	 ctx;
 	unsigned char	 ha1[MD5_DIGEST_LENGTH],
 			 ha2[MD5_DIGEST_LENGTH],
-			 ha3[MD5_DIGEST_LENGTH],
-			 ha4[MD5_DIGEST_LENGTH];
+			 ha3[MD5_DIGEST_LENGTH];
 	char		 skey1[MD5_DIGEST_LENGTH * 2 + 1],
 			 skey2[MD5_DIGEST_LENGTH * 2 + 1],
 			 skey3[MD5_DIGEST_LENGTH * 2 + 1],
-			 skey4[MD5_DIGEST_LENGTH * 2 + 1],
 			 count[9];
 	size_t		 i;
 	const struct khttpdigest *auth;
@@ -132,16 +130,6 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 		return(-1);
 
 	auth = &req->rawauth.d.digest;
-
-	MD5Init(&ctx);
-	MD5Update(&ctx, auth->user, strlen(auth->user));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, auth->realm, strlen(auth->realm));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, pass, strlen(pass));
-	MD5Final(ha4, &ctx);
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
-		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
 
 	/*
 	 * MD5-sess hashes the nonce and client nonce as well as the
@@ -212,4 +200,36 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 		snprintf(&skey3[i * 2], 3, "%02x", ha3[i]);
 
 	return(0 == strcmp(auth->response, skey3));
+}
+
+int
+khttpdigest_validate(const struct kreq *req, const char *pass)
+{
+	MD5_CTX	 	 ctx;
+	unsigned char	 ha4[MD5_DIGEST_LENGTH];
+	char		 skey4[MD5_DIGEST_LENGTH * 2 + 1];
+	size_t		 i;
+	const struct khttpdigest *auth;
+
+	/*
+	 * Make sure we're a digest with all fields intact.
+	 */
+	if (KAUTH_DIGEST != req->rawauth.type)
+		return(-1);
+	else if (0 == req->rawauth.authorised)
+		return(-1);
+
+	auth = &req->rawauth.d.digest;
+
+	MD5Init(&ctx);
+	MD5Update(&ctx, auth->user, strlen(auth->user));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, auth->realm, strlen(auth->realm));
+	MD5Update(&ctx, ":", 1);
+	MD5Update(&ctx, pass, strlen(pass));
+	MD5Final(ha4, &ctx);
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
+
+	return(khttpdigest_validatehash(req, skey4));
 }
