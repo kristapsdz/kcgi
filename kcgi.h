@@ -470,6 +470,8 @@ void		 khttp_write(struct kreq *, const char *, size_t);
 
 int		 khttpdigest_validate(const struct kreq *, 
 			const char *);
+int		 khttpdigest_validatehash(const struct kreq *, 
+			const char *);
 int		 khttpbasic_validate(const struct kreq *, 
 			const char *, const char *);
 
