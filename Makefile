@@ -451,6 +451,7 @@ clean:
 	rm -f libkcgixml.a kcgixml.o
 	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
+	rm -f test-abort-valid.core core
 	rm -f test-memmem test-memmem.o 
 	rm -f test-reallocarray test-reallocarray.o 
 	rm -f test-sandbox_init test-sandbox_init.o
