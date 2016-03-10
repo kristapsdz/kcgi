@@ -256,6 +256,8 @@ kfcgi: kfcgi.o libconfig.a
 
 kfcgi.o: config.h
 
+$(REGRESS_OBJS): config.h
+
 regress/test-bigfile: regress/test-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
