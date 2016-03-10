@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "kcgi.h"
 #include "kcgihtml.h"
@@ -199,7 +200,11 @@ senddata(struct kreq *req)
 	resp_open(req, KHTTP_200);
 	for (i = 0; i < nm; i++) {
 		for (j = 0; j < sz; j++)
+#ifndef __linux__
 			buf[j] = 65 + arc4random_uniform(24);
+#else
+			buf[j] = 65 + (random() % 24);
+#endif
 		khttp_write(req, buf, sz);
 	}
 
