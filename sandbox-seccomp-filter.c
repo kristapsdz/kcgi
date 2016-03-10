@@ -94,9 +94,13 @@ static const struct sock_filter preauth_ctrl[] = {
 #ifdef __NR_time /* not defined on EABI ARM */
 	SC_ALLOW(time),
 #endif
+#ifdef __NR_accept /* not defined for __i386__ (linux) */
 	SC_ALLOW(accept),
+#endif
 	SC_ALLOW(fcntl),
+#ifdef __NR_sendmsg /* not defined for __i386__ (linux) */
 	SC_ALLOW(sendmsg),
+#endif
 	SC_ALLOW(read),
 	SC_ALLOW(write),
 	SC_ALLOW(close),
