@@ -17,6 +17,21 @@
 #ifndef KCGIHTML_H
 #define KCGIHTML_H
 
+#if !defined(__BEGIN_DECLS)
+#  ifdef __cplusplus
+#  define       __BEGIN_DECLS           extern "C" {
+#  else
+#  define       __BEGIN_DECLS
+#  endif
+#endif
+#if !defined(__END_DECLS)
+#  ifdef __cplusplus
+#  define       __END_DECLS             }
+#  else
+#  define       __END_DECLS
+#  endif
+#endif
+
 enum	kentity {
 	KENTITY_AElig,
 	KENTITY_Aacute,

@@ -17,6 +17,21 @@
 #ifndef KCGI_H
 #define KCGI_H
 
+#if !defined(__BEGIN_DECLS)
+#  ifdef __cplusplus
+#  define       __BEGIN_DECLS           extern "C" {
+#  else
+#  define       __BEGIN_DECLS
+#  endif
+#endif
+#if !defined(__END_DECLS)
+#  ifdef __cplusplus
+#  define       __END_DECLS             }
+#  else
+#  define       __END_DECLS
+#  endif
+#endif
+
 /*
  * All of the public functions, variables, and structures in this header
  * file are described in kcgi(3).
