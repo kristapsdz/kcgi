@@ -16,8 +16,12 @@
  * needed on buffers full of bytes, and then call MD5Final, which
  * will fill a supplied 16-byte array with the digest.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
+#include <sys/types.h>
 #include <stdint.h>
 #include <string.h>
 
