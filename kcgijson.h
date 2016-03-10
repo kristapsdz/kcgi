@@ -17,6 +17,21 @@
 #ifndef KCGIJSON_H
 #define KCGIJSON_H
 
+#if !defined(__BEGIN_DECLS)
+#  ifdef __cplusplus
+#  define       __BEGIN_DECLS           extern "C" {
+#  else
+#  define       __BEGIN_DECLS
+#  endif
+#endif
+#if !defined(__END_DECLS)
+#  ifdef __cplusplus
+#  define       __END_DECLS             }
+#  else
+#  define       __END_DECLS
+#  endif
+#endif
+
 enum	kjsontype {
 	KJSON_ARRAY,
 	KJSON_OBJECT,
