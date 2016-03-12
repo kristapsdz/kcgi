@@ -139,6 +139,9 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			fd = accept(fdaccept, 
 				(struct sockaddr *)&ss, &sslen);
 			if (fd < 0) {
+				if (EAGAIN == errno || 
+				    EWOULDBLOCK == errno)
+					continue;
 				XWARN("accept");
 				goto out;
 			} 
@@ -359,7 +362,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	 * signal and ignore it.
 	 */
 	signal(SIGTERM, dosignal);
-	signal(SIGINT, SIG_IGN);
 
 	if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
