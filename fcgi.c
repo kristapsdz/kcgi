@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015--2016 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,9 +21,11 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -68,18 +70,21 @@ dosignal(int arg)
 
 /*
  * This is our control process.
- * It listens for FastCGI connections on STDIN_FILENO.
+ * It listens for FastCGI connections on STDIN_FILENO ("fdaccept") xor
+ * for file descriptors (from "fdfiled").
  * When it has one, it reads and passes to the worker (sibling) process,
  * which will be parsing the data.
  * When the worker has finished, it passes back the request identifier,
  * which this passes to the main application for output.
+ * This exits when the FastCGI connection fd HUPs.
+ * It will close the fdaccept or fdfiled descriptor.
  */
 static int
-kfcgi_control(int work, int ctrl)
+kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 {
 	struct sockaddr_storage ss;
 	socklen_t	 sslen;
-	int		 fd, rc;
+	int		 fd, rc, afd, ourfd, erc;
 	uint32_t	 cookie, test;
 	struct pollfd	 pfd[2];
 	char		 buf[BUFSIZ];
@@ -87,13 +92,18 @@ kfcgi_control(int work, int ctrl)
 	enum kcgi_err	 kerr;
 	uint16_t	 rid, rtest;
 
-	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
-		XWARNX("kxsocketprep");
-		return(EXIT_FAILURE);
+	erc = EXIT_FAILURE;
+	ourfd = -1 == fdaccept ? fdfiled : fdaccept;
+	assert(-1 != ourfd);
+	fd = -1;
+
+	if (KCGI_OK != kxsocketprep(ourfd)) {
+		XWARNX("manager socket error");
+		goto out;
 	} 
 
 	for (;;) {
-		pfd[0].fd = STDIN_FILENO;
+		pfd[0].fd = ourfd;
 		pfd[0].events = POLLIN;
 		pfd[0].revents = 0;
 		pfd[1].fd = ctrl;
@@ -102,47 +112,64 @@ kfcgi_control(int work, int ctrl)
 
 		if ((rc = poll(pfd, 2, -1)) < 0) {
 			XWARN("poll");
-			return(EXIT_FAILURE);
+			goto out;
 		} else if (0 == rc) {
 			XWARNX("poll expired!?");
 			continue;
 		} else if (POLLHUP & pfd[1].revents) {
-			break;
+			XWARNX("worker has disconnected");
+			/* If we're exiting, this is ok... */
+			if ( ! (POLLIN & pfd[0].revents))
+				break;
+			goto out;
 		} else if ( ! (POLLIN & pfd[0].revents)) {
-			XWARNX("poll: control (%d, %d | %d, %d; %d, %d; %d, %d; %d, %d)",
-				pfd[0].revents,
-				pfd[1].revents,
-				POLLIN & pfd[0].revents,
-				POLLIN & pfd[1].revents,
-				POLLHUP & pfd[0].revents,
-				POLLHUP & pfd[1].revents,
-				POLLNVAL & pfd[0].revents,
-				POLLNVAL & pfd[1].revents,
-				POLLERR & pfd[0].revents,
-				POLLERR & pfd[1].revents);
-			return(EXIT_FAILURE);
+			XWARNX("manager has disconnected");
+			break;
 		}
 
+		if (-1 != fdaccept) {
+			assert(-1 == fdfiled);
+			/* 
+			 * Blocking accept from FastCGI socket.
+			 * This will be round-robined by the kernel so
+			 * that other control processes are fairly
+			 * notified.
+			 */
+			sslen = sizeof(ss);
+			fd = accept(fdaccept, 
+				(struct sockaddr *)&ss, &sslen);
+			if (fd < 0) {
+				XWARN("accept");
+				goto out;
+			} 
+		} else {
+			assert(-1 != fdfiled);
+			/*
+			 * Accept a file descriptor from the parent
+			 * process in the "new way".
+			 * This usually means we're being run by a
+			 * kfcgi-like application that's managing
+			 * connection counts.
+			 */
+			rc = fullreadfd(fdfiled, &fd, &afd, sizeof(int));
+			if (rc < 0) {
+				XWARNX("manager socket error");
+				goto out;
+			} else if (0 == rc) {
+				XWARNX("manager has disconnected");
+				break;
+			}
+		}
+		
 		/* 
-		 * Blocking accept from FastCGI socket.
-		 * This will be round-robined by the kernel so that
-		 * other control processes are fairly notified.
 		 * We then set that the FastCGI socket is non-blocking,
 		 * making it consistent with the behaviour of the CGI
 		 * socket, which is also set as such.
 		 */
-		sslen = sizeof(ss);
-		fd = accept(STDIN_FILENO, 
-			(struct sockaddr *)&ss, &sslen);
-		if (fd < 0) {
-			if (EAGAIN == errno)
-				continue;
-			XWARN("accept");
-			return(EXIT_FAILURE);
-		} else if (KCGI_OK != kxsocketprep(fd)) {
-			XWARNX("xsocketprep");
+		if (KCGI_OK != kxsocketprep(fd)) {
+			XWARNX("work request socket error");
 			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		}
 
 		pfd[0].fd = fd;
@@ -159,52 +186,54 @@ kfcgi_control(int work, int ctrl)
 		 * the worker.
 		 * We don't know when the data is finished, but the
 		 * worker does, so wait for it to notify us back.
+		 * FIXME: splice this.
 		 */
 		fullwrite(pfd[1].fd, &cookie, sizeof(uint32_t));
 		for (;;) {
 			if ((rc = poll(pfd, 2, -1)) < 0) {
-				XWARN("poll: control socket");
-				close(fd);
-				return(EXIT_FAILURE);
+				XWARN("poll");
+				goto out;
 			} else if (0 == rc) {
-				XWARNX("poll: timeout!?");
+				XWARNX("poll expired!?");
 				continue;
 			}
 			if (POLLIN & pfd[1].revents) {
 				/* Child is responding! */
 				break;
 			} else if ( ! (POLLIN & pfd[0].revents)) {
-				XWARNX("poll: bad events");
-				close(fd);
-				return(EXIT_FAILURE);
+				XWARNX("work request poll error");
+				goto out;
 			} else if ((ssz = read(fd, buf, BUFSIZ)) < 0) {
-				XWARN("read: control socket");
-				close(fd);
-				return(EXIT_FAILURE);
+				XWARN("read");
+				goto out;
 			} else if (0 == ssz) {
-				close(fd);
-				return(EXIT_FAILURE);
+				XWARNX("work request empty read");
+				goto out;
 			}
-			fullwrite(pfd[1].fd, buf, ssz);
+			rc = fullwritenoerr(pfd[1].fd, buf, ssz);
+			if (rc < 0) {
+				XWARNX("worker write error");
+				goto out;
+			} else if (0 == rc) {
+				XWARNX("worker has disconnected");
+				goto out;
+			}
 		}
 
 		/* Now verify that the worker is sane. */
 		if (fullread(pfd[1].fd, &test, 
 			 sizeof(uint32_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		} else if (cookie != test) {
 			XWARNX("failed to verify FastCGI cookie");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		} 
 
 		if (fullread(pfd[1].fd, &rid, 
 			 sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI requestId");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		}
 #ifdef __linux__
 		cookie = random();
@@ -219,8 +248,7 @@ kfcgi_control(int work, int ctrl)
 		 */
 		if ( ! fullwritefd(ctrl, fd, &rid, sizeof(uint16_t))) {
 			XWARNX("failed to send FastCGI socket");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		}
 
 		/* 
@@ -229,28 +257,46 @@ kfcgi_control(int work, int ctrl)
 		 */
 		if (fullread(ctrl, &rtest, sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		} else if (rid != rtest) {
-			XWARNX("%" PRIu16 " != %" PRIu16 "\n", rid, rtest);
 			XWARNX("failed to verify FastCGI requestId");
-			close(fd);
-			return(EXIT_FAILURE);
+			goto out;
 		}
 
-		/* We're done: try again. */
+		/*
+		 * If we are being passed descriptors (instead of
+		 * waiting on the accept()), then notify the manager
+		 * that we've finished processing this request.
+		 */
+		if (-1 != fdfiled) {
+			rc = fullwritenoerr(fdfiled, &afd, sizeof(int));
+			if (rc < 0) {
+				XWARNX("failed ack to manager");
+				goto out;
+			} else if (0 == rc) {
+				XWARNX("manager has exited");
+				break;
+			}
+		}
+
 		close(fd);
+		fd = -1;
 	}
 
-	return(EXIT_SUCCESS);
+	erc = EXIT_SUCCESS;
+out:
+	if (-1 != fd)
+		close(fd);
+	close(ourfd);
+	return(erc);
 }
 
 void
 khttp_fcgi_child_free(struct kfcgi *fcgi)
 {
 
-	close(fcgi->work_dat);
 	close(fcgi->sock_ctl);
+	close(fcgi->work_dat);
 	ksandbox_free(fcgi->work_box);
 	free(fcgi);
 }
@@ -263,8 +309,8 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	if (NULL == fcgi)
 		return(KCGI_OK);
 
-	close(fcgi->work_dat);
 	close(fcgi->sock_ctl);
+	close(fcgi->work_dat);
 	kxwaitpid(fcgi->work_pid);
 	kxwaitpid(fcgi->sock_pid);
 	ksandbox_close(fcgi->work_box);
@@ -285,10 +331,26 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	unsigned int debugging, const struct kopts *opts)
 {
 	struct kfcgi	*fcgi;
-	int 		 er;
+	int 		 er, fdaccept, fdfiled;
 	int		 work_ctl[2], work_dat[2], sock_ctl[2];
 	void		*work_box, *sock_box;
 	pid_t		 work_pid, sock_pid;
+	const char	*cp, *ercp;
+
+	/*
+	 * Determine whether we're supposed to accept() on a socket or,
+	 * rather, we're supposed to receive file descriptors from a
+	 * kfcgi-like manager.
+	 */
+	fdaccept = fdfiled = -1;
+	if (NULL != (cp = getenv("FCGI_LISTENSOCK_DESCRIPTORS"))) {
+		fdfiled = strtonum(cp, 0, INT_MAX, &ercp);
+		if (NULL != ercp) {
+			fdaccept = STDIN_FILENO;
+			fdfiled = -1;
+		} 
+	} else
+		fdaccept = STDIN_FILENO;
 
 	/*
 	 * FIXME: block this signal unless we're right at the fullreadfd
@@ -297,6 +359,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	 * signal and ignore it.
 	 */
 	signal(SIGTERM, dosignal);
+	signal(SIGINT, SIG_IGN);
 
 	if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
@@ -333,6 +396,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == work_pid) {
+		signal(SIGTERM, SIG_IGN);
 		if (NULL != argfree)
 			argfree(arg);
 		/* 
@@ -340,7 +404,10 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		 * socket used to pass input sockets to us.
 		 * Thus, close the parent's control socket. 
 		 */
-		close(STDIN_FILENO);
+		if (-1 != fdaccept)
+			close(fdaccept);
+		if (-1 != fdfiled)
+			close(fdfiled);
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
@@ -404,6 +471,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == sock_pid) {
+		signal(SIGTERM, SIG_IGN);
 		if (NULL != argfree)
 			argfree(arg);
 		close(STDOUT_FILENO);
@@ -418,7 +486,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		} else 
 			er = kfcgi_control
 				(work_ctl[KWORKER_PARENT], 
-				 sock_ctl[KWORKER_CHILD]);
+				 sock_ctl[KWORKER_CHILD],
+				 fdaccept, fdfiled);
 		close(work_ctl[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_CHILD]);
 		ksandbox_free(sock_box);
@@ -428,7 +497,10 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 
 	close(sock_ctl[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_PARENT]);
-	close(STDIN_FILENO);
+	if (-1 != fdaccept)
+		close(fdaccept);
+	if (-1 != fdfiled)
+		close(fdfiled);
 
 	if ( ! ksandbox_init_parent
 		 (sock_box, SAND_CONTROL, sock_pid)) {
@@ -520,8 +592,10 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	if (c < 0 && ! sig) {
 		XWARNX("fullreadfd");
 		return(KCGI_SYSTEM);
-	} else if (0 == c || (c < 0 && sig))
+	} else if (0 == c || (c < 0 && sig)) {
+		XWARNX("application signalled");
 		return(KCGI_HUP);
+	}
 
 	req->arg = fcgi->arg;
 	req->keys = fcgi->keys;
