@@ -5,7 +5,7 @@
 		<meta charset='utf-8' /> 
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
 		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
-		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 		<link rel="stylesheet" href="index.css" type="text/css" />
 		<script>
 			function showBits(name) 
@@ -37,6 +37,7 @@
 					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+					<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
 				</nav>
 			</section>
 			<section id="version">
@@ -188,6 +189,22 @@ int main(void) {
 					<h3><a href="${sblg-base}.html">${sblg-titletext}</a></h3>
 					${sblg-aside}
 				</nav>
+				<p>
+					In addition to these resources, the following conference papers have referenced <span class="nm">kcgi</span>.
+				</p>
+				<ul>
+					<li> 
+						Dzonsons, Kristaps (2016). <i>Secure BSD Web Application Development in C</i>. 
+						Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
+						(<a href="http://kristaps.bsd.lv/absdcon2016">Slides</a>.)
+					</li>
+					<li> 
+						Dzonsons, Kristaps (2015). <i>kcgi: securing CGI applications in C</i>. 
+						Proceedings of <a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2015.
+						(<a href="http://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
+						 <a href="http://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)
+					</li>
+				</ul>
 			</section>
 			<section id="deploying">
 				<h2>
@@ -387,6 +404,7 @@ int main(void) {
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
 				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
 			</div>
 			<div>
