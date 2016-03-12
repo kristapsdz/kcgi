@@ -63,7 +63,7 @@ int		 fullread(int, void *, size_t, int, enum kcgi_err *);
 enum kcgi_err	 fullreadword(int, char **);
 int		 fullreadfd(int, int *, void *, size_t);
 void		 fullwrite(int, const void *, size_t);
-void		 fullwritenoerr(int, const void *, size_t);
+int		 fullwritenoerr(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
 int		 fullwritefd(int, int, void *, size_t);
 
