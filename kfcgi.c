@@ -117,7 +117,7 @@ fullread(int fd, void *buf, size_t bufsz)
 	ssize_t	 	 ssz;
 	size_t	 	 sz;
 	struct pollfd	 pfd;
-	int		 rc, er;
+	int		 rc;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
@@ -134,8 +134,7 @@ fullread(int fd, void *buf, size_t bufsz)
 			fprintf(stderr, "poll: hangup\n");
 			return(0);
 		} else if ((ssz = read(fd, buf + sz, bufsz - sz)) < 0) {
-			er = errno;
-			fprintf(stderr, "read: %d, %zu: %s\n", fd, bufsz - sz, strerror(er));
+			perror("read");
 			return(0);
 		} else if (0 == ssz && sz > 0) {
 			fprintf(stderr, "read: short read\n");
@@ -144,7 +143,7 @@ fullread(int fd, void *buf, size_t bufsz)
 			fprintf(stderr, "read: unexpected eof\n");
 			return(0);
 		} else if (sz > SIZE_MAX - (size_t)ssz) {
-			fprintf(stderr, "read: overflow: %zu, %zd\n", sz, ssz);
+			fprintf(stderr, "read: overflow\n");
 			return(0);
 		}
 	}
@@ -181,21 +180,78 @@ xsocketpair(int *sock)
 }
 
 static int
-varpool(size_t wsz, int fd, const char *sockpath, char *argv[])
+varpool_start(struct worker *w, const struct worker *ws, 
+	size_t wsz, int fd, char **nargv)
+{
+	int	 pair[2];
+	char	 buf[64];
+	size_t	 i;
+
+	w->ctrl = w->fd = -1;
+	w->pid = -1;
+
+	if ( ! xsocketpair(pair))
+		return(0);
+
+	w->ctrl = pair[0];
+
+	if (-1 == (w->pid = fork())) {
+		perror("fork");
+		close(pair[0]);
+		close(pair[1]);
+		return(0);
+	} else if (0 == w->pid) {
+		/* 
+		 * Close out all current descriptors.
+		 * Note that we're a "new-mode" FastCGI manager to the
+		 * child via our environment variable.
+		 */
+		for (i = 0; i < wsz; i++)
+			if (-1 != ws[i].ctrl)
+				close(ws[i].ctrl);
+
+		close(fd);
+		snprintf(buf, sizeof(buf), "%d", pair[1]);
+		setenv("FCGI_LISTENSOCK_DESCRIPTORS", buf, 1);
+		/* coverity[tainted_string] */
+		execv(nargv[0], nargv);
+		perror(nargv[0]);
+		_exit(EXIT_FAILURE);
+	}
+
+	/* Close the child descriptor. */
+	close(pair[1]);
+	return(1);
+}
+
+/*
+ * A variable-sized pool of web application clients.
+ * A minimum of "wsz" applications are always running, and will grow to
+ * "maxwsz" at which point no new connections are accepted.
+ * This is an EXPERIMENTAL extension.
+ */
+static int
+varpool(size_t wsz, size_t maxwsz, int fd, 
+	const char *sockpath, char *argv[])
 {
 	struct worker	*ws;
-	size_t		 pfdsz, pfdmaxsz, i, j;
-	int		 rc, exitcode, afd, pair[2];
-	struct pollfd	*pfd;
+	size_t		 pfdsz, opfdsz, pfdmaxsz, i, j;
+	int		 rc, exitcode, afd, accepting;
+	struct pollfd	*pfd, *opfd;
 	struct sockaddr_storage ss;
 	socklen_t	 sslen;
-	char		 buf[64];
 	void		*pp;
+
+	fprintf(stderr,
+		"YOU ARE RUNNING THIS AT YOUR OWN RISK.\n"
+		"It is an experimental kfcgi(8) and kcgi(3) "
+		"feature.\n");
 
 	/* 
 	 * Allocate worker array.
 	 * We'll only grow after this point.
 	 */
+	accepting = 1;
 	ws = calloc(wsz, sizeof(struct worker));
 	pfdmaxsz = wsz + 1;
 	pfd = calloc(pfdmaxsz, sizeof(struct pollfd));
@@ -220,10 +276,10 @@ varpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	/*
 	 * Dying children should notify us that something is horribly
 	 * wrong and we should exit.
+	 * Also handle SIGTERM in the same way.
 	 */
-	signal(SIGTERM, sighandle);
 	signal(SIGCHLD, sighandle);
-	signal(SIGINT, sighandle);
+	signal(SIGTERM, sighandle);
 
 	/*
 	 * Zeroth pfd is always the domain socket.
@@ -236,40 +292,9 @@ varpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	 * Start up the [initial] worker processes.
 	 * We'll later spin up workers when we need them.
 	 */
-	for (i = 0; i < wsz; i++) {
-		/* 
-		 * Make our control pair. 
-		 * This makes a non-blocking socket that we'll use to
-		 * write the file descriptor into.
-		 */
-		if ( ! xsocketpair(pair))
+	for (i = 0; i < wsz; i++)
+		if ( ! varpool_start(&ws[i], ws, wsz, fd, argv))
 			goto out;
-		ws[i].ctrl = pair[0];
-
-		if (-1 == (ws[i].pid = fork())) {
-			perror("fork");
-			goto out;
-		} else if (0 == ws[i].pid) {
-			/* 
-			 * Close out all current descriptors.
-			 * Note that we're a "new-mode" FastCGI manager
-			 * to the child via our environment variable.
-			 */
-			for (i = 0; i < wsz; i++)
-				if (-1 != ws[i].ctrl)
-					close(ws[i].ctrl);
-			close(fd);
-			snprintf(buf, sizeof(buf), "%d", pair[1]);
-			setenv("FCGI_LISTENSOCK_DESCRIPTORS", buf, 1);
-			/* coverity[tainted_string] */
-			execv(argv[0], argv);
-			perror(argv[0]);
-			_exit(EXIT_FAILURE);
-		}
-		/* Close the child descriptor. */
-		close(pair[1]);
-	}
-
 pollagain:
 	/*
 	 * Main part.
@@ -278,7 +303,10 @@ pollagain:
 	 * We have a timeout if we get a termination signal whilst
 	 * waiting.
 	 */
-	if ((rc = poll(pfd, pfdsz, 1000)) < 0) {
+	opfd = accepting ? pfd : pfd + 1;
+	opfdsz = accepting ? pfdsz : pfdsz - 1;
+
+	if ((rc = poll(opfd, opfdsz, 1000)) < 0) {
 		if (EINTR == errno && stop) {
 			exitcode = 1;
 			goto out;
@@ -328,12 +356,18 @@ pollagain:
 			goto out;
 		}
 
+		fprintf(stderr, "Child[%zu] -> %d\n", j, afd);
+
 		/*
 		 * Close the descriptor (that we still hold) and mark
 		 * this worker as no longer working.
 		 */
 		rc--;
 		close(ws[j].fd);
+		if (0 == accepting) {
+			accepting = 1;
+			fprintf(stderr, "Rate-limiting no more\n");
+		}
 		ws[j].fd = -1;
 
 		/*
@@ -345,10 +379,13 @@ pollagain:
 		 * end of array...
 		 */
 		if (pfdsz - 1 != i)
-			memcpy(&pfd[i], &pfd[pfdsz - 1], sizeof(struct pollfd));
-
+			memcpy(&pfd[i], &pfd[pfdsz - 1], 
+				sizeof(struct pollfd));
 		pfdsz--;
 	}
+
+	if (0 == accepting)
+		goto pollagain;
 
 	if (POLLHUP & pfd[0].revents) {
 		fprintf(stderr, "poll: control HUP!?\n");
@@ -359,13 +396,17 @@ pollagain:
 	} else if ( ! (POLLIN & pfd[0].revents))
 		goto pollagain;
 
-	fprintf(stderr, "Allocating new...\n");
-
 	/* 
 	 * We have a new request.
 	 * First, see if we need to allocate more workers.
 	 */
 	if (pfdsz == pfdmaxsz) {
+		if (wsz + 1 > maxwsz) {
+			accepting = 0;
+			fprintf(stderr, "Rate-limiting "
+				"(max connections reached)\n");
+			goto pollagain;
+		}
 		pp = realloc(pfd, (pfdmaxsz + 1) * 
 			sizeof(struct pollfd));
 		if (NULL == pp) {
@@ -373,37 +414,18 @@ pollagain:
 			goto out;
 		}
 		pfd = pp;
+		memset(&pfd[pfdmaxsz], 0, sizeof(struct pollfd));
+
 		pp = realloc(ws, (wsz + 1) * sizeof(struct worker));
 		if (NULL == pp) {
 			perror("realloc");
 			goto out;
 		}
 		ws = pp;
+		memset(&ws[wsz], 0, sizeof(struct worker));
 
-		memset(&pfd[pfdmaxsz], 0, sizeof(struct pollfd));
-		ws[wsz].pid = -1;
-		ws[wsz].fd = -1;
-
-		/* Make our control pair. */
-		if ( ! xsocketpair(pair))
+		if ( ! varpool_start(&ws[wsz], ws, wsz + 1, fd, argv))
 			goto out;
-		ws[wsz].ctrl = pair[0];
-		if (-1 == (ws[wsz].pid = fork())) {
-			perror("fork");
-			goto out;
-		} else if (0 == ws[wsz].pid) {
-			for (i = 0; i < wsz; i++)
-				if (-1 != ws[i].ctrl)
-					close(ws[i].ctrl);
-			close(fd);
-			snprintf(buf, sizeof(buf), "%d", pair[1]);
-			setenv("FCGI_LISTENSOCK_DESCRIPTORS", buf, 1);
-			/* coverity[tainted_string] */
-			execv(argv[0], argv);
-			perror(argv[0]);
-			_exit(EXIT_FAILURE);
-		}
-		close(pair[1]);
 		pfdmaxsz++;
 		wsz++;
 	} 
@@ -415,6 +437,9 @@ pollagain:
 	sslen = sizeof(ss);
 	afd = accept(fd, (struct sockaddr *)&ss, &sslen);
 	if (afd < 0) {
+		if (EAGAIN == errno || 
+		    EWOULDBLOCK == errno)
+			goto pollagain;
 		perror("accept");
 		goto out;
 	} 
@@ -427,7 +452,8 @@ pollagain:
 			break;
 	assert(i < wsz);
 	ws[i].fd = afd;
-	fprintf(stderr, "Child[%zu] <- %d\n", i, afd);
+	fprintf(stderr, "Child[%zu] <- %d (%zu/%zu: %zu/%zu)\n", 
+		i, afd, pfdsz, pfdmaxsz, wsz, maxwsz);
 	pfd[pfdsz].events = POLLIN;
 	pfd[pfdsz].fd = ws[i].ctrl;
 	pfdsz++;
@@ -463,8 +489,6 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	size_t		 i;
 	int		 c;
 
-	fprintf(stderr, "Fixed pool: %zu\n", wsz);
-
 	/* Allocate worker array. */
 	if (NULL == (ws = calloc(wsz, sizeof(pid_t)))) {
 		perror(NULL);
@@ -476,8 +500,10 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	/*
 	 * Dying children should notify us that something is horribly
 	 * wrong and we should exit.
+	 * Also handle SIGTERM in the same way.
 	 */
 	signal(SIGTERM, sighandle);
+	signal(SIGCHLD, sighandle);
 
 	for (i = 0; i < wsz; i++) {
 		if (-1 == (ws[i] = fork())) {
@@ -504,21 +530,6 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	while (0 == stop) {
 		if (0 != sleep(2))
 			break;
-		/*
-		 * XXX: this is entirely for the benefit of
-		 * valgrind(1), and will be disabled in later releases.
-		 * valgrind(1) doesn't receive the SIGCHLD, so it needs
-		 * to manually check whether the PIDs exist.
-		 */
-		for (i = 0; i < wsz; i++) {
-			if (0 == waitpid(ws[i], NULL, WNOHANG))
-				continue;
-			fprintf(stderr, "%s: process has died "
-				"(pid %d)\n", argv[0], ws[i]);
-			ws[i] = -1;
-			stop = 1;
-			break;
-		}
 	}
 
 	/*
@@ -553,16 +564,17 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 int
 main(int argc, char *argv[])
 {
-	int			 c, fd, rc, varp;
-	pid_t			*ws;
-	struct passwd		*pw;
-	size_t			 wsz, sz, lsz;
-	const char		*pname, *sockpath, *chpath,
-	      			*sockuser, *procuser, *errstr;
-	struct sockaddr_un	 sun;
-	mode_t			 old_umask;
-	uid_t		 	 sockuid, procuid;
-	gid_t			 sockgid, procgid;
+	int			  c, fd, rc, varp, usemax;
+	pid_t			 *ws;
+	struct passwd		 *pw;
+	size_t			  i, wsz, sz, lsz, maxwsz;
+	const char		 *pname, *sockpath, *chpath,
+	      			 *sockuser, *procuser, *errstr;
+	struct sockaddr_un	  sun;
+	mode_t			  old_umask;
+	uid_t		 	  sockuid, procuid;
+	gid_t			  sockgid, procgid;
+	char			**nargv;
 
 	if ((pname = strrchr(argv[0], '/')) == NULL)
 		pname = argv[0];
@@ -578,13 +590,14 @@ main(int argc, char *argv[])
 	rc = EXIT_FAILURE;
 	sockuid = procuid = sockgid = procgid = -1;
 	wsz = 5;
+	usemax = 0;
 	sockpath = "/var/www/run/httpd.sock";
 	chpath = "/var/www";
 	ws = NULL;
 	sockuser = procuser = NULL;
 	varp = 0;
 
-	while (-1 != (c = getopt(argc, argv, "l:p:n:s:u:U:v")))
+	while (-1 != (c = getopt(argc, argv, "l:p:n:N:s:u:U:v")))
 		switch (c) {
 		case ('l'):
 			lsz = strtonum(optarg, 0, INT_MAX, &errstr);
@@ -598,6 +611,14 @@ main(int argc, char *argv[])
 			if (NULL == errstr)
 				break;
 			fprintf(stderr, "-n must be "
+				"between 0 and %d\n", INT_MAX);
+			return(EXIT_FAILURE);	
+		case ('N'):
+			usemax = 1;
+			maxwsz = strtonum(optarg, 0, INT_MAX, &errstr);
+			if (NULL == errstr)
+				break;
+			fprintf(stderr, "-N must be "
 				"between 0 and %d\n", INT_MAX);
 			return(EXIT_FAILURE);	
 		case ('p'):
@@ -624,6 +645,14 @@ main(int argc, char *argv[])
 
 	if (0 == argc) 
 		goto usage;
+
+	if (usemax) {
+		if (maxwsz == wsz)
+			varp = 0;
+		else if (maxwsz < wsz)
+			goto usage;
+	} else
+		maxwsz = wsz * 2;
 
 	pw = NULL;
 	if (NULL != procuser && NULL == (pw = getpwnam(procuser))) { 
@@ -729,15 +758,22 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (varp) {
-		if ( ! varpool(wsz, fd, sockpath, argv))
-			return(EXIT_FAILURE);
-		return(EXIT_SUCCESS);
+	nargv = calloc(argc + 1, sizeof(char *));
+	if (NULL == nargv) {
+		perror(NULL);
+		close(fd);
+		return(EXIT_FAILURE);
 	}
 
-	if ( ! fixedpool(wsz, fd, sockpath, argv))
-		return(EXIT_FAILURE);
-	return(EXIT_SUCCESS);
+	for (i = 0; i < (size_t)argc; i++)
+		nargv[i] = argv[i];
+
+	c = varp ?
+		varpool(wsz, maxwsz, fd, sockpath, nargv) :
+		fixedpool(wsz, fd, sockpath, nargv);
+
+	free(nargv);
+	return(c ? EXIT_SUCCESS : EXIT_FAILURE);
 usage:
 	fprintf(stderr, "usage: %s "
 		"[-l backlog] "
