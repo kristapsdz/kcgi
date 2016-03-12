@@ -14,6 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -284,11 +285,16 @@ int
 main(void)
 {
 	struct kreq	 r;
+	enum kcgi_err	 er;
 
 	/* Set up our main HTTP context. */
-	if (KCGI_OK != khttp_parse(&r, keys, KEY__MAX, 
-		pages, PAGE__MAX, PAGE_INDEX))
+	er = khttp_parse(&r, keys, KEY__MAX, 
+		pages, PAGE__MAX, PAGE_INDEX);
+
+	if (KCGI_OK != er) {
+		fprintf(stderr, "Terminate: parse error: %d\n", er);
 		return(EXIT_FAILURE);
+	}
 
 	if (KMETHOD_OPTIONS == r.method) {
 		/* Indicate that we accept GET, POST, and PUT. */

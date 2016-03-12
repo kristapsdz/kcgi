@@ -52,10 +52,14 @@ main(int argc, char *argv[])
 	for (rc = 0;;) {
 		er = khttp_fcgi_parse(fcgi, &req);
 		if (KCGI_HUP == er) {
+			fprintf(stderr, "Terminate: "
+				"parse hangup\n");
 			rc = 1;
 			khttp_free(&req);
 			break;
 		} else if (KCGI_OK != er) {
+			fprintf(stderr, "Terminate: "
+				"parse error: %d\n", er);
 			khttp_free(&req);
 			break;
 		}
