@@ -235,7 +235,7 @@ fullwriteword(int fd, const char *buf)
  * at any time, like the FastCGI one.
  * It is exactly the same as fullwrite() except for that.
  */
-void
+int
 fullwritenoerr(int fd, const void *buf, size_t bufsz)
 {
 	ssize_t	 	 ssz;
@@ -247,31 +247,41 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 	pfd.events = POLLOUT;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if ((rc = poll(&pfd, 1, -1)) < 0)
+		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: %d, POLLOUT", fd);
-		else if (0 == rc) {
+			return(-1);
+		} else if (0 == rc) {
 			XWARNX("poll: timeout!?");
 			ssz = 0;
 			continue;
-		} else if (POLLHUP & pfd.revents)
+		} else if (POLLHUP & pfd.revents) {
 			XWARNX("poll: POLLHUP");
-		else if (POLLERR & pfd.revents)
+			return(0);
+		} else if (POLLERR & pfd.revents) {
 			XWARNX("poll: POLLER");
+			return(-1);
 #ifdef __APPLE__
-		else if ( ! (POLLOUT & pfd.revents) && ! (POLLNVAL & pfd.revents))
+		} else if ( ! (POLLOUT & pfd.revents) && 
+			    ! (POLLNVAL & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
+			return(-1);
 #else
-		else if ( ! (POLLOUT & pfd.revents))
+		} else if ( ! (POLLOUT & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
+			return(-1);
 #endif
-		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
+		} 
+		
+		if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0) {
 			XWARN("write: %d, %zu", fd, bufsz - sz);
-		else if (sz > SIZE_MAX - (size_t)ssz)
+			return(-1);
+		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
-		else
-			continue;
-		break;
+			return(-1);
+		} 
 	}
+
+	return(1);
 }
 
 /*
@@ -425,7 +435,8 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 			*er = KCGI_FORM;
 			return(-1);
 		} else if (0 == ssz && sz == 0 && ! eofok) {
-			XWARNX("read: unexpected eof");
+			XWARNX("read: unexpected eof: read "
+				"%zu of %zu bytes", sz, bufsz);
 			*er = KCGI_FORM;
 			return(-1);
 		} else if (0 == ssz && sz == 0 && eofok) {
@@ -565,7 +576,6 @@ again:
 		return(-1);
 	} else if (0 == rc)
 		return(0);
-
 
 	memcpy(b, m_buffer, bsz);
 	for (cmsg = CMSG_FIRSTHDR(&msg); NULL != cmsg;
