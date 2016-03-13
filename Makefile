@@ -11,33 +11,6 @@ CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-string
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
-VERSIONS	 = version_0_4_2.xml \
-		   version_0_4_3.xml \
-		   version_0_4_4.xml \
-		   version_0_5.xml \
-		   version_0_5_1.xml \
-		   version_0_5_2.xml \
-		   version_0_5_3.xml \
-		   version_0_5_4.xml \
-		   version_0_5_5.xml \
-		   version_0_5_6.xml \
-		   version_0_5_7.xml \
-		   version_0_5_8.xml \
-		   version_0_5_9.xml \
-		   version_0_6.xml \
-		   version_0_6_1.xml \
-		   version_0_6_2.xml \
-		   version_0_6_3.xml \
-		   version_0_6_4.xml \
-		   version_0_7_0.xml \
-		   version_0_7_1.xml \
-		   version_0_7_2.xml \
-		   version_0_7_3.xml \
-		   version_0_7_4.xml \
-		   version_0_7_5.xml \
-		   version_0_7_6.xml \
-		   version_0_7_7.xml \
-		   version_0_7_8.xml
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml
@@ -406,13 +379,13 @@ updatewww: www
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 
-index.html: index.xml $(VERSIONS) $(TUTORIALHTMLS)
-	sblg -t index.xml -o- $(VERSIONS) $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+index.html: index.xml versions.xml $(TUTORIALHTMLS)
+	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
-$(TUTORIALHTMLS): tutorial.xml $(VERSIONS) $(TUTORIALXMLS)
+$(TUTORIALHTMLS): tutorial.xml versions.xml $(TUTORIALXMLS)
 
 .xml.html:
-	sblg -t tutorial.xml -o- -C $< $(VERSIONS) $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t tutorial.xml -o- -C $< versions.xml $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
 	mandoc -Thtml -Oman=%N.%S.html $< >$@
