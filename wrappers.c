@@ -463,6 +463,8 @@ fullreadword(int fd, char **cp)
 	size_t	 	 sz;
 	enum kcgi_err	 ke;
 
+	ke = KCGI_SYSTEM;
+
 	if (fullread(fd, &sz, sizeof(size_t), 0, &ke) < 0)
 		return(ke);
 

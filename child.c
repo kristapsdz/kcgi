@@ -1788,7 +1788,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		 * These will end with a single zero-length record.
 		 * Keep looping til we've flushed all input.
 		 */
-		for (rc = 0;;) {
+		for (;;) {
 			rc = kworker_fcgi_stdin
 				(work_ctl, hdr, &buf, &bsz, &sbuf, &ssz);
 			if (rc <= 0)

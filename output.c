@@ -197,6 +197,9 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	assert(NULL != p);
 	assert(KSTATE_BODY == p->state);
 
+	if (0 == sz || NULL == buf)
+		return;
+
 	/*
 	 * We want to debug writes.
 	 * To do so, we write into a line buffer.
@@ -264,6 +267,7 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	}
 
 	assert(p->outbufpos + sz <= p->outbufsz);
+	assert(NULL != p->outbuf);
 	memcpy(p->outbuf + p->outbufpos, buf, sz);
 	p->outbufpos += sz;
 }
