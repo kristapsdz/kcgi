@@ -1,4 +1,4 @@
-.Dd $Mdocdate: July 21 2015 $
+.Dd $Mdocdate: August 10 2015 $
 .Dt KFCGI 8
 .Os
 .Sh NAME
@@ -29,6 +29,7 @@ By default, it opens the socket
 in mode 0660 under the current user and group, changes to a file-system
 jail in
 .Pa /var/www ,
+daemonises and opens its system log,
 then starts 3 workers executing
 .Ar prog ,
 which must exist relative to the file-system jail root.
@@ -37,7 +38,8 @@ The arguments are as follows:
 .It Fl l Ar backlog
 The connection backlog.
 If unspecified or zero, this is set to the value of
-.Fl n .
+.Fl n
+times two.
 If too small, the web-server will not be able to pass in new connections.
 .It Fl n Ar workers
 The number of workers >1.
@@ -52,6 +54,11 @@ The user in whose name (user and group) the socket is created.
 .It Fl U Ar procuser
 The user in whose name the process is dropped.
 .El
+.Pp
+To properly stop a
+.Nm
+server, send it a
+.Dv SIGTERM .
 .\" .Sh CONTEXT
 .\" For section 9 functions only.
 .\" .Sh IMPLEMENTATION NOTES
