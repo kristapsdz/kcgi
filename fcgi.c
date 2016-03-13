@@ -171,7 +171,6 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 */
 		if (KCGI_OK != kxsocketprep(fd)) {
 			XWARNX("work request socket error");
-			close(fd);
 			goto out;
 		}
 
