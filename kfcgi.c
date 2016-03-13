@@ -462,6 +462,7 @@ pollagain:
 		 * and (2) was last descheduled a while ago.
 		 */
 		assert(-1 != ws[wsz - 1].fd || ws[wsz - 1].last);
+		assert(wsz > 1);
 
 		if (-1 == ws[wsz - 1].fd &&
 		    t - ws[wsz - 1].last > 10) {
@@ -772,7 +773,7 @@ out:
 int
 main(int argc, char *argv[])
 {
-	int			  c, fd, rc, varp, usemax, useq, nod;
+	int			  c, fd, varp, usemax, useq, nod;
 	pid_t			 *ws;
 	struct passwd		 *pw;
 	size_t			  i, wsz, sz, lsz, maxwsz;
@@ -794,7 +795,6 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	rc = EXIT_FAILURE;
 	sockuid = procuid = sockgid = procgid = -1;
 	wsz = 5;
 	usemax = useq = 0;
@@ -804,6 +804,7 @@ main(int argc, char *argv[])
 	sockuser = procuser = NULL;
 	varp = 0;
 	nod = 0;
+	maxwsz = lsz = 0;
 
 	while (-1 != (c = getopt(argc, argv, "l:p:n:N:s:u:U:rvd")))
 		switch (c) {
@@ -990,6 +991,7 @@ main(int argc, char *argv[])
 		perror("daemon");
 		close(fd);
 		unlink(sockpath);
+		free(nargv);
 		return(EXIT_FAILURE);
 	} 
 	
