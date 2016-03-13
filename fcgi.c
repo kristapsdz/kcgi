@@ -117,10 +117,10 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			XWARNX("poll expired!?");
 			continue;
 		} else if (POLLHUP & pfd[1].revents) {
-			XWARNX("worker has disconnected");
 			/* If we're exiting, this is ok... */
 			if ( ! (POLLIN & pfd[0].revents))
 				break;
+			XWARNX("worker has disconnected");
 			goto out;
 		} else if ( ! (POLLIN & pfd[0].revents)) {
 			XWARNX("manager has disconnected");
@@ -159,7 +159,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				XWARNX("manager socket error");
 				goto out;
 			} else if (0 == rc) {
-				XWARNX("manager has disconnected");
+				/* XWARNX("manager has disconnected"); */
 				break;
 			}
 		}
@@ -339,6 +339,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	void		*work_box, *sock_box;
 	pid_t		 work_pid, sock_pid;
 	const char	*cp, *ercp;
+	sigset_t	 mask;
 
 	/*
 	 * Determine whether we're supposed to accept() on a socket or,
@@ -356,12 +357,16 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		fdaccept = STDIN_FILENO;
 
 	/*
-	 * FIXME: block this signal unless we're right at the fullreadfd
+	 * Block this signal unless we're right at the fullreadfd
 	 * function, at which point unblock and let it interrupt us.
-	 * This will have a "race condition" where we might receive a
-	 * signal and ignore it.
+	 * We don't save the signal mask because we're allowed free
+	 * reign on the SIGTERM value.
 	 */
 	signal(SIGTERM, dosignal);
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGTERM);
+	sigprocmask(SIG_BLOCK, &mask, NULL);
+	sig = 0;
 
 	if ( ! ksandbox_alloc(&work_box))
 		return(KCGI_ENOMEM);
@@ -573,6 +578,52 @@ khttp_fcgi_init(struct kfcgi **fcgi,
 		NULL, NULL, 0, NULL));
 }
 
+/*
+ * Here we wait for the next FastCGI connection in such a way that, if
+ * we're notified that we must exit via a SIGTERM, we'll properly close
+ * down without spurrious warnings.
+ */
+static int 
+fcgi_waitread(int fd)
+{
+	int		 rc;
+	struct pollfd	 pfd;
+	sigset_t	 mask;
+
+again:
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+
+	/* Unblock SIGTERM around the poll(). */
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGTERM);
+	sigprocmask(SIG_UNBLOCK, &mask, NULL);
+	rc = poll(&pfd, 1, 1000);
+	sigprocmask(SIG_UNBLOCK, &mask, NULL);
+
+	/* Exit signal has been set. */
+	if (sig) {
+		sig = 0;
+		return(0);
+	}
+
+	/* Problems?  Exit.  Timeout?  Retry. */
+	if (rc < 0) {
+		XWARN("poll");
+		return(-1);
+	} else if (0 == rc) 
+		goto again;
+
+	/* Only POLLIN is a "good" exit from this. */
+	if (POLLIN & pfd.revents)
+		return(1);
+	else if (POLLHUP & pfd.revents)
+		return(0);
+
+	XWARNX("poll: error");
+	return(-1);
+}
+
 enum kcgi_err
 khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 {
@@ -587,9 +638,15 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	/*
 	 * Blocking wait until our control process sends us the file descriptor
 	 * and requestId of the current sequence.
-	 * It may also decide to exit, which we note by seeing that
-	 * "sig" has been set or the channel closed gracefully.
+	 * It may also decide to exit, which we note by seeing that "sig" has
+	 * been set or the channel closed gracefully.
 	 */
+	c = fcgi_waitread(fcgi->sock_ctl);
+	if (c < 0)
+		return(KCGI_SYSTEM);
+	else if (0 == c)
+		return(KCGI_HUP);
+
 	c = fullreadfd(fcgi->sock_ctl, &fd, &rid, sizeof(uint16_t));
 	if (c < 0 && ! sig) {
 		XWARNX("fullreadfd");
