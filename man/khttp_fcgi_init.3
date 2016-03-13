@@ -108,8 +108,9 @@ prohibited from doing so.
 The consequences are that a server wishing to halt the application must
 use
 .Dv SIGKILL
-inside of the FastCGI-specified
-.Dv SIGTERM .
+instead of the FastCGI-specified
+.Dv SIGTERM
+and suffer the consequences of not properly exiting the parse loop.
 .Sh RETURN VALUES
 .Nm khttp_fcgi_init
 and
