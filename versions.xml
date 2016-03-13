@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<articles>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.9</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-06-17">2015-06-17</time>
+		</header>
+		<aside>
+			<div>
+				Add ability to retrieve HTTP headers from the request.
+				This adds several fields to the structure filled in by <a href="khttp_parse.3.html">khttp_parse(3)</a> that allow for mapped
+				(indexed by known header) and listed header fields.
+				The HTTP headers are reconstituted from the CGI environmental variables according to the RFC.
+				These fields existed in earlier releases, but were not documented and, moreover, did not reconstitute the HTTP header name from
+				the CGI environment variable name.
+				A regression test has been added to test this behaviour.
+				While adding this documentation, clean up the type list in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+			<div>
+				Add <a href="khttp_body.3.html">khttp_body_compress(3)</a>, which allows for stipulating auto-compression (the default for
+				<a href="khttp_body.3.html">khttp_body(3)</a>), compression without emitting the appropriate header (for applications
+				providing the <q>Content-Encoding</q> parameter themselves), and no compression (for applications taking full control of
+				output themselves).
+				While there, make the test for requested compression be sensitive to the <a
+					href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC 2616</a> <q>qvalue</q>.
+				Both functions now return whether compression has been enabled.
+				This functionality augments existing behaviour: it does not change it.
+			</div>
+			<div>
+				Add HTTP error codes described by <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.4.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2014-11-30">2014-11-30</time>
+		</header>
+		<aside>
+			<div>
+				Implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, remove function prototype names
+				as per OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>, polish
+				documentation.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.4.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2014-12-03">2014-12-03</time>
+		</header>
+		<aside>
+			<div>
+				Make sure that <a href="khttp_parse.3.html">khttp_parse(3)</a> returns an error code indicating what actually went wrong.
+				This is a minor API change because the function no longer returns 0, but an enumeration (where 0, incidentally, means success).
+				Also audit the parsing trailer to make sure that the parent doesn't exit in the event of memory exhaustion.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.4.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2014-12-15">2014-12-15</time>
+		</header>
+		<aside>
+			<div>
+				Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
+				Fix control code serialisation in the same.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2014-12-18">2014-12-18</time>
+		</header>
+		<aside>
+			<div>
+				Expand the functionality of the template system with <a href="khttp_template.3.html">khttp_templatex(3)</a> and <a
+					href="khttp_template.3.html">khttp_templatex_buf(3)</a>, which allow the writing function to be overriden.
+				This allows templates to play nicely with other systems such as <a href="kcgijson.3.html">kcgijson(3)</a> and general dynamic
+				buffer creation.
+				I use this for creating mails for sending with <a href="http://curl.haxx.se/libcurl/">libcurl</a>.
+				Also create an automated test harness <a href="kcgi_regress.3.html">kcgi_regress(3)</a> that, for internal automated regression
+				testing, uses <a href="http://curl.haxx.se/libcurl/">libcurl</a> to create and parse HTTP messages over a local socket and a
+				small server to translate the requests into CGI variables for <span class="nm">kcgi</span>.
+				The internal tests can be run with <code>make regress</code>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-03-14">2015-03-14</time>
+		</header>
+		<aside>
+			<div>
+				Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
+				Pick out one assertion failure in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
+				Add an a test harness for AFL as well.
+				Recognise CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-05">2015-04-05</time>
+		</header>
+		<aside>
+			<div>
+				Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
+				<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
+				and validate it against the empty-key validator.
+				Add HTTP methods and headers stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed
+					Authoring and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
+					(CalDAV)</a>.
+				Allow for the HTTP request headers to be exported to the <code>struct kreq</code> object as both a list and, for common
+				HTTP headers, an indexed map.
+				Added <a href="kcgixml.3.html">kcgixml(3)</a> bits for some simple XML support and added <code>khtml_putc()</code> and
+				<code>khtml_puts()</code> to <a href="kcgihtml.3.html">kcgihtml(3)</a> for consistency.
+				Specify that a <code>NULL</code> template passed to the <a href="khttp_template.3.html">khttp_template(3)</a> functions simply
+				causes the named file or buffer to be outputted without any processing.
+				Lastly, recognise <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/getentropy.2">getentropy(2)</a> as a
+				white-listed system call in the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+				sandbox.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-10">2015-04-10</time>
+		</header>
+		<aside>
+			<div>
+				Fully process the <code>Authentication</code> header, implementing <a href="https://tools.ietf.org/html/rfc2617">RFC 2617</a>.
+				This was originally developed in <a href="http://kristaps.bsd.lv/kcaldav">kcaldav</a>, but makes more sense to be run here
+				inside of the untrusted child.
+				Values are stored in the <code>struct khttpauth</code> field documented in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-12">2015-04-12</time>
+		</header>
+		<aside>
+			<div>
+				Single bug-fix: the nonce count parsed from an HTTP digest was not being correctly recorded.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-12">2015-04-12</time>
+		</header>
+		<aside>
+			<div>
+				Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+				Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
+				Have validation for document body correctly set the <code>ctypepos</code> prior to validation.
+				While there, properly decode the content-type field (i.e., discarding parameters) when looking up the type in the known types.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-23">2015-04-23</time>
+		</header>
+		<aside>
+			<div>
+				Bug-fix for Capsicum sandbox, found by Baptiste Daroussin.  (Thanks!)
+				Also fix passing a zero-length buffer into the template buffer functions.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.7</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-04-27">2015-04-27</time>
+		</header>
+		<aside>
+			<div>
+				Rename <code>khtml_close</code> to <code>khtml_closeelem</code> in <a href="kcgihtml.3.html">kcgihtml(3)</a>, then re-add the
+				close function and an open function to harmonise with <a href="kcgijson.3.html">kcgijson(3)</a> and <a
+					href="kcgixml.3.html">kcgixml(3)</a>.
+				In the process, allow the closing functions in all libraries to unwind any remaining context, and have the closing functions
+				return whether the request was out of bounds.
+				Prevent some bogus calls to <a href="kcgihtml.3.html">kcgihtml(3)</a> from aborting.
+				Bug-fix for detecting zlib on FreeBSD, found by Baptiste Daroussin.  (Thanks!)
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.5.8</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-05-11">2015-05-11</time>
+		</header>
+		<aside>
+			<div>
+				Update the included sample file and correct the documentation regarding its compilation.
+				Fix noted by Jan Schreiber &#8212; thanks!
+				While doing so, add some documentation bits to the manpages and considerable documentation to the webpage.
+				No functional changes.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-07-07">2015-07-07</time>
+		</header>
+		<aside>
+			<div>
+				Import initial Linux <a href="http://man7.org/linux/man-pages/man2/seccomp.2.html">seccomp(2)</a> (via <a
+					href="http://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a>) sandbox!
+				This uses the implementation of <a href="http://www.openssh.com/">OpenSSH</a>, tweaked to work within the <span
+					class="nm">kcgi</span> framework.
+				For now, it only allows arm, i386, and x86_64: if you're using another architecture, please let me know your <code>uname -m</code>, 
+				as the sandbox (ridiculously) needs to know the system architecture.
+				(Better yet: also send me the relevant <code>AUDIT_ARCH_xxx</code> from <code>/usr/include/linux/audit.h</code>.)
+				While here, allow for compilation on <a href="http://www.musl-libc.org/">musl</a>.
+				I've also moved the tutorial into a separate file and fleshed it out a little.
+				I'll probably add more tutorials in time.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.6.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-07-09">2015-07-09</time>
+		</header>
+		<aside>
+			<div>
+				One-line bug-fix to include new Linux seccomp patch into source archive.  Ouch.  Noted by James Turner&#8212;thanks!
+			</div>
+		</aside>
+	</article>
+
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.6.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-07-18">2015-07-18</time>
+		</header>
+		<aside>
+			<div>
+				More FastCGI: move control socket handling into its own process.
+				The control socket is a UNIX socket (or similar) bound by the FastCGI runner, which is either the web server or an
+				application like <a href="kfcgi.8.html">kfcgi(8)</a>, then passed as <code>STDIN_FILENO</code> to the FastCGI
+				application.
+				<span class="nm">kcgi</span> will then wait on this socket for incoming connections, which are acted upon with <a
+					href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+				In this release, this logic has been moved into its own process instead of being managed by the web application itself
+				during calls to <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+				While here, I cleaned up and simplified a lot of the sandbox and inter-process socket logic.
+				The control socket is not yet sandboxed: that will come with later releases.
+				Again, the FastCGI implementation is <strong>experimental</strong>!
+			</div>
+			<div>
+				Patches for deployment on FreeBSD contributed by Baptiste Daroussin&#8212;thanks!
+				In analysis, found that the <code>argfree</code> function to <a href="khttp_parse.3.html">khttp_parse(3)</a> wasn't
+				being invoked if the <code>arg</code> was itself NULL.
+				(This is clearly bad behaviour&#8212;not all functions need that argument!)
+				This has been fixed as well.
+			</div>
+		</aside>
+	</article>
+
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.6.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-07-15">2015-07-15</time>
+		</header>
+		<aside>
+			<div>
+				This release includes an initial implementation of <a href="http://www.fastcgi.com">FastCGI</a>.
+				While the existing functionality wasn't logically altered, it was shuffled around quite a lot and abstracted to
+				accomodate for the new FastCGI functions.
+				The implementation is documented in <a href="kfcgi.8.html">kfcgi(8)</a>, <a
+					href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, and <a
+					href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, and <a
+					href="khttp_fcgi_free.3.html">khttp_fcgi_free(3)</a>.
+				<strong>This functionality is experimental</strong>, and needs strong analysis before casual deployment.
+				It is also not quite feature-complete: HTTP compression is not yet functional for FastCGI applications.
+				The <a href="kfcgi.8.html">kfcgi(8)</a> launcher is also very bare-bones&#8212;this will be improved in subsequent releases.
+				Again: this functionality is <strong>experimental</strong> and under development!
+			</div>
+			<div>
+				Also fixed a bug where calling <a href="khttp_free.3.html">khttp_free(3)</a> after a prior <a
+					href="khttp_parse.3.html">khttp_parse(3)</a> failure would cause a NULL dereference.
+				Added the missing <code>txt</code> and <code>xml</code> suffixes to the suffix table.
+				Fix that the request port number was erroneously disallowed to be &gt;80.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.6.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-08-01">2015-08-01</time>
+		</header>
+		<aside>
+			<div>
+				Add some proper security to <a href="kfcgi.8.html">kfcgi(8)</a>: place child FastCGI processes in a file-system jail,
+				drop privileges, and ensure proper ownership of the socket.
+				While here, begin sandbox mechanisms for the FastCGI control process.
+				This only works for Mac OSX for now, but will expand to others.
+				Again, until the next minor version bump, <strong>FastCGI support is experimental</strong>.
+			</div>
+			<div>
+				On that note, finalise the API for FastCGI calls.
+				This involved moving most function arguments previously in <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>
+				into <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>.
+				To wit, the <code>khttp_fcgi_parsex()</code> function has been removed: all of the logic has been moved to the
+				initialisation function, making the parse function much simpler.
+				Cement this by adding several new regression tests that exercise the FastCGI functionality.
+				These, of course, required that FastCGI functionality be added to the regression suite.
+				This is documented in <a href="kcgiregress.3.html">kcgiregress(3)</a> (the manpage was renamed from <code>kcgi_regress</code>).
+			</div>
+			<div>
+				In adding the regression suite, one critical FastCGI bug was found (and fixed) for forms &gt;1 kB.
+				Fix another critical bug when writing large contiguous blocks, which would be silently truncated.
+				(A regression test has been added for this.)
+				The same would trigger a failure on Linux due to the sandbox: this has also been fixed.
+				Internally, the behaviour of read and write sockets is consistently non-blocking.
+				There has been a report of large compressed output failing on FreeBSD, but this has not yet been verified.
+			</div>
+			<div>
+				Lastly, incorporate a patch from Baptiste Daroussin (thanks!) for a tighter Capsicum sandbox for the parser process.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.0</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-08-07">2015-08-07</time>
+		</header>
+		<aside>
+			<div>
+				Implement the <a href="http://www.fastcgi.com/drupal/node/6?q=node/22">FastCGI</a> control process's sandbox for all
+				supported operating systems.
+				(The FastCGI control process is forked from each application process, and is responsible for accepting new FastCGI
+				connections and passing the descriptors to the application for output and worker process for parsing.)
+				This is the last <q>feature</q> for the FastCGI implementation: it now has the same protection as the CGI implementation
+				for all child processes.
+				Add sandbox for OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/tame.2">tame(2)</a>,
+				although this technically isn't supported yet (in snapshots, anyway) and returns <code>ENOSYS</code>.
+				On OpenBSD machines with both sandboxes, this is tried first.
+				This effort derives from a patch submitted by Reyk Floeter&#8212;thanks!
+			</div>
+			<div>
+				The FastCGI interface is no longer an experimental feature, but baked into the system.
+			</div>
+			<div>
+				In addition to the above, some variables were added to the manpages (which were also cleaned up a bit) and the AFL
+				system was updated with the socket re-write.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-08-11">2015-08-11</time>
+		</header>
+		<aside>
+			<div>
+				Fix: forgot to install <a href="kfcgi.8.html">kfcgi(8)</a>.
+				Add flag to <a href="kfcgi.8.html">kfcgi(8)</a> to specify the connection backlog.
+				Add <a href="khttp_fcgi_test.3.html">khttp_fcgi_test(3)</a> to see if an application should use the FastCGI or regular
+				CGI functions.
+				A regression noted by James Turner (thanks!): re-add the CGI sample, <span class="file">sample.c</span>, into the
+				distributed source.
+				There is also a FastCGI sample, <span class="file">sample-fcgi.c</span>.
+				There is also a non-<span class="nm">kcgi</span> sample, <span class="file">sample-cgi.c</span>, used in creating the
+				performance graphs.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-09-04">2015-09-04</time>
+		</header>
+		<aside>
+			<div>
+				If a FastCGI connection closes, don't make
+				failing writes to that connection bring down the
+				application.
+				Also work around a very weird Mac OS X bug
+				wherein a poll will return a timeout even though
+				the poll request is blocking.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-09-30">2015-09-30</time>
+		</header>
+		<aside>
+			<div>
+				Fix for proper FastCGI support on <a href="http://www.nginx.org">nginx</a>.
+				This work was prompted by Daniel Sinclair, who fixed a read type mismatch (when reading the padding length) that inspired
+				a further fix to serialise the response FastCGI header properly.
+				Lastly, a latent Apache2 FastCGI bug was fixed in incorrectly reporting the return code status.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2015-11-12">2015-11-12</time>
+		</header>
+		<aside>
+			<div>
+				Replace support for tame(2) (which was never enabled in the operating system) with the renamed <a
+					href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/pledge.2">pledge(2)</a>.
+				From a patch by James Turner&#8212;thank you!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-01-04">2016-01-04</time>
+		</header>
+		<aside>
+			<div>
+				Added ability to easily perform HTTP digest authentication, <a
+					href="khttpdigest_validate.3.html">khttpdigest_validate(3)</a>, which is heavily used in <a
+					href="http://kristaps.bsd.lv/kcaldav">kcaldav</a> and a few other systems.
+				This manages all of the aspects of the sequences, from the child process performing an MD5 hash on the full data stream
+				to the end check against a hash.
+				While there, also add <a href="khttpbasic_validate.3.html">khttpbasic_validate(3)</a> for completeness.
+			</div>
+			<div>
+				Add an experimental feature for debugging input and output streams.
+				One can set debugging fields with <a href="khttp_parse.3.html">khttp_parsex(3)</a> or <a
+					href="khttp_fcgi_init.3.html">khttp_fcgi_initx(3)</a> and have request reads or response writes logged to
+				standard output.
+				<strong>Note</strong>: this changes the system API, so make sure any systems calling the above functions are upgraded to
+				account for the extra argument!
+				Also merged a thorough documentation patch by Svyatoslav Mishyn&#8212;thanks!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-01-25">2016-01-25</time>
+		</header>
+		<aside>
+			<div>
+				Push read-only repository to <a href="https://github.com/kristapsdz/kcgi.git">GitHub</a>.
+				<span class="nm">kcgi</span> has been accepted as a <a href="https://scan.coverity.com/projects/kcgi">Coverity</a>
+				project.
+				The initial scan revealed a pair of error-path resource links and some false positives.
+				(All of these are visible on the Coverity project site.)
+				It also found one legitimate bug in the newly-installed HTTP basic authentication code.
+				This, obviously, has been fixed.
+				Thanks, <a href="http://coverity.com">Coverity</a>!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.7</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-02-10">2016-02-10</time>
+		</header>
+		<aside>
+			<div>
+				Allow for the developer to set a write buffer size when invoking <a href="khttp_parse.3.html">khttp_parsex(3)</a> or <a
+					href="khttp_fcgi_init.3.html">khttp_fcgi_initx(3)</a>.
+				The write buffer hooks into <a href="khttp_write.3.html">khttp_write(3)</a> and, if set to a non-zero size, will cause
+				writes to be buffered.
+				This changes existing behaviour where writes were never buffered.
+				Note that this function is invoked by all writing functions, both within <a href="kcgi.3.html">kcgi(3)</a> and its
+				libraries such as <a href="kcgijson.3.html">kcgijson(3)</a>.
+				The buffer is flushed when its size is exceeded or when <a href="khttp_free.3.html">khttp_free(3)</a> is invoked.
+				If not provided, the default is 8 KiB for CGI and 65 KiB for FastCGI.
+				Also renamed the <code>xmalloc</code>-style internal functions so as not to override weak symbols in any interfacing
+				applications.
+				This was noted by Okan Demirmen&#8212;thanks!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.7.8</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-03-02">2016-03-02</time>
+		</header>
+		<aside>
+			<div>
+				Use <a
+					href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man3/strtonum.3">strtonum(3)</a> whenever possible,
+				inspired by a patch from Jan Schreiber&#8212;thanks!
+				Add <a href="khttpdigest_validate.3.html">khttpdigest_validatehash(3)</a>, which authenticates an HTTP digest session using a pre-computed hash.
+				(The existing function builds the hash from a password.)
+				This is required by <a href="http://kristaps.bsd.lv/kcaldav">kCalDAV</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.8.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-03-15">2016-03-15</time>
+		</header>
+		<aside>
+			<div>
+				Significantly update the FastCGI handling.
+				There were two foci to this effort: first, to make the existing FastCGI system more robust in terms of starting
+				and stopping; the second, to extend FastCGI so that <a href="kfcgi.8.html">kfcgi(8)</a> can handle
+				variable-sized pools of workers instead of a fixed number.
+			</div>
+		</aside>
+	</article>
+</articles>
