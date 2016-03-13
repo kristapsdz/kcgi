@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: January 4 2016 $
+.Dd $Mdocdate: February 11 2016 $
 .Dt KHTTP_FCGI_INIT 3
 .Os
 .Sh NAME
@@ -108,8 +108,9 @@ prohibited from doing so.
 The consequences are that a server wishing to halt the application must
 use
 .Dv SIGKILL
-inside of the FastCGI-specified
-.Dv SIGTERM .
+instead of the FastCGI-specified
+.Dv SIGTERM
+and suffer the consequences of not properly exiting the parse loop.
 .Sh RETURN VALUES
 .Nm khttp_fcgi_init
 and
