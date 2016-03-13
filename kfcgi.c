@@ -496,19 +496,19 @@ pollagain:
 			slough[sloughsz++] = ws[wsz - 1];
 
 			/* Reallocations. */
-			pp = realloc(ws, (wsz - 1) * 
+			pp = reallocarray(ws, wsz - 1, 
 				sizeof(struct worker));
 			if (NULL == pp) {
-				syslog(LOG_ERR, "realloc: "
+				syslog(LOG_ERR, "reallocarray: "
 					"worker array: %m");
 				goto out;
 			}
 			ws = pp;
 			wsz--;
-			pp = realloc(pfd, (pfdmaxsz - 1) * 
+			pp = reallocarray(pfd, pfdmaxsz - 1,
 				sizeof(struct pollfd));
 			if (NULL == pp) {
-				syslog(LOG_ERR, "realloc: "
+				syslog(LOG_ERR, "reallocarray: "
 					"descriptor array: %m");
 				goto out;
 			}
@@ -608,19 +608,20 @@ pollagain:
 			dbg("rate-limiting: enabled");
 			goto pollagain;
 		}
-		pp = realloc(pfd, (pfdmaxsz + 1) * 
+		pp = reallocarray(pfd, pfdmaxsz + 1,
 			sizeof(struct pollfd));
 		if (NULL == pp) {
-			syslog(LOG_ERR, "realloc: workers: %m");
+			syslog(LOG_ERR, "reallocarray: workers: %m");
 			goto out;
 		}
 		pfd = pp;
 		memset(&pfd[pfdmaxsz], 0, sizeof(struct pollfd));
 		pfd[pfdmaxsz].fd = -1;
 
-		pp = realloc(ws, (wsz + 1) * sizeof(struct worker));
+		pp = reallocarray(ws, wsz + 1,
+			sizeof(struct worker));
 		if (NULL == pp) {
-			syslog(LOG_ERR, "realloc: descriptors: %m");
+			syslog(LOG_ERR, "reallocarray: descriptors: %m");
 			goto out;
 		}
 		ws = pp;
