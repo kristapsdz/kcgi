@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -50,21 +50,17 @@ child(void)
 	struct kreq	 r;
 	const char 	*page = "index";
 	struct kfcgi	*fcgi;
-	enum kcgi_err	 er;
 	struct kvalid	 key = { kvalid_abort, "foo" };
+	enum kcgi_err	 er;
 
 	if ( ! khttp_fcgi_test())
 		return(0);
-
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, &key, 1, &page, 1, 0))
 		return(0);
-
-	if (KCGI_FORM != khttp_fcgi_parse(fcgi, &r)) {
-		khttp_free(&r);
-		return(0);
-	}
+	er = khttp_fcgi_parse(fcgi, &r);
+	khttp_free(&r);
 	khttp_fcgi_free(fcgi);
-	return(1);
+	return(KCGI_HUP == er ? 1 : 0);
 }
 
 int
