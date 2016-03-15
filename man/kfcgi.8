@@ -9,13 +9,15 @@
 .\" Not used in OpenBSD.
 .Sh SYNOPSIS
 .Nm kfcgi
-.Op Fl dv
+.Op Fl drv
 .Op Fl l Ar backlog
 .Op Fl n Ar workers
+.Op Fl N Ar maxworkers
 .Op Fl p Ar chroot
 .Op Fl s Ar sockpath
 .Op Fl u Ar sockuser
 .Op Fl U Ar procuser
+.Op Fl w Ar waittime
 .Ar prog Op arg0...
 .Sh DESCRIPTION
 The
@@ -25,6 +27,14 @@ server starts up
 processes of
 .Ar prog
 to handle FastCGI connections.
+It can handle any FastCGI worker implementing the FastCGI v1.0
+Specification as well as those implementing the FastCGI Extensions for
+Management Control (see
+.Fl r ,
+.Fl N ,
+and
+.Fl w ) .
+.Pp
 By default, it opens the socket
 .Pa /var/www/run/httpd.sock
 in mode 0660 under the current user and group, changes to a file-system
@@ -34,6 +44,11 @@ daemonises and opens its system log,
 then starts 3 workers executing
 .Ar prog ,
 which must exist relative to the file-system jail root.
+The back-log is twice the worker pool size
+.Pq Fl n
+or, in the event of variable-sized pools, twice the maximum worker size
+.Pq Fl N .
+.Pp
 The arguments are as follows:
 .Bl -tag -width Ds
 .It Fl d
@@ -46,22 +61,41 @@ This can produce a
 of output.
 .It Fl l Ar backlog
 The connection backlog.
-If unspecified or zero, this is set to the value of
-.Fl n
-times two.
-If too small, the web-server will not be able to pass in new connections.
+If this is too small, connections will be refused and cause the request
+to error out.
+The operating system will usually truncate this.
 .It Fl n Ar workers
-The number of workers >1.
+The initial number of workers >1.
+.It Fl N Ar maxworkers
+The maximum number of workers in a variable-sized pool.
+By default, this is twice
+.Fl n .
 .It Fl p Ar chroot
 Location of file-system jail.
 This is mandatory: use the root directory if you insist on being
 insecure.
+.It Fl r
+Use a variable-sized pool of workers.
+This can
+.Em only
+be used for workers implementing the FastCGI Extensions for Management
+Control.
+The pool will be at least (and initially) size
+.Fl n ,
+maximum size
+.Fl N
+with a release policy dictated by
+.Fl w .
 .It Fl s Ar sockpath
 Alternative socket path.
 .It Fl u Ar sockuser
 The user in whose name (user and group) the socket is created.
 .It Fl U Ar procuser
 The user in whose name the process is dropped.
+.It Fl w Ar waittime
+The amount of time in seconds a worker must be idle before being
+released from a variable-sized pool.
+By default, this is five minutes.
 .El
 .Pp
 To properly stop a
@@ -101,13 +135,30 @@ It will create the default socket
 .Pa /var/www/run/httpd.sock
 in mode 0660 as user
 .Dq www .
+.Pp
+This can also be extended to run a variable-sized pool of workers that
+responds to system load.
+.Pp
+.D1 # kfcgi -r -n 2 -N 100 -w 10 -u www -U www -- /fcgi-bin/prog
+.Pp
+This will start with only two servers, but scale it to 100 in the event
+of a burst of communication.
+Workers started to handle the burst will be terminated after 10 seconds.
 .\" .Sh DIAGNOSTICS
 .\" For sections 1, 4, 6, 7, 8, and 9 printf/stderr messages only.
 .\" .Sh ERRORS
 .\" For sections 2, 3, 4, and 9 errno settings only.
 .Sh SEE ALSO
 .Xr kcgi 3
-.\" .Sh STANDARDS
+.Sh STANDARDS
+.Nm
+implements the
+.Dq FastCGI Specification ,
+version 1.0, published 29 April 1996, for properly passing connections
+to the workers.
+It also implements the
+.Lk http://kristaps.bsd.lv/kcgi/extending01.html "FastCGI Extensions for Management Control"
+for variable-sized worker pools.
 .\" .Sh HISTORY
 .\" .Sh AUTHORS
 .\" .Sh CAVEATS
