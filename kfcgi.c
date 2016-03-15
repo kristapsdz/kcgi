@@ -683,7 +683,11 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
+#ifdef __linux__
+	ws[i].cookie = random();
+#else
 	ws[i].cookie = arc4random();
+#endif
 	dbg("worker-%u: acquire %d "
 		"(pollers %zu/%zu: workers %zu/%zu)", 
 		ws[i].pid, afd, pfdsz, pfdmaxsz, wsz, maxwsz);
@@ -871,7 +875,6 @@ int
 main(int argc, char *argv[])
 {
 	int			  c, fd, varp, usemax, useq, nod;
-	pid_t			 *ws;
 	struct passwd		 *pw;
 	size_t			  i, wsz, sz, lsz, maxwsz;
 	time_t			  waittime;
@@ -898,7 +901,6 @@ main(int argc, char *argv[])
 	usemax = useq = 0;
 	sockpath = "/var/www/run/httpd.sock";
 	chpath = "/var/www";
-	ws = NULL;
 	sockuser = procuser = NULL;
 	varp = 0;
 	nod = 0;
@@ -1102,9 +1104,9 @@ main(int argc, char *argv[])
 	} 
 	
 	if (nod)
-		openlog(getprogname(), LOG_PERROR | LOG_PID, LOG_DAEMON);
+		openlog(pname, LOG_PERROR | LOG_PID, LOG_DAEMON);
 	else
-		openlog(getprogname(), LOG_PID, LOG_DAEMON);
+		openlog(pname, LOG_PID, LOG_DAEMON);
 
 	c = varp ?
 		varpool(wsz, maxwsz, waittime, fd, sockpath, nargv) :
