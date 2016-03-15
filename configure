@@ -28,6 +28,7 @@ runtest() {
 }
 
 cat config.h.pre
+runtest arc4random ARC4RANDOM ""
 runtest capsicum CAPSICUM ""
 runtest memmem MEMMEM ""
 runtest pledge PLEDGE ""

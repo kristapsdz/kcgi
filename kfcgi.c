@@ -683,7 +683,7 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
-#ifdef __linux__
+#ifndef HAVE_ARC4RANDOM
 	ws[i].cookie = random();
 #else
 	ws[i].cookie = arc4random();
