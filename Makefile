@@ -22,7 +22,7 @@ MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.7.8
+VERSION 	 = 0.8.1
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
@@ -203,7 +203,11 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-upload.c
 SVGS		 = figure1.svg \
 		   figure2.png \
-		   figure4.svg
+		   figure4.svg \
+		   extending01-a.svg \
+		   extending01-b.svg \
+		   extending01-c.svg \
+		   extending01-d.svg
 
 all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
@@ -368,7 +372,7 @@ sample-fcgi: sample-fcgi.o libkcgi.a
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(STATIC) sample-cgi.o 
 
-www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS)
+www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
@@ -389,6 +393,9 @@ index.html: index.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 $(TUTORIALHTMLS): tutorial.xml versions.xml $(TUTORIALXMLS)
+
+extending01.html: extending01.xml tutorial.xml
+	sblg -t tutorial.xml -o- -c $< | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .xml.html:
 	sblg -t tutorial.xml -o- -C $< versions.xml $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
@@ -424,7 +431,7 @@ kcgi.tgz:
 
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
-	rm -f index.html $(TUTORIALHTMLS)
+	rm -f index.html $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
 	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
