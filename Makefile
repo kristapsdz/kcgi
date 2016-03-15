@@ -64,7 +64,8 @@ HTMLS		 = man/kcgi.3.html \
 		   man/kmalloc.3.html \
 		   man/kutil_urlencode.3.html \
 		   man/kvalid_string.3.html
-TESTS 		 = test-memmem.c \
+TESTS 		 = test-arc4random.c \
+		   test-memmem.c \
       		   test-reallocarray.c \
       		   test-sandbox_init.c \
       		   test-capsicum.c \
