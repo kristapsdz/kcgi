@@ -803,7 +803,6 @@ again:
 	for (i = 0; i < wsz; i++) {
 		if (-1 == (ws[i] = fork())) {
 			syslog(LOG_ERR, "fork: worker: %m");
-			close(fd);
 			goto out;
 		} else if (0 == ws[i]) {
 			/*
