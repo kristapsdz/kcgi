@@ -101,6 +101,7 @@ static const struct sock_filter preauth_ctrl[] = {
 #ifdef __NR_sendmsg /* not defined for __i386__ (linux) */
 	SC_ALLOW(sendmsg),
 #endif
+	SC_ALLOW(recvmsg),
 	SC_ALLOW(read),
 	SC_ALLOW(write),
 	SC_ALLOW(close),
@@ -254,7 +255,7 @@ ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 		nnp_failed = 1;
 	}
 	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 
-		 SAND_CONTROL == type ?
+		 SAND_WORKER != type ?
 		 &preauth_prog_ctrl :
 		 &preauth_prog_work) == -1)
 		XWARN("prctl(PR_SET_SECCOMP)");

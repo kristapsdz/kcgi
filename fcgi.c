@@ -109,23 +109,22 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		pfd[1].fd = ctrl;
 		pfd[1].events = POLLIN;
 		pfd[1].revents = 0;
-
+		/*
+		 * If either the worker or manager disconnect, then exit
+		 * cleanly.
+		 * The calling application will check the worker's exit
+		 * code, which will say whether it did something bad, so
+		 * we don't really care.
+		 */
 		if ((rc = poll(pfd, 2, -1)) < 0) {
 			XWARN("poll");
 			goto out;
 		} else if (0 == rc) {
 			XWARNX("poll expired!?");
 			continue;
-		} else if (POLLHUP & pfd[1].revents) {
-			/* If we're exiting, this is ok... */
-			if ( ! (POLLIN & pfd[0].revents))
-				break;
-			XWARNX("worker has disconnected");
-			goto out;
-		} else if ( ! (POLLIN & pfd[0].revents)) {
-			XWARNX("manager has disconnected");
+		} else if (POLLHUP & pfd[1].revents ||
+			   ! (POLLIN & pfd[0].revents)) 
 			break;
-		}
 
 		if (-1 != fdaccept) {
 			assert(-1 == fdfiled);
@@ -174,23 +173,50 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			goto out;
 		}
 
-		pfd[0].fd = fd;
-		pfd[0].events = POLLIN;
-		pfd[1].fd = work;
-		pfd[1].events = POLLIN;
+		/* This doesn't need to be crypto quality. */
 #ifdef __linux__
 		cookie = random();
 #else
 		cookie = arc4random();
 #endif
+
+		/* Write a header cookie to the work. */
+		fullwrite(work, &cookie, sizeof(uint32_t));
+#if 0 /* Soon: __OpenBSD__ */
 		/*
-		 * Write a header cookie then the entire message body to
-		 * the worker.
-		 * We don't know when the data is finished, but the
-		 * worker does, so wait for it to notify us back.
-		 * FIXME: splice this.
+		 * OpenBSD (and maybe others?) have the ability to
+		 * splice using the setsockopt() capability.
+		 * Splice so that the worker can read; when the worker
+		 * has drained all input, it will notify us.
 		 */
-		fullwrite(pfd[1].fd, &cookie, sizeof(uint32_t));
+		if (-1 == setsockopt(fd, SO_SPLICE, &work)) {
+			XWARN("setsockopt: SO_SPLICE");
+			goto out;
+		}
+		pfd[0].fd = work;
+		pfd[0].events = POLLIN;
+		for (;;) {
+			if ((rc = poll(pfd, 1, -1)) < 0) {
+				XWARN("poll");
+				goto out;
+			} else if (0 == rc) {
+				XWARNX("poll expired!?");
+				continue;
+			} else if (POLLIN & pfd[0].revents) 
+				break;
+			XWARNX("work request poll error");
+			goto out;
+		}
+#else
+		/*
+		 * Doing this the slow way...
+		 * Keep pushing data into the worker til it has read it
+		 * all, at which point it will write to us.
+		 */
+		pfd[0].fd = fd;
+		pfd[0].events = POLLIN;
+		pfd[1].fd = work;
+		pfd[1].events = POLLIN;
 		for (;;) {
 			if ((rc = poll(pfd, 2, -1)) < 0) {
 				XWARN("poll");
@@ -221,6 +247,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				goto out;
 			}
 		}
+#endif
 
 		/* Now verify that the worker is sane. */
 		if (fullread(pfd[1].fd, &test, 
@@ -231,12 +258,13 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			XWARNX("failed to verify FastCGI cookie");
 			goto out;
 		} 
-
 		if (fullread(pfd[1].fd, &rid, 
 			 sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI requestId");
 			goto out;
 		}
+
+		/* Doesn't need to be crypto quality. */
 #ifdef __linux__
 		cookie = random();
 #else
@@ -339,19 +367,22 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	pid_t		 work_pid, sock_pid;
 	const char	*cp, *ercp;
 	sigset_t	 mask;
+	enum sandtype	 st;
 
 	/*
 	 * Determine whether we're supposed to accept() on a socket or,
 	 * rather, we're supposed to receive file descriptors from a
 	 * kfcgi-like manager.
 	 */
+	st = SAND_CONTROL_OLD;
 	fdaccept = fdfiled = -1;
 	if (NULL != (cp = getenv("FCGI_LISTENSOCK_DESCRIPTORS"))) {
 		fdfiled = strtonum(cp, 0, INT_MAX, &ercp);
 		if (NULL != ercp) {
 			fdaccept = STDIN_FILENO;
 			fdfiled = -1;
-		} 
+		} else
+			st = SAND_CONTROL_NEW;
 	} else
 		fdaccept = STDIN_FILENO;
 
@@ -485,8 +516,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(sock_ctl[KWORKER_PARENT]);
 		ksandbox_free(work_box);
 		if ( ! ksandbox_init_child(sock_box, 
-			 SAND_CONTROL,
-			 sock_ctl[KWORKER_CHILD], -1)) {
+			 st, sock_ctl[KWORKER_CHILD], -1)) {
 			XWARNX("ksandbox_init_child");
 			er = EXIT_FAILURE;
 		} else 
@@ -508,8 +538,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (-1 != fdfiled)
 		close(fdfiled);
 
-	if ( ! ksandbox_init_parent
-		 (sock_box, SAND_CONTROL, sock_pid)) {
+	if ( ! ksandbox_init_parent(sock_box, st, sock_pid)) {
 		XWARNX("ksandbox_init_parent");
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
@@ -684,10 +713,8 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	 * Now read the request itself from the worker child.
 	 * We'll wait perpetually on data until the channel closes or
 	 * until we're interrupted during a read by the parent.
-	 * FIXME: set a signal mask and ignore SIGTERM while we're
-	 * processing the request itself!
 	 */
-	kerr = kworker_parent(fcgi->work_dat, req);
+	kerr = kworker_parent(fcgi->work_dat, req, 0);
 	if (sig) {
 		kerr = KCGI_OK;
 		goto err;
@@ -726,7 +753,14 @@ err:
 int
 khttp_fcgi_test(void)
 {
-	socklen_t	len = 0;
+	socklen_t	 len = 0;
+	const char	*cp, *ercp;
+
+	if (NULL != (cp = getenv("FCGI_LISTENSOCK_DESCRIPTORS"))) {
+		(void)strtonum(cp, 0, INT_MAX, &ercp);
+		if (NULL != ercp) 
+			return(1);
+	} 
 
 	if (-1 != getpeername(STDIN_FILENO, NULL, &len))
 		return(0);

@@ -31,7 +31,8 @@ enum	input {
 
 enum	sandtype {
 	SAND_WORKER,
-	SAND_CONTROL
+	SAND_CONTROL_NEW,
+	SAND_CONTROL_OLD
 };
 
 #define KWORKER_PARENT  1
@@ -56,7 +57,7 @@ void	 	 kworker_fcgi_child(int, int,
 			const struct kvalid *, size_t, 
 			const char *const *, size_t,
 			unsigned int);
-enum kcgi_err	 kworker_parent(int, struct kreq *);
+enum kcgi_err	 kworker_parent(int, struct kreq *, int);
 
 int		 fulldiscard(int, size_t, enum kcgi_err *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);

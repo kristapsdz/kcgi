@@ -73,6 +73,7 @@ static const struct systrace_preauth preauth_control[] = {
 	{ SYS_accept, SYSTR_POLICY_PERMIT },
 	{ SYS_fcntl, SYSTR_POLICY_PERMIT },
 	{ SYS_sendmsg, SYSTR_POLICY_PERMIT },
+	{ SYS_recvmsg, SYSTR_POLICY_PERMIT },
 
 #ifdef SYS__sysctl
 	{ SYS__sysctl, SYSTR_POLICY_PERMIT },
@@ -176,7 +177,7 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 
 	assert(NULL != arg);
 
-	preauth = SAND_CONTROL == type ? 
+	preauth = SAND_WORKER != type ? 
 		preauth_control : preauth_worker;
 
 	rc = 0;

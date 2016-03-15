@@ -33,12 +33,12 @@ ksandbox_pledge_init_child(void *arg, enum sandtype type)
 	const char *fl;
 
 	fl = "stdio";
-	if (SAND_CONTROL == type)
+	if (SAND_WORKER != type)
 		fl = "stdio unix sendfd recvfd";
 
 	if (-1 == pledge(fl, NULL)) {
 		XWARN("pledge: %s",
-			SAND_CONTROL == type ?
+			SAND_WORKER != type ?
 			"control" : "worker");
 		return(0);
 	}
