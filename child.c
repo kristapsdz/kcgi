@@ -1496,6 +1496,10 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	ptr = (struct fcgi_bgn *)*b;
 	bgn->role = ntohs(ptr->role);
 	bgn->flags = ptr->flags;
+	if (0 != bgn->flags) {
+		XWARNX("FCGI_KEEP_CONN is not supported");
+		return(NULL);
+	}
 #if 0
 	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n", 
 		__func__, bgn->role);
