@@ -542,6 +542,7 @@
 				There were two foci to this effort: first, to make the existing FastCGI system more robust in terms of starting
 				and stopping; the second, to extend FastCGI so that <a href="kfcgi.8.html">kfcgi(8)</a> can handle
 				variable-sized pools of workers instead of a fixed number.
+				The method of extending FastCGI is described in <a href="extending01.html">FastCGI Extensions for Management Control</a>.
 			</div>
 		</aside>
 	</article>
