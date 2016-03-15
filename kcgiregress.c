@@ -715,8 +715,6 @@ out:
 	 * terminating, which is unfair and will raise spurrious
 	 * warnings elsewhere.
 	 */
-	if (-1 == kill(pid, SIGKILL))
-		perror("kill");
 	if (-1 == waitpid(pid, NULL, 0))
 		perror("waitpid");
 	return(rc);
