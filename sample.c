@@ -293,6 +293,7 @@ main(void)
 
 	if (KCGI_OK != er) {
 		fprintf(stderr, "Terminate: parse error: %d\n", er);
+		khttp_free(&r);
 		return(EXIT_FAILURE);
 	}
 
