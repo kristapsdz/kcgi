@@ -5,9 +5,9 @@ int
 main(void)
 {
 
-	printf("Status: 200 OK\r\n");
-	printf("Content-Type: text/html\r\n");
-	printf("\r\n");
-	printf("Hello, world.\n");
+	puts("Status: 200 OK\r");
+	puts("Content-Type: text/html\r");
+	puts("\r");
+	puts("Hello, world.");
 	return(EXIT_SUCCESS);
 }
