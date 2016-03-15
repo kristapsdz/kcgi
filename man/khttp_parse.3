@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: January 4 2016 $
+.Dd $Mdocdate: February 11 2016 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -66,10 +66,13 @@ and
 .Nm khttp_parsex
 functions parse and validate input and the HTTP environment
 (compression, paths, MIME types, and so on).
-It is the central function in the
+They are the central functions in the
 .Xr kcgi 3
 library, parsing and validating key-value form (query string, message
 body, cookie) data and opaque message bodies.
+They must always be matched by
+.Xr khttp_free 3
+regardless of return value.
 .Pp
 The collective arguments are as follows:
 .Bl -tag -width Ds
@@ -163,15 +166,6 @@ khttp_parsex(req, ksuffixmap,
   pages, pagesz, KMIME_TEXT_HTML,
   defpage, NULL, NULL, 0, NULL);
 .Ed
-.Pp
-The
-.Fa req
-object filled in by
-.Nm khttp_parse
-or
-.Nm khttp_parsex
-must be subsequently freed by
-.Xr khttp_free .
 .Ss Types
 A
 .Vt "struct kreq"

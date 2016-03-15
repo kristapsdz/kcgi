@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: August 1 2015 $
 .Dt KHTTP_FCGI_PARSE 3
 .Os
 .Sh NAME
@@ -43,7 +43,7 @@ The
 .Fa req
 object filled in by
 .Nm
-must be subsequently freed by
+must always be matched by
 .Xr khttp_free .
 .Sh RETURN VALUES
 These are the same as in

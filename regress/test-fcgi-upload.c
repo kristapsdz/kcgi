@@ -156,10 +156,10 @@ child(void)
 			} else if ((size_t)st.st_size != r.fields[i].valsz) 
 				return(0);
 		}
-
 		khttp_free(&r);
 	}
 
+	khttp_free(&r);
 	khttp_fcgi_free(fcgi);
 	return(KCGI_HUP == er ? 1 : 0);
 }
