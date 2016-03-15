@@ -745,8 +745,6 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 err:
 	if (-1 != fd)
 		close(fd);
-	/*kreq_free(req);*/
-	khttp_free(req);
 	return(kerr);
 }
 

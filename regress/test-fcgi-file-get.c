@@ -61,6 +61,7 @@ child(void)
 		khttp_free(&r);
 	}
 
+	khttp_free(&r);
 	khttp_fcgi_free(fcgi);
 	return(KCGI_HUP == er ? 1 : 0);
 }

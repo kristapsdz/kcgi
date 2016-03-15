@@ -629,6 +629,8 @@ khttp_parsex(struct kreq *req,
 	int		  work_dat[2];
 	pid_t		  work_pid;
 
+	memset(req, 0, sizeof(struct kreq));
+
 	/*
 	 * We'll be using poll(2) for reading our HTTP document, so this
 	 * must be non-blocking in order to make the reads not spin the
@@ -693,7 +695,6 @@ khttp_parsex(struct kreq *req,
 	if (kopts.sndbufsz < 0)
 		kopts.sndbufsz = 1024 * 8;
 
-	memset(req, 0, sizeof(struct kreq));
 	kerr = KCGI_ENOMEM;
 
 	/*

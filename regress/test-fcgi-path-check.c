@@ -69,8 +69,7 @@ child(void)
 	}
 	rc = 1;
 out:
-	if (0 == rc)
-		khttp_free(&r);
+	khttp_free(&r);
 	khttp_fcgi_free(fcgi);
 	return(rc);
 }
