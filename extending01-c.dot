@@ -1,0 +1,24 @@
+digraph {
+	rankdir="LR";
+	bgcolor="transparent";
+
+	worker1[label="worker"];
+	worker2[label="worker"];
+	mgr[label="manager"];
+	sock[label="transport socket"];
+	sock1[label="socket"];
+	sock2[label="socket"];
+	server[label="web server"];
+
+	mgr -> worker1[label="spawn (4)"; style="dashed"];
+	mgr -> worker2[label="spawn (5)"; style="dashed"];
+	mgr -> sock[label="listen (3)"; style="dashed"];
+	mgr -> sock1[label="bind (1)"; style="dashed"];
+	mgr -> sock2[label="bind (2)"; style="dashed"];
+
+	server -> sock[label="FastCGI (6)"];
+	sock -> sock1[label="FastCGI (7)"];
+	sock -> sock2[label="FastCGI (8)"];
+	sock1 -> worker1[label="FastCGI (9)"];
+	sock2 -> worker2[label="FastCGI (10)"];
+}
