@@ -149,9 +149,19 @@ ksandbox_capsicum_init_child(void *arg,
 	enum sandtype type, int fd1, int fd2)
 {
 
-	return(SAND_WORKER == type ?
-		ksandbox_capsicum_init_worker(arg, fd1, fd2) :
-		ksandbox_capsicum_init_control(arg, fd1, fd2));
+	switch (type) {
+	case (SAND_WORKER):
+		ksandbox_capsicum_init_worker(arg, fd1, fd2);
+		break;
+	case (SAND_CONTROL_OLD):
+		ksandbox_capsicum_init_control(arg, fd1, fd2);
+		break;
+	case (SAND_CONTROL_NEW):
+		ksandbox_capsicum_init_control(arg, fd1, fd2);
+		break;
+	default:
+		abort();
+	}
 }
 
 #else

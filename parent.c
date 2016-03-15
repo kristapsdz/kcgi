@@ -37,7 +37,8 @@
  * Otherwise, it returns 1 and the pair is zeroed and filled in.
  */
 static int
-input(enum input *type, struct kpair *kp, int fd, enum kcgi_err *ke)
+input(enum input *type, struct kpair *kp, 
+	int fd, enum kcgi_err *ke, int eofok)
 {
 	size_t		 sz;
 	int		 rc;
@@ -47,9 +48,13 @@ input(enum input *type, struct kpair *kp, int fd, enum kcgi_err *ke)
 
 	/* This will return EOF for the last one. */
 	rc = fullread(fd, type, sizeof(enum input), 1, ke);
-	if (0 == rc)
-		return(0);
-	else if (rc < 0)
+	if (0 == rc) {
+		if (eofok) 
+			return(0);
+		XWARNX("unexpected eof from child");
+		*ke = KCGI_FORM;
+		return(-1);
+	} else if (rc < 0)
 		return(-1);
 
 	if (*type == IN__MAX)
@@ -165,7 +170,7 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
  * kpairs into named buckets.
  */
 enum kcgi_err
-kworker_parent(int fd, struct kreq *r)
+kworker_parent(int fd, struct kreq *r, int eofok)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
@@ -258,7 +263,7 @@ kworker_parent(int fd, struct kreq *r)
 		}
 	}
 
-	while ((rc = input(&type, &kp, fd, &ke)) > 0) {
+	while ((rc = input(&type, &kp, fd, &ke, eofok)) > 0) {
 		assert(type < IN__MAX);
 		/*
 		 * We have a parsed field from the child process.
@@ -325,6 +330,5 @@ out:
 	free(kp.file);
 	free(kp.ctype);
 	free(kp.xcode);
-
 	return(ke);
 }
