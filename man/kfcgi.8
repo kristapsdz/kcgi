@@ -68,6 +68,9 @@ To properly stop a
 .Nm
 server, send it a
 .Dv SIGTERM .
+If you send a
+.Dv SIGHUP
+to the process, it will restart all workers.
 .\" .Sh CONTEXT
 .\" For section 9 functions only.
 .\" .Sh IMPLEMENTATION NOTES
