@@ -566,7 +566,7 @@ pollagain:
 		 * Read the "identifier" that the child process gives
 		 * to us.
 		 */
-		if (fullread(pfd[i].fd, &cookie, sizeof(uint64_t)) < 0)
+		if ( ! fullread(pfd[i].fd, &cookie, sizeof(uint64_t)))
 			goto out;
 
 		/*
@@ -584,7 +584,7 @@ pollagain:
 			goto out;
 		}
 
-		dbg("worker-%u: release %d", ws[j].pid, afd);
+		dbg("worker-%u: release %d", ws[j].pid, ws[j].fd);
 
 		/*
 		 * Close the descriptor (that we still hold) and mark
