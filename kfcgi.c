@@ -49,8 +49,6 @@ struct	worker {
 	int	 ctrl; /* control socket */
 	pid_t	 pid; /* process */
 	time_t	 last; /* last deschedule or 0 if never */
-	unsigned flags; /* flags on this worker */
-#define	WORK_EXITING	0x01
 };
 
 /*
@@ -58,11 +56,19 @@ struct	worker {
  */
 static	volatile sig_atomic_t stop = 0;
 static	volatile sig_atomic_t chld = 0;
+static	volatile sig_atomic_t hup = 0;
 
 static	int verbose = 0;
 
 static 	void dbg(const char *fmt, ...) 
 		__attribute__((format(printf, 1, 2)));
+
+static void
+sighandlehup(int sig)
+{
+
+	hup = 1;
+}
 
 static void
 sighandlestop(int sig)
@@ -254,13 +260,13 @@ varpool_start(struct worker *w, const struct worker *ws,
 
 	if ( ! xsocketpair(pair))
 		return(0);
-
 	w->ctrl = pair[0];
 
 	if (-1 == (w->pid = fork())) {
 		syslog(LOG_ERR, "fork: worker: %m");
 		close(pair[0]);
 		close(pair[1]);
+		w->ctrl = -1;
 		return(0);
 	} else if (0 == w->pid) {
 		/* 
@@ -284,10 +290,11 @@ varpool_start(struct worker *w, const struct worker *ws,
 
 	/* Close the child descriptor. */
 	if (-1 == close(pair[1])) {
-		syslog(LOG_ERR, "close: worker pipe: %m");
+		syslog(LOG_ERR, "close: worker-%u pipe: %m", w->pid);
 		return(0);
 	}
 
+	dbg("worker-%u: started", w->pid);
 	return(1);
 }
 
@@ -298,8 +305,8 @@ varpool_start(struct worker *w, const struct worker *ws,
  * This is an EXPERIMENTAL extension.
  */
 static int
-varpool(size_t wsz, size_t maxwsz, int fd, 
-	const char *sockpath, char *argv[])
+varpool(size_t wsz, size_t maxwsz, time_t waittime,
+	int fd, const char *sockpath, char *argv[])
 {
 	struct worker	*ws;
 	struct worker	*slough;
@@ -313,23 +320,32 @@ varpool(size_t wsz, size_t maxwsz, int fd,
 	time_t		 t;
 	sigset_t	 set;
 
-	minwsz = wsz;
-
 	dbg("YOU ARE RUNNING VARIABLE MODE AT YOUR OWN RISK.");
+
+	signal(SIGCHLD, sighandlechld);
+	signal(SIGTERM, sighandlestop);
+	signal(SIGHUP, sighandlehup);
+	sigemptyset(&set);
+	sigaddset(&set, SIGCHLD);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGHUP);
+	sigprocmask(SIG_BLOCK, &set, NULL);
+
+again:
+	stop = chld = hup = 0;
 
 	/* 
 	 * Allocate worker array, polling descriptor array, and slough
 	 * array (exiting workers).
 	 * Set our initial exit code and our acceptance status.
 	 */
-	accepting = 1;
+	minwsz = wsz;
 	ws = calloc(wsz, sizeof(struct worker));
 	sloughmaxsz = (maxwsz - minwsz) * 2;
 	slough = calloc(sloughmaxsz, sizeof(struct worker));
 	pfdmaxsz = wsz + 1;
 	pfd = calloc(pfdmaxsz, sizeof(struct pollfd));
 	exitcode = 0;
-	sloughsz = 0;
 
 	if (NULL == ws || NULL == pfd || NULL == slough) {
 		/* Serious problems. */
@@ -342,29 +358,19 @@ varpool(size_t wsz, size_t maxwsz, int fd,
 		return(0);
 	}
 
+	/* Zeroth pfd is always the domain socket. */
+	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+
 	/* Guard against bad de-allocation. */
 	for (i = 0; i < wsz; i++) {
 		ws[i].ctrl = ws[i].fd = -1;
 		ws[i].pid = -1;
 	}
 
-	/* Zeroth pfd is always the domain socket. */
-	pfd[0].fd = fd;
-	pfd[0].events = POLLIN;
+	sloughsz = 0;
+	accepting = 1;
 	pfdsz = 1;
-
-	/*
-	 * Dying children should notify us that something is horribly
-	 * wrong and we should exit.
-	 * Also handle SIGTERM in the same way.
-	 * Start with these signals BLOCKED.
-	 */
-	signal(SIGCHLD, sighandlechld);
-	signal(SIGTERM, sighandlestop);
-	sigemptyset(&set);
-	sigaddset(&set, SIGCHLD);
-	sigaddset(&set, SIGTERM);
-	sigprocmask(SIG_BLOCK, &set, NULL);
 
 	/*
 	 * Start up the [initial] worker processes.
@@ -423,12 +429,23 @@ pollagain:
 			assert(-1 != ws[i].pid);
 			rc = waitpid(ws[i].pid, NULL, WNOHANG);
 			if (rc < 0) {
-				syslog(LOG_ERR, "waitpid: "
-					"worker check: %m");
+				syslog(LOG_ERR, "wait: worker-%u "
+					"check: %m", ws[i].pid);
 				goto out;
 			} else if (0 == rc)
 				continue;
-			syslog(LOG_ERR, "worker unexpectedly exited");
+			/*
+			 * We found a process that has already exited.
+			 * Close its fd as well so that we know that the
+			 * pid of -1 means it's completely finished.
+			 */
+			syslog(LOG_ERR, "worker-%u "
+				"unexpectedly exited", ws[i].pid);
+			if (-1 == close(ws[i].ctrl))
+				syslog(LOG_ERR, "close: worker-%u "
+					"control socket: %m",
+					ws[wsz - 1].pid);
+			ws[i].pid = -1;
 			goto out;
 		}
 
@@ -440,15 +457,20 @@ pollagain:
 				i++;
 				continue;
 			} else if (rc < 0) {
-				syslog(LOG_ERR, "waitpid: "
-					"exited worker check: %m");
+				syslog(LOG_ERR, "wait: sloughed "
+					"worker-%u check: %m", 
+					slough[i].pid);
 				goto out;
 			}
-			dbg("slough: releasing %u\n", slough[i].pid);
+			dbg("slough: releasing worker-%u\n", 
+				slough[i].pid);
 			if (i < sloughsz - 1)
 				slough[i] = slough[sloughsz - 1];
 			sloughsz--;
 		}
+	} else if (hup) {
+		dbg("servicing restart request");
+		goto out;
 	}
 
 	/*
@@ -465,7 +487,7 @@ pollagain:
 		assert(wsz > 1);
 
 		if (-1 == ws[wsz - 1].fd &&
-		    t - ws[wsz - 1].last > 10) {
+		    t - ws[wsz - 1].last > waittime) {
 			assert(-1 != ws[wsz - 1].ctrl);
 			assert(-1 != ws[wsz - 1].pid);
 			assert(-1 == ws[wsz - 1].fd);
@@ -479,12 +501,14 @@ pollagain:
 			
 			/* Close down the worker in the usual way. */
 			if (-1 == close(ws[wsz - 1].ctrl)) {
-				syslog(LOG_ERR, "close: worker "
-					"control socket: %m");
+				syslog(LOG_ERR, "close: worker-%u "
+					"control socket: %m",
+					ws[wsz - 1].pid);
 				goto out;
 			} 
 			if (-1 == kill(ws[wsz - 1].pid, SIGTERM)) {
-				syslog(LOG_ERR, "kill: worker: %m");
+				syslog(LOG_ERR, "kill: worker-%u: %m",
+					ws[wsz - 1].pid);
 				goto out;
 			}
 
@@ -492,7 +516,8 @@ pollagain:
 			 * Append the dying client to the slough array,
 			 * since workers may take time to die.
 			 */
-			dbg("slough <- acquiring %u\n", ws[wsz - 1].pid);
+			dbg("slough: acquiring worker-%u\n", 
+				ws[wsz - 1].pid);
 			slough[sloughsz++] = ws[wsz - 1];
 
 			/* Reallocations. */
@@ -557,7 +582,7 @@ pollagain:
 			goto out;
 		}
 
-		dbg("child-%u -> release %d", ws[j].pid, afd);
+		dbg("worker-%u: release %d", ws[j].pid, afd);
 
 		/*
 		 * Close the descriptor (that we still hold) and mark
@@ -656,19 +681,27 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
-	dbg("child-%u <- acquire %d "
+	dbg("worker-%u: acquire %d "
 		"(pollers %zu/%zu: workers %zu/%zu)", 
 		ws[i].pid, afd, pfdsz, pfdmaxsz, wsz, maxwsz);
 	pfd[pfdsz].events = POLLIN;
 	pfd[pfdsz].fd = ws[i].ctrl;
 	pfdsz++;
-	if ( ! fullwritefd(ws[i].ctrl, ws[i].fd, &ws[i].fd, sizeof(int)))
-		goto out;
 
-	goto pollagain;
+	if (fullwritefd(ws[i].ctrl, ws[i].fd, &ws[i].fd, sizeof(int)))
+		goto pollagain;
+
 out:
-	if (close(fd) < 0) 
-		syslog(LOG_ERR, "close: control: %m");
+	if ( ! hup) {
+		/*
+		 * If we're not going to restart, then close the FastCGI
+		 * file descriptor as soon as possible.
+		 */
+		dbg("closing control socket");
+		if (-1 == close(fd))
+			syslog(LOG_ERR, "close: control: %m");
+		fd = -1;
+	}
 
 	/*
 	 * Close the application's control socket; then, if that doesn't
@@ -676,27 +709,52 @@ out:
 	 * we also deliver a SIGTERM.
 	 */
 	for (i = 0; i < wsz; i++) {
-		if (-1 != ws[i].ctrl && -1 == close(ws[i].ctrl))
-			syslog(LOG_ERR, "close: worker control: %m");
-		if (-1 != ws[i].pid && -1 == kill(ws[i].pid, SIGTERM))
-			syslog(LOG_ERR, "kill: worker: %m");
+		if (-1 == ws[i].pid)
+			continue;
+		dbg("worker-%u: terminating", ws[i].pid);
+		if (-1 == close(ws[i].ctrl))
+			syslog(LOG_ERR, "close: "
+				"worker-%u control: %m", ws[i].pid);
+		if (-1 == kill(ws[i].pid, SIGTERM))
+			syslog(LOG_ERR, "kill: "
+				"worker-%u: %m", ws[i].pid);
 	}
 
 	/*
 	 * Now wait for the children and pending children.
 	 */
-	for (i = 0; i < wsz; i++) 
-		if (-1 != ws[i].pid && 
-		    -1 == waitpid(ws[i].pid, NULL, 0))
-			syslog(LOG_ERR, "waitpid: worker: %m");
+	for (i = 0; i < wsz; i++) {
+		if (-1 == ws[i].pid)
+			continue;
+		dbg("worker-%u: reaping", ws[i].pid);
+		if (-1 == waitpid(ws[i].pid, NULL, 0))
+			syslog(LOG_ERR, "wait: "
+				"worker-%u: %m", ws[i].pid);
+	}
 
-	for (i = 0; i < sloughsz; i++) 
+	for (i = 0; i < sloughsz; i++) {
+		dbg("sloughed worker-%u: reaping", slough[i].pid);
 		if (-1 == waitpid(slough[i].pid, NULL, 0))
-			syslog(LOG_ERR, "waitpid: slough: %m");
+			syslog(LOG_ERR, "wait: sloughed "
+				"worker-%u: %m", slough[i].pid);
+	}
 
 	free(ws);
 	free(slough);
 	free(pfd);
+
+	if (hup)
+		goto again;
+
+	/* 
+	 * Now we're really exiting.
+	 * Do our final cleanup if we didn't already...
+	 */
+	if (-1 != fd) {
+		dbg("closing control socket");
+		if (-1 == close(fd))
+			syslog(LOG_ERR, "close: control: %m");
+	}
 	return(exitcode);
 }
 
@@ -707,6 +765,23 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	size_t		 i;
 	sigset_t	 set, oset;
 
+	/*
+	 * Dying children should notify us that something is horribly
+	 * wrong and we should exit.
+	 * Also handle SIGTERM in the same way.
+	 */
+	signal(SIGTERM, sighandlestop);
+	signal(SIGCHLD, sighandlestop);
+	signal(SIGHUP, sighandlehup);
+	sigemptyset(&set);
+	sigaddset(&set, SIGCHLD);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGHUP);
+	sigprocmask(SIG_BLOCK, &set, &oset);
+
+again:
+	hup = stop = chld = 0;
+
 	/* Allocate worker array. */
 	if (NULL == (ws = calloc(wsz, sizeof(pid_t)))) {
 		syslog(LOG_ERR, "calloc: initialisation: %m");
@@ -715,20 +790,12 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 		return(0);
 	}
 
+	/* 
+	 * "Zero" the workers.
+	 * This is in case the initialisation fails.
+	 */
 	for (i = 0; i < wsz; i++)
 		ws[i] = -1;
-
-	/*
-	 * Dying children should notify us that something is horribly
-	 * wrong and we should exit.
-	 * Also handle SIGTERM in the same way.
-	 */
-	signal(SIGTERM, sighandlestop);
-	signal(SIGCHLD, sighandlestop);
-	sigemptyset(&set);
-	sigaddset(&set, SIGCHLD);
-	sigaddset(&set, SIGTERM);
-	sigprocmask(SIG_BLOCK, &set, &oset);
 
 	for (i = 0; i < wsz; i++) {
 		if (-1 == (ws[i] = fork())) {
@@ -752,22 +819,49 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 		}
 	}
 
-	/* Close local reference to server. */
-	close(fd);
 	sigsuspend(&oset);
-	dbg("servicing exit request");
+
+	if (stop)
+		dbg("servicing exit request");
+	else if (chld)
+		syslog(LOG_ERR, "worker unexpectedly exited");
+	else 
+		dbg("servicing restart request");
 out:
+	if ( ! hup) {
+		/*
+		 * If we're not going to restart, then close the FastCGI
+		 * file descriptor as soon as possible.
+		 */
+		if (-1 == close(fd))
+			syslog(LOG_ERR, "close: control: %m");
+		fd = -1;
+	}
+
 	/*
 	 * Now wait on the children.
+	 * This can take forever, but properly-written children will
+	 * exit when receiving SIGTERM.
 	 */
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == kill(ws[i], SIGTERM))
-			syslog(LOG_ERR, "kill: worker: %m");
+			syslog(LOG_ERR, "kill: worker-%u: %m", ws[i]);
+
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == waitpid(ws[i], NULL, 0))
-			syslog(LOG_ERR, "kill: waitpid: %m");
+			syslog(LOG_ERR, "wait: worker-%u: %m", ws[i]);
 
 	free(ws);
+
+	if (hup)
+		goto again;
+
+	/* 
+	 * Now we're really exiting.
+	 * Do our final cleanup if we didn't already...
+	 */
+	if (-1 != fd && -1 == close(fd))
+		syslog(LOG_ERR, "close: control: %m");
 	return(1);
 }
 
@@ -778,6 +872,7 @@ main(int argc, char *argv[])
 	pid_t			 *ws;
 	struct passwd		 *pw;
 	size_t			  i, wsz, sz, lsz, maxwsz;
+	time_t			  waittime;
 	const char		 *pname, *sockpath, *chpath,
 	      			 *sockuser, *procuser, *errstr;
 	struct sockaddr_un	  sun;
@@ -806,8 +901,9 @@ main(int argc, char *argv[])
 	varp = 0;
 	nod = 0;
 	maxwsz = lsz = 0;
+	waittime = 60 * 5;
 
-	while (-1 != (c = getopt(argc, argv, "l:p:n:N:s:u:U:rvd")))
+	while (-1 != (c = getopt(argc, argv, "l:p:n:N:s:u:U:rvdw:")))
 		switch (c) {
 		case ('l'):
 			useq = 1;
@@ -853,6 +949,13 @@ main(int argc, char *argv[])
 		case ('d'):
 			nod = 1;
 			break;	
+		case ('w'):
+			waittime = strtonum(optarg, 0, INT_MAX, &errstr);
+			if (NULL == errstr)
+				break;
+			fprintf(stderr, "-w must be "
+				"between 0 and %d\n", INT_MAX);
+			return(EXIT_FAILURE);	
 		default:
 			goto usage;
 		}
@@ -1002,7 +1105,7 @@ main(int argc, char *argv[])
 		openlog(getprogname(), LOG_PID, LOG_DAEMON);
 
 	c = varp ?
-		varpool(wsz, maxwsz, fd, sockpath, nargv) :
+		varpool(wsz, maxwsz, waittime, fd, sockpath, nargv) :
 		fixedpool(wsz, fd, sockpath, nargv);
 
 	free(nargv);
