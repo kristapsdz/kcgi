@@ -21,6 +21,7 @@
 					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+					<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
 				</nav>
 			</section>
 		</header>
@@ -30,11 +31,12 @@
 			<a href="${sblg-url}"><i class="fa fa-link"></i>Permanent link</a> to this article.
 		</div>
 		<footer>
-			<div>&#169; 2014&#8211;2015 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2016 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
 				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
