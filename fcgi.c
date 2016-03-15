@@ -84,7 +84,8 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 {
 	struct sockaddr_storage ss;
 	socklen_t	 sslen;
-	int		 fd, rc, afd, ourfd, erc;
+	int		 fd, rc, ourfd, erc;
+	uint64_t	 magic;
 	uint32_t	 cookie, test;
 	struct pollfd	 pfd[2];
 	char		 buf[BUFSIZ];
@@ -153,7 +154,8 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			 * kfcgi-like application that's managing
 			 * connection counts.
 			 */
-			rc = fullreadfd(fdfiled, &fd, &afd, sizeof(int));
+			rc = fullreadfd(fdfiled, 
+				&fd, &magic, sizeof(uint64_t));
 			if (rc < 0) {
 				XWARNX("manager socket error");
 				goto out;
@@ -299,7 +301,8 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * that we've finished processing this request.
 		 */
 		if (-1 != fdfiled) {
-			rc = fullwritenoerr(fdfiled, &afd, sizeof(int));
+			rc = fullwritenoerr(fdfiled, 
+				&magic, sizeof(uint64_t));
 			if (rc < 0) {
 				XWARNX("failed ack to manager");
 				goto out;
