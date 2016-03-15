@@ -20,6 +20,9 @@ body > header nav li + li	{ margin-top: 0.5em; }
 #header a			{ color: #ddd; }
 #header a:hover			{ color: #fff; }
 #header nav			{ padding: 0.5ex 0 1ex 0; }
+#header nav .version		{ border-right: thin solid silver; 
+				  color: #abc;
+				  padding-right: 1ex; }
 #version			{ background-color: #ddd; 
 				  padding: 1em 5% 0 5%; }
 #version a, 
@@ -62,6 +65,8 @@ article figcaption		{ padding: 1ex 10%;
 article[data-sblg-article] header address,
 article[data-sblg-article] header time
 				{ display: none; }
+article[data-sblg-article] img	{ width: 100%;
+				  max-width: 800px; }
 figure				{ margin: 0; 
 				  text-align: center; 
 				  color: #444; }

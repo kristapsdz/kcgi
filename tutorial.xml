@@ -17,7 +17,7 @@
 					<span itemprop="description" class="nd">minimal CGI library in C</span>
 				</h1>
 				<nav>
-					Version @VERSION@
+					<span class="version">Version @VERSION@</span>
 					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
