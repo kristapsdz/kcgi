@@ -176,7 +176,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		}
 
 		/* This doesn't need to be crypto quality. */
-#ifdef __linux__
+#ifndef HAVE_ARC4RANDOM
 		cookie = random();
 #else
 		cookie = arc4random();
@@ -267,7 +267,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		}
 
 		/* Doesn't need to be crypto quality. */
-#ifdef __linux__
+#ifndef HAVE_ARC4RANDOM
 		cookie = random();
 #else
 		cookie = arc4random();
