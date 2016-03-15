@@ -49,6 +49,7 @@ struct	worker {
 	int	 ctrl; /* control socket */
 	pid_t	 pid; /* process */
 	time_t	 last; /* last deschedule or 0 if never */
+	uint64_t cookie;
 };
 
 /*
@@ -319,6 +320,7 @@ varpool(size_t wsz, size_t maxwsz, time_t waittime,
 	void		*pp;
 	time_t		 t;
 	sigset_t	 set;
+	uint64_t	 cookie;
 
 	dbg("YOU ARE RUNNING VARIABLE MODE AT YOUR OWN RISK.");
 
@@ -564,7 +566,7 @@ pollagain:
 		 * Read the "identifier" that the child process gives
 		 * to us.
 		 */
-		if (fullread(pfd[i].fd, &afd, sizeof(int)) < 0)
+		if (fullread(pfd[i].fd, &cookie, sizeof(uint64_t)) < 0)
 			goto out;
 
 		/*
@@ -574,7 +576,7 @@ pollagain:
 		 * this from being so expensive.
 		 */
 		for (j = 0; j < wsz; j++)
-			if (ws[j].fd == afd)
+			if (ws[j].cookie == cookie)
 				break;
 
 		if (j == wsz) {
@@ -681,6 +683,7 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
+	ws[i].cookie = arc4random();
 	dbg("worker-%u: acquire %d "
 		"(pollers %zu/%zu: workers %zu/%zu)", 
 		ws[i].pid, afd, pfdsz, pfdmaxsz, wsz, maxwsz);
@@ -688,7 +691,7 @@ pollagain:
 	pfd[pfdsz].fd = ws[i].ctrl;
 	pfdsz++;
 
-	if (fullwritefd(ws[i].ctrl, ws[i].fd, &ws[i].fd, sizeof(int)))
+	if (fullwritefd(ws[i].ctrl, ws[i].fd, &ws[i].cookie, sizeof(uint64_t)))
 		goto pollagain;
 
 out:
