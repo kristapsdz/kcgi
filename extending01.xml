@@ -1,0 +1,148 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			FastCGI Extensions for Management Control
+		</h2>
+		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2016-03-15">15 March, 2016</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			Subsequent version 0.8.1, <span class="nm">kcgi</span>'s FastCGI handling extends the <a
+				href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html">FastCGI specification</a> to allow the connection
+			manager, <a href="kfcgi.8.html">kfcgi(8)</a>, to manage a variable-sized pool of <a href="kcgi.3.html">kcgi(3)</a>
+			FastCGI workers.
+		</aside>
+	</p>
+	<h3>
+		Introduction
+	</h3>
+	<p>
+		One significant weakness of FastCGI is that the application method (not the protocol) prohibits the worker manager from
+		increasing the worker pool in response to load.
+		The prohibition arises from section 3.2 of the specification, <a
+			href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S3.2">Accepting Transport Connections</a>, which stipulates that
+		workers must themselves accept incoming FastCGI connections on the transport socket.
+	</p>
+	<figure id="fig1">
+		<img src="extending01-a.svg" alt="Accepting FastCGI Connections" />
+		<figcaption>Relationship between web server, manager, and workers.</figcaption>
+	</figure>
+	<p>
+		In the <a href="#fig1">figure</a>, the manager initiates the transport socket and starts its workers (steps 1&#8211;3).
+		The workers then inherit the open transport socket and wait to accept transport connections.
+		These are passed directly from the web server (steps 4&#8211;6).
+		Unfortunately, if the transport socket backlog is filled, there is no way in the FastCGI specification for the manager to be
+		appraised of the fact: no (known) systems supported by <span class="nm">kcgi</span> allow querying of the backlog size or being
+		notified of backlog saturation.
+		Since the manager is blind to anything but worker process status, the burden falls to the operator to pre-allocate workers.
+	</p>
+	<h3>
+		Existing Solutions
+	</h3>
+	<p>
+		The usual solution for this is to pre-allocate workers and simply fail on resource exhaustion: when the web server tries
+		connecting to a saturated transport socket, it fails and the request is rejected by the web server.
+		This is the method used by <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> and other
+		servers when using the <q>external process</q> mode.
+		Obviously, this is sub-optimal.
+		Many web servers address this by acting themselves as managers.
+	</p>
+	<figure id="fig2">
+		<img src="extending01-b.svg" alt="Accepting FastCGI Connections" />
+		<figcaption>Web server assuming the role of a manager.</figcaption>
+	</figure>
+	<p>
+		In the <a href="#fig2">figure</a>'s configuration (which is standard in <a
+			href="https://httpd.apache.org/mod_fcgid/">mod_fcgid</a> among other FastCGI implementations), the web server will start
+		the transport socket and manage connections itself.
+		Since it keeps track of worker activity by passing HTTP connections into the transport socket, it's able to allocate new workers
+		on-demand.
+	</p>
+	<p>
+		While this is an attractive solution, it puts a considerable burden of complexity on the web server to act both as an I/O broker
+		and now a process manager as well.
+		Moreover, the security model of the web server is compromised: since the FastCGI clients may need to run in the <q>root</q>
+		file-system or without resource constraints, the web server must also run in this environment.
+		This poses a considerable burden on the server developer: it must, to maintain separation of capabilities, manage connections in
+		one process and manage connections in another, with a channel of communication between servers.
+	</p>
+	<h3>
+		Potential Solutions
+	</h3>
+	<p>
+		One method of solving this&#8212;and perhaps the best method&#8212;is for the worker manager to allocate a transport socket for
+		each of its workers.
+		It would then accept transport connections on behalf of the workers and then channel data to and from the workers' transport
+		sockets and the main transport socket.
+	</p>
+	<figure id="fig3">
+		<img src="extending01-c.svg" alt="Accepting FastCGI Connections" />
+		<figcaption>Process manager multi-plexing transport sockets.</figcaption>
+	</figure>
+	<p>
+		While an attractive fix, this puts a considerable burden on the transport manager to act both as a process manager and an I/O
+		broker&#8212;the same problem in the <q>Existing Solutions</q> above, but for the manager instead of the server!
+		Moreover, it puts considerable I/O overhead on the system for copying data: the manager will not be appraised of terminating
+		transport connections unless it inspects the data itself.
+		The result is that FastCGI responses cannot be spliced&#8212;it must be analysed.
+	</p>
+	<p>
+		Another option is to provide each worker the ability to notify the manager of connection saturation.
+		A saturated connection is one where accepting a socket happens instantly&#8212;this can be easily reckoned by making a
+		non-blocking poll on the socket prior to accepting, and seeing if a connection is immediately available. 
+		If so, then the connection is saturated at that moment and the manager might want to add more workers.
+		Unfortunately, there is no trivial way for the worker to <q>talk back</q> to the manager: signals will be consolidated, so
+		multiple <q>I'm saturated</q> signals will become one, and other means (such as shared memory) are increasingly complex.
+	</p>
+	<h3>
+		Implemented Solution
+	</h3>
+	<p>
+		The solution implemented by <span class="nm">kcgi</span> is very simple, but extends the language of the specification.
+		In short, if the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> environment variable is passed into the client, it will wait to
+		receive a file descriptor (and a cookie) across the transport socket instead of accepting the descriptor itself.
+		Then, when the connection is complete, the worker must respond with the cookie to the transport socket.
+	</p>
+	<figure id="fig4">
+		<img src="extending01-d.svg" alt="Accepting FastCGI Connections" />
+		<figcaption>Process manager passing file descriptors to workers.</figcaption>
+	</figure>
+	<p>
+		In the <a href="#fig4">figure</a>, the manager listens on the transport socket and passes accepted descriptors directly to the
+		workers, who then operate on the FastCGI data.
+		This avoids the penalty (and complexity) of channeling I/O, but allows the manager to keep track of connections and allocate
+		more workers, if necessary.
+		This changes the current logic of <a href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S3.2">section 3.2</a> as follows:
+	</p>
+	<ol>
+		<li>accept descriptor from the <code>FCGI_LISTENSOCK_FILENO</code> descriptor (standard input)</li>
+		<li>operate on FastCGI data</li>
+		<li>close descriptor</li>
+	</ol>
+	<p>
+		To the following, noting the additional shut-down sequence that changes <a href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S3.5">section 3.5</a>.
+	</p>
+	<ol>
+		<li>read descriptor and a 64-bit cookie from the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> descriptor as specified in the environment</li>
+		<li>operate on FastCGI data</li>
+		<li>close descriptor</li>
+		<li>write the 64-bit cookie value back to the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> descriptor</li>
+	</ol>
+	<p>
+		Applications implementing this can switch on whether the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> value is a valid natural
+		number to decide whether to use the existing or new functionality. 
+	</p>
+	<h3>
+		Drawbacks
+	</h3>
+	<p>
+		There are some minor draw-backs with this approach.
+		First, it is not supported for operating systems that cannot pass file descriptors.
+		Second, it stipulates depending upon an environment variable, which may be undesirable.
+	</p>
+	<p>
+		Last, and most significantly, is that a manager wishing to use this feature can only do so with workers who are compiled to support the operation.
+		In other words, there is no <q>fall-back</q> mechanism for the manager.
+	</p>
+</article>
