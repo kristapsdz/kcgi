@@ -142,6 +142,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-bigfile \
 		   regress/test-digest \
+		   regress/test-fcgi-abort-validator \
 		   regress/test-fcgi-bigfile \
 		   regress/test-fcgi-file-get \
 		   regress/test-fcgi-path-check \
@@ -161,6 +162,7 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-basic.o \
 		   regress/test-bigfile.o \
 		   regress/test-digest.o \
+		   regress/test-fcgi-abort-validator.o \
 		   regress/test-fcgi-bigfile.o \
 		   regress/test-fcgi-file-get.o \
 		   regress/test-fcgi-path-check.o \
@@ -184,6 +186,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-basic.c \
 		   regress/test-bigfile.c \
 		   regress/test-digest.c \
+		   regress/test-fcgi-abort-validator.c \
 		   regress/test-fcgi-bigfile.c \
 		   regress/test-fcgi-file-get.c \
 		   regress/test-fcgi-path-check.c \
@@ -242,6 +245,9 @@ regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcg
 
 regress/test-digest: regress/test-digest.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-digest.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-fcgi-abort-validator: regress/test-fcgi-abort-validator.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-abort-validator.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/test-fcgi-bigfile: regress/test-fcgi-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
