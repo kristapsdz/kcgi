@@ -78,8 +78,10 @@
 int main(void) {
   struct kreq r;
   const char *page = "index";
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0)) {
+    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
     return(EXIT_FAILURE);
+  }
   <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
   khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
   <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
@@ -101,8 +103,10 @@ int main(void) {
    * the default page if none is supplied.
    * (We don't validate any input fields.)
    */
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0)) {
+    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
     return(EXIT_FAILURE);
+  }
 
   /* 
    * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
