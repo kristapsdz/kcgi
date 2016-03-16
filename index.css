@@ -103,6 +103,7 @@ pre.prettyprint ol.linenums > li { list-style-type: decimal; }
 footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
+.flag				{ font-weight: bold; }
 @media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
 h1				{ font-size: 16pt; }
 h1 .nd				{ font-size: 14pt; }
