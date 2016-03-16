@@ -165,7 +165,8 @@ ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
 
 int
 ksandbox_capsicum_init_child(void *arg, 
-	enum sandtype type, int fd1, int fd2)
+	enum sandtype type, int fd1, int fd2,
+	int fdfiled, int fdaccept)
 {
 	int	 rc;
 
@@ -175,11 +176,13 @@ ksandbox_capsicum_init_child(void *arg,
 		break;
 	case (SAND_CONTROL_OLD):
 		assert(-1 == fd2);
-		rc = ksandbox_capsicum_init_control(arg, fd1);
+		rc = ksandbox_capsicum_init_control
+			(arg, fd1, fdfiled, fdaccept);
 		break;
 	case (SAND_CONTROL_NEW):
 		assert(-1 == fd2);
-		rc = ksandbox_capsicum_init_control(arg, fd1);
+		rc = ksandbox_capsicum_init_control
+			(arg, fd1, fdfiled, fdaccept);
 		break;
 	default:
 		abort();
