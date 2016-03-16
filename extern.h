@@ -71,10 +71,12 @@ int		 fullwritefd(int, int, void *, size_t);
 int		 ksandbox_alloc(void **);
 void		 ksandbox_close(void *);
 void		 ksandbox_free(void *);
-int		 ksandbox_init_child(void *, enum sandtype, int, int);
+int		 ksandbox_init_child(void *, 
+			enum sandtype, int, int, int, int);
 int		 ksandbox_init_parent(void *, enum sandtype, pid_t);
 #ifdef HAVE_CAPSICUM
-int	 	 ksandbox_capsicum_init_child(void *, enum sandtype, int, int);
+int	 	 ksandbox_capsicum_init_child(void *, 
+			enum sandtype, int, int, int, int);
 #endif
 #ifdef HAVE_PLEDGE
 int	 	 ksandbox_pledge_init_child(void *, enum sandtype);
