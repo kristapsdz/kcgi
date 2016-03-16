@@ -24,9 +24,11 @@
 #include <sys/resource.h>
 #include <sys/capability.h>
 
+#include <assert.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "kcgi.h"
 #include "extern.h"
