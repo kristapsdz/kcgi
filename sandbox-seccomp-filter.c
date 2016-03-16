@@ -101,7 +101,9 @@ static const struct sock_filter preauth_ctrl[] = {
 #ifdef __NR_sendmsg /* not defined for __i386__ (linux) */
 	SC_ALLOW(sendmsg),
 #endif
+#ifdef __NR_recvmsg /* XXX: untested: mirroring __NR_sendmsg */
 	SC_ALLOW(recvmsg),
+#endif
 	SC_ALLOW(read),
 	SC_ALLOW(write),
 	SC_ALLOW(close),
