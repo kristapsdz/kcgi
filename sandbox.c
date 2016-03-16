@@ -132,14 +132,25 @@ ksandbox_close(void *arg)
  * Initialise the child context of a sandbox.
  * Each sandbox will want to do something here to make sure that the
  * child context is sandboxed properly.
+ * This function depends on "type": if SAND_WORKER, we set fd1 to be the
+ * descriptor between the child and the application; if fd2 isn't -1,
+ * it's the FastCGI control connection (fdfiled and fdaccept should be
+ * ignord in SAND_WORKER case).
+ * If not SAND_WORKER, we're the control process in a FastCGI context:
+ * fd1 is the control connection; fd2 is -1; fdaccept, if not -1, is the
+ * old-style FastCGI socket; fdfiled, if not -1, is the new-style
+ * transport descriptor interface.
+ * Whew!
  */
 int
 ksandbox_init_child(void *arg, 
-	enum sandtype type, int fd1, int fd2)
+	enum sandtype type, int fd1, int fd2,
+	int fdfiled, int fdaccept)
 {
 
 #if defined(HAVE_CAPSICUM)
-	if ( ! ksandbox_capsicum_init_child(arg, type, fd1, fd2)) {
+	if ( ! ksandbox_capsicum_init_child(arg, type, 
+	    fd1, fd2, fdfiled, fdaccept)) {
 		XWARNX("ksandbox_capsicum_init_child");
 		return(0);
 	}
