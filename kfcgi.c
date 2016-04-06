@@ -911,11 +911,11 @@ main(int argc, char *argv[])
 		switch (c) {
 		case ('l'):
 			useq = 1;
-			lsz = strtonum(optarg, 0, INT_MAX, &errstr);
+			lsz = strtonum(optarg, 1, INT_MAX, &errstr);
 			if (NULL == errstr)
 				break;
 			fprintf(stderr, "-l must be "
-				"between 0 and %d\n", INT_MAX);
+				"between 1 and %d\n", INT_MAX);
 			return(EXIT_FAILURE);	
 		case ('n'):
 			wsz = strtonum(optarg, 0, INT_MAX, &errstr);
@@ -979,7 +979,7 @@ main(int argc, char *argv[])
 		maxwsz = wsz * 2;
 
 	if (0 == useq)
-		lsz = varp ? maxwsz : wsz * 2;
+		lsz = ( varp ? maxwsz : wsz ) * 2;
 
 	pw = NULL;
 	if (NULL != procuser && NULL == (pw = getpwnam(procuser))) { 
@@ -1048,7 +1048,7 @@ main(int argc, char *argv[])
 			return(EXIT_FAILURE);
 		}
 
-	if (-1 == listen(fd, 0 == lsz ? wsz : lsz)) {
+	if (-1 == listen(fd, lsz)) {
 		perror(sockpath);
 		close(fd);
 		return(EXIT_FAILURE);
