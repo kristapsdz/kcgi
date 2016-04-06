@@ -198,15 +198,24 @@ int main(void) {
 				</p>
 				<ul>
 					<li> 
-						Dzonsons, Kristaps (2016). <i>Secure BSD Web Application Development in C</i>. 
+						Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>. 
 						Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
 						(<a href="http://kristaps.bsd.lv/absdcon2016">Slides</a>.)
 					</li>
 					<li> 
-						Dzonsons, Kristaps (2015). <i>kcgi: securing CGI applications in C</i>. 
+						Dzonsons, Kristaps. <i>kcgi: securing CGI applications in C</i>. 
 						Proceedings of <a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2015.
 						(<a href="http://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
 						 <a href="http://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)
+					</li>
+				</ul>
+				<p>
+					And the following relate to extending standards:
+				</p>
+				<ul>
+					<li>
+						Dzonsons, Kristaps.  <a href="http://kristaps.bsd.lv/kcgi/extending01.html">FastCGI Extensions
+							for Management Control</a>.  March 2016.
 					</li>
 				</ul>
 			</section>
