@@ -105,7 +105,7 @@ bit is set, write operations directly or indirectly via
 .Xr khttp_write 3
 will be logged.
 When the request is torn down with
-.Xr khttp_free 3 , 
+.Xr khttp_free 3 ,
 the process ID and total logged bytes are printed on their own line.
 If the
 .Li KREQ_DEBUG_READ_BODY
@@ -161,8 +161,8 @@ It is equivalent to invoking the second form,
 .Nm khttp_parsex ,
 as follows:
 .Bd -literal -offset indent
-khttp_parsex(req, ksuffixmap, 
-  kmimetypes, KMIME__MAX, keys, keysz, 
+khttp_parsex(req, ksuffixmap,
+  kmimetypes, KMIME__MAX, keys, keysz,
   pages, pagesz, KMIME_TEXT_HTML,
   defpage, NULL, NULL, 0, NULL);
 .Ed
@@ -633,9 +633,12 @@ doing!
 .It Va sndbufsz
 The size of the output buffer.
 The output buffer is a heap-allocated region into which writes (via
-.Xr khttp_write 3 ) ,
+.Xr khttp_write 3
+and
+.Xr khttp_head 3 )
 are buffered instead of being flushed directly to the wire.
-The buffer is flushed when it is full or when
+The buffer is flushed when it is full, when
+the HTTP headers are flushed, and when
 .Xr khttp_free 3
 is invoked.
 If the buffer size is zero, writes are flushed immediately to the wire.
@@ -657,7 +660,7 @@ but the reconstituted HTTP name (e.g.,
 The opaque header value, which may be an empty string.
 .El
 .Ss Variables
-A number of variables are defined 
+A number of variables are defined
 .In kcgi.h
 to simplify invocations of the
 .Nm khttp_parse
