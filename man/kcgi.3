@@ -126,7 +126,7 @@ to the output.
 #include <stdint.h>
 #include <stdlib.h>
 #include <kcgi.h>
- 
+
 int main(void) {
   struct kreq r;
   const char *page = "index";
@@ -134,9 +134,9 @@ int main(void) {
   if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
       return(EXIT_FAILURE);
 
-  khttp_head(&r, kresps[KRESP_STATUS], 
+  khttp_head(&r, kresps[KRESP_STATUS],
       "%s", khttps[KHTTP_200]);
-  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
       "%s", kmimetypes[r.mime]);
   khttp_body(&r);
   khttp_puts(&r, "Hello, world!");
@@ -152,7 +152,7 @@ request parser to operate within a loop.
 #include <stdint.h>
 #include <stdlib.h>
 #include <kcgi.h>
- 
+
 int main(void) {
   struct kreq r;
   struct kfcgi *fcgi;
@@ -162,9 +162,9 @@ int main(void) {
       return(EXIT_FAILURE);
 
   while (KCGI_OK == khttp_fcgi_parse(fcgi, &req)) {
-    khttp_head(&r, kresps[KRESP_STATUS], 
+    khttp_head(&r, kresps[KRESP_STATUS],
         "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
         "%s", kmimetypes[r.mime]);
     khttp_body(&r);
     khttp_puts(&r, "Hello, world!");
@@ -187,7 +187,7 @@ the URL query string.
 #include <stdint.h>
 #include <stdlib.h>
 #include <kcgi.h>
- 
+
 int main(void) {
   struct kreq r;
   struct kpair *p;
@@ -197,9 +197,9 @@ int main(void) {
   if (KCGI_OK != khttp_parse(&r, &key, 1, &page, 1, 0))
       return(EXIT_FAILURE);
 
-  khttp_head(&r, kresps[KRESP_STATUS], 
+  khttp_head(&r, kresps[KRESP_STATUS],
       "%s", khttps[KHTTP_200]);
-  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
       "%s", kmimetypes[r.mime]);
   khttp_body(&r);
   khttp_puts(&r, "Result: ");
@@ -246,7 +246,7 @@ Many standards are involved in the
 library, most significantly being draft RFC 3875,
 .Dq The Common Gateway Interface (CGI) Version 1.1 ,
 and the
-.Dq FastCGI Specification , 
+.Dq FastCGI Specification ,
 version 1.0, published 29 April 1996.
 .Bl -bullet
 .It
