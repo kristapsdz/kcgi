@@ -133,15 +133,15 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 }
 
 static void
-linebuf_init(struct kreq *req)
+linebuf_init(struct kdata *p)
 {
 
-	if (NULL != req->kdata->linebuf) 
+	if (NULL != p->linebuf) 
 		return;
-	req->kdata->linebufsz = BUFSIZ;
-	req->kdata->linebuf = kmalloc(req->kdata->linebufsz);
-	req->kdata->linebuf[0] = '\0';
-	req->kdata->linebufpos = 0;
+	p->linebufsz = BUFSIZ;
+	p->linebuf = kmalloc(p->linebufsz);
+	p->linebuf[0] = '\0';
+	p->linebufpos = 0;
 }
 
 static void
@@ -156,7 +156,9 @@ linebuf_flush(struct kdata *p, int newln)
 }
 
 /*
- * Flushes a buffer "buf" of size "sz" to the output.
+ * Flushes a buffer "buf" of size "sz" to the wire (stdout in the case
+ * of CGI, the socket for FastCGI, and a gz stream for compression IFF
+ * in body parts).
  * If sz is zero or buf is NULL, this is a no-op.
  */
 static void
@@ -166,7 +168,7 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 	if (0 == sz || NULL == buf)
 		return;
 #ifdef HAVE_ZLIB
-	if (NULL != p->gz) {
+	if (NULL != p->gz && KSTATE_HEAD != p->state) {
 		/*
 		 * FIXME: make this work properly on all systems.
 		 * This is known to break on FreeBSD: we may need to
@@ -185,17 +187,33 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 }
 
 /*
- * In this function, we need to handle FastCGI, gzip, or raw.
- * FastCGI requests can't (yet) be gzip'd.
+ * Drain the output buffer.
  */
-void
-khttp_write(struct kreq *req, const char *buf, size_t sz)
+static void
+kdata_drain(struct kdata *p)
+{
+
+	if (0 == p->outbufpos)
+		return;
+	kdata_flush(p, p->outbuf, p->outbufpos);
+	p->outbufpos = 0;
+}
+
+/*
+ * In this function, we handle arbitrary writes of data to the output.
+ * In the event of CGI, this will be to stdout; in the event of FastCGI,
+ * this is to the wire.
+ * We want to handle buffering of output, so we maintain an output
+ * buffer that we fill and drain as needed.
+ * This will end up calling kdata_flush(), directly or indirectly.
+ * This will also handle debugging.
+ */
+static void
+kdata_write(struct kdata *p, const char *buf, size_t sz)
 {
 	size_t	 	 i;
-	struct kdata	*p = req->kdata;
 
 	assert(NULL != p);
-	assert(KSTATE_BODY == p->state);
 
 	if (0 == sz || NULL == buf)
 		return;
@@ -207,7 +225,7 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	 * flush the buffer to stderr.
 	 */
 	if (KREQ_DEBUG_WRITE & p->debugging) {
-		linebuf_init(req);
+		linebuf_init(p);
 		for (i = 0; i < sz; i++, p->bytes++) {
 			if (p->linebufpos + 4 >= p->linebufsz)
 				linebuf_flush(p, 1);
@@ -258,8 +276,7 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	 * If we don't, then copy it into the buffer.
 	 */
 	if (p->outbufpos + sz > p->outbufsz) {
-		kdata_flush(p, p->outbuf, p->outbufpos);
-		p->outbufpos = 0;
+		kdata_drain(p);
 		if (sz > p->outbufsz) {
 			kdata_flush(p, buf, sz);
 			return;
@@ -270,6 +287,19 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	assert(NULL != p->outbuf);
 	memcpy(p->outbuf + p->outbufpos, buf, sz);
 	p->outbufpos += sz;
+}
+
+/*
+ * Just like khttp_head() except with a KSTATE_BODY.
+ */
+void
+khttp_write(struct kreq *req, const char *buf, size_t sz)
+{
+	struct kdata	*p = req->kdata;
+
+	assert(NULL != p);
+	assert(KSTATE_BODY == p->state);
+	kdata_write(req->kdata, buf, sz);
 }
 
 void
@@ -288,8 +318,8 @@ khttp_putc(struct kreq *req, int c)
 }
 
 /*
- * Headers are uncompressed, so all we care about is whether we're
- * FastCGI or not.
+ * Fill a static buffer with the header.
+ * FIXME: THIS IS NOT THE CORRECT WAY OF DOING THINGS.
  */
 void
 khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
@@ -300,38 +330,14 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 	assert(NULL != req->kdata);
 	assert(KSTATE_HEAD == req->kdata->state);
 
-	if (KREQ_DEBUG_WRITE & req->kdata->debugging) {
-		linebuf_init(req);
-		va_start(ap, fmt);
-		vsnprintf(buf, sizeof(buf), fmt, ap);
-		va_end(ap);
-		req->kdata->bytes += snprintf
-			(req->kdata->linebuf, 
-			 req->kdata->linebufsz, 
-			 "%s: %s\\r", key, buf);
-		linebuf_flush(req->kdata, 1);
-	}
-
-	/*
-	 * FIXME: does this work with really, really long headers?
-	 * I'm not sure if this will break considering that stdout has
-	 * been initialised with a non-blocking descriptor.
-	 */
-	if (-1 == req->kdata->fcgi) {
-		printf("%s: ", key);
-		va_start(ap, fmt);
-		vprintf(fmt, ap);
-		va_end(ap);
-		printf("\r\n");
-	} else {
-		fcgi_write(6, req->kdata, key, strlen(key));
-		fcgi_write(6, req->kdata, ": ", 2);
-		va_start(ap, fmt);
-		vsnprintf(buf, sizeof(buf), fmt, ap);
-		va_end(ap);
-		fcgi_write(6, req->kdata, buf, strlen(buf));
-		fcgi_write(6, req->kdata, "\r\n", 2);
-	}
+	/* FIXME: this does *not* work with long headers. */
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	va_end(ap);
+	kdata_write(req->kdata, key, strlen(key));
+	kdata_write(req->kdata, ": ", 2);
+	kdata_write(req->kdata, buf, strlen(buf));
+	kdata_write(req->kdata, "\r\n", 2);
 }
 
 /*
@@ -363,6 +369,11 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 	return(p);
 }
 
+/*
+ * Two ways of doing this: with or without "flush".
+ * If we're flushing, then we drain our output buffers to the output.
+ * Either way, we then release all of our internal memory.
+ */
 void
 kdata_free(struct kdata *p, int flush)
 {
@@ -372,20 +383,20 @@ kdata_free(struct kdata *p, int flush)
 	if (NULL == p)
 		return;
 
-	if (KREQ_DEBUG_WRITE & p->debugging && p->linebufpos > 0)
-		linebuf_flush(p, 1);
-
-	if (KREQ_DEBUG_WRITE & p->debugging) {
+	/* Debugging messages. */
+	if (flush && KREQ_DEBUG_WRITE & p->debugging) {
+		if (p->linebufpos > 0)
+			linebuf_flush(p, 1);
 		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
 			getpid(), p->bytes);
 		fflush(stderr);
 	}
 
-	free(p->linebuf); 
-
+	/* Remaining buffered data. */
 	if (flush) 
-		kdata_flush(p, p->outbuf, p->outbufpos);
+		kdata_drain(p);
 
+	free(p->linebuf); 
 	free(p->outbuf);
 
 	/*
@@ -408,7 +419,13 @@ kdata_free(struct kdata *p, int flush)
 	}
 
 	if (flush) {
-		/* End of stream. */
+		/* 
+		 * End of stream.
+		 * Note that we've already flushed our last FastCGI
+		 * record to the stream, but the standard implies that
+		 * we need a blank record to really shut this thing
+		 * down.
+		 */
 		fcgi_write(6, p, "", 0);
 		appStatus = htonl(EXIT_SUCCESS);
 		memset(buf, 0, 8);
@@ -462,11 +479,17 @@ kdata_body(struct kdata *p)
 
 	assert(p->state == KSTATE_HEAD);
 
-	if (-1 == p->fcgi) {
-		fputs("\r\n", stdout);
+	kdata_write(p, "\r\n", 2);
+	/*
+	 * XXX: we always drain our buffer after the headers have been
+	 * written.
+	 * This incurs more chat on the wire, but also ensures that our
+	 * response gets to the server as quickly as possible.
+	 * Should an option be added to disable this?
+	 */
+	kdata_drain(p);
+	if (-1 == p->fcgi)
 		fflush(stdout);
-	} else
-		fcgi_write(6, p, "\r\n", 2);
 
 	p->state = KSTATE_BODY;
 }
