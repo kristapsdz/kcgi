@@ -592,7 +592,7 @@
 				headers that the output buffer is flushed before the last header, <a
 					href="https://github.com/reyk/httpd">httpd</a> will intermix your body with headers.
 				Ew.
-				This problem was raised as <a href="https://github.com/kristapsdz/kcgi/issues/1">issues/1</a> by <a
+				This problem was raised as <a href="https://github.com/kristapsdz/kcgi/issues/2">issues/2</a> by <a
 					href="https://github.com/cornett">@cornett</a>&#8212;thanks!
 			</div>
 		</aside>
