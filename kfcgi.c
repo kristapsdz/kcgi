@@ -778,7 +778,7 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	 * Also handle SIGTERM in the same way.
 	 */
 	signal(SIGTERM, sighandlestop);
-	signal(SIGCHLD, sighandlestop);
+	signal(SIGCHLD, sighandlechld);
 	signal(SIGHUP, sighandlehup);
 	sigemptyset(&set);
 	sigaddset(&set, SIGCHLD);
@@ -849,6 +849,7 @@ out:
 	 * This can take forever, but properly-written children will
 	 * exit when receiving SIGTERM.
 	 */
+	signal(SIGCHLD, SIG_DFL);
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == kill(ws[i], SIGTERM))
 			syslog(LOG_ERR, "kill: worker-%u: %m", ws[i]);
@@ -856,6 +857,7 @@ out:
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == waitpid(ws[i], NULL, 0))
 			syslog(LOG_ERR, "wait: worker-%u: %m", ws[i]);
+	signal(SIGCHLD, sighandlechld);
 
 	free(ws);
 
