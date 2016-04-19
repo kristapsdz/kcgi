@@ -779,7 +779,7 @@ fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 	 * Also handle SIGTERM in the same way.
 	 */
 	signal(SIGTERM, sighandlestop);
-	signal(SIGCHLD, sighandlestop);
+	signal(SIGCHLD, sighandlechld);
 	signal(SIGHUP, sighandlehup);
 	sigemptyset(&set);
 	sigaddset(&set, SIGCHLD);
