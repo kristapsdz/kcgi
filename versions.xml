@@ -580,7 +580,7 @@
 		</header>
 		<aside>
 			<div>
-				Work around an <a href="https://marc.info/?l=openbsd-tech&m=144571751203238&w=2">old but fatal FastCGI
+				Work around an <a href="https://marc.info/?l=openbsd-tech&amp;m=144571751203238&amp;w=2">old but fatal FastCGI
 					problem</a> only found on OpenBSD's <a href="https://github.com/reyk/httpd">httpd</a>.
 				This assumes that HTTP headers are only on the first FastCGI packet, which is not part of the standard.
 				The workaround is to have HTTP headers buffer just like the HTTP body, which will cause multiple headers to lump
