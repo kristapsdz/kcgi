@@ -768,9 +768,10 @@ out:
 static int
 fixedpool(size_t wsz, int fd, const char *sockpath, char *argv[])
 {
-	pid_t		*ws;
-	size_t		 i;
-	sigset_t	 set, oset;
+	pid_t		 *ws;
+	size_t		  i;
+	sigset_t	  set, oset;
+	void 		(*sigfp)(int);
 
 	/*
 	 * Dying children should notify us that something is horribly
@@ -844,6 +845,9 @@ out:
 		fd = -1;
 	}
 
+	/* Suppress child exit signals whilst we kill them. */
+	sigfp = signal(SIGCHLD, SIG_DFL);
+
 	/*
 	 * Now wait on the children.
 	 * This can take forever, but properly-written children will
@@ -856,6 +860,8 @@ out:
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == waitpid(ws[i], NULL, 0))
 			syslog(LOG_ERR, "wait: worker-%u: %m", ws[i]);
+
+	signal(SIGCHLD, sigfp);
 
 	free(ws);
 
