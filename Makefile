@@ -3,7 +3,7 @@
 
 # Comment if you don't need statically linked.
 # This is only for the sample program!
-#STATIC 		 = -static
+STATIC 		 = -static
 
 # You probably don't need to change anything else...
 
@@ -22,7 +22,7 @@ MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.8.2
+VERSION 	 = 0.8.3
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
