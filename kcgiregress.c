@@ -331,7 +331,7 @@ dochild_params_fcgi(const char *key, const char *val, void *arg)
  */
 static int
 dochild_params(FILE *f, void *arg, size_t *length,
-	int (*fp)(const char *, const char *, void *)) 
+	int (*fp)(const char *, const char *, void *))
 {
 	int		 first;
 	char		 head[BUFSIZ], buf[BUFSIZ];
@@ -401,9 +401,9 @@ dochild_params(FILE *f, void *arg, size_t *length,
 			continue;
 		}
 
-		/* 
+		/*
 		 * Split headers into key/value parts.
-		 * Strip the leading spaces on the latter. 
+		 * Strip the leading spaces on the latter.
 		 * Let baddies (no value) just go by.
 		 */
 		key = head;
@@ -433,7 +433,7 @@ dochild_params(FILE *f, void *arg, size_t *length,
 		strlcpy(buf, "HTTP_", sizeof(buf));
 		sz = strlcat(buf, key, sizeof(buf));
 		assert(sz < sizeof(buf));
-		for (cp = buf; '\0' != *cp; cp++) 
+		for (cp = buf; '\0' != *cp; cp++)
 			if ('-' == *cp)
 				*cp = '_';
 			else if (isalpha((int)*cp))
@@ -469,7 +469,7 @@ dochild_prepare(void)
 	if (-1 == (s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))) {
 		perror("socket");
 		return(-1);
-	} else if (-1 == setsockopt(s, SOL_SOCKET, 
+	} else if (-1 == setsockopt(s, SOL_SOCKET,
 		 SO_REUSEADDR, &opt, sizeof(opt))) {
 		perror("setsockopt");
 		close(s);
@@ -506,7 +506,7 @@ dochild_prepare(void)
 		perror("accept");
 		close(s);
 		return(-1);
-	} 
+	}
 
 	close(s);
 	return(in);
@@ -527,7 +527,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	struct fcgi_hdr		 hdr;
 	mode_t		  	 mode;
 
-	/* 
+	/*
 	 * Create a temporary file, close it, then unlink it.
 	 * The child will recreate this as a socket.
 	 */
@@ -587,7 +587,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		return(child(carg));
 	}
 
-	/* 
+	/*
 	 * Close the socket, as we're going to connect to it.
 	 * The child has a reference to the object (via its dup2), so
 	 * we're not going to totally remove the file.
@@ -598,12 +598,12 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	f = NULL;
 
 	/* Get the next incoming connection and FILE-ise it. */
-	if (-1 == (in = dochild_prepare())) 
+	if (-1 == (in = dochild_prepare()))
 		goto out;
 	if (NULL == (f = fdopen(in, "r+"))) {
 		perror("fdopen");
 		goto out;
-	} 
+	}
 
 	/*
 	 * Open a new socket to the FastCGI object and connect to it,
@@ -619,7 +619,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	} else if (-1 == unlink(sfn)) {
 		perror(sfn);
 		goto out;
-	} 
+	}
 	sfn[0] = '\0';
 
 	/* Write the request, its parameters, and all data. */
@@ -636,7 +636,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * otherwise.
 	 */
 	while (len > 0) {
-		sz = fread(buf, 1, len < sizeof(buf) ? 
+		sz = fread(buf, 1, len < sizeof(buf) ?
 			len : sizeof(buf), f);
 		if (0 == sz)
 			break;
@@ -646,7 +646,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		}
 		len -= sz;
 	}
-	
+
 	/* Indicate end of input. */
 	if ( ! fcgi_data_write(fd, NULL, 0)) {
 		fprintf(stderr, "%s: stdout (FIN)\n", __func__);
@@ -673,7 +673,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 		/* Echo using a temporary buffer. */
 		while (hdr.contentLength > 0) {
-			sz = hdr.contentLength > BUFSIZ ? 
+			sz = hdr.contentLength > BUFSIZ ?
 				BUFSIZ : hdr.contentLength;
 			if (fcgi_read(fd, buf, sz)) {
 				pos = 0;
@@ -691,10 +691,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		if (0 == fcgi_ignore(fd, hdr.paddingLength)) {
 			fprintf(stderr, "%s: bad ignore\n", __func__);
 			goto out;
-		} 
+		}
 	}
 out:
-	/* 
+	/*
 	 * Begin by asking the child to exit.
 	 * Then close all of our comm channels.
 	 */
@@ -725,7 +725,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 {
 	int	 in;
 
-	if (-1 == (in = dochild_prepare())) 
+	if (-1 == (in = dochild_prepare()))
 		return(0);
 
 	/*
@@ -742,11 +742,11 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		close(in);
 		close(STDOUT_FILENO);
 		return(0);
-	} 
+	}
 
 	/* Now close the channel. */
 	close(in);
-	
+
 	in = dochild_params(stdin, NULL, NULL,
 		dochild_params_cgi) ? child(carg) : 0;
 
@@ -757,7 +757,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 
 static int
 regress(int fastcgi,
-	kcgi_regress_client parent, void *parg, 
+	kcgi_regress_client parent, void *parg,
 	kcgi_regress_server child, void *carg)
 {
 	pid_t	 chld, pid;
@@ -781,7 +781,7 @@ regress(int fastcgi,
 
 	/*
 	 * Once the child sleeps, we know that it has bound itself to
-	 * the listening socket. 
+	 * the listening socket.
 	 * So simply wake it up and continue our work.
 	 */
 	if (-1 == pid) {
@@ -800,9 +800,9 @@ regress(int fastcgi,
 	if (-1 == waitpid(pid, &st, 0)) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
-	} 
+	}
 
-	return(rc && WIFEXITED(st) && 
+	return(rc && WIFEXITED(st) &&
 		EXIT_SUCCESS == WEXITSTATUS(st));
 }
 

@@ -127,7 +127,7 @@ kjson_check(struct kjsonreq *r, const char *key)
 
 	return(0);
 out:
-	if (r->stack[r->stackpos].elements++ > 0) 
+	if (r->stack[r->stackpos].elements++ > 0)
 		khttp_puts(r->req, ", ");
 
 	if (NULL != key) {
@@ -274,7 +274,7 @@ kjson_string_write(const char *p, size_t sz, void *arg)
 	if (KJSON_STRING != r->stack[r->stackpos].type)
 		return(0);
 
-	for (i = 0; i < sz; i++) 
+	for (i = 0; i < sz; i++)
 		switch (p[i]) {
 		case ('"'):
 		case ('\\'):

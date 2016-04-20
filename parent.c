@@ -37,7 +37,7 @@
  * Otherwise, it returns 1 and the pair is zeroed and filled in.
  */
 static int
-input(enum input *type, struct kpair *kp, 
+input(enum input *type, struct kpair *kp,
 	int fd, enum kcgi_err *ke, int eofok)
 {
 	size_t		 sz;
@@ -49,7 +49,7 @@ input(enum input *type, struct kpair *kp,
 	/* This will return EOF for the last one. */
 	rc = fullread(fd, type, sizeof(enum input), 1, ke);
 	if (0 == rc) {
-		if (eofok) 
+		if (eofok)
 			return(0);
 		XWARNX("unexpected eof from child");
 		*ke = KCGI_FORM;
@@ -145,7 +145,7 @@ input(enum input *type, struct kpair *kp,
 		*ke = KCGI_ENOMEM;
 		return(-1);
 	}
-	if (fullread(fd, kp->xcode, sz, 0, ke) < 0) 
+	if (fullread(fd, kp->xcode, sz, 0, ke) < 0)
 		return(-1);
 
 	return(1);

@@ -70,7 +70,7 @@ struct	kdata {
 };
 
 static char *
-fcgi_header(uint8_t type, uint16_t requestId, 
+fcgi_header(uint8_t type, uint16_t requestId,
 	size_t contentLength, size_t paddingLength)
 {
 	static char	header[8];
@@ -114,13 +114,13 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 			padding[paddingLength++] = '\0';
 		}
 #if 0
-		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n", 
+		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n",
 			__func__, type);
-		fprintf(stderr, "%s: DEBUG send requestId: %" PRIu16 "\n", 
+		fprintf(stderr, "%s: DEBUG send requestId: %" PRIu16 "\n",
 			__func__, p->requestId);
-		fprintf(stderr, "%s: DEBUG send contentLength: %zu\n", 
+		fprintf(stderr, "%s: DEBUG send contentLength: %zu\n",
 			__func__, rsz);
-		fprintf(stderr, "%s: DEBUG send paddingLength: %zu\n", 
+		fprintf(stderr, "%s: DEBUG send paddingLength: %zu\n",
 			__func__, paddingLength);
 #endif
 		fullwritenoerr(p->fcgi, fcgi_header
@@ -136,7 +136,7 @@ static void
 linebuf_init(struct kdata *p)
 {
 
-	if (NULL != p->linebuf) 
+	if (NULL != p->linebuf)
 		return;
 	p->linebufsz = BUFSIZ;
 	p->linebuf = kmalloc(p->linebufsz);
@@ -148,7 +148,7 @@ static void
 linebuf_flush(struct kdata *p, int newln)
 {
 
-	fprintf(stderr, "%u: %s%s", getpid(), 
+	fprintf(stderr, "%u: %s%s", getpid(),
 		p->linebuf, newln ? "\n" : "");
 	fflush(stderr);
 	p->linebufpos = 0;
@@ -180,7 +180,7 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 		return;
 	}
 #endif
-	if (-1 == p->fcgi) 
+	if (-1 == p->fcgi)
 		fullwritenoerr(STDOUT_FILENO, buf, sz);
 	else
 		fcgi_write(6, p, buf, sz);
@@ -257,7 +257,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 		}
 	}
 
-	/* 
+	/*
 	 * Short-circuit: if we have no output buffer, flush directly to
 	 * the wire.
 	 */
@@ -345,7 +345,7 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
  * We accept the file descriptor for the FastCGI stream, if there's any.
  */
 struct kdata *
-kdata_alloc(int control, int fcgi, uint16_t requestId, 
+kdata_alloc(int control, int fcgi, uint16_t requestId,
 	unsigned int debugging, const struct kopts *opts)
 {
 	struct kdata	*p;
@@ -364,7 +364,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 			free(p);
 			return(NULL);
 		}
-	} 
+	}
 
 	return(p);
 }
@@ -387,16 +387,16 @@ kdata_free(struct kdata *p, int flush)
 	if (flush && KREQ_DEBUG_WRITE & p->debugging) {
 		if (p->linebufpos > 0)
 			linebuf_flush(p, 1);
-		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
+		fprintf(stderr, "%u: %" PRIu64 " B tx\n",
 			getpid(), p->bytes);
 		fflush(stderr);
 	}
 
 	/* Remaining buffered data. */
-	if (flush) 
+	if (flush)
 		kdata_drain(p);
 
-	free(p->linebuf); 
+	free(p->linebuf);
 	free(p->outbuf);
 
 	/*
@@ -419,7 +419,7 @@ kdata_free(struct kdata *p, int flush)
 	}
 
 	if (flush) {
-		/* 
+		/*
 		 * End of stream.
 		 * Note that we've already flushed our last FastCGI
 		 * record to the stream, but the standard implies that

@@ -103,7 +103,7 @@ ksandbox_alloc(void **pp)
 void
 ksandbox_free(void *arg)
 {
-	
+
 	/* This is either NULL of something allocated. */
 	free(arg);
 }
@@ -143,13 +143,13 @@ ksandbox_close(void *arg)
  * Whew!
  */
 int
-ksandbox_init_child(void *arg, 
+ksandbox_init_child(void *arg,
 	enum sandtype type, int fd1, int fd2,
 	int fdfiled, int fdaccept)
 {
 
 #if defined(HAVE_CAPSICUM)
-	if ( ! ksandbox_capsicum_init_child(arg, type, 
+	if ( ! ksandbox_capsicum_init_child(arg, type,
 	    fd1, fd2, fdfiled, fdaccept)) {
 		XWARNX("ksandbox_capsicum_init_child");
 		return(0);

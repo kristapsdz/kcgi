@@ -50,7 +50,7 @@ enum	htype {
  * A tag describes an HTML element and its properties.
  */
 struct	tag {
-	enum htype	 flags; 
+	enum htype	 flags;
 	const char	*name;
 };
 
@@ -487,7 +487,7 @@ khtml_elem(struct khtmlreq *req, enum kelem elem)
 
 /*
  * Open a tag.
- * If we're a flow tag, emit a newline (unless already omitted). 
+ * If we're a flow tag, emit a newline (unless already omitted).
  * Then if we're at a newline regardless of tag type, indent properly to
  * the point where we'll omit the tag name.
  */
@@ -503,7 +503,7 @@ khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 		}
 
 	if (req->newln)
-		for (i = 0; i < req->elemsz; i++) 
+		for (i = 0; i < req->elemsz; i++)
 			khttp_puts(req->req, "  ");
 
 	req->newln = 0;
@@ -611,7 +611,7 @@ khtml_closeelem(struct khtmlreq *req, size_t sz)
 		sz = req->elemsz;
 
 	for (i = 0; i < sz; i++) {
-		if (0 == req->elemsz) 
+		if (0 == req->elemsz)
 			return(0);
 		req->elemsz--;
 		khtml_flow_open(req, req->elems[req->elemsz]);
@@ -701,7 +701,7 @@ khtml_write(const char *cp, size_t sz, void *arg)
 	struct khtmlreq	*r = arg;
 	size_t		 i;
 
-	for (i = 0; i < sz; i++) 
+	for (i = 0; i < sz; i++)
 		khtml_putc(r, cp[i]);
 
 	return(1);

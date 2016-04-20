@@ -38,9 +38,9 @@ ksandbox_darwin_init_child(void *arg, enum sandtype type)
 	struct rlimit	 rl_zero;
 
 	rc = SAND_WORKER == type ?
-		sandbox_init(kSBXProfilePureComputation, 
+		sandbox_init(kSBXProfilePureComputation,
 			SANDBOX_NAMED, &er) :
-		sandbox_init(kSBXProfileNoWrite, 
+		sandbox_init(kSBXProfileNoWrite,
 			SANDBOX_NAMED, &er);
 
 	if (0 != rc) {

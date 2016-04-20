@@ -52,7 +52,7 @@ parent(CURL *curl)
 	}
 	strncpy(p, "tag=", 5);
 	for (i = 0; i < BUFSZ ; i++)
-		p[i + 4] = 
+		p[i + 4] =
 			(0 == i % 2) ? (arc4random() % 26) + 65 :
 			((0 == i % 2) ? (arc4random() % 26) + 97 :
 			 (arc4random() % 9) + 48);
@@ -60,7 +60,7 @@ parent(CURL *curl)
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, doign);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p);
-	curl_easy_setopt(curl, CURLOPT_URL, 
+	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/");
 	curl_easy_setopt(curl, CURLOPT_ENCODING, "gzip");
 	if (CURLE_OK != curl_easy_perform(curl))
@@ -87,9 +87,9 @@ child(void)
 		return(0);
 	}
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
+	khttp_head(&r, kresps[KRESP_STATUS],
 		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
 	khttp_write(&r, r.fieldmap[0]->val, r.fieldmap[0]->valsz);

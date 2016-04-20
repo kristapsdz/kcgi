@@ -234,7 +234,7 @@
 					href="http://man7.org/linux/man-pages/man2/prctl.2.html">prctl(2)</a>) sandbox!
 				This uses the implementation of <a href="http://www.openssh.com/">OpenSSH</a>, tweaked to work within the <span
 					class="nm">kcgi</span> framework.
-				For now, it only allows arm, i386, and x86_64: if you're using another architecture, please let me know your <code>uname -m</code>, 
+				For now, it only allows arm, i386, and x86_64: if you're using another architecture, please let me know your <code>uname -m</code>,
 				as the sandbox (ridiculously) needs to know the system architecture.
 				(Better yet: also send me the relevant <code>AUDIT_ARCH_xxx</code> from <code>/usr/include/linux/audit.h</code>.)
 				While here, allow for compilation on <a href="http://www.musl-libc.org/">musl</a>.

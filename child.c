@@ -66,7 +66,7 @@ struct	env {
 	size_t	 valsz;
 };
 
-/* 
+/*
  * Types of FastCGI requests.
  * Defined in the FastCGI v1.0 spec, section 8.
  */
@@ -180,13 +180,13 @@ str2ctype(const struct parms *pp, const char *ctype)
 {
 	size_t		 i, sz;
 	const char	*end;
-	
 
-	if (NULL == ctype) 
+
+	if (NULL == ctype)
 		return(pp->mimesz);
 
 	/* Stop at the content-type parameters. */
-	if (NULL == (end = strchr(ctype, ';'))) 
+	if (NULL == (end = strchr(ctype, ';')))
 		sz = strlen(ctype);
 	else
 		sz = end - ctype;
@@ -209,7 +209,7 @@ str2ctype(const struct parms *pp, const char *ctype)
  * This is read by the parent's input() function.
  */
 static void
-output(const struct parms *pp, char *key, 
+output(const struct parms *pp, char *key,
 	char *val, size_t valsz, struct mime *mime)
 {
 	size_t	 	 i, sz;
@@ -235,7 +235,7 @@ output(const struct parms *pp, char *key,
 	 * identifier or keysz if none is found.
 	 */
 	for (i = 0; i < pp->keysz; i++) {
-		if (strcmp(pp->keys[i].name, pair.key)) 
+		if (strcmp(pp->keys[i].name, pair.key))
 			continue;
 		if (NULL != pp->keys[i].valid)
 			pair.state = pp->keys[i].valid(&pair) ?
@@ -257,7 +257,7 @@ output(const struct parms *pp, char *key,
 	fullwrite(pp->fd, &pair.type, sizeof(enum kpairtype));
 	fullwrite(pp->fd, &pair.keypos, sizeof(size_t));
 
-	if (KPAIR_VALID == pair.state) 
+	if (KPAIR_VALID == pair.state)
 		switch (pair.type) {
 		case (KPAIR_DOUBLE):
 			fullwrite(pp->fd, &pair.parsed.d, sizeof(double));
@@ -374,7 +374,7 @@ mime_reset(char **dst, const char *src)
  * If FALSE, parsing should stop immediately.
  */
 static int
-mime_parse(const struct parms *pp, struct mime *mime, 
+mime_parse(const struct parms *pp, struct mime *mime,
 	char *buf, size_t len, size_t *pos)
 {
 	char	*key, *val, *end, *start, *line;
@@ -415,7 +415,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		if (NULL != (line = strchr(val, ';')))
 			*line++ = '\0';
 
-		/* 
+		/*
 		 * Allow these specific MIME header statements.
 		 * Ignore all others.
 		 */
@@ -470,7 +470,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 			} else
 				continue;
 		}
-	} 
+	}
 
 	mime->ctypepos = str2ctype(pp, mime->ctype);
 
@@ -662,7 +662,7 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
  * calling parsers should bail too).
  */
 static int
-parse_multiform(const struct parms *pp, char *name, 
+parse_multiform(const struct parms *pp, char *name,
 	const char *bound, char *buf, size_t len, size_t *pos)
 {
 	struct mime	 mime;
@@ -688,7 +688,7 @@ parse_multiform(const struct parms *pp, char *name,
 		 * boundary will not incur an initial CRLF, so our bb is
 		 * past the CRLF and two bytes smaller.
 		 */
-		ln = memmem(&buf[*pos], len - *pos, 
+		ln = memmem(&buf[*pos], len - *pos,
 			bb + (first ? 2 : 0), bbsz - (first ? 2 : 0));
 
 		if (NULL == ln) {
@@ -696,12 +696,12 @@ parse_multiform(const struct parms *pp, char *name,
 			goto out;
 		}
 
-		/* 
+		/*
 		 * Set "endpos" to point to the beginning of the next
 		 * multipart component, i.e, the end of the boundary
 		 * "bb" string.
 		 */
-		endpos = *pos + (ln - &buf[*pos]) + 
+		endpos = *pos + (ln - &buf[*pos]) +
 			bbsz - (first ? 2 : 0);
 
 		/* Check buffer space... */
@@ -723,7 +723,7 @@ parse_multiform(const struct parms *pp, char *name,
 		} else
 			endpos = len;
 
-		/* 
+		/*
 		 * Zero-length part or beginning of sequence.
 		 * This shouldn't occur, but if it does, it'll screw up
 		 * the MIME parsing (which requires a blank CRLF before
@@ -738,8 +738,8 @@ parse_multiform(const struct parms *pp, char *name,
 			XWARNX("multiform: bad MIME headers");
 			goto out;
 		}
-		/* 
-		 * As per RFC 2388, we need a name and disposition. 
+		/*
+		 * As per RFC 2388, we need a name and disposition.
 		 * Note that multipart/mixed bodies will inherit the
 		 * name of their parent, so the mime.name is ignored.
 		 */
@@ -760,8 +760,8 @@ parse_multiform(const struct parms *pp, char *name,
 
 		partsz = ln - &buf[*pos];
 
-		/* 
-		 * Multipart sub-handler. 
+		/*
+		 * Multipart sub-handler.
 		 * We only recognise the multipart/mixed handler.
 		 * This will route into our own function, inheriting the
 		 * current name for content.
@@ -773,7 +773,7 @@ parse_multiform(const struct parms *pp, char *name,
 			}
 			if ( ! parse_multiform
 				(pp, NULL != name ? name :
-				 mime.name, mime.bound, buf, 
+				 mime.name, mime.bound, buf,
 				 *pos + partsz, pos)) {
 				XWARNX("multiform: mixed part error");
 				goto out;
@@ -781,13 +781,13 @@ parse_multiform(const struct parms *pp, char *name,
 			continue;
 		}
 
-		assert('\r' == buf[*pos + partsz] || 
+		assert('\r' == buf[*pos + partsz] ||
 		       '\0' == buf[*pos + partsz]);
 		if ('\0' != buf[*pos + partsz])
 			buf[*pos + partsz] = '\0';
 
 		/* Assign all of our key-value pair data. */
-		output(pp, NULL != name ? name : 
+		output(pp, NULL != name ? name :
 			mime.name, &buf[*pos], partsz, &mime);
 	}
 
@@ -810,7 +810,7 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(const struct parms *pp, char *line, 
+parse_multi(const struct parms *pp, char *line,
 	size_t len, char *b, size_t bsz)
 {
 	char		*cp;
@@ -926,7 +926,7 @@ kworker_env(struct env *env, size_t envsz, const char *key)
 {
 	size_t	 i;
 
-	for (i = 0; i < envsz; i++) 
+	for (i = 0; i < envsz; i++)
 		if (0 == strcmp(env[i].key, key))
 			return(env[i].val);
 	return(NULL);
@@ -963,7 +963,7 @@ static void
 kworker_child_auth(struct env *env, int fd, size_t envsz)
 {
 	enum kauth	 auth;
-	const char	*cp;	
+	const char	*cp;
 
 	/* Determine authentication: RFC 3875, 4.1.1. */
 
@@ -1000,7 +1000,7 @@ kworker_child_scheme(struct env *env, int fd, size_t envsz)
 	const char	*cp;
 	enum kscheme	 scheme;
 
-	/* 
+	/*
 	 * This isn't defined in any RFC.
 	 * It seems to be the best way of getting whether we're HTTPS,
 	 * as the SERVER_PROTOCOL (RFC 3875, 4.1.16) doesn't reliably
@@ -1119,7 +1119,7 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
  * We only do this if our authorisation requires it!
  */
 static void
-kworker_child_bodymd5(struct env *env, int fd, 
+kworker_child_bodymd5(struct env *env, int fd,
 	size_t envsz, const char *b, size_t bsz, int md5)
 {
 	MD5_CTX		 ctx;
@@ -1165,7 +1165,7 @@ kworker_child_bodymd5(struct env *env, int fd,
  */
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
-	struct parms *pp, enum kmethod meth, char *b, 
+	struct parms *pp, enum kmethod meth, char *b,
 	size_t bsz, unsigned int debugging, int md5)
 {
 	size_t 	 i, len, cur;
@@ -1254,7 +1254,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	if (NULL != cp) {
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
 			parse_pairs_urlenc(pp, b);
-		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
+		else if (0 == strncasecmp(cp, "multipart/form-data", 19))
 			parse_multi(pp, cp + 19, len, b, bsz);
 		else if (KMETHOD_POST == meth && 0 == strcasecmp(cp, "text/plain"))
 			parse_pairs_text(pp, b);
@@ -1275,7 +1275,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
  * space.
  */
 static void
-kworker_child_query(struct env *env, 
+kworker_child_query(struct env *env,
 	int fd, size_t envsz, struct parms *pp)
 {
 	char 	*cp;
@@ -1291,7 +1291,7 @@ kworker_child_query(struct env *env,
  * the same namespace (just as a means to differentiate the same names).
  */
 static void
-kworker_child_cookies(struct env *env, 
+kworker_child_cookies(struct env *env,
 	int fd, size_t envsz, struct parms *pp)
 {
 	char	*cp;
@@ -1302,7 +1302,7 @@ kworker_child_cookies(struct env *env,
 }
 
 /*
- * Terminate the input fields for the parent. 
+ * Terminate the input fields for the parent.
  */
 static void
 kworker_child_last(int fd)
@@ -1321,7 +1321,7 @@ kworker_child_last(int fd)
  */
 void
 kworker_child(int sock,
-	const struct kvalid *keys, size_t keysz, 
+	const struct kvalid *keys, size_t keysz,
 	const char *const *mimes, size_t mimesz,
 	unsigned int debugging)
 {
@@ -1344,7 +1344,7 @@ kworker_child(int sock,
 	/*
 	 * Pull the enire environment into an array.
 	 */
-	for (envsz = 0, evp = environ; NULL != *evp; evp++) 
+	for (envsz = 0, evp = environ; NULL != *evp; evp++)
 		envsz++;
 	envs = XCALLOC(envsz, sizeof(struct env));
 	if (NULL == envs)
@@ -1384,14 +1384,14 @@ kworker_child(int sock,
 	kworker_child_port(envs, wfd, envsz);
 
 	/* And now the message body itself. */
-	kworker_child_body(envs, wfd, envsz, 
+	kworker_child_body(envs, wfd, envsz,
 		&pp, meth, NULL, 0, debugging, md5);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
 	kworker_child_last(wfd);
 
 	/* Note: the "val" is from within the key. */
-	for (i = 0; i < envsz; i++) 
+	for (i = 0; i < envsz; i++)
 		free(envs[i].key);
 	free(envs);
 }
@@ -1411,7 +1411,7 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	if ((rc = fullread(fd, buf, 8, 0, &er)) < 0) {
 		XWARNX("failed read FastCGI header");
 		return(NULL);
-	} 
+	}
 
 	/* Translate from network-byte order. */
 	ptr = (struct fcgi_hdr *)buf;
@@ -1421,15 +1421,15 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	hdr->contentLength = ntohs(ptr->contentLength);
 	hdr->paddingLength = ptr->paddingLength;
 #if 0
-	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n",
 		__func__, hdr->version);
-	fprintf(stderr, "%s: DEBUG type: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG type: %" PRIu8 "\n",
 		__func__, hdr->type);
-	fprintf(stderr, "%s: DEBUG requestId: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG requestId: %" PRIu16 "\n",
 		__func__, hdr->requestId);
-	fprintf(stderr, "%s: DEBUG contentLength: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG contentLength: %" PRIu16 "\n",
 		__func__, hdr->contentLength);
-	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n",
 		__func__, hdr->paddingLength);
 #endif
 	if (1 != hdr->version) {
@@ -1471,9 +1471,9 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	struct fcgi_bgn	*ptr;
 	enum kcgi_err	 er;
 
-	/* 
+	/*
 	 * Read the header entry.
-	 * Our buffer is initialised to handle this. 
+	 * Our buffer is initialised to handle this.
 	 */
 	assert(*bsz >= 8);
 	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
@@ -1501,9 +1501,9 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 		return(NULL);
 	}
 #if 0
-	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n", 
+	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n",
 		__func__, bgn->role);
-	fprintf(stderr, "%s: DEBUG flags: %" PRIu8 "\n", 
+	fprintf(stderr, "%s: DEBUG flags: %" PRIu8 "\n",
 		__func__, bgn->flags);
 #endif
 	return(bgn);
@@ -1517,13 +1517,13 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
  */
 static int
 kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
-	unsigned char **bp, size_t *bsz, 
+	unsigned char **bp, size_t *bsz,
 	unsigned char **sbp, size_t *ssz)
 {
 	enum kcgi_err	 er;
 	void		*ptr;
 
-	/* 
+	/*
 	 * FIXME: there's no need to read this into yet another buffer:
 	 * just copy it directly into our accumulating buffer `sbp'.
 	 */
@@ -1534,8 +1534,8 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
 		XWARNX("failed discard FastCGI stdin padding");
 		return(-1);
-	} 
-	
+	}
+
 	/* Always nil-terminate! */
 	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
 	if (NULL == ptr)
@@ -1545,7 +1545,7 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
 #if 0
-	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n", 
+	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n",
 		__func__, hdr->contentLength);
 #endif
 	return(hdr->contentLength > 0);
@@ -1590,8 +1590,8 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				XWARNX("invalid FastCGI params data");
 				return(0);
 			}
-			keysz = ((b[pos] & 0x7f) << 24) + 
-				  (b[pos + 1] << 16) + 
+			keysz = ((b[pos] & 0x7f) << 24) +
+				  (b[pos + 1] << 16) +
 				  (b[pos + 2] << 8) + b[pos + 3];
 			pos += 4;
 			remain -= 4;
@@ -1610,8 +1610,8 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				XWARNX("invalid FastCGI params data");
 				return(0);
 			}
-			valsz = ((b[pos] & 0x7f) << 24) + 
-				  (b[pos + 1] << 16) + 
+			valsz = ((b[pos] & 0x7f) << 24) +
+				  (b[pos + 1] << 16) +
 				  (b[pos + 2] << 8) + b[pos + 3];
 			pos += 4;
 			remain -= 4;
@@ -1637,13 +1637,13 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				break;
 		}
 
-		/* 
-		 * If we don't have the key: expand our table. 
+		/*
+		 * If we don't have the key: expand our table.
 		 * If we do, clear the current value.
 		 */
 		if (i == *envsz) {
 			ptr = XREALLOCARRAY
-				(*envs, *envsz + 1, 
+				(*envs, *envsz + 1,
 				 sizeof(struct env));
 			if (NULL == ptr)
 				return(0);
@@ -1669,7 +1669,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		(*envs)[i].valsz = valsz;
 		pos += valsz;
 #if 0
-		fprintf(stderr, "%s: DEBUG: params: %s=%s\n", 
+		fprintf(stderr, "%s: DEBUG: params: %s=%s\n",
 			__func__, (*envs)[i].key, (*envs)[i].val);
 #endif
 	}
@@ -1683,7 +1683,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
  */
 void
 kworker_fcgi_child(int work_dat, int work_ctl,
-	const struct kvalid *keys, size_t keysz, 
+	const struct kvalid *keys, size_t keysz,
 	const char *const *mimes, size_t mimesz,
 	unsigned int debugging)
 {
@@ -1733,7 +1733,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		envsz = 0;
 		cookie = 0;
 
-		/* 
+		/*
 		 * Begin by reading our magic cookie.
 		 * This is emitted by the server at the start of our
 		 * sequence.
@@ -1817,13 +1817,13 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 			break;
 		}
 
-		/* 
+		/*
 		 * Notify the control process that we've received all of
 		 * our data by giving back the cookie and requestId.
 		 */
 		fullwrite(work_ctl, &cookie, sizeof(uint32_t));
 		fullwrite(work_ctl, &rid, sizeof(uint16_t));
-		/* 
+		/*
 		 * Now we can reply to our request.
 		 * These are in a very specific order.
 		 */
@@ -1839,7 +1839,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		kworker_child_port(envs, wfd, envsz);
 		/* And now the message body itself. */
 		assert(NULL != sbuf);
-		kworker_child_body(envs, wfd, envsz, &pp, 
+		kworker_child_body(envs, wfd, envsz, &pp,
 			meth, (char *)sbuf, ssz, debugging, md5);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);

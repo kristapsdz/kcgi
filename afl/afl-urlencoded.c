@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	snprintf(buf, sizeof(buf), "%llu", 
+	snprintf(buf, sizeof(buf), "%llu",
 		(unsigned long long)st.st_size);
 	setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
 	setenv("REQUEST_METHOD", "post", 1);

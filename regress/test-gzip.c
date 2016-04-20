@@ -72,9 +72,9 @@ child(void)
 	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
+	khttp_head(&r, kresps[KRESP_STATUS],
 		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	if ( ! khttp_body(&r))
 		return(0);

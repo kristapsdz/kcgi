@@ -2,13 +2,13 @@
 <html>
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-		<meta charset='utf-8' /> 
+		<meta charset='utf-8' />
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
 		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 		<link rel="stylesheet" href="index.css" type="text/css" />
 		<script>
-			function showBits(name) 
+			function showBits(name)
 			{
 				var show, nshow;
 
@@ -29,8 +29,8 @@
 		<header>
 			<section id="header">
 				<h1>
-					<span itemprop="name" class="nm">kcgi</span> 
-					&#8211; 
+					<span itemprop="name" class="nm">kcgi</span>
+					&#8211;
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
 				<nav>
@@ -108,7 +108,7 @@ int main(void) {
     return(EXIT_FAILURE);
   }
 
-  /* 
+  /*
    * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
    * defined in the <q>method</q> variable) then switch on which
    * page was requested (<q>page</q> variable).
@@ -121,7 +121,7 @@ int main(void) {
   khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
   /* No more HTTP headers: start the HTTP document body. */
   <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
-  
+
   /*
    * We can put any content below here: JSON, HTML, etc.
    * Usually we'd switch on our MIME type.
@@ -147,7 +147,7 @@ int main(void) {
 					If so, install using that system.
 				</p>
 				<p>
-					If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
+					If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.
 					To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="http://www.linux.org"
 						itemprop="operatingSystem">Linux</a> machines, BSD (<a href="http://www.openbsd.org"
 						itemprop="operatingSystem">OpenBSD</a>, <a href="http://www.freebsd.org"
@@ -186,7 +186,7 @@ int main(void) {
 				</h2>
 				<p>
 					The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
-					canonical source of documentation.  
+					canonical source of documentation.
 					The following are introductory materials to the system.
 				</p>
 				<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1">
@@ -197,13 +197,13 @@ int main(void) {
 					In addition to these resources, the following conference papers have referenced <span class="nm">kcgi</span>.
 				</p>
 				<ul>
-					<li> 
-						Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>. 
+					<li>
+						Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>.
 						Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
 						(<a href="http://kristaps.bsd.lv/absdcon2016">Slides</a>.)
 					</li>
-					<li> 
-						Dzonsons, Kristaps. <i>kcgi: securing CGI applications in C</i>. 
+					<li>
+						Dzonsons, Kristaps. <i>kcgi: securing CGI applications in C</i>.
 						Proceedings of <a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2015.
 						(<a href="http://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
 						 <a href="http://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)

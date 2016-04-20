@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	snprintf(buf, sizeof(buf), "%llu", 
+	snprintf(buf, sizeof(buf), "%llu",
 		(unsigned long long)st.st_size);
 	setenv("CONTENT_TYPE", "multipart/form-data; "
 		"boundary=---------------------------9051914041544843365972754266", 1);

@@ -34,13 +34,13 @@ parent(CURL *curl)
 	struct curl_slist *list = NULL;
 	int c;
 
-	curl_easy_setopt(curl, CURLOPT_URL, 
+	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/");
-	list = curl_slist_append(list, 
+	list = curl_slist_append(list,
 		"Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 	c = curl_easy_perform(curl);
-	curl_slist_free_all(list); 
+	curl_slist_free_all(list);
 	return(CURLE_OK == c);
 }
 
@@ -56,16 +56,16 @@ child(void)
 		return(0);
 	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
-	if (KAUTH_BASIC != r.rawauth.type) 
+	if (KAUTH_BASIC != r.rawauth.type)
 		goto out;
 	else if (0 == r.rawauth.authorised)
 		goto out;
 	else if (khttpbasic_validate(&r, "Aladdin", "open sesame") <= 0)
 		goto out;
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
+	khttp_head(&r, kresps[KRESP_STATUS],
 		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
 	rc = 1;

@@ -41,7 +41,7 @@ enum	sandtype {
 
 __BEGIN_DECLS
 
-struct kdata	*kdata_alloc(int, int, uint16_t, 
+struct kdata	*kdata_alloc(int, int, uint16_t,
 			unsigned int, const struct kopts *);
 void		 kdata_body(struct kdata *);
 int		 kdata_compress(struct kdata *);
@@ -50,11 +50,11 @@ void		 kdata_free(struct kdata *, int);
 int		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 void	 	 kworker_child(int,
-			const struct kvalid *, size_t, 
+			const struct kvalid *, size_t,
 			const char *const *, size_t,
 			unsigned int);
 void	 	 kworker_fcgi_child(int, int,
-			const struct kvalid *, size_t, 
+			const struct kvalid *, size_t,
 			const char *const *, size_t,
 			unsigned int);
 enum kcgi_err	 kworker_parent(int, struct kreq *, int);
@@ -71,11 +71,11 @@ int		 fullwritefd(int, int, void *, size_t);
 int		 ksandbox_alloc(void **);
 void		 ksandbox_close(void *);
 void		 ksandbox_free(void *);
-int		 ksandbox_init_child(void *, 
+int		 ksandbox_init_child(void *,
 			enum sandtype, int, int, int, int);
 int		 ksandbox_init_parent(void *, enum sandtype, pid_t);
 #ifdef HAVE_CAPSICUM
-int	 	 ksandbox_capsicum_init_child(void *, 
+int	 	 ksandbox_capsicum_init_child(void *,
 			enum sandtype, int, int, int, int);
 #endif
 #ifdef HAVE_PLEDGE
@@ -99,15 +99,15 @@ int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
  * failure has occured.
  * They do nothing else and return the normal values.
  */
-int		 kxasprintf(const char *, int, 
+int		 kxasprintf(const char *, int,
 			char **, const char *, ...);
-int		 kxvasprintf(const char *, int, 
+int		 kxvasprintf(const char *, int,
 			char **, const char *, va_list);
 
 void		*kxcalloc(const char *, int, size_t, size_t);
 void		*kxmalloc(const char *, int, size_t);
 void		*kxrealloc(const char *, int, void *, size_t);
-void		*kxreallocarray(const char *, 
+void		*kxreallocarray(const char *,
 			int, void *, size_t, size_t);
 enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
 enum kcgi_err	 kxsocketprep(int);

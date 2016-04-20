@@ -44,7 +44,7 @@ parent(CURL *curl)
 	char 			 record[] = "asdfasdf";
 	int			 rc;
 
-	/* 
+	/*
 	 * Add null character into htmlbuffer, to demonstrate that
 	 * transfers of buffers containing null characters actually
 	 * work.
@@ -55,45 +55,45 @@ parent(CURL *curl)
 	htmlbuffer[8] = '\0';
 	post = last = NULL;
 
-	/* Add simple name/content section */  
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
+	/* Add simple name/content section */
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
 		"name", CURLFORM_COPYCONTENTS, "content", CURLFORM_END);
 
-	/* Add simple name/content/contenttype section */  
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"htmlcode", CURLFORM_COPYCONTENTS, "<HTML></HTML>",  
-		CURLFORM_CONTENTTYPE, "text/html", CURLFORM_END); 
+	/* Add simple name/content/contenttype section */
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"htmlcode", CURLFORM_COPYCONTENTS, "<HTML></HTML>",
+		CURLFORM_CONTENTTYPE, "text/html", CURLFORM_END);
 
 	/* Add name/ptrcontent section */
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"name_for_ptrcontent", CURLFORM_PTRCONTENTS, 
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"name_for_ptrcontent", CURLFORM_PTRCONTENTS,
 		buffer, CURLFORM_END);
 
 	/* Add ptrname/ptrcontent section */
-	curl_formadd(&post, &last, CURLFORM_PTRNAME, 
-		namebuffer, CURLFORM_PTRCONTENTS, buffer, 
+	curl_formadd(&post, &last, CURLFORM_PTRNAME,
+		namebuffer, CURLFORM_PTRCONTENTS, buffer,
 		CURLFORM_NAMELENGTH, namelength, CURLFORM_END);
 
 	/* Add name/ptrcontent/contenttype section */
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"html_code_with_hole", CURLFORM_PTRCONTENTS, 
-		htmlbuffer, CURLFORM_CONTENTSLENGTH, 
-		htmlbufferlength, CURLFORM_CONTENTTYPE, 
-		"text/html", CURLFORM_END); 
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"html_code_with_hole", CURLFORM_PTRCONTENTS,
+		htmlbuffer, CURLFORM_CONTENTSLENGTH,
+		htmlbufferlength, CURLFORM_CONTENTTYPE,
+		"text/html", CURLFORM_END);
 
-	/* Add simple file section */  
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"picture", CURLFORM_FILE, "kcgi.c", 
+	/* Add simple file section */
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"picture", CURLFORM_FILE, "kcgi.c",
 		CURLFORM_END);
 
 	 /* Add file/contenttype section */
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
 		"picture", CURLFORM_FILE, "kcgi.c",
-		CURLFORM_CONTENTTYPE, "text/x-c", CURLFORM_END); 
+		CURLFORM_CONTENTTYPE, "text/x-c", CURLFORM_END);
 
-	/* Add two file section */  
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"pictures", CURLFORM_FILE, "kcgi.c", 
+	/* Add two file section */
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"pictures", CURLFORM_FILE, "kcgi.c",
 		CURLFORM_FILE, "kcgi.h", CURLFORM_END);
 
 	/* Add two file section using CURLFORM_ARRAY */
@@ -101,12 +101,12 @@ parent(CURL *curl)
 	forms[0].value = file1;
 	forms[1].option = CURLFORM_FILE;
 	forms[1].value = file2;
-	forms[2].option = CURLFORM_END; 
+	forms[2].option = CURLFORM_END;
 
 	/* Add a buffer to upload */
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, 
-		"name", CURLFORM_BUFFER, "data", 
-		CURLFORM_BUFFERPTR, record, 
+	curl_formadd(&post, &last, CURLFORM_COPYNAME,
+		"name", CURLFORM_BUFFER, "data",
+		CURLFORM_BUFFERPTR, record,
 		CURLFORM_BUFFERLENGTH, record_length, CURLFORM_END);
 
 	/* no option needed for the end marker */
@@ -114,12 +114,12 @@ parent(CURL *curl)
 		CURLFORM_ARRAY, forms, CURLFORM_END);
 
 	/* Add the content of a file as a normal post text value */
-	curl_formadd(&post, &last, CURLFORM_COPYNAME, "filecontent", 
+	curl_formadd(&post, &last, CURLFORM_COPYNAME, "filecontent",
 		CURLFORM_FILECONTENT, "Makefile", CURLFORM_END);
 
 	/* Set the form info */
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
-	curl_easy_setopt(curl, CURLOPT_URL, 
+	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/");
 	rc = curl_easy_perform(curl);
 	curl_formfree(post);
@@ -140,9 +140,9 @@ child(void)
 		return(0);
 
 	while (KCGI_OK == (er = khttp_fcgi_parse(fcgi, &r))) {
-		khttp_head(&r, kresps[KRESP_STATUS], 
+		khttp_head(&r, kresps[KRESP_STATUS],
 			"%s", khttps[KHTTP_200]);
-		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 			"%s", kmimetypes[KMIME_TEXT_HTML]);
 		khttp_body(&r);
 		for (i = 0; i < r.fieldsz; i++) {
@@ -153,7 +153,7 @@ child(void)
 			if (-1 == stat(r.fields[i].file, &st)) {
 				perror(r.fields[i].file);
 				return(0);
-			} else if ((size_t)st.st_size != r.fields[i].valsz) 
+			} else if ((size_t)st.st_size != r.fields[i].valsz)
 				return(0);
 		}
 		khttp_free(&r);

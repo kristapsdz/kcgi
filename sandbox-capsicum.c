@@ -34,7 +34,7 @@
 #include "extern.h"
 
 static int
-ksandbox_capsicum_init_control(void *arg, 
+ksandbox_capsicum_init_control(void *arg,
 	int worker, int fdfiled, int fdaccept)
 {
 	int rc;
@@ -48,9 +48,9 @@ ksandbox_capsicum_init_control(void *arg,
 		 * If we have old-style accept FastCGI sockets, then
 		 * mark us as accepting on it.
 		 */
-		cap_rights_init(&rights, 
+		cap_rights_init(&rights,
 			CAP_EVENT, CAP_FCNTL, CAP_ACCEPT);
-		if (cap_rights_limit(fdaccept, &rights) < 0 && 
+		if (cap_rights_limit(fdaccept, &rights) < 0 &&
 			 errno != ENOSYS) {
 			XWARN("cap_rights_limit: accept socket");
 			return(0);
@@ -58,9 +58,9 @@ ksandbox_capsicum_init_control(void *arg,
 	} else {
 		/* New-style descriptor-passing socket. */
 		assert(-1 != fdfiled);
-		cap_rights_init(&rights, CAP_EVENT, 
+		cap_rights_init(&rights, CAP_EVENT,
 			CAP_FCNTL, CAP_READ, CAP_WRITE);
-		if (cap_rights_limit(fdfiled, &rights) < 0 && 
+		if (cap_rights_limit(fdfiled, &rights) < 0 &&
 			 errno != ENOSYS) {
 			XWARN("cap_rights_limit: descriptor socket");
 			return(0);
@@ -69,16 +69,16 @@ ksandbox_capsicum_init_control(void *arg,
 
 	/* Always pass through write-only stderr. */
 	cap_rights_init(&rights, CAP_WRITE, CAP_FSTAT);
-	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && 
+	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 &&
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: STDERR_FILENO");
 		return(0);
 	}
 
 	/* Interface to worker. */
-	cap_rights_init(&rights, CAP_EVENT, 
+	cap_rights_init(&rights, CAP_EVENT,
 		CAP_FCNTL, CAP_READ, CAP_WRITE);
-	if (cap_rights_limit(worker, &rights) < 0 && 
+	if (cap_rights_limit(worker, &rights) < 0 &&
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
 		return(0);
@@ -112,31 +112,31 @@ ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
 
 	cap_rights_init(&rights);
 
-	/* 
+	/*
 	 * Test for EBADF because STDIN_FILENO is usually closed by the
 	 * caller.
 	 */
 	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_FSTAT);
-	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && 
+	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 &&
 		 errno != ENOSYS && errno != EBADF) {
  		XWARN("cap_rights_limit: STDIN_FILENO");
 		return(0);
 	}
 
 	cap_rights_init(&rights, CAP_EVENT, CAP_WRITE, CAP_FSTAT);
-	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && 
+	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 &&
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: STDERR_FILENO");
 		return(0);
 	}
 
 	cap_rights_init(&rights, CAP_EVENT, CAP_READ, CAP_WRITE, CAP_FSTAT);
-	if (-1 != fd1 && cap_rights_limit(fd1, &rights) < 0 && 
+	if (-1 != fd1 && cap_rights_limit(fd1, &rights) < 0 &&
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
 		return(0);
 	}
-	if (-1 != fd2 && cap_rights_limit(fd2, &rights) < 0 && 
+	if (-1 != fd2 && cap_rights_limit(fd2, &rights) < 0 &&
 		 errno != ENOSYS) {
 		XWARN("cap_rights_limit: internal socket");
 		return(0);
@@ -166,7 +166,7 @@ ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
 }
 
 int
-ksandbox_capsicum_init_child(void *arg, 
+ksandbox_capsicum_init_child(void *arg,
 	enum sandtype type, int fd1, int fd2,
 	int fdfiled, int fdaccept)
 {
@@ -190,7 +190,7 @@ ksandbox_capsicum_init_child(void *arg,
 		abort();
 	}
 
-	if ( ! rc) 
+	if ( ! rc)
 		XWARNX("capsicum sandbox failure");
 	return(rc);
 }
