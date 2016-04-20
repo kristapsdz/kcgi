@@ -44,9 +44,9 @@ main(void)
     return(EXIT_FAILURE);
 
   while (KCGI_OK == khttp_fcgi_parse(fcgi, &amp;req))) {
-    khttp_head(&amp;req, kresps[KRESP_STATUS], 
+    khttp_head(&amp;req, kresps[KRESP_STATUS],
       "%s", khttps[KHTTP_200]);
-    khttp_head(&amp;req, kresps[KRESP_CONTENT_TYPE], 
+    khttp_head(&amp;req, kresps[KRESP_CONTENT_TYPE],
       "%s", kmimetypes[req.mime]);
     khttp_body(&amp;req);
     khttp_puts(&amp;req, "Hello, world!\n");
@@ -114,7 +114,7 @@ main(void)
 		<pre class="prettyprint lang-sh linenums">% sudo kfcgi -U www -u www -- /fcgi-bin/tutorial2</pre>
 	</figure>
 	<p>
-		That's it!  
+		That's it!
 		At this point, the web application (running as user <q>www</q>) is executing under the <a href="kfcgi.8.html">kfcgi(8)</a>
 		daemon within the file-system jail at <span class="file">/var/www</span>.
 		It has created the socket in <span class="file">/var/www/run/httpd.sock</span> as user <q>www</q>.

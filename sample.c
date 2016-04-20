@@ -37,12 +37,12 @@ enum	page {
 };
 
 /*
- * All of the keys (input field names) we accept. 
+ * All of the keys (input field names) we accept.
  * The key names are in the "keys" array.
  * See sendindex() for how these are used.
  */
 enum	key {
-	KEY_INTEGER, 
+	KEY_INTEGER,
 	KEY_FILE,
 	KEY_PAGECOUNT,
 	KEY_PAGESIZE,
@@ -94,7 +94,7 @@ static const char *const templs[TEMPL__MAX] = {
 	"remote_addr", /* TEMPL_REMOTE_ADDR */
 };
 
-/* 
+/*
  * Page names (as in the URL component).
  */
 static const char *const pages[PAGE__MAX] = {
@@ -112,9 +112,9 @@ static void
 resp_open(struct kreq *req, enum khttp http)
 {
 
-	khttp_head(req, kresps[KRESP_STATUS], 
+	khttp_head(req, kresps[KRESP_STATUS],
 		"%s", khttps[http]);
-	khttp_head(req, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(req, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[req->mime]);
 	khttp_body(req);
 }
@@ -195,7 +195,7 @@ senddata(struct kreq *req)
 		sz = req->fieldmap[KEY_PAGESIZE]->parsed.i;
 	if (0 == sz || (uint64_t)sz > SIZE_MAX)
 		sz = 1;
-	
+
 	buf = kmalloc(sz);
 
 	resp_open(req, KHTTP_200);
@@ -225,7 +225,7 @@ sendindex(struct kreq *req)
 	struct khtmlreq	 r;
 	const char	*cp;
 
-	(void)kasprintf(&page, "%s/%s", 
+	(void)kasprintf(&page, "%s/%s",
 		req->pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
 	khtml_open(&r, req);
@@ -265,11 +265,11 @@ sendindex(struct kreq *req)
 			khtml_puts(&r, "file: ");
 			khtml_puts(&r, req->fieldmap[KEY_FILE]->file);
 			khtml_puts(&r, " ");
-		} 
+		}
 		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
 			khtml_puts(&r, "ctype: ");
 			khtml_puts(&r, req->fieldmap[KEY_FILE]->ctype);
-		} 
+		}
 	}
 	khtml_closeelem(&r, 1);
 	khtml_elem(&r, KELEM_P);
@@ -288,7 +288,7 @@ main(void)
 	enum kcgi_err	 er;
 
 	/* Set up our main HTTP context. */
-	er = khttp_parse(&r, keys, KEY__MAX, 
+	er = khttp_parse(&r, keys, KEY__MAX,
 		pages, PAGE__MAX, PAGE_INDEX);
 
 	if (KCGI_OK != er) {
@@ -299,17 +299,17 @@ main(void)
 
 	if (KMETHOD_OPTIONS == r.method) {
 		/* Indicate that we accept GET, POST, and PUT. */
-		khttp_head(&r, kresps[KRESP_STATUS], 
+		khttp_head(&r, kresps[KRESP_STATUS],
 			"%s", khttps[KHTTP_200]);
-		khttp_head(&r, kresps[KRESP_ALLOW], 
+		khttp_head(&r, kresps[KRESP_ALLOW],
 			"OPTIONS GET POST PUT");
 		khttp_body(&r);
 	} else if (KMETHOD_PUT == r.method) {
 		/* PUT makes us just drop to the browser. */
-		khttp_head(&r, kresps[KRESP_STATUS], 
+		khttp_head(&r, kresps[KRESP_STATUS],
 			"%s", khttps[KHTTP_200]);
 		if (r.fieldsz > 0) {
-			khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+			khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 				"%s", NULL == r.fields[0].ctype ?
 				kmimetypes[KMIME_APP_OCTET_STREAM]:
 				r.fields[0].ctype);
@@ -317,11 +317,11 @@ main(void)
 			khttp_write(&r, r.fields[0].val, r.fields[0].valsz);
 		} else
 			khttp_body(&r);
-	} else if (KMETHOD_GET != r.method && 
+	} else if (KMETHOD_GET != r.method &&
 			KMETHOD_POST != r.method) {
 		/* Don't accept anything else. */
 		resp_open(&r, KHTTP_405);
-	} else if (PAGE__MAX == r.page || 
+	} else if (PAGE__MAX == r.page ||
 			KMIME_TEXT_HTML != r.mime) {
 		/*
 		 * We've been asked for an unknown page or something

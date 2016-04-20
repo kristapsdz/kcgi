@@ -83,7 +83,7 @@
     khttp_puts(r, p->parsed.s);
   else if (r->fieldnmap[KEY_STRING])
     khttp_puts(r, "&lt;i&gt;failed parse&lt;i/&gt;");
-  else 
+  else
     khttp_puts(r, "&lt;i&gt;not provided&lt;i/&gt;");
   khttp_puts(r, "&lt;/p&gt;\n");
 }</pre>
@@ -152,7 +152,7 @@ const char *const pages[PAGE__MAX] = {
     return(KHTTP_405);
 
   return(KHTTP_200);
-}</pre> 
+}</pre>
 	</figure>
 	<p>
 		Putting all of these together: parse the HTTP context, validate it, process it, then free the resources.
@@ -165,7 +165,7 @@ const char *const pages[PAGE__MAX] = {
   struct kreq r;
   enum khttp er;
   if (KCGI_OK != khttp_parse(&amp;r, keys, KEY__MAX,
-      pages, PAGE__MAX, PAGE_INDEX))  
+      pages, PAGE__MAX, PAGE_INDEX))
     return(EXIT_FAILURE);
   if (KHTTP_200 != (er = sanitise(&amp;r))) {
     khttp_head(&amp;r, kresps[KRESP_STATUS],

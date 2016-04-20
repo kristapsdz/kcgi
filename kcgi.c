@@ -284,7 +284,7 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"xml", /* KMIME_TEXT_XML */
 };
 
-/* 
+/*
  * Name of executing CGI script.
  */
 const char	*pname = NULL;
@@ -386,10 +386,10 @@ kutil_urlencode(const char *cp)
 	if (NULL == cp)
 		return(NULL);
 
-	/* 
-	 * Leave three bytes per input byte for encoding. 
+	/*
+	 * Leave three bytes per input byte for encoding.
 	 * This ensures we needn't range-check.
-	 * First check whether our size overflows. 
+	 * First check whether our size overflows.
 	 * We do this here because we need our size!
 	 */
 	sz = strlen(cp) + 1;
@@ -404,10 +404,10 @@ kutil_urlencode(const char *cp)
 	for ( ; '\0' != (ch = *cp); cp++) {
 		/* Put in a temporary buffer then concatenate. */
 		memset(buf, 0, sizeof(buf));
-		if (' ' == ch) 
+		if (' ' == ch)
 			buf[0] = '+';
-		else if (isalnum((int)ch) || ch == '-' || 
-			ch == '_' || ch == '.' || ch == '~') 
+		else if (isalnum((int)ch) || ch == '-' ||
+			ch == '_' || ch == '.' || ch == '~')
 			buf[0] = ch;
 		else
 			(void)snprintf(buf, sizeof(buf), "%%%.2x", ch);
@@ -418,12 +418,12 @@ kutil_urlencode(const char *cp)
 }
 
 char *
-kutil_urlabs(enum kscheme scheme, 
+kutil_urlabs(enum kscheme scheme,
 	const char *host, uint16_t port, const char *path)
 {
 	char	*p;
 
-	(void)kasprintf(&p, "%s://%s:%" PRIu16 "%s", 
+	(void)kasprintf(&p, "%s://%s:%" PRIu16 "%s",
 		kschemes[scheme], host, port, path);
 
 	return(p);
@@ -472,7 +472,7 @@ kutil_urlpartx(struct kreq *req, const char *path,
 			break;
 		}
 
-		if (NULL == valp) 
+		if (NULL == valp)
 			exit(EXIT_FAILURE);
 
 		/* Size for key, value, ? or &, and =. */
@@ -523,7 +523,7 @@ kutil_urlpart(struct kreq *req, const char *path,
 		if (NULL == keyp)
 			exit(EXIT_FAILURE);
 		valp = kutil_urlencode(va_arg(ap, char *));
-		if (NULL == valp) 
+		if (NULL == valp)
 			exit(EXIT_FAILURE);
 
 		/* Size for key, value, ? or &, and =. */
@@ -595,25 +595,25 @@ kreq_free(struct kreq *req)
 		free(req->rawauth.d.digest.cnonce);
 		free(req->rawauth.d.digest.response);
 		free(req->rawauth.d.digest.opaque);
-	} else if (KAUTH_BASIC == req->rawauth.type) 
+	} else if (KAUTH_BASIC == req->rawauth.type)
 		free(req->rawauth.d.basic.response);
 }
 
 enum kcgi_err
-khttp_parse(struct kreq *req, 
+khttp_parse(struct kreq *req,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defpage)
 {
 
-	return(khttp_parsex(req, ksuffixmap, kmimetypes, 
-		KMIME__MAX, keys, keysz, pages, pagesz, 
+	return(khttp_parsex(req, ksuffixmap, kmimetypes,
+		KMIME__MAX, keys, keysz, pages, pagesz,
 		KMIME_TEXT_HTML, defpage, NULL, NULL, 0, NULL));
 }
 
 enum kcgi_err
-khttp_parsex(struct kreq *req, 
-	const struct kmimemap *suffixmap, 
+khttp_parsex(struct kreq *req,
+	const struct kmimemap *suffixmap,
 	const char *const *mimes, size_t mimesz,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
@@ -666,7 +666,7 @@ khttp_parsex(struct kreq *req,
 			XWARNX("ksandbox_init_child");
 			er = EXIT_FAILURE;
 		} else {
-			kworker_child(work_dat[KWORKER_CHILD], 
+			kworker_child(work_dat[KWORKER_CHILD],
 				keys, keysz, mimes, mimesz,
 				debugging);
 			er = EXIT_SUCCESS;
@@ -821,7 +821,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 			continue;
 		lastp = r->cookiemap[i];
 		p = lastp->next;
-		for ( ; NULL != p; lastp = p, p = p->next) 
+		for ( ; NULL != p; lastp = p, p = p->next)
 			if (kp == p) {
 				lastp->next = kp->next;
 				kp->next = r->cookienmap[i];
@@ -872,7 +872,7 @@ khttp_body_compress(struct kreq *req, int comp)
 		cp = req->reqmap[KREQU_ACCEPT_ENCODING]->val;
 		if (NULL != (cp = strstr(cp, "gzip"))) {
 			hasreq = 1;
-			/* 
+			/*
 			 * We have the "gzip" line, so assume that we're
 			 * going to use gzip compression.
 			 * However, unset this if we have q=0.
@@ -880,26 +880,26 @@ khttp_body_compress(struct kreq *req, int comp)
 			 * not look at the first digit (q=0.0, etc.).
 			 */
 			cp += 4;
-			if (0 == strncmp(cp, ";q=0", 4)) 
+			if (0 == strncmp(cp, ";q=0", 4))
 				hasreq = '.' == cp[4];
 		}
 	}
 
 	/* Only work with compression if we support it... */
 #ifdef HAVE_ZLIB
-	/* 
+	/*
 	 * Enable compression if the function argument is zero or if
 	 * it's >0 and the request headers have been set for it.
 	 */
 	if (0 == comp || (comp > 0 && hasreq))
 		didcomp = kdata_compress(req->kdata);
-	/* 
+	/*
 	 * Only set the header if we're autocompressing and opening of
 	 * the compression stream did not fail.
 	 */
 	if (comp > 0 && didcomp)
-		khttp_head(req, 
-			kresps[KRESP_CONTENT_ENCODING], 
+		khttp_head(req,
+			kresps[KRESP_CONTENT_ENCODING],
 			"%s", "gzip");
 #endif
 	kdata_body(req->kdata);
@@ -962,7 +962,7 @@ valid_email(char *p)
 	if ((sz = strlen(cp)) < 4 || sz > 254)
 		return(NULL);
 
-	for (i = 0; i < sz; i++) 
+	for (i = 0; i < sz; i++)
 		if ( ! isalnum((unsigned char)cp[i]))
 			if (NULL == strchr("-.", cp[i]))
 				return(NULL);
@@ -979,7 +979,7 @@ mkdate(int d, int m, int y)
 
 	m = (m + 9) % 12;
 	y = y - m / 10;
-	return(365 * y + y / 4 - y / 100 + 
+	return(365 * y + y / 4 - y / 100 +
 		y / 400 + (m * 306 + 5) / 10 + (d - 1));
 }
 
@@ -997,10 +997,10 @@ kvalid_date(struct kpair *kp)
 		! isdigit((int)kp->val[1]) ||
 		! isdigit((int)kp->val[2]) ||
 		! isdigit((int)kp->val[3]) ||
-		'-' != kp->val[4] || 
+		'-' != kp->val[4] ||
 		! isdigit((int)kp->val[5]) ||
 		! isdigit((int)kp->val[6]) ||
-		'-' != kp->val[7] || 
+		'-' != kp->val[7] ||
 		! isdigit((int)kp->val[8]) ||
 		! isdigit((int)kp->val[9]))
 		return(0);
@@ -1108,7 +1108,7 @@ kvalid_uint(struct kpair *p)
 }
 
 int
-khttp_template_buf(struct kreq *req, 
+khttp_template_buf(struct kreq *req,
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
 
@@ -1116,7 +1116,7 @@ khttp_template_buf(struct kreq *req,
 }
 
 int
-khttp_templatex_buf(const struct ktemplate *t, 
+khttp_templatex_buf(const struct ktemplate *t,
 	const char *buf, size_t sz, ktemplate_writef fp, void *arg)
 {
 	size_t		 i, j, len, start, end;
@@ -1133,7 +1133,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 			if ( ! fp(&buf[i], 1, arg))
 				return(0);
 			continue;
-		} 
+		}
 
 		/* Seek to find the end "@@" marker. */
 		start = i + 2;
@@ -1177,7 +1177,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 }
 
 int
-khttp_template(struct kreq *req, 
+khttp_template(struct kreq *req,
 	const struct ktemplate *t, const char *fname)
 {
 
@@ -1194,7 +1194,7 @@ khttp_template(struct kreq *req,
  * If found, invoke the callback function with the given key.
  */
 int
-khttp_templatex(const struct ktemplate *t, 
+khttp_templatex(const struct ktemplate *t,
 	const char *fname, ktemplate_writef fp, void *arg)
 {
 	struct stat 	 st;

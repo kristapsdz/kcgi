@@ -37,7 +37,7 @@
 #include "extern.h"
 
 int
-kxvasprintf(const char *file, int line, 
+kxvasprintf(const char *file, int line,
 	char **p, const char *fmt, va_list ap)
 {
 	int	 len;
@@ -99,7 +99,7 @@ kxrealloc(const char *file, int line, void *pp, size_t sz)
 }
 
 void *
-kxreallocarray(const char *file, 
+kxreallocarray(const char *file,
 	int line, void *pp, size_t nm, size_t sz)
 {
 	void	 *p;
@@ -143,7 +143,7 @@ kxwarn(const char *file, int line, const char *fmt, ...)
 	va_start(ap, fmt);
 	(void)vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
-	fprintf(stderr, "%s:%d: %s: %s\n", 
+	fprintf(stderr, "%s:%d: %s: %s\n",
 		file, line, buf, strerror(e));
 }
 
@@ -261,7 +261,7 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 			XWARNX("poll: POLLER");
 			return(-1);
 #ifdef __APPLE__
-		} else if ( ! (POLLOUT & pfd.revents) && 
+		} else if ( ! (POLLOUT & pfd.revents) &&
 			    ! (POLLNVAL & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
 			return(-1);
@@ -270,15 +270,15 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 			XWARNX("poll: not POLLOUT");
 			return(-1);
 #endif
-		} 
-		
+		}
+
 		if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0) {
 			XWARN("write: %d, %zu", fd, bufsz - sz);
 			return(-1);
 		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
 			return(-1);
-		} 
+		}
 	}
 
 	return(1);
@@ -306,7 +306,7 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	pfd.events = POLLOUT;
 
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
-		if ((rc = poll(&pfd, 1, -1)) < 0) 
+		if ((rc = poll(&pfd, 1, -1)) < 0)
 			XWARN("poll: %d, POLLOUT", fd);
 		else if (0 == rc) {
 			XWARNX("poll: timeout!?");
@@ -475,7 +475,7 @@ fullreadword(int fd, char **cp)
 	if (0 == sz)
 		return(KCGI_OK);
 
-	/* 
+	/*
 	 * Silence Coverity warning.
 	 * This will set "ke" regardless of the return value, and we
 	 * want to pass that back to the caller.
@@ -537,7 +537,7 @@ again:
 	return(1);
 }
 
-int 
+int
 fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 {
 	struct msghdr	 msg;

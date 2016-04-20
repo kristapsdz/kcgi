@@ -4,7 +4,7 @@ kcgi is an open source CGI and FastCGI library for C web applications.
 It is minimal, secure, and auditable.
 This is the README file for display with
 [GitHub](https://www.github.com), which hosts a read-only source
-repository of the project. 
+repository of the project.
 To keep up to date with the current stable release of kcgi, visit the
 [kcgi website](http://kristaps.bsd.lv/kcgi).
 
@@ -18,7 +18,7 @@ kcgi then parses the request.
 	#include <stdint.h>
 	#include <stdlib.h>
 	#include <kcgi.h>
-	 
+
 	int main(void) {
 	  struct kreq r;
 	  const char *page = "index";

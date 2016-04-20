@@ -101,8 +101,8 @@ static const struct systrace_preauth preauth_control[] = {
 	{ -1, -1 }
 };
 
-/* 
- * Permitted syscalls in preauth. 
+/*
+ * Permitted syscalls in preauth.
  * Unlisted syscalls get SYSTR_POLICY_KILL.
  */
 static const struct systrace_preauth preauth_worker[] = {
@@ -159,7 +159,7 @@ ksandbox_systrace_init_child(void *arg, enum sandtype type)
 	}
 
 	signal(SIGCHLD, box->osigchld);
-	if (kill(getpid(), SIGSTOP) == 0) 
+	if (kill(getpid(), SIGSTOP) == 0)
 		return(1);
 
 	XWARN("kill: SIGSTOP");
@@ -177,12 +177,12 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 
 	assert(NULL != arg);
 
-	preauth = SAND_WORKER != type ? 
+	preauth = SAND_WORKER != type ?
 		preauth_control : preauth_worker;
 
 	rc = 0;
 
-	/* 
+	/*
 	 * Wait for the child to send itself a SIGSTOP.
 	 * When we receive it, the child is waiting to be sandboxed.
 	 */
@@ -229,7 +229,7 @@ ksandbox_systrace_init_parent(void *arg, enum sandtype type, pid_t child)
 	}
 
 	close(dev);
-	
+
 	if (ioctl(box->systrace_fd, STRIOCATTACH, &child) == -1) {
 		XWARN("ioctl: STRIOCATTACH");
 		goto out;
@@ -286,7 +286,7 @@ ksandbox_systrace_close(void *arg)
 	struct systrace_sandbox *box = arg;
 
 	/* Closing this before the child exits will terminate it */
-	if (-1 != box->systrace_fd) 
+	if (-1 != box->systrace_fd)
 		close(box->systrace_fd);
 	else
 		XWARNX("systrace fd not opened");

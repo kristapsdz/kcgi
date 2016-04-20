@@ -31,7 +31,7 @@ static int
 parent(CURL *curl)
 {
 
-	curl_easy_setopt(curl, CURLOPT_URL, 
+	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/");
 	return(CURLE_OK == curl_easy_perform(curl));
 }
@@ -51,9 +51,9 @@ child(void)
 		return(0);
 
 	while (KCGI_OK == (er = khttp_fcgi_parse(fcgi, &r))) {
-		khttp_head(&r, kresps[KRESP_STATUS], 
+		khttp_head(&r, kresps[KRESP_STATUS],
 			"%s", khttps[KHTTP_200]);
-		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 			"%s", kmimetypes[KMIME_TEXT_HTML]);
 		khttp_body(&r);
 		khttp_free(&r);

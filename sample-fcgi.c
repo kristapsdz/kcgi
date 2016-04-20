@@ -63,9 +63,9 @@ main(int argc, char *argv[])
 			khttp_free(&req);
 			break;
 		}
-		khttp_head(&req, kresps[KRESP_STATUS], 
+		khttp_head(&req, kresps[KRESP_STATUS],
 			"%s", khttps[KHTTP_200]);
-		khttp_head(&req, kresps[KRESP_CONTENT_TYPE], 
+		khttp_head(&req, kresps[KRESP_CONTENT_TYPE],
 			"%s", kmimetypes[req.mime]);
 		khttp_body(&req);
 		khttp_puts(&req, "Hello, world!\n");

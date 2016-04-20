@@ -34,9 +34,9 @@ parent(CURL *curl)
 	struct curl_slist *list = NULL;
 	int c;
 
-	curl_easy_setopt(curl, CURLOPT_URL, 
+	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/");
-	list = curl_slist_append(list, 
+	list = curl_slist_append(list,
 		"Authorization: Digest username=\"Mufasa\","
 		"realm=\"testrealm@host.com\","
 		"nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\","
@@ -48,7 +48,7 @@ parent(CURL *curl)
 		"opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 	c = curl_easy_perform(curl);
-	curl_slist_free_all(list); 
+	curl_slist_free_all(list);
 	return(CURLE_OK == c);
 }
 
@@ -64,7 +64,7 @@ child(void)
 		return(0);
 	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
 		return(0);
-	if (KAUTH_DIGEST != r.rawauth.type) 
+	if (KAUTH_DIGEST != r.rawauth.type)
 		goto out;
 	else if (0 == r.rawauth.authorised)
 		goto out;
@@ -77,9 +77,9 @@ child(void)
 	else if (khttpdigest_validate(&r, "Circle Of Life") <= 0)
 		goto out;
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
+	khttp_head(&r, kresps[KRESP_STATUS],
 		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
 	rc = 1;

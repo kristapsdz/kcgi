@@ -90,7 +90,7 @@
 	<p>
 		Another option is to provide each worker the ability to notify the manager of connection saturation.
 		A saturated connection is one where accepting a socket happens instantly&#8212;this can be easily reckoned by making a
-		non-blocking poll on the socket prior to accepting, and seeing if a connection is immediately available. 
+		non-blocking poll on the socket prior to accepting, and seeing if a connection is immediately available.
 		If so, then the connection is saturated at that moment and the manager might want to add more workers.
 		Unfortunately, there is no trivial way for the worker to <q>talk back</q> to the manager: signals will be consolidated, so
 		multiple <q>I'm saturated</q> signals will become one, and other means (such as shared memory) are increasingly complex.
@@ -131,7 +131,7 @@
 	</ol>
 	<p>
 		Applications implementing this can switch on whether the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> value is a valid natural
-		number to decide whether to use the existing or new functionality. 
+		number to decide whether to use the existing or new functionality.
 	</p>
 	<h3>
 		Drawbacks

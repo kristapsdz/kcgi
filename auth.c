@@ -32,19 +32,19 @@
 #include "md5.h"
 #include "extern.h"
 
-static const char b64[] = 
+static const char b64[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
 	"0123456789+/";
 
-static size_t 
+static size_t
 base64len(size_t len)
 {
 
 	return((len + 2) / 3 * 4) + 1;
 }
 
-static size_t 
+static size_t
 base64buf(char *enc, const char *str, size_t len)
 {
 	size_t 	i;
@@ -79,7 +79,7 @@ base64buf(char *enc, const char *str, size_t len)
 }
 
 int
-khttpbasic_validate(const struct kreq *req, 
+khttpbasic_validate(const struct kreq *req,
 	const char *user, const char *pass)
 {
 	char	*buf, *enc;
@@ -145,9 +145,9 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 		MD5Update(&ctx, ":", 1);
 		MD5Update(&ctx, auth->cnonce, strlen(auth->cnonce));
 		MD5Final(ha1, &ctx);
-		for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+		for (i = 0; i < MD5_DIGEST_LENGTH; i++)
 			snprintf(&skey1[i * 2], 3, "%02x", ha1[i]);
-	} else 
+	} else
 		strlcpy(skey1, skey4, sizeof(skey1));
 
 	if (KHTTPQOP_AUTH_INT == auth->qop) {
@@ -157,17 +157,17 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 		memcpy(ha2, req->rawauth.digest, sizeof(ha2));
 	} else {
 		MD5Init(&ctx);
-		MD5Update(&ctx, kmethods[req->method], 
+		MD5Update(&ctx, kmethods[req->method],
 			strlen(kmethods[req->method]));
 		MD5Update(&ctx, ":", 1);
 		MD5Update(&ctx, auth->uri, strlen(auth->uri));
 		MD5Final(ha2, &ctx);
 	}
 
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++)
 		snprintf(&skey2[i * 2], 3, "%02x", ha2[i]);
 
-	if (KHTTPQOP_AUTH_INT == auth->qop || 
+	if (KHTTPQOP_AUTH_INT == auth->qop ||
 	    KHTTPQOP_AUTH == auth->qop) {
 		snprintf(count, sizeof(count), "%08lx", auth->count);
 		MD5Init(&ctx);
@@ -196,7 +196,7 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 		MD5Final(ha3, &ctx);
 	}
 
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++)
 		snprintf(&skey3[i * 2], 3, "%02x", ha3[i]);
 
 	return(0 == strcmp(auth->response, skey3));
@@ -228,7 +228,7 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 	MD5Update(&ctx, ":", 1);
 	MD5Update(&ctx, pass, strlen(pass));
 	MD5Final(ha4, &ctx);
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++)
 		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
 
 	return(khttpdigest_validatehash(req, skey4));

@@ -1,78 +1,78 @@
-html, body			{ margin: 0; 
+html, body			{ margin: 0;
 				  padding: 0; }
-body				{ color: #333; 
-				  font-family: Times,serif; 
+body				{ color: #333;
+				  font-family: Times,serif;
 				  font-size: 12pt;
 				  line-height: 120%; }
 code, pre			{ font-size: 11pt; }
 a				{ text-decoration: none; }
 body > header			{ box-shadow: 0 1px 4px #888; }
-body > header nav ul		{ margin: auto 0; 
+body > header nav ul		{ margin: auto 0;
 				  padding: 0;
 				  list-style-type: none; }
 body > header nav li		{ margin: 0; }
 body > header nav li + li	{ margin-top: 0.5em; }
-#usage nav ul			{ list-style-type: none; 
+#usage nav ul			{ list-style-type: none;
 				  padding: 0; }
-#header				{ background-color: #333; 
+#header				{ background-color: #333;
 				  padding: 3em 5% 1ex 5%;
 				  color: #fff; }
 #header a			{ color: #ddd; }
 #header a:hover			{ color: #fff; }
 #header nav			{ padding: 0.5ex 0 1ex 0; }
-#header nav .version		{ border-right: thin solid silver; 
+#header nav .version		{ border-right: thin solid silver;
 				  color: #abc;
 				  padding-right: 1ex; }
-#version			{ background-color: #ddd; 
+#version			{ background-color: #ddd;
 				  padding: 1em 5% 0 5%; }
-#version a, 
-#version time, 
+#version a,
+#version time,
 #version span.version		{ font-style: normal; }
-#version > a			{ font-size: 11pt; 
-				  color: #888; 
+#version > a			{ font-size: 11pt;
+				  color: #888;
 				  display: block;
 				  margin-top: 1ex;
 				  text-shadow: 0 0 0px #000; }
 #version > a:hover		{ color: #666; }
-h1				{ font-size: 32pt; 
+h1				{ font-size: 32pt;
 				  margin: 0 0 1ex 0;
 				  font-weight: normal; }
 .nm, .file			{ font-style: italic; }
-h1 .nm				{ text-shadow: 1px 1px #666; 
+h1 .nm				{ text-shadow: 1px 1px #666;
 				  font-style: inherit; }
-h1 .nd				{ font-size: 28pt; 
+h1 .nd				{ font-size: 28pt;
 				  text-shadow: 1px 1px #333; }
 #intro				{ font-size: 14pt; }
-footer				{ margin-top: 1em; 
+footer				{ margin-top: 1em;
 				  text-align: center;
 				  font-size: 11pt;
 				  color: #666; }
 footer a			{ color: #000; }
-footer span			{ border-left: thin solid #ccc; 
+footer span			{ border-left: thin solid #ccc;
 			  	  padding-left: 1ex; }
-article h2			{ font-size: x-large; 
-				  font-weight: bolder; 
+article h2			{ font-size: x-large;
+				  font-weight: bolder;
 				  color: #333; }
-article h3			{ font-size: large; 
+article h3			{ font-size: large;
 				  color: #333; }
 #usage h3			{ margin-bottom: 1ex; }
 article[data-sblg-article],
 article section,
 #permlink,
 figure nav,
-article figcaption		{ padding: 1ex 10%; 
+article figcaption		{ padding: 1ex 10%;
 				  margin: 0; }
 article[data-sblg-article] header address,
 article[data-sblg-article] header time
 				{ display: none; }
 article[data-sblg-article] img	{ width: 100%;
 				  max-width: 800px; }
-figure				{ margin: 0; 
-				  text-align: center; 
+figure				{ margin: 0;
+				  text-align: center;
 				  color: #444; }
 figcaption span			{ font-weight: bolder; }
 dd				{ margin: 0 0 1em 0; }
-#permlink 			{ color: #888; 
+#permlink 			{ color: #888;
 				  margin-top: 1em; }
 #permlink a			{ color: #444; }
 #permlink a:hover		{ color: #111; }
@@ -90,9 +90,9 @@ body > header nav li >div > div	{ margin-top: 0.5em; }
 #comments			{ max-height: 0; }
 #nolongnews,
 #nocomments			{ max-height: 500em; }
-pre.prettyprint			{ border: none; 
+pre.prettyprint			{ border: none;
 				  line-height: 150%;
-				  margin: 0; 
+				  margin: 0;
 				  overflow: hidden;
 				  box-shadow: 1px 1px 2px #666;
 				  width: auto; }

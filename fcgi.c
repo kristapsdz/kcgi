@@ -101,7 +101,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 	if (KCGI_OK != kxsocketprep(ourfd)) {
 		XWARNX("manager socket error");
 		goto out;
-	} 
+	}
 
 	for (;;) {
 		pfd[0].fd = ourfd;
@@ -124,27 +124,27 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			XWARNX("poll expired!?");
 			continue;
 		} else if (POLLHUP & pfd[1].revents ||
-			   ! (POLLIN & pfd[0].revents)) 
+			   ! (POLLIN & pfd[0].revents))
 			break;
 
 		if (-1 != fdaccept) {
 			assert(-1 == fdfiled);
-			/* 
+			/*
 			 * Blocking accept from FastCGI socket.
 			 * This will be round-robined by the kernel so
 			 * that other control processes are fairly
 			 * notified.
 			 */
 			sslen = sizeof(ss);
-			fd = accept(fdaccept, 
+			fd = accept(fdaccept,
 				(struct sockaddr *)&ss, &sslen);
 			if (fd < 0) {
-				if (EAGAIN == errno || 
+				if (EAGAIN == errno ||
 				    EWOULDBLOCK == errno)
 					continue;
 				XWARN("accept");
 				goto out;
-			} 
+			}
 		} else {
 			assert(-1 != fdfiled);
 			/*
@@ -154,7 +154,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			 * kfcgi-like application that's managing
 			 * connection counts.
 			 */
-			rc = fullreadfd(fdfiled, 
+			rc = fullreadfd(fdfiled,
 				&fd, &magic, sizeof(uint64_t));
 			if (rc < 0) {
 				XWARNX("manager socket error");
@@ -164,8 +164,8 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				break;
 			}
 		}
-		
-		/* 
+
+		/*
 		 * We then set that the FastCGI socket is non-blocking,
 		 * making it consistent with the behaviour of the CGI
 		 * socket, which is also set as such.
@@ -204,7 +204,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			} else if (0 == rc) {
 				XWARNX("poll expired!?");
 				continue;
-			} else if (POLLIN & pfd[0].revents) 
+			} else if (POLLIN & pfd[0].revents)
 				break;
 			XWARNX("work request poll error");
 			goto out;
@@ -252,15 +252,15 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 #endif
 
 		/* Now verify that the worker is sane. */
-		if (fullread(pfd[1].fd, &test, 
+		if (fullread(pfd[1].fd, &test,
 			 sizeof(uint32_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
 			goto out;
 		} else if (cookie != test) {
 			XWARNX("failed to verify FastCGI cookie");
 			goto out;
-		} 
-		if (fullread(pfd[1].fd, &rid, 
+		}
+		if (fullread(pfd[1].fd, &rid,
 			 sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI requestId");
 			goto out;
@@ -283,9 +283,9 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			goto out;
 		}
 
-		/* 
+		/*
 		 * This will wait til the application is finished.
-		 * It will then double-check the requestId. 
+		 * It will then double-check the requestId.
 		 */
 		if (fullread(ctrl, &rtest, sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
@@ -301,7 +301,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * that we've finished processing this request.
 		 */
 		if (-1 != fdfiled) {
-			rc = fullwritenoerr(fdfiled, 
+			rc = fullwritenoerr(fdfiled,
 				&magic, sizeof(uint64_t));
 			if (rc < 0) {
 				XWARNX("failed ack to manager");
@@ -355,9 +355,9 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 }
 
 enum kcgi_err
-khttp_fcgi_initx(struct kfcgi **fcgip, 
+khttp_fcgi_initx(struct kfcgi **fcgip,
 	const char *const *mimes, size_t mimesz,
-	const struct kvalid *keys, size_t keysz, 
+	const struct kvalid *keys, size_t keysz,
 	const struct kmimemap *mimemap, size_t defmime,
 	const char *const *pages, size_t pagesz,
 	size_t defpage, void *arg, void (*argfree)(void *),
@@ -439,10 +439,10 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		signal(SIGTERM, SIG_IGN);
 		if (NULL != argfree)
 			argfree(arg);
-		/* 
+		/*
 		 * STDIN_FILENO isn't really stdin, it's the control
 		 * socket used to pass input sockets to us.
-		 * Thus, close the parent's control socket. 
+		 * Thus, close the parent's control socket.
 		 */
 		if (-1 != fdaccept)
 			close(fdaccept);
@@ -451,7 +451,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		if ( ! ksandbox_init_child(work_box, 
+		if ( ! ksandbox_init_child(work_box,
 			 SAND_WORKER,
 			 work_dat[KWORKER_CHILD],
 			 work_ctl[KWORKER_CHILD], -1, -1)) {
@@ -518,14 +518,14 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_PARENT]);
 		ksandbox_free(work_box);
-		if ( ! ksandbox_init_child(sock_box, 
+		if ( ! ksandbox_init_child(sock_box,
 			 st, sock_ctl[KWORKER_CHILD], -1,
 			 fdfiled, fdaccept)) {
 			XWARNX("ksandbox_init_child");
 			er = EXIT_FAILURE;
-		} else 
+		} else
 			er = kfcgi_control
-				(work_ctl[KWORKER_PARENT], 
+				(work_ctl[KWORKER_PARENT],
 				 sock_ctl[KWORKER_CHILD],
 				 fdaccept, fdfiled);
 		close(work_ctl[KWORKER_PARENT]);
@@ -598,15 +598,15 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 }
 
 enum kcgi_err
-khttp_fcgi_init(struct kfcgi **fcgi, 
+khttp_fcgi_init(struct kfcgi **fcgi,
 	const struct kvalid *keys, size_t keysz,
 	const char *const *pages, size_t pagesz,
 	size_t defpage)
 {
 
-	return(khttp_fcgi_initx(fcgi, kmimetypes, 
+	return(khttp_fcgi_initx(fcgi, kmimetypes,
 		KMIME__MAX, keys, keysz, ksuffixmap,
-		KMIME_TEXT_HTML, pages, pagesz, defpage, 
+		KMIME_TEXT_HTML, pages, pagesz, defpage,
 		NULL, NULL, 0, NULL));
 }
 
@@ -615,7 +615,7 @@ khttp_fcgi_init(struct kfcgi **fcgi,
  * we're notified that we must exit via a SIGTERM, we'll properly close
  * down without spurrious warnings.
  */
-static int 
+static int
 fcgi_waitread(int fd)
 {
 	int		 rc;
@@ -643,7 +643,7 @@ again:
 	if (rc < 0) {
 		XWARN("poll");
 		return(-1);
-	} else if (0 == rc) 
+	} else if (0 == rc)
 		goto again;
 
 	/* Only POLLIN is a "good" exit from this. */
@@ -691,7 +691,7 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	req->arg = fcgi->arg;
 	req->keys = fcgi->keys;
 	req->keysz = fcgi->keysz;
-	req->kdata = kdata_alloc(fcgi->sock_ctl, 
+	req->kdata = kdata_alloc(fcgi->sock_ctl,
 		fd, rid, fcgi->debugging, &fcgi->opts);
 	if (NULL == req->kdata)
 		goto err;
@@ -760,9 +760,9 @@ khttp_fcgi_test(void)
 
 	if (NULL != (cp = getenv("FCGI_LISTENSOCK_DESCRIPTORS"))) {
 		(void)strtonum(cp, 0, INT_MAX, &ercp);
-		if (NULL != ercp) 
+		if (NULL != ercp)
 			return(1);
-	} 
+	}
 
 	if (-1 != getpeername(STDIN_FILENO, NULL, &len))
 		return(0);

@@ -96,7 +96,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/kmalloc.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
-MAN8S		 = man/kfcgi.8 
+MAN8S		 = man/kfcgi.8
 MANS		 = $(MAN3S) \
 		   $(MAN8S)
 SRCS 		 = auth.c \
@@ -367,11 +367,11 @@ install: all
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
-sample-fcgi: sample-fcgi.o libkcgi.a 
+sample-fcgi: sample-fcgi.o libkcgi.a
 	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a -lz
 
-sample-cgi: sample-cgi.o 
-	$(CC) -o $@ $(STATIC) sample-cgi.o 
+sample-cgi: sample-cgi.o
+	$(CC) -o $@ $(STATIC) sample-cgi.o
 
 www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
 
@@ -434,22 +434,22 @@ clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f index.html $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
-	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
+	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS)
 	rm -f libkcgihtml.a kcgihtml.o
 	rm -f libkcgijson.a kcgijson.o
 	rm -f libkcgixml.a kcgixml.o
 	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
 	rm -f test-abort-valid.core core
-	rm -f test-memmem test-memmem.o 
-	rm -f test-reallocarray test-reallocarray.o 
+	rm -f test-memmem test-memmem.o
+	rm -f test-reallocarray test-reallocarray.o
 	rm -f test-sandbox_init test-sandbox_init.o
 	rm -f test-seccomp-filter test-seccomp-filter.o
 	rm -f test-strlcat test-strlcat.o
 	rm -f test-strlcpy test-strlcpy.o
 	rm -f test-strtonum test-strtonum.o
 	rm -f test-systrace test-systrace.o
-	rm -f test-zlib test-zlib.o 
+	rm -f test-zlib test-zlib.o
 	rm -f test-capsicum test-capsicum.o
 	rm -f $(REGRESS) $(AFL) $(REGRESS_OBJS)
 	rm -rf *.dSYM regress/*.dSYM afl/*.dSYM

@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-		<meta charset='utf-8' /> 
+		<meta charset='utf-8' />
 		<title>kcgi | ${sblg-titletext}</title>
 		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
@@ -12,8 +12,8 @@
 		<header>
 			<section id="header">
 				<h1>
-					<a href="index.html" class="nm">kcgi</a> 
-					&#8211; 
+					<a href="index.html" class="nm">kcgi</a>
+					&#8211;
 					<span itemprop="description" class="nd">minimal CGI library in C</span>
 				</h1>
 				<nav>

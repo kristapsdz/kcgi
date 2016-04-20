@@ -22,7 +22,7 @@
 
 #ifndef SECCOMP_AUDIT_ARCH
 #error Unknown seccomp arch: please contact us with your uname -m
-#endif 
+#endif
 
 /*
  * Copyright (c) 2012 Will Drewry <wad@dataspill.org>
@@ -194,14 +194,14 @@ static const struct sock_fprog preauth_prog_ctrl = {
 
 #ifdef SANDBOX_SECCOMP_DEBUG
 static void
-ssh_sandbox_violation(int signum, 
+ssh_sandbox_violation(int signum,
 	siginfo_t *info, void *void_context)
 {
 
-	fprintf(stderr, 
+	fprintf(stderr,
 		"%s: unexpected system call "
 		"(arch:0x%x,syscall:%d @ %p)\n",
-		__func__, info->si_arch, 
+		__func__, info->si_arch,
 		info->si_syscall, info->si_call_addr);
 	exit(1);
 }
@@ -219,7 +219,7 @@ ssh_sandbox_child_debugging(void)
 	act.sa_sigaction = &ssh_sandbox_violation;
 	act.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGSYS, &act, NULL) == -1)
-		fprintf(stderr, "%s: sigaction(SIGSYS): %s\n", 
+		fprintf(stderr, "%s: sigaction(SIGSYS): %s\n",
 			__func__, strerror(errno));
 	if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
 		fprintf(stderr, "%s: sigprocmask(SIGSYS): %s\n",
@@ -250,13 +250,13 @@ ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 
 #ifdef SANDBOX_SECCOMP_DEBUG
 	ssh_sandbox_child_debugging();
-#endif 
+#endif
 
 	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == -1) {
 		XWARN("prctl(PR_SET_NO_NEW_PRIVS)");
 		nnp_failed = 1;
 	}
-	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 
+	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER,
 		 SAND_WORKER != type ?
 		 &preauth_prog_ctrl :
 		 &preauth_prog_work) == -1)

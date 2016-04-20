@@ -15,12 +15,12 @@
 
 #ifndef HAVE_STRTONUM
 extern long long strtonum
-	(const char *numstr, long long minval, 
+	(const char *numstr, long long minval,
 	 long long maxval, const char **errstrp);
 #endif
 #ifndef HAVE_MEMMEM
 extern void *memmem
-	(const void *l, size_t l_len, 
+	(const void *l, size_t l_len,
  	 const void *s, size_t s_len);
 #endif
 #ifndef HAVE_REALLOCARRAY

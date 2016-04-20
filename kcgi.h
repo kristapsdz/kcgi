@@ -422,7 +422,7 @@ struct	kreq {
 	const struct kvalid	 *keys;
 	size_t			  keysz;
 	char			 *pname;
-	void			 *arg; 
+	void			 *arg;
 };
 
 struct	kopts {
@@ -462,32 +462,32 @@ void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
 void		 khttp_head(struct kreq *, const char *, const char *,
 			...) __attribute__((format(printf, 3, 4)));
-enum kcgi_err	 khttp_parse(struct kreq *, 
+enum kcgi_err	 khttp_parse(struct kreq *,
 			const struct kvalid *, size_t,
 			const char *const *, size_t, size_t);
-enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *, 
-			const char *const *, size_t, 
+enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *,
+			const char *const *, size_t,
 			const struct kvalid *, size_t,
 			const char *const *, size_t,
 			size_t, size_t, void *, void (*)(void *),
 			unsigned int, const struct kopts *);
 void		 khttp_putc(struct kreq *, int);
 void		 khttp_puts(struct kreq *, const char *);
-int		 khttp_template(struct kreq *, 
+int		 khttp_template(struct kreq *,
 			const struct ktemplate *, const char *);
-int		 khttp_template_buf(struct kreq *, 
+int		 khttp_template_buf(struct kreq *,
 			const struct ktemplate *, const char *, size_t);
-int		 khttp_templatex(const struct ktemplate *, 
+int		 khttp_templatex(const struct ktemplate *,
 			const char *, ktemplate_writef, void *);
-int		 khttp_templatex_buf(const struct ktemplate *, 
+int		 khttp_templatex_buf(const struct ktemplate *,
 			const char *, size_t, ktemplate_writef, void *);
 void		 khttp_write(struct kreq *, const char *, size_t);
 
-int		 khttpdigest_validate(const struct kreq *, 
+int		 khttpdigest_validate(const struct kreq *,
 			const char *);
-int		 khttpdigest_validatehash(const struct kreq *, 
+int		 khttpdigest_validatehash(const struct kreq *,
 			const char *);
-int		 khttpbasic_validate(const struct kreq *, 
+int		 khttpbasic_validate(const struct kreq *,
 			const char *, const char *);
 
 int		 kvalid_date(struct kpair *);
@@ -500,12 +500,12 @@ int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
 enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *);
-enum kcgi_err	 khttp_fcgi_init(struct kfcgi **, 
+enum kcgi_err	 khttp_fcgi_init(struct kfcgi **,
 			const struct kvalid *, size_t,
 			const char *const *, size_t, size_t);
-enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **, 
+enum kcgi_err	 khttp_fcgi_initx(struct kfcgi **,
 			const char *const *, size_t,
-			const struct kvalid *, size_t, 
+			const struct kvalid *, size_t,
 			const struct kmimemap *, size_t,
 			const char *const *, size_t, size_t,
 			void *, void (*)(void *), unsigned int,
@@ -514,7 +514,7 @@ enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
 int		 khttp_fcgi_test(void);
 
-char		*kutil_urlabs(enum kscheme, const char *, 
+char		*kutil_urlabs(enum kscheme, const char *,
 			uint16_t, const char *);
 char		*kutil_urlpart(struct kreq *, const char *,
 			const char *, const char *, ...);

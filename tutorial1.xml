@@ -70,7 +70,7 @@
     return(KHTTP_405);
   else
     return(KHTTP_200);
-}</pre> 
+}</pre>
 	</figure>
 	<p>
 		Now the scaffolding is done.
@@ -92,17 +92,17 @@
     "%s", kmimetypes[r->mime]);
   if (NULL == r->cookiemap[COOKIE_STRING])
     khttp_head(r, kresps[KRESP_SET_COOKIE],
-      "%s=%s; Path=/; Expires=0", 
+      "%s=%s; Path=/; Expires=0",
       cookies[COOKIE_STRING].name, "Hello, world!");
   khttp_body(r);
-  khttp_puts(r, 
+  khttp_puts(r,
     "&lt;!DOCTYPE html&gt;"
     "&lt;title&gt;Foo&lt;/title&gt;");
   if (NULL != r->cookiemap[COOKIE_STRING])
     khttp_puts(r, "Cookie found!");
   else
     khttp_puts(r, "Cookie set.");
-}</pre> 
+}</pre>
 	</figure>
 	<p>
 		Most of the above code is just to handle the HTML5 bits, and we deliberately used the smallest possible page.
@@ -121,7 +121,7 @@
 		<pre class="prettyprint linenums">int main(void) {
   struct kreq r;
   enum khttp er;
-  if (KCGI_OK != khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0))  
+  if (KCGI_OK != khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0))
     return(EXIT_FAILURE);
   if (KHTTP_200 != (er = sanitise(&amp;r))) {
     khttp_head(&amp;r, kresps[KRESP_STATUS],

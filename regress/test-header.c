@@ -56,18 +56,18 @@ child(void)
 
 	found1 = found2 = 0;
 	for (i = 0; i < r.reqsz; i++) {
-		if (0 == strcmp(r.reqs[i].key, "Testing")) 
+		if (0 == strcmp(r.reqs[i].key, "Testing"))
 			found1 += 0 == strcmp(r.reqs[i].val, "123");
-		else if (0 == strcmp(r.reqs[i].key, "Testing-Test")) 
+		else if (0 == strcmp(r.reqs[i].key, "Testing-Test"))
 			found2 += 0 == strcmp(r.reqs[i].val, "321");
 	}
 
-	if (1 != found1 || 1 != found2) 
+	if (1 != found1 || 1 != found2)
 		return(0);
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
+	khttp_head(&r, kresps[KRESP_STATUS],
 		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
 	khttp_free(&r);

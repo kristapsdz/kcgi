@@ -38,7 +38,7 @@ kxml_open(struct kxmlreq *r, struct kreq *req,
 	r->req = req;
 	r->elems = elems;
 	r->elemsz = elemsz;
-	khttp_puts(r->req, 
+	khttp_puts(r->req,
 		"<?xml version=\"1.0\" "
 		"encoding=\"utf-8\" ?>");
 }
@@ -57,7 +57,7 @@ int
 kxml_push(struct kxmlreq *r, size_t elem)
 {
 
-	if (r->stackpos >= 128) 
+	if (r->stackpos >= 128)
 		return(0);
 
 	khttp_putc(r->req, '<');
@@ -125,7 +125,7 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 	va_list	 	 ap;
 	const char	*key, *val;
 
-	if (r->stackpos >= 128) 
+	if (r->stackpos >= 128)
 		return(0);
 
 	khttp_putc(r->req, '<');

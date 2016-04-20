@@ -93,7 +93,7 @@ kauth_nexttok(const char **next, char delim, size_t *sz)
 		else if (isspace((int)**next))
 			break;
 
-	if ('\0' != delim && delim == **next) 
+	if ('\0' != delim && delim == **next)
 		(*next)++;
 
 	while (isspace((int)**next))
@@ -164,7 +164,7 @@ kauth_nexttoken(size_t *val, const char **cp,
 			continue;
 		if (buf.sz != strlen(vals[*val]))
 			continue;
-		if (0 == strncasecmp(buf.pos, vals[*val], buf.sz)) 
+		if (0 == strncasecmp(buf.pos, vals[*val], buf.sz))
 			return;
 	}
 }
@@ -218,7 +218,7 @@ kauth_count(size_t *count, const char **cp)
 		*count = 0;
 	else if (ll > SIZE_MAX)
 		*count = 0;
-	else	
+	else
 		*count = ll;
 }
 
@@ -295,7 +295,7 @@ khttpdigest_input(int fd, const char *cp)
 	}
 
 	/* Minimum requirements. */
-	authorised = 
+	authorised =
 		0 != d.user.sz &&
 		0 != d.realm.sz &&
 		0 != d.nonce.sz &&
@@ -303,14 +303,14 @@ khttpdigest_input(int fd, const char *cp)
 		0 != d.uri.sz;
 
 	/* Additional requirements: MD5-sess. */
-	if (authorised && KHTTPALG_MD5_SESS == d.alg) 
+	if (authorised && KHTTPALG_MD5_SESS == d.alg)
 		authorised = 0 != d.cnonce.sz;
 
 	/* Additional requirements: qop. */
-	if (authorised && 
+	if (authorised &&
 		(KHTTPQOP_AUTH == d.qop ||
 		 KHTTPQOP_AUTH_INT == d.qop))
-		authorised = 
+		authorised =
 			0 != d.count &&
 			0 != d.cnonce.sz;
 

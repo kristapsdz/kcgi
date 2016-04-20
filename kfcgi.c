@@ -61,7 +61,7 @@ static	volatile sig_atomic_t hup = 0;
 
 static	int verbose = 0;
 
-static 	void dbg(const char *fmt, ...) 
+static 	void dbg(const char *fmt, ...)
 		__attribute__((format(printf, 1, 2)));
 
 static void
@@ -86,7 +86,7 @@ sighandlechld(int sig)
 }
 
 static void
-dbg(const char *fmt, ...) 
+dbg(const char *fmt, ...)
 {
 	va_list	 ap;
 
@@ -249,7 +249,7 @@ xsocketpair(int *sock)
  * Start a worker for the variable pool.
  */
 static int
-varpool_start(struct worker *w, const struct worker *ws, 
+varpool_start(struct worker *w, const struct worker *ws,
 	size_t wsz, int fd, char **nargv)
 {
 	int	 pair[2];
@@ -270,13 +270,13 @@ varpool_start(struct worker *w, const struct worker *ws,
 		w->ctrl = -1;
 		return(0);
 	} else if (0 == w->pid) {
-		/* 
+		/*
 		 * Close out all current descriptors.
 		 * Note that we're a "new-mode" FastCGI manager to the
 		 * child via our environment variable.
 		 */
 		for (i = 0; i < wsz; i++)
-			if (-1 != ws[i].ctrl && 
+			if (-1 != ws[i].ctrl &&
 			    -1 == close(ws[i].ctrl))
 				syslog(LOG_ERR, "close: "
 					"worker cleanup: %m");
@@ -336,7 +336,7 @@ varpool(size_t wsz, size_t maxwsz, time_t waittime,
 again:
 	stop = chld = hup = 0;
 
-	/* 
+	/*
 	 * Allocate worker array, polling descriptor array, and slough
 	 * array (exiting workers).
 	 * Set our initial exit code and our acceptance status.
@@ -404,11 +404,11 @@ pollagain:
 	if (rc < 0 && EINTR != errno) {
 		syslog(LOG_ERR, "poll: main event: %m");
 		goto out;
-	} 
+	}
 
 	if (stop) {
-		/* 
-		 * If we're being requested to stop, go to exit now. 
+		/*
+		 * If we're being requested to stop, go to exit now.
 		 * We'll immediately kill off our children and wait.
 		 */
 		dbg("servicing exit request");
@@ -460,11 +460,11 @@ pollagain:
 				continue;
 			} else if (rc < 0) {
 				syslog(LOG_ERR, "wait: sloughed "
-					"worker-%u check: %m", 
+					"worker-%u check: %m",
 					slough[i].pid);
 				goto out;
 			}
-			dbg("slough: releasing worker-%u\n", 
+			dbg("slough: releasing worker-%u\n",
 				slough[i].pid);
 			if (i < sloughsz - 1)
 				slough[i] = slough[sloughsz - 1];
@@ -500,30 +500,30 @@ pollagain:
 					"maximum size reached");
 				goto out;
 			}
-			
+
 			/* Close down the worker in the usual way. */
 			if (-1 == close(ws[wsz - 1].ctrl)) {
 				syslog(LOG_ERR, "close: worker-%u "
 					"control socket: %m",
 					ws[wsz - 1].pid);
 				goto out;
-			} 
+			}
 			if (-1 == kill(ws[wsz - 1].pid, SIGTERM)) {
 				syslog(LOG_ERR, "kill: worker-%u: %m",
 					ws[wsz - 1].pid);
 				goto out;
 			}
 
-			/* 
+			/*
 			 * Append the dying client to the slough array,
 			 * since workers may take time to die.
 			 */
-			dbg("slough: acquiring worker-%u\n", 
+			dbg("slough: acquiring worker-%u\n",
 				ws[wsz - 1].pid);
 			slough[sloughsz++] = ws[wsz - 1];
 
 			/* Reallocations. */
-			pp = reallocarray(ws, wsz - 1, 
+			pp = reallocarray(ws, wsz - 1,
 				sizeof(struct worker));
 			if (NULL == pp) {
 				syslog(LOG_ERR, "reallocarray: "
@@ -543,7 +543,7 @@ pollagain:
 			pfdmaxsz--;
 		}
 	}
-	
+
 	if (0 == rc)
 		goto pollagain;
 
@@ -560,9 +560,9 @@ pollagain:
 		} else if ( ! (POLLIN & pfd[i].revents)) {
 			i++;
 			continue;
-		} 
+		}
 
-		/* 
+		/*
 		 * Read the "identifier" that the child process gives
 		 * to us.
 		 */
@@ -625,7 +625,7 @@ pollagain:
 	} else if ( ! (POLLIN & pfd[0].revents))
 		goto pollagain;
 
-	/* 
+	/*
 	 * We have a new request.
 	 * First, see if we need to allocate more workers.
 	 */
@@ -658,7 +658,7 @@ pollagain:
 			goto out;
 		pfdmaxsz++;
 		wsz++;
-	} 
+	}
 
 	/*
 	 * Actually accept the socket.
@@ -667,18 +667,18 @@ pollagain:
 	sslen = sizeof(ss);
 	afd = accept(fd, (struct sockaddr *)&ss, &sslen);
 	if (afd < 0) {
-		if (EAGAIN == errno || 
+		if (EAGAIN == errno ||
 		    EWOULDBLOCK == errno)
 			goto pollagain;
 		syslog(LOG_ERR, "accept: new connection: %m");
 		goto out;
-	} 
+	}
 
 	/*
 	 * Look up the next unavailable worker.
 	 */
 	for (i = 0; i < wsz; i++)
-		if (-1 == ws[i].fd) 
+		if (-1 == ws[i].fd)
 			break;
 
 	assert(i < wsz);
@@ -689,7 +689,7 @@ pollagain:
 	ws[i].cookie = arc4random();
 #endif
 	dbg("worker-%u: acquire %d "
-		"(pollers %zu/%zu: workers %zu/%zu)", 
+		"(pollers %zu/%zu: workers %zu/%zu)",
 		ws[i].pid, afd, pfdsz, pfdmaxsz, wsz, maxwsz);
 	pfd[pfdsz].events = POLLIN;
 	pfd[pfdsz].fd = ws[i].ctrl;
@@ -753,7 +753,7 @@ out:
 	if (hup)
 		goto again;
 
-	/* 
+	/*
 	 * Now we're really exiting.
 	 * Do our final cleanup if we didn't already...
 	 */
@@ -798,7 +798,7 @@ again:
 		return(0);
 	}
 
-	/* 
+	/*
 	 * "Zero" the workers.
 	 * This is in case the initialisation fails.
 	 */
@@ -832,7 +832,7 @@ again:
 		dbg("servicing exit request");
 	else if (chld)
 		syslog(LOG_ERR, "worker unexpectedly exited");
-	else 
+	else
 		dbg("servicing restart request");
 out:
 	if ( ! hup) {
@@ -868,7 +868,7 @@ out:
 	if (hup)
 		goto again;
 
-	/* 
+	/*
 	 * Now we're really exiting.
 	 * Do our final cleanup if we didn't already...
 	 */
@@ -922,14 +922,14 @@ main(int argc, char *argv[])
 				break;
 			fprintf(stderr, "-l must be "
 				"between 1 and %d\n", INT_MAX);
-			return(EXIT_FAILURE);	
+			return(EXIT_FAILURE);
 		case ('n'):
 			wsz = strtonum(optarg, 0, INT_MAX, &errstr);
 			if (NULL == errstr)
 				break;
 			fprintf(stderr, "-n must be "
 				"between 0 and %d\n", INT_MAX);
-			return(EXIT_FAILURE);	
+			return(EXIT_FAILURE);
 		case ('N'):
 			usemax = 1;
 			maxwsz = strtonum(optarg, 0, INT_MAX, &errstr);
@@ -937,35 +937,35 @@ main(int argc, char *argv[])
 				break;
 			fprintf(stderr, "-N must be "
 				"between 0 and %d\n", INT_MAX);
-			return(EXIT_FAILURE);	
+			return(EXIT_FAILURE);
 		case ('p'):
 			chpath = optarg;
-			break;	
+			break;
 		case ('s'):
 			sockpath = optarg;
-			break;	
+			break;
 		case ('u'):
 			sockuser = optarg;
-			break;	
+			break;
 		case ('U'):
 			procuser = optarg;
-			break;	
+			break;
 		case ('r'):
 			varp = 1;
-			break;	
+			break;
 		case ('v'):
 			verbose = 1;
-			break;	
+			break;
 		case ('d'):
 			nod = 1;
-			break;	
+			break;
 		case ('w'):
 			waittime = strtonum(optarg, 0, INT_MAX, &errstr);
 			if (NULL == errstr)
 				break;
 			fprintf(stderr, "-w must be "
 				"between 0 and %d\n", INT_MAX);
-			return(EXIT_FAILURE);	
+			return(EXIT_FAILURE);
 		default:
 			goto usage;
 		}
@@ -973,7 +973,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (0 == argc) 
+	if (0 == argc)
 		goto usage;
 
 	if (usemax && varp) {
@@ -990,7 +990,7 @@ main(int argc, char *argv[])
 	assert(lsz);
 
 	pw = NULL;
-	if (NULL != procuser && NULL == (pw = getpwnam(procuser))) { 
+	if (NULL != procuser && NULL == (pw = getpwnam(procuser))) {
 		fprintf(stderr, "%s: no such user\n", procuser);
 		return(EXIT_FAILURE);
 	} else if (NULL != pw) {
@@ -999,7 +999,7 @@ main(int argc, char *argv[])
 	}
 
 	pw = NULL;
-	if (NULL != sockuser && NULL == (pw = getpwnam(sockuser))) { 
+	if (NULL != sockuser && NULL == (pw = getpwnam(sockuser))) {
 		fprintf(stderr, "%s: no such user\n", sockuser);
 		return(EXIT_FAILURE);
 	} else if (NULL != pw) {
@@ -1036,7 +1036,7 @@ main(int argc, char *argv[])
 
 	old_umask = umask(S_IXUSR|S_IXGRP|S_IWOTH|S_IROTH|S_IXOTH);
 
-	/* 
+	/*
 	 * Now actually bind to the FastCGI socket set up our
 	 * listeners, and make sure that we're not blocking.
 	 * If necessary, change the file's ownership.
@@ -1049,7 +1049,7 @@ main(int argc, char *argv[])
 	}
 	umask(old_umask);
 
-	if (NULL != sockuser) 
+	if (NULL != sockuser)
 		if (chown(sockpath, sockuid, sockgid) == -1) {
 			perror(sockpath);
 			close(fd);
@@ -1062,7 +1062,7 @@ main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	/* 
+	/*
 	 * Jail our file-system.
 	 */
 	if (-1 == chroot(chpath)) {
@@ -1109,8 +1109,8 @@ main(int argc, char *argv[])
 		unlink(sockpath);
 		free(nargv);
 		return(EXIT_FAILURE);
-	} 
-	
+	}
+
 	if (nod)
 		openlog(pname, LOG_PERROR | LOG_PID, LOG_DAEMON);
 	else
