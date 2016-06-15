@@ -6,7 +6,7 @@ This is the README file for display with
 [GitHub](https://www.github.com), which hosts a read-only source
 repository of the project. 
 To keep up to date with the current stable release of kcgi, visit the
-[kcgi website](http://kristaps.bsd.lv/kcgi).
+[kcgi website](https://kristaps.bsd.lv/kcgi).
 
 ## Code Example
 
@@ -36,21 +36,21 @@ kcgi then parses the request.
 
 kcgi works out-of-the-box with modern UNIX systems.
 Simply download the latest version's [source
-archive](http://kristaps.bsd.lv/kcgi/snapshots/kcgi.tar.gz) (or download
+archive](https://kristaps.bsd.lv/kcgi/snapshots/kcgi.tar.gz) (or download
 the project from GitHub), compile with `make`, then `sudo make install`.
 Your operating system might already have kcgi as one of its third-party
 libraries: check to make sure!
 
 ## API Reference
 
-See the [kcgi(3) manpage](http://kristaps.bsd.lv/kcgi/kcgi.3.html) for
+See the [kcgi(3) manpage](https://kristaps.bsd.lv/kcgi/kcgi.3.html) for
 complete library documentation.
 
 ## Tests
 
 The system contains a full regression suite and is also built to work
 with [AFL](http://lcamtuf.coredump.cx/afl/).
-See the [kcgi website](http://kristaps.bsd.lv/kcgi) for details on how
+See the [kcgi website](https://kristaps.bsd.lv/kcgi) for details on how
 to deploy (or write) tests.
 
 ## License
