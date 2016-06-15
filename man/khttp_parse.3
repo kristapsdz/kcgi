@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: March 15 2016 $
+.Dd $Mdocdate: April 14 2016 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -237,7 +237,7 @@ The number of elements in the
 array.
 .It Va fullpath
 The full path following the server name or
-.Dv NULL
+an empty string
 if there is no path following the server.
 For example, if
 .Pa foo.cgi/bar/baz
@@ -382,7 +382,7 @@ if not specified by the request.
 The suffix part of the
 .Dv PATH_INFO
 or
-.Dv NULL
+an empty string
 if none exists.
 For example, if the
 .Dv PATH_INFO
@@ -468,7 +468,7 @@ This is useful when validating opaque message bodies.
 The value's MIME content type (e.g.,
 .Li image/jpeg ) ,
 or
-.Dv NULL
+an empty string
 if not defined.
 .It Va ctypepos
 If
@@ -488,7 +488,7 @@ Otherwise, it's
 .Fa mimesz .
 .It Va file
 The value's MIME source filename or
-.Dv NULL
+an empty string
 if not defined.
 .It Va key
 The nil-terminated key (input) name.
@@ -537,7 +537,7 @@ The true length of
 The value's MIME content transfer encoding (e.g.,
 .Li base64 ) ,
 or
-.Dv NULL
+an empty string
 if not defined.
 .El
 .Pp
