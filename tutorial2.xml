@@ -3,7 +3,7 @@
 		<h2 itemprop="name">
 			FastCGI Deployments
 		</h2>
-		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<address itemprop="author"><a href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
 		<time itemprop="datePublished" datetime="2015-08-05">5 August, 2015</time>
 	</header>
 	<p>
@@ -84,8 +84,8 @@ main(void)
 		Our installation process will look a great deal like that of <a href="tutorial0.html">Getting Started with CGI in C</a> except
 		that we'll change our paths around a bit.
 		First, let's configure the web server.
-		I'll assume this is OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
-		The file-format documentation is <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man5/httpd.conf.5">httpd.conf(5)</a>.
+		I'll assume this is OpenBSD's <a href="http://man.openbsd.org/httpd.8">httpd(8)</a>.
+		The file-format documentation is <a href="http://man.openbsd.org/httpd.conf.5">httpd.conf(5)</a>.
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint lang-sh linenums">server "me.local" {
