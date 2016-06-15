@@ -4,9 +4,9 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
-		<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 		<link rel="stylesheet" href="index.css" type="text/css" />
+		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<script>
 			function showBits(name) 
 			{
@@ -59,10 +59,10 @@
 						source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C web
 						applications</span>.
 					It is minimal, secure, and auditable&#8212;a useful addition to the <a
-						href="http://www.learnbchs.org">BCHS</a> application stack.
+						href="https://www.learnbchs.org">BCHS</a> application stack.
 					To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
-					Contact <a href="http://kristaps.bsd.lv">Kristaps</a> with questions or comments.
-					<span class="nm">kcgi</span> is a <a href="http://www.bsd.lv">BSD.lv</a> project.
+					Contact <a href="https://kristaps.bsd.lv">Kristaps</a> with questions or comments.
+					<span class="nm">kcgi</span> is a <a href="https://www.bsd.lv">BSD.lv</a> project.
 				</p>
 			</section>
 			<figure id="sample" class="sample">
@@ -155,7 +155,7 @@ int main(void) {
 						itemprop="operatingSystem">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
 					It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 						href="http://nginx.org">nginx</a>, and OpenBSD's <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8?query=httpd">httpd(8)</a>
+						href="http://man.openbsd.org/httpd.8">httpd(8)</a>
 					(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
 					Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 						href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
@@ -200,13 +200,13 @@ int main(void) {
 					<li> 
 						Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>. 
 						Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
-						(<a href="http://kristaps.bsd.lv/absdcon2016">Slides</a>.)
+						(<a href="https://kristaps.bsd.lv/absdcon2016">Slides</a>.)
 					</li>
 					<li> 
 						Dzonsons, Kristaps. <i>kcgi: securing CGI applications in C</i>. 
 						Proceedings of <a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2015.
-						(<a href="http://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
-						 <a href="http://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)
+						(<a href="https://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
+						 <a href="https://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)
 					</li>
 				</ul>
 				<p>
@@ -214,7 +214,7 @@ int main(void) {
 				</p>
 				<ul>
 					<li>
-						Dzonsons, Kristaps.  <a href="http://kristaps.bsd.lv/kcgi/extending01.html">FastCGI Extensions
+						Dzonsons, Kristaps.  <a href="https://kristaps.bsd.lv/kcgi/extending01.html">FastCGI Extensions
 							for Management Control</a>.  March 2016.
 					</li>
 				</ul>
@@ -235,12 +235,12 @@ int main(void) {
 				<p>
 					Well-deployed web servers, such as the default <a href="http://www.openbsd.org">OpenBSD</a> server, by
 					default are deployed within a <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/chroot.2">chroot(2)</a>.  If
+						href="http://man.openbsd.org/chroot.2">chroot(2)</a>.  If
 					this is the case, you'll need to statically link your binary.
 					If running within a <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/chroot.2">chroot(2)</a> and on
+						href="http://man.openbsd.org/chroot.2">chroot(2)</a> and on
 					OpenBSD prior to 5.9 (i.e., with <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>),
+						href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>),
 					be aware that the sandbox method requires <span class="file">/dev/systrace</span> within the
 					server root.
 					By default, this file does not exist in the web server root.
@@ -252,7 +252,7 @@ int main(void) {
 					FastCGI applications may either be started directly by the web server (which is popular with <a
 						href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
 						href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
-						href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> and
+						href="http://man.openbsd.org/httpd.8">httpd(8)</a> and
 					suggested for the security precautions taken by the wrapper).
 				</p>
 			</section>
@@ -300,7 +300,7 @@ int main(void) {
 						the correct <code>AUDIT_ARCH_xxx</code> found in <code>/usr/include/linux/audit.h</code>.
 					</dd>
 					<dt>
-						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+						<a href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
 						(<a href="http://www.openbsd.org">OpenBSD</a>)
 					</dt>
 					<dd>
@@ -310,13 +310,13 @@ int main(void) {
 						mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
 					</dd>
 					<dt>
-						<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/pledge.2">pledge(2)</a>
+						<a href="http://man.openbsd.org/pledge.2">pledge(2)</a>
 						(<a href="http://www.openbsd.org">OpenBSD</a>)
 					</dt>
 					<dd>
 						This will only work on OpenBSD &gt;5.8.
 						It is selected with higher priority over <a
-							href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+							href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
 						on OpenBSD machines.
 					</dd>
 					<dt>
@@ -412,13 +412,13 @@ int main(void) {
 			</section>
 		</article>
 		<footer>
-			<div>&#169; 2014&#8211;2016 <a rel="author" href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2016 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-				<span>Built with <a href="http://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
+				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
 			</div>
 			<div>
 				<a href="https://scan.coverity.com/projects/kcgi">

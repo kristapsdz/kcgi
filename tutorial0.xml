@@ -3,7 +3,7 @@
 		<h2 itemprop="name">
 			Getting Started with CGI in C
 		</h2>
-		<address itemprop="author"><a href="http://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<address itemprop="author"><a href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
 		<time itemprop="datePublished" datetime="2015-06-21">21 June, 2015</time>
 	</header>
 	<p>
@@ -236,10 +236,10 @@ const char *const pages[PAGE__MAX] = {
 }</pre>
 	</figure>
 	<p>
-		Next, we use the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/rcctl.8">rcctl(8)</a> tool to enable and
-		start the the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> webserver and
-		<a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/slowcgi.8">slowcgi(8)</a> wrapper.
-		(The latter is necessary because <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> only
+		Next, we use the <a href="http://man.openbsd.org/rcctl.8">rcctl(8)</a> tool to enable and
+		start the the <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> webserver and
+		<a href="http://man.openbsd.org/slowcgi.8">slowcgi(8)</a> wrapper.
+		(The latter is necessary because <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> only
 		directly supports FastCGI, so a proxy is necessary.)
 		Again, you may not need to do this part.
 		We also make sure the instructions on the main page are followed regarding OpenBSD sandboxing in the file-system jail.
