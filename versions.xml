@@ -599,4 +599,18 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.8.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-06-14">2016-06-14</time>
+		</header>
+		<aside>
+			<div>
+				Fix several documentation bugs that erroneously noted values can be NULL when they would instead by empty
+				strings.
+				Also fixed some broken links.
+			</div>
+		</aside>
+	</article>
 </articles>
