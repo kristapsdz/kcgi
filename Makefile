@@ -377,7 +377,7 @@ www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) exten
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 index.html index.css extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
+	install -m 0444 index.html index.css mandoc.css extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
