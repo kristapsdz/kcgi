@@ -14,7 +14,7 @@
 				<h1>
 					<a href="index.html" class="nm">kcgi</a> 
 					&#8211; 
-					<span itemprop="description" class="nd">minimal CGI library in C</span>
+					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
 				<nav>
 					<span class="version">Version @VERSION@</span>
