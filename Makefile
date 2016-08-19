@@ -13,16 +13,18 @@ PREFIX 		 = /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
-		   tutorial2.xml
+		   tutorial2.xml \
+		   tutorial3.xml
 TUTORIALHTMLS	 = tutorial0.html \
 		   tutorial1.html \
-		   tutorial2.html
+		   tutorial2.html \
+		   tutorial3.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
-VERSION 	 = 0.8.4
+VERSION 	 = 0.8.5
 LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-reallocarray.o \
 		   compat-strlcat.o \
