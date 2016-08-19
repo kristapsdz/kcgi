@@ -421,18 +421,31 @@ Validating function.
 This function accepts a single
 .Ft "struct kpair *"
 argument and returns an
-.Ft int .
+.Ft int
+where zero is failure and non-zero is parse success.
 If the function is
 .Dv NULL ,
-then no validation is performed and the data is considered as always
-valid.
+then no validation is performed and the data is considered as valid and
+is bucketed into
+.Va fieldmap
+as such.
 If you provide your own
 .Fa valid
-function, it must set the
-.Va field
+function, it usually sets the
+.Va type
 and
 .Va parsed
 variables in the key-value pair.
+However, if you're working with binary or alternatively-typed data, you
+can set the
+.Va type
+to
+.Dv KVALID__MAX ,
+ignore the
+.Va parsed field, and work directly with
+.Va val
+and
+.Va valsz .
 You can also allocate new memory for the
 .Va val
 and thus
