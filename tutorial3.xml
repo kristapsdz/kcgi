@@ -1,0 +1,98 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			Custom Validation
+		</h2>
+		<address itemprop="author"><a href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2016-08-19">19 August, 2016</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			Applications often need to validate more then doubles, integers, or strings included in
+			<a href="kvalid_string.3.html">kvalid_string(3)</a>.
+			In this tutorial, I'll provide some examples on how to override the validation function.
+		</aside>
+	</p>
+	<p>
+		The most common validations for uploaded data seem to be JPG and PNG&#8212;just enough to make sure that the image really is one
+		of the two, and won't crash horribly in the main application when being parsed.
+		Given that <a href="kvalid_string.3.html">kvalid_string(3)</a> only covers common types, how do we handle custom validation?
+		Let's consider all three types, using the common
+		<a href="https://libgd.github.io/">libgd</a> library to abstract image handling.
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		We could parse directly using <a href="http://www.libpng.org/pub/png/libpng.html">libpng</a> and so on, but for the sake of our
+		example, this is a bit easier.
+		Our mission is to make sure that a JPG or PNG file is readable.
+		In our example, we'll create validation functions, register them with a named input field, then access the parsed data in our
+		web application.
+	</p>
+	<p>
+		To do so, we override the validator as described in <a href="khttp_parse.3.html">khttp_parse(3)</a> (scan down to <q>valid</q>).
+		It notes that the <code>KPAIR_DOUBLE</code>, <code>KPAIR_STRING</code>, and <code>KPAIR_DOUBLE</code> are provided for
+		validators that set the <code>parsed</code> field of <code>struct kpair</code>.
+		However, if our validator sets <code>KPAIR__MAX</code>, we don't use the <code>parsed</code> field at all.
+		The return code of the function will tell whether to bucket the pair in <code>fieldmap</code> (success) or
+		<code>fieldnmap</code> (failure).
+		The web application will then need to <q>know</q> to use the <code>val</code> and <code>valsz</code> if the validated pair
+		instead of the parsed fields.
+	</p>
+	<p>
+		To wit, we'll need to create the following functions, with the given header file:
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;gd.h&gt;
+int
+kvalid_png(struct kpair *kp)
+{
+  gdImagePtr im;
+  int rc;
+  im = gdImageCreateFromPngPtr(kp->valsz, kp->val);
+  if (0 != (rc = (NULL != im)))
+    gdImageDestroy(im);
+  kp->type = KPAIR__MAX;
+  return(rc);
+}
+
+int
+kvalid_jpeg(struct kpair *kp)
+{
+  gdImagePtr im;
+  int rc;
+  im = gdImageCreateFromJpegPtr(kp->valsz, kp->val);
+  if (0 != (rc = (NULL != im)))
+    gdImageDestroy(im);
+  kp->type = KPAIR__MAX;
+  return(rc);
+}</pre>
+	</figure>
+	<p>
+		Now we need to hook these into validations.
+		Let's assume that our HTML inputs are called <q>jpeg</q> and <q>png</q>, for simplicity.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum key {
+  KEY_JPEG,
+  KEY_PNG,
+  KEY__MAX
+};
+
+static const struct kvalid keys[KEY__MAX] = {
+  { kvalid_jpeg, "jpeg" }, /* KEY_JPEG */
+  { kvalid_png, "png" }, /* KEY_PNG */
+};</pre>
+	</figure>
+	<p>
+		That's it!
+		Now, our application logic can simply check for the existence of KEY_JPEG or KEY_PNG in the <code>fieldmap</code> table of
+		<code>struct kreq</code>, and be guaranteed that the results will be usable (at least by <a
+			href="https://libgd.github.io">libgd</a>).
+		The <code>valid</code> interface can do all sorts of more complicated things&#8212;for example, we could have converted JPEGs,
+		TIFFs, and other formats all into PNG files during validation by reading into a <code>gdImagePtr</code>, then writing the
+		results of <code>gdImagePngPtr</code> into the <code>val</code> and <code>valsz</code> members.  
+		These would then be written into the validated data, and all of our images would then be PNG.
+	</p>
+</article>
