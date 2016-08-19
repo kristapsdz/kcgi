@@ -82,9 +82,9 @@
   if ((p = r->fieldmap[KEY_STRING]))
     khttp_puts(r, p->parsed.s);
   else if (r->fieldnmap[KEY_STRING])
-    khttp_puts(r, "&lt;i&gt;failed parse&lt;i/&gt;");
+    khttp_puts(r, "&lt;i&gt;failed parse&lt;/i&gt;");
   else 
-    khttp_puts(r, "&lt;i&gt;not provided&lt;i/&gt;");
+    khttp_puts(r, "&lt;i&gt;not provided&lt;/i&gt;");
   khttp_puts(r, "&lt;/p&gt;\n");
 }</pre>
 	</figure>
