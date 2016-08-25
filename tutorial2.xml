@@ -90,14 +90,14 @@ main(void)
 	<figure class="sample">
 		<pre class="prettyprint lang-sh linenums">server "me.local" {
   listen on * port 80
-  location "/cgi-bin/*" {
+  location "/fcgi-bin/*" {
     fastcgi socket "/run/httpd.sock"
     root "/"
   }
 }</pre>
 	</figure>
 	<p>
-		This will cause CGI requests to <span class="file">/cgi-bin</span> to be routed into the socket at <span
+		This will cause CGI requests to <span class="file">/fcgi-bin</span> to be routed into the socket at <span
 			class="file">/run/httpd.sock</span>, which is relative to the server root <span class="file">/var/www</span>.
 		Let's first install our web application within the server root.
 	</p>
