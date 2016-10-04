@@ -284,7 +284,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_FLOW, "table" }, /* KELEM_TABLE */
 	{ TAG_FLOW, "tbody" }, /* KELEM_TBODY */
 	{ TAG_FLOW, "td" }, /* KELEM_TD */
-	{ TAG_FLOW, "textarea" }, /* KELEM_TEXTAREA */
+	{ TAG_PHRASE, "textarea" }, /* KELEM_TEXTAREA */
 	{ TAG_FLOW, "tfoot" }, /* KELEM_TFOOT */
 	{ TAG_FLOW, "th" }, /* KELEM_TH */
 	{ TAG_FLOW, "thead" }, /* KELEM_THEAD */
@@ -496,6 +496,9 @@ khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 {
 	size_t		 i;
 
+	if ( ! (KHTML_PRETTY & req->opts))
+		return;
+
 	if (TAG_FLOW == tags[elem].flags)
 		if ( ! req->newln) {
 			khttp_putc(req->req, '\n');
@@ -516,6 +519,9 @@ khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 static void
 khtml_flow_close(struct khtmlreq *req, enum kelem elem)
 {
+
+	if ( ! (KHTML_PRETTY & req->opts))
+		return;
 
 	if (TAG_FLOW == tags[elem].flags ||
 		TAG_INSTRUCTION == tags[elem].flags) {
@@ -737,11 +743,12 @@ khtml_text(struct khtmlreq *req, const char *cp)
 }
 
 void
-khtml_open(struct khtmlreq *r, struct kreq *req)
+khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 {
 
 	memset(r, 0, sizeof(struct khtmlreq));
 	r->req = req;
+	r->opts = opts;
 }
 
 int

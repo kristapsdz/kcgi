@@ -458,6 +458,8 @@ struct	khtmlreq {
 	enum kelem	 elems[KDATA_MAXELEMSZ];
 	size_t		 elemsz;
 	int		 newln;
+	int		 opts;
+#define	KHTML_PRETTY	 0x01
 };
 
 __BEGIN_DECLS
@@ -473,7 +475,7 @@ size_t		 khtml_elemat(struct khtmlreq *);
 void		 khtml_entity(struct khtmlreq *, enum kentity);
 void		 khtml_int(struct khtmlreq *, int64_t);
 void		 khtml_ncr(struct khtmlreq *, uint16_t);
-void		 khtml_open(struct khtmlreq *, struct kreq *);
+void		 khtml_open(struct khtmlreq *, struct kreq *, int);
 void		 khtml_putc(struct khtmlreq *, char);
 void		 khtml_puts(struct khtmlreq *, const char *);
 void		 khtml_text(struct khtmlreq *, const char *)
