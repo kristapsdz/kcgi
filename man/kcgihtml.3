@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: June 21 2015 $
+.Dd $Mdocdate: July 16 2015 $
 .Dt KCGIHTML 3
 .Os
 .Sh NAME
@@ -100,6 +100,7 @@
 .Fo khtml_open
 .Fa "struct khtmlreq *req"
 .Fa "struct kreq *r"
+.Fa "int opts"
 .Fc
 .Ft void
 .Fo khtml_putc
@@ -244,6 +245,16 @@ Emit the text
 escaping it (e.g.,
 .Sq \&> )
 for HTML if necessary.
+.It Fn khtml_open
+Initialise an HTML output context.
+This accepts the underlying request as well as a bit-mask of options
+.Fa opts .
+This can be set to
+.Dv KHTML_PRETTY ,
+in which case the output is lightly
+.Dq pretty-printed
+with newlines and indentation spaces.
+By default, output is all on one line.
 .It Fn khtml_puts
 Invokes
 .Fn khtml_putc
