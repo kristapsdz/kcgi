@@ -202,6 +202,10 @@ fcgi_end_read(int fd, int *status)
 		return(0);
 	}
 
+	/*
+	 * We use EXIT_SUCCESS for our status message.
+	 * See output.c for where this is set.
+	 */
 	*status = ntohl(st) == EXIT_SUCCESS ? 1 : 0;
 	return(1);
 }
@@ -536,10 +540,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	mode = umask(S_IXUSR | S_IRWXG | S_IRWXO);
 	if (-1 == (fd = mkstemp(sfn))) {
 		perror(sfn);
-		return(EXIT_FAILURE);
+		return(0);
 	} else if (-1 == close(fd) || -1 == unlink(sfn)) {
 		perror(sfn);
-		return(EXIT_FAILURE);
+		return(0);
 	}
 	umask(mode);
 
@@ -550,7 +554,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	sz = strlcpy(sun.sun_path, sfn, sizeof(sun.sun_path));
 	if (sz >= sizeof(sun.sun_path)) {
 		fprintf(stderr, "socket path to long\n");
-		return(EXIT_FAILURE);
+		return(0);
 	}
 #ifndef __linux__
 	sun.sun_len = sz;
@@ -558,15 +562,15 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror("socket");
-		return(EXIT_FAILURE);
+		return(0);
 	} else if (-1 == bind(fd, ss, sizeof(sun))) {
 		perror(sfn);
 		close(fd);
-		return(EXIT_FAILURE);
+		return(0);
 	} else if (-1 == listen(fd, 5)) {
 		perror(sfn);
 		close(fd);
-		return(EXIT_FAILURE);
+		return(0);
 	}
 
 	/*
@@ -579,7 +583,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		perror("fork");
 		unlink(sfn);
 		close(fd);
-		return(EXIT_FAILURE);
+		return(0);
 	} else if (0 == pid) {
 		if (-1 == dup2(fd, STDIN_FILENO))
 			_exit(EXIT_FAILURE);
@@ -594,7 +598,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 */
 	close(fd);
 	fd = in = -1;
-	rc = EXIT_FAILURE;
+	rc = 0;
 	f = NULL;
 
 	/* Get the next incoming connection and FILE-ise it. */
@@ -746,7 +750,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 
 	/* Now close the channel. */
 	close(in);
-	
+
 	in = dochild_params(stdin, NULL, NULL,
 		dochild_params_cgi) ? child(carg) : 0;
 
