@@ -50,7 +50,6 @@ static int
 parent(CURL *curl)
 {
 	struct buf	 buf;
-	char		*cp;
 
 	memset(&buf, 0, sizeof(struct buf));
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, parentwrite);
@@ -59,15 +58,7 @@ parent(CURL *curl)
 	/*curl_easy_setopt(curl, CURLOPT_ENCODING, "");*/
 	if (CURLE_OK != curl_easy_perform(curl))
 		return(0);
-	if (buf.sz != strlen(buf.buf)) {
-		fprintf(stderr, "buffer size mismatch\n");
-		return(0);
-	} else if (NULL == (cp = strstr(buf.buf, "\r\n\r\n"))) {
-		fprintf(stderr, "no crlf\n");
-		return(0);
-	}
-	cp += 4;
-	return(0 == strcmp(cp, "1234567890"));
+	return(0 == strcmp(buf.buf, "1234567890"));
 }
 
 static int
