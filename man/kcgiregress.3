@@ -90,6 +90,51 @@ functions should return zero on test failure.
 and
 .Fn kcgi_regress_fcgi
 return zero if any tests or internal machinery fail.
+.Sh EXAMPLES
+The following regression test simple checks whether a given URL,
+.Pa login.json ,
+is recognised (and returns HTTP error code 200) by CGI script
+.Pa foobar ,
+which is assumed to be accessable by
+.Xr execl 3 .
+.Bd -literal
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <curl/curl.h>
+#include <kcgiregress.h>
+
+static int
+child(void *arg)
+{
+  execl("foobar", "foobar", (char *)NULL);
+  _exit(EXIT_FAILURE);
+}
+
+static int
+parent(void *fp)
+{
+  CURL *curl;
+  long http;
+
+  curl = curl_easy_init();
+  curl_easy_setopt(curl, CURLOPT_URL, 
+    "http://localhost:17123/login.json");
+  if (CURLE_OK != curl_easy_perform(curl))
+    return(0);
+  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http);
+  curl_easy_cleanup(curl);
+  curl_global_cleanup();
+  return(200 == http);
+}
+
+int
+main(void)
+{
+  return(kcgi_regress_cgi(parent, NULL, child, NULL) ?
+    EXIT_SUCCESS : EXIT_FAILURE);
+}
+.Ed
 .Sh AUTHORS
 The
 .Nm kcgiregress
