@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014--2016 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,10 +28,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -63,7 +63,6 @@ fcgi_write(int fd, const void *buf, size_t sz)
 
 	wsz = 0;
 	while (sz > 0) {
-		/*fprintf(stderr, "writing: %zu\n", sz);*/
 		if (-1 == (ssz = write(fd, buf + wsz, sz))) {
 			perror("write");
 			return(0);
@@ -273,6 +272,7 @@ dochild_params_fcgi(const char *key, const char *val, void *arg)
 		strlen(val) + (strlen(val) > 127 ? 4 : 1);
 
 	/* Start with the FastCGI header. */
+
 	hdr.version = 1;
 	hdr.type = 4;
 	hdr.requestId = htons(1);
@@ -285,6 +285,7 @@ dochild_params_fcgi(const char *key, const char *val, void *arg)
 	}
 
 	/* Key and value lengths. */
+
 	if ((sz = strlen(key)) > 127) {
 		lenl = htonl(sz);
 		if ( ! fcgi_write(fd, &lenl, 4)) {
@@ -354,9 +355,11 @@ dochild_params(FILE *f, void *arg, size_t *length,
 	 * We'll do this in the simplest possible way so that there are
 	 * no surprises.
 	 */
+
 	first = 1;
 	while (NULL != fgets(head, sizeof(head), f)) {
 		/* Strip off the CRLF terminator. */
+
 		if ((sz = strlen(head)) < 2) {
 			fprintf(stderr, "Bad HTTP header\n");
 			return(0);
@@ -368,12 +371,15 @@ dochild_params(FILE *f, void *arg, size_t *length,
 		head[sz - 2] = '\0';
 
 		/* Empty line: now we're at the CGI document. */
+
 		if ('\0' == head[0])
 			break;
 
 		/* Process our header. */
+
 		if (first) {
 			/* Snarf the first GET/POST line. */
+
 			if (0 == strncmp(head, "GET ", 4)) {
 				if ( ! fp("REQUEST_METHOD", "GET", arg))
 					return(0);
@@ -389,6 +395,7 @@ dochild_params(FILE *f, void *arg, size_t *length,
 			}
 
 			/* Split this into the path and query. */
+
 			cp = path;
 			while ('\0' != *cp && ! isspace((int)*cp))
 				cp++;
@@ -410,6 +417,7 @@ dochild_params(FILE *f, void *arg, size_t *length,
 		 * Strip the leading spaces on the latter. 
 		 * Let baddies (no value) just go by.
 		 */
+
 		key = head;
 		if (NULL == (val = strchr(key, ':')))
 			continue;
@@ -418,6 +426,7 @@ dochild_params(FILE *f, void *arg, size_t *length,
 			val++;
 
 		/* Recognise some attributes... */
+
 		if (0 == strcmp(key, "Content-Length")) {
 			if (NULL != length)
 				*length = atoi(val);
@@ -434,6 +443,7 @@ dochild_params(FILE *f, void *arg, size_t *length,
 		 * Now we have "regular" attributes that we want to cast
 		 * directly as HTTP attributes in the CGI environment.
 		 */
+
 		strlcpy(buf, "HTTP_", sizeof(buf));
 		sz = strlcat(buf, key, sizeof(buf));
 		assert(sz < sizeof(buf));
@@ -451,6 +461,8 @@ dochild_params(FILE *f, void *arg, size_t *length,
 }
 
 /*
+ * First, read regress().
+ * This is the "child" portion of that description.
  * Bind to the local port over which we'll directly accept test requests
  * from our regression suite.
  * This port is acting as an ad hoc web server.
@@ -470,6 +482,7 @@ dochild_prepare(void)
 	 * Bind and listen to our reusable testing socket.
 	 * We pretty much just choose a random port for this.
 	 */
+
 	if (-1 == (s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))) {
 		perror("socket");
 		return(-1);
@@ -500,11 +513,13 @@ dochild_prepare(void)
 	 * They'll do a waitpid() to see when we're sleeping, then wake
 	 * us up when we're already ready to go.
 	 */
+
 	kill(getpid(), SIGSTOP);
 
 	/*
 	 * Wait for a single testing connection.
 	 */
+
 	len = sizeof(struct sockaddr_in);
 	if (-1 == (in = accept(s, (struct sockaddr *)&rem, &len))) {
 		perror("accept");
@@ -516,6 +531,10 @@ dochild_prepare(void)
 	return(in);
 }
 
+/*
+ * Broker a FastCGI process child.
+ * Return zero on failure and non-zero on success.
+ */
 static int
 dochild_fcgi(kcgi_regress_server child, void *carg)
 {
@@ -535,8 +554,11 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * Create a temporary file, close it, then unlink it.
 	 * The child will recreate this as a socket.
 	 */
+
 	strlcpy(sfn, "/tmp/kfcgi.XXXXXXXXXX", sizeof(sfn));
+
 	/* This shuts up Coverity. */
+
 	mode = umask(S_IXUSR | S_IRWXG | S_IRWXO);
 	if (-1 == (fd = mkstemp(sfn))) {
 		perror(sfn);
@@ -548,6 +570,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	umask(mode);
 
 	/* Do the usual dance to set up UNIX sockets. */
+
 	ss = (struct sockaddr *)&sun;
 	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
@@ -579,6 +602,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * package the request as a FastCGI request and ship it into the
 	 * UNIX socket.
 	 */
+
 	if (-1 == (pid = fork())) {
 		perror("fork");
 		unlink(sfn);
@@ -596,12 +620,14 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * The child has a reference to the object (via its dup2), so
 	 * we're not going to totally remove the file.
 	 */
+
 	close(fd);
 	fd = in = -1;
 	rc = 0;
 	f = NULL;
 
 	/* Get the next incoming connection and FILE-ise it. */
+
 	if (-1 == (in = dochild_prepare())) 
 		goto out;
 	if (NULL == (f = fdopen(in, "r+"))) {
@@ -614,6 +640,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * reusing the prior socket address.
 	 * Then remove the object, as nobody needs it any more.
 	 */
+
 	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
 		perror(sfn);
 		goto out;
@@ -627,6 +654,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	sfn[0] = '\0';
 
 	/* Write the request, its parameters, and all data. */
+
 	if ( ! fcgi_begin_write(fd))
 		goto out;
 	else if ( ! dochild_params(f, &fd, &len, dochild_params_fcgi))
@@ -639,6 +667,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * This is required because we'll just sit here waiting for data
 	 * otherwise.
 	 */
+
 	while (len > 0) {
 		sz = fread(buf, 1, len < sizeof(buf) ? 
 			len : sizeof(buf), f);
@@ -652,6 +681,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	}
 	
 	/* Indicate end of input. */
+
 	if ( ! fcgi_data_write(fd, NULL, 0)) {
 		fprintf(stderr, "%s: stdout (FIN)\n", __func__);
 		goto out;
@@ -662,6 +692,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * Stop reading on error or when we receive the end of data
 	 * token from the FastCGI client.
 	 */
+
 	while (fcgi_hdr_read(fd, &hdr)) {
 		if (3 == hdr.type) {
 			/* End of message. */
@@ -671,11 +702,13 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 			}
 			break;
 		} else if (6 != hdr.type) {
-			fprintf(stderr, "%s: bad type: %" PRIu8 "\n", __func__, hdr.type);
+			fprintf(stderr, "%s: bad type: %" 
+				PRIu8 "\n", __func__, hdr.type);
 			goto out;
 		}
 
 		/* Echo using a temporary buffer. */
+
 		while (hdr.contentLength > 0) {
 			sz = hdr.contentLength > BUFSIZ ? 
 				BUFSIZ : hdr.contentLength;
@@ -702,6 +735,7 @@ out:
 	 * Begin by asking the child to exit.
 	 * Then close all of our comm channels.
 	 */
+
 	if (-1 == kill(pid, SIGTERM))
 		perror("kill");
 	if (NULL != f)
@@ -719,46 +753,200 @@ out:
 	 * terminating, which is unfair and will raise spurrious
 	 * warnings elsewhere.
 	 */
+
 	if (-1 == waitpid(pid, NULL, 0))
 		perror("waitpid");
 	return(rc);
 }
 
+/*
+ * Broker a CGI process child.
+ * Return zero on failure and non-zero on success.
+ */
 static int
 dochild_cgi(kcgi_regress_server child, void *carg)
 {
-	int	 in;
+	int		 in, fd[2], rc;
+	const char	*msg;
+	pid_t		 pid;
+	char		*vec, *end, *start, *cp, *ovec;
+	size_t		 vecsz, headsz;
+	void		*pp;
+	char		 buf[BUFSIZ];
+	ssize_t		 ssz;
 
 	if (-1 == (in = dochild_prepare())) 
 		return(0);
 
 	/*
-	 * Assign the socket as our stdin and stdout.
-	 * This will facilitate the CGI script in reading and write its
-	 * response directly into the stream.
+	 * We need to do some filtering from the CGI script's output
+	 * (just its Status message), so create a socketpair which we'll
+	 * use to scrub its output.
+	 * This is because the CGI protocol is stupid: it would have
+	 * been a lot easier to just require an HTTP status message, but
+	 * I guess the intent was to make the web server worry about
+	 * formatting for various versions of HTTP.
+	 * Whatever.
 	 */
-	if (STDIN_FILENO != dup2(in, STDIN_FILENO)) {
-		perror("dup2");
+
+	if (-1 == socketpair(PF_LOCAL, SOCK_STREAM, 0, fd)) {
+		perror("socketpair");
 		close(in);
-		return(0);
-	} else if (STDOUT_FILENO != dup2(in, STDOUT_FILENO)) {
-		perror("dup2");
-		close(in);
-		close(STDOUT_FILENO);
 		return(0);
 	} 
 
-	/* Now close the channel. */
+	/* Launch the actual CGI process. */
+
+	if (-1 == (pid = fork())) {
+		perror("fork");
+		close(fd[0]);
+		close(fd[1]);
+		close(in);
+		return(0);
+	} else if (0 == pid) {
+		close(fd[1]);
+
+		/*
+		 * First, re-assign our stdin to be the server's file
+		 * descriptor "in".
+		 * Next, assign our stdout to be fd[0].
+		 * Finally, we suck down the HTTP headeres into our CGI
+		 * environment and run the child.
+		 */
+
+		if (STDIN_FILENO != dup2(in, STDIN_FILENO)) {
+			perror("dup2");
+			close(in);
+			close(fd[0]);
+			_exit(EXIT_FAILURE);
+		} 
+		close(in);
+		if (STDOUT_FILENO != dup2(fd[0], STDOUT_FILENO)) {
+			perror("dup2");
+			close(fd[0]);
+			return(0);
+		} 
+		close(fd[0]);
+
+		in = dochild_params(stdin, NULL, NULL,
+			dochild_params_cgi) ? child(carg) : 0;
+		_exit(in ? EXIT_SUCCESS : EXIT_FAILURE);
+	}
+
+	/*
+	 * We're in the parent.
+	 * Read and buffer the output of the CGI process until we get
+	 * its Status value.
+	 * Do so by copying through a static buffer into a growable
+	 * vector that we'll scan for the Status message to re-write.
+	 * Of course, if the CGI process is ill-designed, we'll consume
+	 * all of our memory and die.
+	 */
+
+	close(fd[0]);
+	vecsz = 0;
+	vec = end = NULL;
+	rc = 0;
+
+	while ((ssz = read(fd[1], buf, sizeof(buf))) > 0) {
+		pp = realloc(vec, vecsz + ssz);
+		if (NULL == pp) {
+			perror("realloc");
+			goto out;
+		}
+		vec = pp;
+		memcpy(vec + vecsz, buf, ssz);
+		vecsz += ssz;
+		end = memmem(vec, vecsz, "\r\n\r\n", 4);
+		if (NULL != end)
+			break;
+	}
+
+	if (ssz < 0) {
+		perror("read");
+		goto out;
+	}
+
+	/*
+	 * Now all our headers are in vec plus extra; of if it's NULL,
+	 * we reached the end of input without getting headers.
+	 * Now we start to scan for the status line or dump.
+	 */
+
+	if (NULL != end) {
+		/* Look for the status field. */
+
+		headsz = (size_t)(end - vec);
+		start = memmem(vec, headsz, "Status:", 7);
+		if (NULL == start) {
+			/*
+			 * No status field.
+			 * This is Ok (according to CGI).
+			 * However, we do not provide a valid status, so
+			 * do what others do and 200 it.
+			 */
+
+			msg = "HTTP/1.1 200 OK\r\n";
+			write(in, msg, strlen(msg));
+			fprintf(stderr, "CGI script did "
+				"not specify status\n");
+			ovec = vec;
+		} else {
+			/*
+			 * We found the status.
+			 * Print it out now, then everything that came
+			 * before it.
+			 */
+
+			msg = "HTTP/1.1";
+			write(in, msg, strlen(msg));
+			cp = start + 7;
+			while (cp < end) {
+				write(in, cp, 1);
+				cp++;
+				if ('\n' == cp[-1])
+					break;
+			}
+			write(in, vec, (size_t)(start - vec));
+			vecsz -= (cp - vec);
+			ovec = cp;
+		}
+
+		/*
+		 * Print everything else in our vector array, then poll
+		 * on the CGI script til its dry.
+		 */
+
+		write(in, ovec, vecsz);
+		while ((ssz = read(fd[1], buf, sizeof(buf))) > 0)
+			write(in, buf, ssz);
+		if (ssz < 0) {
+			perror("read");
+			goto out;
+		}
+	} else {
+		write(in, vec, vecsz);
+		fprintf(stderr, "CGI script did "
+			"not terminate headers (%zu read)\n", vecsz);
+	} 
+
+	rc = 1;
+out:
+	if (-1 == waitpid(pid, NULL, 0))
+		perror("waitpid");
+	free(vec);
 	close(in);
-
-	in = dochild_params(stdin, NULL, NULL,
-		dochild_params_cgi) ? child(carg) : 0;
-
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	return(in);
+	close(fd[1]);
+	return(rc);
 }
 
+/*
+ * This is the real beginning of the regression system.
+ * Create a child process first, and wait for it to go to sleep.
+ * When the child has gone to sleep, we know that it has started up and
+ * bound to a socket, so we can wake it up (SIGCONT) and test against
+ * the open socket.
+ */
 static int
 regress(int fastcgi,
 	kcgi_regress_client parent, void *parg, 
@@ -767,7 +955,12 @@ regress(int fastcgi,
 	pid_t	 chld, pid;
 	int	 rc, st;
 
-	/* Create our "test framework" child. */
+	/* 
+	 * Create our "test framework" child.
+	 * The child will return EXIT_SUCCESS or EXIT_FAILURE in the
+	 * usual way.
+	 */
+
 	if (-1 == (chld = fork())) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
@@ -778,7 +971,12 @@ regress(int fastcgi,
 		exit(rc ? EXIT_SUCCESS : EXIT_FAILURE);
 	}
 
-	/* Wait for it to sleep... */
+	/* 
+	 * Wait for it to sleep.
+	 * We do this to prevent the "parent" from trying to access the
+	 * web application over a socket that hasn't been opened yet.
+	 */
+
 	do {
 		pid = waitpid(chld, &st, WUNTRACED);
 	} while (pid == -1 && errno == EINTR);
@@ -788,6 +986,7 @@ regress(int fastcgi,
 	 * the listening socket. 
 	 * So simply wake it up and continue our work.
 	 */
+
 	if (-1 == pid) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
@@ -807,7 +1006,7 @@ regress(int fastcgi,
 	} 
 
 	return(rc && WIFEXITED(st) && 
-		EXIT_SUCCESS == WEXITSTATUS(st));
+	       EXIT_SUCCESS == WEXITSTATUS(st));
 }
 
 int
