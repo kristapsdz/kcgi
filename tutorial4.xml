@@ -1,0 +1,401 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			Using Pages
+		</h2>
+		<address itemprop="author"><a href="https://kristaps.bsd.lv">Ross Richardson</a></address>
+		<time itemprop="datePublished" datetime="2015-10-04">4 October, 2016</time>
+	</header>
+	<p>
+		<i>
+			(Thanks to Ross Richardson, who wrote this tutorial!)
+		</i>
+	</p>
+	<p>
+		In order to facilitate convenient handling of common cases, <span class="nm">kcgi</span> provides functionality for dealing with
+		the <abbr>CGI</abbr> meta variable <code>PATH_INFO</code>).
+		For example, if <span class="file">/cgi-bin/foo</span> is the CGI script, invoking <span
+			class="file">/cgi-bin/foo/bar/baz</span> will pass <span class="file">/bar/baz</span> as additional information.
+		Many CGI scripts use this functionality as <q>URL normalisation</q>, or pushing query-string variables into the path.
+	</p>
+	<p>
+		This tutorial describes an example CGI which implements a news site devoted to some particular topic.
+		The default document shows an index page, and there are sections for particular relevant areas:
+	</p>
+	<dl>
+		<dt><span class="file">http://www.example.com/cgi-bin/news</span></dt>
+		<dd>main index</dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/index/</span></dt>
+		<dd>main index</dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/about/</span></dt>
+		<dd>about the site</dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/</span></dt>
+		<dd>archive of old articles</dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var></span></dt>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/</span></dt>
+		<dd>archive/index of articles for year <var>yyyy</var></dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var></span></dt>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/</span></dt>
+		<dd>archive/index of articles for month <var>mm</var> of year <var>yyyy</var></dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/<var>dd</var></span></dt>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/<var>dd</var>/</span></dt>
+		<dd>archive/index of articles for date <var>yyyy</var>-<var>mm</var>-<var>dd</var></dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/random/</span></dt>
+		<dd>a random article</dd>
+		<dt><span class="file">http://www.example.com/cgi-bin/news/tag/<var>subj</var></span></dt>
+		<dd>articles tagged with &quot;<var>subj</var>&quot;</dd>
+	</dl>
+	<p>
+		<aside itemprop="about">
+			The tutorial gives an overview of the basic path handling provided by <span class="nm">kcgi</span>, and then shows and discusses
+			relevant code snippets.
+		</aside>
+	</p>
+	<h3>
+		Basic Handling
+	</h3>
+	<p>
+		Assuming a call to <a href="khttp_parse.3.html">khttp_parse(3)</a> returns <code>KCGI_OK</code>, the relevant fields of the
+		<code>struct kreq</code> are:
+	</p>
+	<dl>
+		<dt><code>fullpath</code></dt>
+		<dd>the value of <abbr>CGI</abbr> meta variable <code>PATH_INFO</code> (which may be the empty string)</dd>
+		<dt><code>pagename</code></dt>
+		<dd>the substring of <code>PATH_INFO</code> from after the initial '/' to (but excluding) the next '/', or to the end-of-string
+			(or the empty string if no such substring exists)</dd>
+		<dt><code>page</code></dt>
+		<dd>
+			<ul>
+				<li>if <code>pagename</code> is the empty string, the <code>defpage</code> parameter passed to
+					<code>http_parse(3)</code> (that is, the index corrsponding to the default page)</li>
+				<li>if <code>pagename</code> matches one of the strings in the <code>pages</code> parameter passed to
+					<code>http_parse(3)</code>, the index of that string</li>
+				<li>if <code>pagename</code> does not match any of the strings in <code>pages</code>, the <code>pagesz</code>
+					parameter passed to <code>http_parse(3)</code></li>
+			</ul>
+		</dd>
+		<dt><code>path</code></dt>
+		<dd>the substring of <code>PATH_INFO</code> from (but not including) the second '/' to the end-of-string (or the empty string if
+			no such substring exists)</dd>
+	</dl>
+	<p>
+		In addition, the field <code>pname</code> contains the value of the <abbr>CGI</abbr> meta variable <code>SCRIPT_NAME</code>.
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		Here we look only at the code snippets not covered by the earlier tutorials.
+		Firstly, we define some values corresponding with the subsections of the site.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum pg {
+  PG_INDEX,
+  PG_ABOUT,
+  PG_ARCHIVE,
+  PG_RANDOM,
+  PG_TAG,
+  PG__MAX
+};</pre>
+	</figure>
+	<p>
+		Next, we define the path strings corresponding with the enumeration values
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static const char *pages[PG__MAX] = {
+  &quot;index&quot;,
+  &quot;about&quot;,
+  &quot;archive&quot;,
+  &quot;random&quot;,
+  &quot;tag&quot;
+};</pre>
+	</figure>
+	<p>
+		We then define a constant bitmap corresponding with those <code>enum pg</code> values for which no extra path information should
+		be prsent in the <abbr>HTTP</abbr> request.
+		This will be used for sanity-checking the request.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">const size_t pg_no_extra_permitted =
+  ((1 &lt;&lt; PG_INDEX) | 
+   (1 &lt;&lt; PG_ABOUT) | 
+   (1 &lt;&lt; PG_RANDOM));</pre>
+	</figure>
+	<p>
+		Next, we define a type for dates, a constant for the earliest valid year, functions for parsing a string specifying a date.
+		We use year zero to indicate an invalid specification, and month/day zero to indicate that a month/day value was not specified.)
+	</p>
+	<p>
+		<strong>Editor's note</strong>: remember that <a href="http://man.openbsd.org/strptime">strptime(3)</a> and friends may not be
+		available within a file-system sandbox due to time-zone access, so we need to find another way.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">struct adate {
+  unsigned int year; /* 0 if invalid */
+  unsigned int month; /* 0 if not specified */
+  unsigned int day; /* 0 if not specified */
+};
+
+const unsigned int  archive_first_yr = 1995;
+
+static unsigned int
+current_year(void)
+{
+  struct tm *t;
+  time_t now;
+
+  if ((now = time(NULL)) == (time_t)-1 || 
+      (t = gmtime(&amp;now)) == NULL)
+    exit(EXIT_FAILURE);
+
+  return t-&gt;tm_year + 1900;
+} /* current_year */
+
+static unsigned int
+month_length(unsigned int y, unsigned int m)
+{
+  unsigned int len;
+
+  switch (m) {
+    case 2:
+      if (y % 4 == 0 &amp;&amp; (y % 100 != 0 || y % 400 == 0))
+        len = 29;
+      else
+        len = 28;
+      break;
+    case 1:
+    case 3: 
+    case 5: 
+    case 7:
+    case 8: 
+    case 10: 
+    case 12:
+      len = 31;
+      break;
+    case 4: 
+    case 6: 
+    case 9: 
+    case 11:
+      len = 30;
+      break;
+    default:
+      exit(EXIT_FAILURE);
+    }
+    return len;
+} /* month_length */
+
+static void
+str_to_adate(const char* s, char sep, struct adate *d)
+{
+  long long val;
+  char *t, *a, *b;
+  size_t i;
+
+  /* Set error/default state until proven otherwise. */
+  d-&gt;year = 0;
+  d-&gt;month = 0;
+  d-&gt;day = 0;
+
+  i = 0;
+  while (isdigit(s[i]) || s[i] == sep)
+    i++;
+
+  if (i &gt; 0 &amp;&amp; s[i] == '\0') {
+    /* s consists of digits and sep characters only. */
+    /* Make a copy with which is is safe to tamper. */
+    t = kstrdup(s);
+    a = t;
+    if ((b = strchr(a, sep)) != NULL)
+      *b = '\0';
+    val = strtonum(a, archive_first_yr, current_year(), NULL);
+    if (val != 0) {
+      /* Year is OK. */
+      d-&gt;year = val;
+      if (b != NULL &amp;&amp; b[1] != '\0') {
+        /* Move on to month. */
+        a = &amp;b[1];
+        if ((b = strchr(a, sep)) != NULL)
+          *b = '\0';
+        val = strtonum(a, 1, 12, NULL);
+        if (val == 0) {
+          d-&gt;year = 0;
+        } else {
+          d-&gt;month = val;
+          if (b != NULL &amp;&amp; b[1] != '\0') {
+            /* Move on to day. */
+            a = &amp;b[1];
+            if ((b = strchr(a, sep)) != NULL)
+              *b = '\0';
+	    if ((b != NULL &amp;&amp; b[1] != '\0') || 
+	        (val = strtonum(a, 1, month_length
+	         (d-&gt;year, d-&gt;month), NULL)) == 0) {
+              d-&gt;year  = 0;
+              d-&gt;month = 0;
+            } else {
+              d-&gt;day   = val;
+            }
+          }
+        }
+      }
+    }
+    free(t);
+  }
+} /* str_to_adate */</pre>
+	</figure>
+	<p>
+		Now, we consider the basic handling of the request.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">
+int
+main(int argc, char* argv[])
+{
+  struct kreq r;
+  struct adate ad;
+  struct kpair *p;
+
+  if (khttp_parse(&amp;r, NULL, 0,
+      pages, PG__MAX, PG_INDEX) != KCGI_OK)
+    return EXIT_FAILURE  /* abort */;
+
+  if (r.mime != KMIME_TEXT_HTML) {
+    handle_err(&amp;r, KHTTP_404);
+  } else if (r.method != KMETHOD_GET &amp;&amp; 
+             r.method != KMETHOD_HEAD) {
+    handle_err(&amp;r, KHTTP_405);
+  } else if (r.page == PG__MAX || 
+            (r.path[0] != '\0' &amp;&amp;
+             ((1 &lt;&lt; r.page) &amp; pg_no_extra_permitted))) {
+    handle_err(&amp;r, KHTTP_404);
+  } else {
+    switch (r.page) {
+      case PG_INDEX :
+        handle_index(&amp;r);
+        break;
+      case PG_ABOUT :
+        handle_about(&amp;r);
+        break;
+      case PG_ARCHIVE :
+        if (r.path != NULL &amp;&amp; r.path[0] != '\0') {
+          str_to_adate(r.path, '/', &amp;ad);
+          if (ad.year != 0) {
+            handle_archive(&amp;r, &amp;ad);
+          } else {
+            handle_err(&amp;r, KHTTP_404);
+          }
+        } else {
+          /* Not specified at all. */
+          handle_archive(&amp;r, NULL);
+        }
+        break;
+      case PG_RANDOM :
+        handle_random(&amp;r);
+        break;
+      case PG_TAG :
+        handle_tag(&amp;r, r.path);
+        break;
+      default :
+        /* shouldn't happen */
+        handle_err(&amp;r, KHTTP_500);
+        break;
+      }
+    }
+    khttp_free(&amp;r);
+    return EXIT_SUCCESS;
+}</pre>
+	</figure>
+	<p>
+		Suppose we now decide that we wish to fall back to looking for a date specification (with '-' separators rather than '/') in the
+		query string if none is specified in the path.
+		This is as simple as adding the required definition&#x2026;
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">enum key {
+  KEY_ADATE,
+  KEY__MAX
+};</pre>
+	</figure>
+	<p>
+		&#x2026;and adding a validator function&#x2026;
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">static int
+valid_adate(struct kpair* kp)
+{
+  struct adate ad;
+  int ok;
+
+  /* Invalid until proven otherwise. */
+  ok = 0;
+
+  if (kvalid_stringne(kp)) {
+    str_to_adate(kp-&gt;val, '-', &amp;ad);
+    if (ad.year != 0) {
+      /* We have a valid specification. */
+      kp-&gt;type = KPAIR__MAX  /* Not a simple type. */;
+      kp-&gt;valsz = sizeof(ad);
+      kp-&gt;val   = kmalloc(kp-&gt;valsz);
+      ((struct adate*)kp-&gt;val)-&gt;year  = ad.year;
+      ((struct adate*)kp-&gt;val)-&gt;month = ad.month;
+      ((struct adate*)kp-&gt;val)-&gt;day   = ad.day;
+      ok = 1;
+    }
+  }
+  return ok;
+} /* valid_adate */
+
+static const struct kvalid keys[KEY__MAX] = {
+  { valid_adate, &quot;adate&quot; }  /* KEY_ADATE */
+};</pre>
+	</figure>
+	<p>
+		(Note that the same date parsing function, <kbd>str_to_adate()</kbd>, is used but in this case it is wrapped in a validator
+		function and thus executes in the sandboxed environment.)
+	</p>
+	<p>
+		&#x2026;and, in <kbd>main()</kbd>, modifying the call to <a href="khttp_parse.3.html">khttp_parse(3)</a>&#x2026;
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">if (khttp_parse(&amp;r, keys, KEY__MAX,
+      pages, PG__MAX, PG_INDEX) != KCGI_OK) {
+  khttp_free(&amp;r);
+  return EXIT_FAILURE  /* abort */;
+}</pre>
+	</figure>
+	<p>
+		&#x2026;and handling of the <kbd>PG_ARCHIVE</kbd> case&#x2026;
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">case PG_ARCHIVE :
+  if (r.path != NULL &amp;&amp; r.path[0] != '\0') {
+    str_to_adate(r.path, '/', &amp;ad);
+    if (ad.year != 0)
+      handle_archive(&amp;r, &amp;ad);
+    else
+      handle_err(&amp;r, KHTTP_404);
+  } else if (r.fieldmap[KEY_ADATE] != NULL) {
+    /* Fallback to field. */
+    handle_archive(&amp;r, (struct adate*)r.fieldmap[KEY_ADATE]-&gt;val);
+  } else if (r.fieldnmap[KEY_ADATE] != NULL) {
+    /* Field is invalid. */
+    handle_err(&amp;r, KHTTP_404);
+  } else {
+    /* Not specified at all. */
+    handle_archive(&amp;r, NULL);
+  }
+  break;</pre>
+	</figure>
+	<p>
+		Whilst some specifications are naturally suited to the use of path information (for example, dates, file system hierarchies, and
+		timezones), others are are a less natural fit.
+		Suppose, in our example, that we want to be able to specify a date and a tag <em>at the same time</em>.  This could be achieved
+		by extending the behaviour of the <kbd>archive</kbd> or <kbd>tag</kbd> &quot;page&quot;, but does not fit comfortably with
+		either.
+		In general, use of query string <kbd>keys</kbd> is preferred over <kbd>pages</kbd> because the former:
+	</p>
+	<ul>
+		<li><strong>involve parsing/validation in a sandboxed environment</strong></li>
+		<li>allows for greater flexibility</li>
+	</ul>
+</article>
