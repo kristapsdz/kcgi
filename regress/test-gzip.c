@@ -60,7 +60,7 @@ parent(CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_ENCODING, "gzip");
 	if (CURLE_OK != curl_easy_perform(curl))
 		return(0);
-	return(NULL != strstr("Content-Encoding: gzip", buf.buf));
+	return(NULL != strstr(buf.buf, "Content-Encoding: gzip"));
 }
 
 static int
