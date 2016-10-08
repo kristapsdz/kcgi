@@ -626,4 +626,19 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.8.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-10-10">2016-10-10</time>
+		</header>
+		<aside>
+			<div>
+				Regressions, regressions, regressions, regressions.
+				Fix <a href="kcgiregress.3.html">kcgiregress(3)</a> to work in a more general fashion, adding an example usage
+				along the way.
+				Regression tests are (sadly) not used often for web applications, so this tool should be a welcome one!
+			</div>
+		</aside>
+	</article>
 </articles>
