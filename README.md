@@ -15,22 +15,24 @@ One usually specifies the pages recognised by the application and the
 known form inputs.
 kcgi then parses the request.
 
-	#include <stdint.h>
-	#include <stdlib.h>
-	#include <kcgi.h>
-	 
-	int main(void) {
-	  struct kreq r;
-	  const char *page = "index";
-	  if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
-		return(EXIT_FAILURE);
-	  khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-	  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
-	  khttp_body(&r);
-	  khttp_puts(&r, "Hello, world!");
-	  khttp_free(&r);
-	  return(EXIT_SUCCESS);
-	}
+``` c
+#include <stdint.h>
+#include <stdlib.h>
+#include <kcgi.h>
+ 
+int main(void) {
+  struct kreq r;
+  const char *page = "index";
+  if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
+	return(EXIT_FAILURE);
+  khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
+  khttp_body(&r);
+  khttp_puts(&r, "Hello, world!\n");
+  khttp_free(&r);
+  return(EXIT_SUCCESS);
+}
+```
 
 ## Installation
 
