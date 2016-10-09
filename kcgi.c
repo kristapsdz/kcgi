@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h> /* khttp_util_datetime */
 #include <unistd.h>
 
 #include "kcgi.h"
@@ -1219,11 +1220,6 @@ khttp_templatex(const struct ktemplate *t,
 		return(1);
 	}
 
-#ifdef	HAVE_SENDFILE
-	if (NULL == t && khttp_templatex_write == fp) {
-	}
-#endif
-
 	sz = (size_t)st.st_size;
 	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
 
@@ -1237,4 +1233,15 @@ khttp_templatex(const struct ktemplate *t,
 	munmap(buf, sz);
 	close(fd);
 	return(rc);
+}
+
+char *
+kutil_http_datetime(int64_t tt, char *buf, size_t sz)
+{
+	struct tm	 tm;
+	time_t		 t = (time_t)tt;
+
+	gmtime_r(&t, &tm);
+	strftime(buf, sz, "%a, %d %b %Y %T GMT", &tm);
+	return(buf);
 }
