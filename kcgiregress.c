@@ -17,6 +17,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -50,6 +51,69 @@ struct 	fcgi_hdr {
 	uint8_t	 paddingLength;
 	uint8_t	 reserved;
 };
+
+/*
+ * Non-blocking read.
+ * This reads as many (non-zero) bytes, and really only wraps the
+ * poll(2) mechanism.
+ */
+static ssize_t
+nb_read(int fd, void *buf, size_t bufsz)
+{
+	struct pollfd	 pfd;
+	int		 rc;
+
+	assert(NULL != buf && bufsz);
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+
+	if ((rc = poll(&pfd, 1, -1)) < 0) {
+		perror("poll");
+		return(-1);
+	} else if (0 == rc) {
+		fprintf(stderr, "poll: timeout!?\n");
+		return(-1);
+	} 
+	
+	return(read(fd, buf, bufsz));
+}
+
+/*
+ * Non-blocking write.
+ * Write the entire buffer while respecting that we may need to wait for
+ * the descriptor to clear up.
+ */
+static int
+nb_write(int fd, const void *buf, size_t bufsz)
+{
+	ssize_t	 	 ssz;
+	size_t	 	 sz;
+	struct pollfd	 pfd;
+	int		 rc;
+
+	if (NULL == buf || 0 == bufsz)
+		return(1);
+
+	pfd.fd = fd;
+	pfd.events = POLLOUT;
+
+	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
+		if ((rc = poll(&pfd, 1, -1)) < 0)
+			perror("poll");
+		else if (0 == rc)
+			fprintf(stderr, "poll: timeout!?\n");
+		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
+			perror("write");
+		else if (sz > SIZE_MAX - (size_t)ssz)
+			fprintf(stderr, "write: overflow: "
+				"%zu, %zd", sz, ssz);
+		else
+			continue;
+		return(0);
+	}
+	return(1);
+}
 
 /*
  * Perform a non-blocking write to our child FastCGI process.
@@ -329,19 +393,21 @@ dochild_params_fcgi(const char *key, const char *val, void *arg)
  * Parse HTTP header lines from input.
  * This obviously isn't the best way of doing things, but it's simple
  * and easy to fix for the purposes of this regression suite.
- * This will continually parse lines from `f' until it reaches a blank
+ * This will continually parse lines from `fd' until it reaches a blank
  * line, at which point it will return control.
  * It returns zero on failure (read failure, or possibly write failure
  * when serialising to the CGI context) or non-zero on success.
  */
 static int
-dochild_params(FILE *f, void *arg, size_t *length,
+dochild_params(int fd, void *arg, size_t *length,
 	int (*fp)(const char *, const char *, void *)) 
 {
 	int		 first;
 	char		 head[BUFSIZ], buf[BUFSIZ];
+	ssize_t		 ssz;
 	size_t		 sz;
 	char		*cp, *path, *query, *key, *val;
+	char		 c;
 	extern char	*__progname;
 
 	if (NULL != length)
@@ -351,21 +417,34 @@ dochild_params(FILE *f, void *arg, size_t *length,
 		return(0);
 
 	/*
-	 * Read header lines.
-	 * We'll do this in the simplest possible way so that there are
-	 * no surprises.
+	 * Read header lines without buffering and clobbering the data
+	 * yet to be read on the wire.
+	 * Process them as the environment input to our CGI.
 	 */
 
-	first = 1;
-	while (NULL != fgets(head, sizeof(head), f)) {
-		/* Strip off the CRLF terminator. */
+	for (first = 1;;) {
+		/*
+		 * Start by reading the header itself into a
+		 * fixed-length buffer, making sure to respect that the
+		 * descriptor is non-blocking.
+		 */
 
-		if ((sz = strlen(head)) < 2) {
+		for (sz = 0; sz < BUFSIZ; ) {
+			ssz = nb_read(fd, &c, 1);
+			if (ssz < 0) {
+				perror("read");
+				return(0);
+			} else if (0 == ssz || '\n' == (head[sz++] = c))
+				break;
+		}
+
+		/* Strip CRLF. */
+
+		if (sz < 2 || sz == BUFSIZ) {
 			fprintf(stderr, "Bad HTTP header\n");
 			return(0);
-		}
-		if ('\n' != head[sz - 1] || '\r' != head[sz - 2]) {
-			fprintf(stderr, "Unterminated HTTP header\n");
+		} else if ('\r' != head[sz - 2]) {
+			fprintf(stderr, "Bad HTTP header CRLF\n");
 			return(0);
 		}
 		head[sz - 2] = '\0';
@@ -518,6 +597,8 @@ dochild_prepare(void)
 
 	/*
 	 * Wait for a single testing connection.
+	 * When we accept it, immediately note as non-blocking: kcgi(3)
+	 * uses polling, so it will need a non-blocking descriptor.
 	 */
 
 	len = sizeof(struct sockaddr_in);
@@ -525,7 +606,12 @@ dochild_prepare(void)
 		perror("accept");
 		close(s);
 		return(-1);
-	} 
+	} else if (-1 == fcntl(in, F_SETFL, O_NONBLOCK)) {
+		perror("fcntl: O_NONBLOCK");
+		close(s);
+		close(in);
+		return(0);
+	}
 
 	close(s);
 	return(in);
@@ -539,14 +625,14 @@ static int
 dochild_fcgi(kcgi_regress_server child, void *carg)
 {
 	int			 in, rc, fd;
-	size_t			 sz, len, pos;
+	size_t			 sz, len;
 	pid_t			 pid;
 	struct sockaddr_un	 sun;
 	struct sockaddr		*ss;
+	ssize_t			 ssz;
 	extern char		*__progname;
 	char			 sfn[22];
 	char			 buf[BUFSIZ];
-	FILE			*f;
 	struct fcgi_hdr		 hdr;
 	mode_t		  	 mode;
 
@@ -624,16 +710,11 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	close(fd);
 	fd = in = -1;
 	rc = 0;
-	f = NULL;
 
 	/* Get the next incoming connection and FILE-ise it. */
 
 	if (-1 == (in = dochild_prepare())) 
 		goto out;
-	if (NULL == (f = fdopen(in, "r+"))) {
-		perror("fdopen");
-		goto out;
-	} 
 
 	/*
 	 * Open a new socket to the FastCGI object and connect to it,
@@ -657,7 +738,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	if ( ! fcgi_begin_write(fd))
 		goto out;
-	else if ( ! dochild_params(f, &fd, &len, dochild_params_fcgi))
+	else if ( ! dochild_params(in, &fd, &len, dochild_params_fcgi))
 		goto out;
 
 	/*
@@ -666,20 +747,25 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * download data if it was.
 	 * This is required because we'll just sit here waiting for data
 	 * otherwise.
+	 * Note: "in" is non-blocking, so be respectful.
 	 */
 
 	while (len > 0) {
-		sz = fread(buf, 1, len < sizeof(buf) ? 
-			len : sizeof(buf), f);
-		if (0 == sz)
+		ssz = nb_read(in, buf, 
+			len < sizeof(buf) ? len : sizeof(buf));
+		if (ssz < 0) {
+			perror("read");
+			goto out;
+		} else if (0 == ssz)
 			break;
-		if ( ! fcgi_data_write(fd, buf, sz)) {
+
+		if ( ! fcgi_data_write(fd, buf, ssz)) {
 			fprintf(stderr, "%s: stdout\n", __func__);
 			goto out;
 		}
-		len -= sz;
+		len -= ssz;
 	}
-	
+
 	/* Indicate end of input. */
 
 	if ( ! fcgi_data_write(fd, NULL, 0)) {
@@ -713,13 +799,9 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 			sz = hdr.contentLength > BUFSIZ ? 
 				BUFSIZ : hdr.contentLength;
 			if (fcgi_read(fd, buf, sz)) {
-				pos = 0;
-				while (sz > 0) {
-					len = fwrite(buf + pos, 1, sz, f);
-					sz -= len;
-					pos += len;
-					hdr.contentLength -= len;
-				}
+				if ( ! nb_write(in, buf, sz))
+					goto out;
+				hdr.contentLength -= sz;
 				continue;
 			} else
 				fprintf(stderr, "%s: bad read\n", __func__);
@@ -736,11 +818,8 @@ out:
 	 * Then close all of our comm channels.
 	 */
 
-	if (-1 == kill(pid, SIGTERM))
-		perror("kill");
-	if (NULL != f)
-		fclose(f);
-	else if (-1 != in)
+	kill(pid, SIGTERM);
+	if (-1 != in)
 		close(in);
 	if ('\0' != sfn[0])
 		unlink(sfn);
@@ -805,14 +884,17 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		return(0);
 	} else if (0 == pid) {
 		close(fd[1]);
-
 		/*
-		 * First, re-assign our stdin to be the server's file
-		 * descriptor "in".
-		 * Next, assign our stdout to be fd[0].
-		 * Finally, we suck down the HTTP headeres into our CGI
+		 * First, we suck down the HTTP headeres into our CGI
 		 * environment and run the child.
+		 * Next, re-assign our stdin to be the server's file
+		 * descriptor "in".
+		 * Then assign our stdout to be fd[0].
 		 */
+
+		if ( ! dochild_params(in, NULL, NULL, 
+		    dochild_params_cgi))
+			return(0);
 
 		if (STDIN_FILENO != dup2(in, STDIN_FILENO)) {
 			perror("dup2");
@@ -821,6 +903,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			_exit(EXIT_FAILURE);
 		} 
 		close(in);
+
 		if (STDOUT_FILENO != dup2(fd[0], STDOUT_FILENO)) {
 			perror("dup2");
 			close(fd[0]);
@@ -828,8 +911,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		} 
 		close(fd[0]);
 
-		in = dochild_params(stdin, NULL, NULL,
-			dochild_params_cgi) ? child(carg) : 0;
+		child(carg);
 		_exit(in ? EXIT_SUCCESS : EXIT_FAILURE);
 	}
 
@@ -887,7 +969,8 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			 */
 
 			msg = "HTTP/1.1 200 OK\r\n";
-			write(in, msg, strlen(msg));
+			if ( ! nb_write(in, msg, strlen(msg)))
+				goto out;
 			fprintf(stderr, "CGI script did "
 				"not specify status\n");
 			ovec = vec;
@@ -899,15 +982,18 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			 */
 
 			msg = "HTTP/1.1";
-			write(in, msg, strlen(msg));
+			if ( ! nb_write(in, msg, strlen(msg)))
+				goto out;
 			cp = start + 7;
 			while (cp < end) {
-				write(in, cp, 1);
+				if ( ! nb_write(in, cp, 1))
+					goto out;
 				cp++;
 				if ('\n' == cp[-1])
 					break;
 			}
-			write(in, vec, (size_t)(start - vec));
+			if ( ! nb_write(in, vec, (size_t)(start - vec)))
+				goto out;
 			vecsz -= (cp - vec);
 			ovec = cp;
 		}
@@ -917,23 +1003,28 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		 * on the CGI script til its dry.
 		 */
 
-		write(in, ovec, vecsz);
+		if ( ! nb_write(in, ovec, vecsz))
+			goto out;
+
 		while ((ssz = read(fd[1], buf, sizeof(buf))) > 0)
-			write(in, buf, ssz);
+			nb_write(in, buf, ssz);
+
 		if (ssz < 0) {
 			perror("read");
 			goto out;
 		}
 	} else {
-		write(in, vec, vecsz);
+		if ( ! nb_write(in, vec, vecsz))
+			goto out;
 		fprintf(stderr, "CGI script did "
-			"not terminate headers (%zu read)\n", vecsz);
+			"not terminate headers\n");
 	} 
 
 	rc = 1;
 out:
 	if (-1 == waitpid(pid, NULL, 0))
 		perror("waitpid");
+
 	free(vec);
 	close(in);
 	close(fd[1]);
