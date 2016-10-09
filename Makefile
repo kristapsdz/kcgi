@@ -156,6 +156,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-gzip \
 		   regress/test-gzip-bigfile \
 		   regress/test-header \
+		   regress/test-httpdate \
 		   regress/test-nogzip \
 		   regress/test-path-check \
 		   regress/test-ping \
@@ -178,6 +179,7 @@ REGRESS_OBJS	 = regress/regress.o \
 		   regress/test-gzip.o \
 		   regress/test-gzip-bigfile.o \
 		   regress/test-header.o \
+		   regress/test-httpdate.o \
 		   regress/test-nogzip.o \
 		   regress/test-path-check.o \
 		   regress/test-ping.o \
@@ -204,6 +206,7 @@ REGRESS_SRCS	 = regress/regress.c \
 		   regress/test-gzip.c \
 		   regress/test-gzip-bigfile.c \
 		   regress/test-header.c \
+		   regress/test-httpdate.c \
 		   regress/test-nogzip.c \
 		   regress/test-path-check.c \
 		   regress/test-ping.c \
@@ -309,6 +312,9 @@ regress/test-abort-validator: regress/test-abort-validator.c regress/regress.o l
 
 regress/test-upload: regress/test-upload.c regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-upload.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+
+regress/test-httpdate: regress/test-httpdate.c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-httpdate.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
