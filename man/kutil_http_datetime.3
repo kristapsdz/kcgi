@@ -1,0 +1,66 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: July 16 2015 $
+.Dt KUTIL_HTTP_DATETIME 3
+.Os
+.Sh NAME
+.Nm kutil_http_datetime
+.Nd format time for HTTP operations
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft "void"
+.Fo kutil_http_datetime
+.Fa "int64_t epoch"
+.Fa "char *buf"
+.Fa "size_t sz"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm
+function format an epoch value
+.Fa "epoch"
+.Pa seconds since Jan 1, 1970, 00:00:00 UTC
+into the buffer
+.Fa buf
+of size
+.Fa sz ,
+which should be greater than or equal to 30 bytes for the date and
+trailing nil terminator.
+The format conforms to RFC 822.
+.Pp
+This function is useful for properly setting date-time header values:
+.Dv KRESP_SET_COOKIE ,
+.Dv KRESP_LAST_MODIFIED ,
+.Dv KRESP_DATE ,
+etc.
+.Sh AUTHORS
+The
+.Nm
+library was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+The
+.Vt time_t
+type is not used for the epoch to avoid expanding header requirements
+for
+.In kcgi.h
+and because the
+.Vt int64_t
+type is used consistently for integral values.
