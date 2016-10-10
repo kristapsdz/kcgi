@@ -639,8 +639,8 @@
 				along the way.
 				Regression tests are (sadly) not used often for web applications, so this tool should be a welcome one!
 				Also add two useful functions: <a href="kutil_epoch2str.3.html">kutil_epoch2str(3)</a> for converting from
-				integral (epoch) UNIX time into an HTTP date and <a href="kutil_epoch2str.3.html">kutil_date2epoch(3)</a> for
-				converting from dates to integral time.
+				integral (epoch) UNIX time into an HTTP date and <a href="kutil_date2epoch.3.html">kutil_date2epoch(3)</a> and <a
+					href="kutil_date2epoch.3.html">kutil_datetime2epoch(3)</a> for converting from dates to integral time.
 			</div>
 		</aside>
 	</article>
