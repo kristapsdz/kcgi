@@ -29,7 +29,7 @@
 		<header>
 			<section id="header">
 				<h1>
-					<span itemprop="name" class="nm">kcgi</span> 
+					<a href="index.html" itemprop="name" class="nm">kcgi</a> 
 					&#8211; 
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
