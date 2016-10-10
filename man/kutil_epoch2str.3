@@ -15,27 +15,35 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KUTIL_HTTP_DATETIME 3
+.Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
-.Nm kutil_http_datetime
-.Nd format time for HTTP operations
+.Nm kutil_epoch2str ,
+.Nm kutil_date2epoch
+.Nd format and parse time for HTTP operations
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
 .In stdint.h
 .In kcgi.h
 .Ft "void"
-.Fo kutil_http_datetime
+.Fo kutil_epoch2str
 .Fa "int64_t epoch"
 .Fa "char *buf"
 .Fa "size_t sz"
 .Fc
+.Ft "int64_t"
+.Fo kutil_date2epoch
+.Fa "int64_t day"
+.Fa "int64_t mon"
+.Fa "int64_t year"
+.Fc
 .Sh DESCRIPTION
 The
-.Nm
-function format an epoch value
-.Fa "epoch"
+.Nm kutil_epoch2str
+function formats an
+.Fa epoch
+value
 .Pa seconds since Jan 1, 1970, 00:00:00 UTC
 into the buffer
 .Fa buf
@@ -44,8 +52,15 @@ of size
 which should be greater than or equal to 30 bytes for the date and
 trailing nil terminator.
 The format conforms to RFC 822.
+This will truncate all values before the zeroth epoch to zero (Jan 1 as
+given).
 .Pp
-This function is useful for properly setting date-time header values:
+The
+.Nm kutil_date2epoch
+function converts a day, month, and year into an epoch.
+If the year is before 1970, this returns zero.
+.Pp
+These functions is useful for properly setting date-time header values:
 .Dv KRESP_SET_COOKIE ,
 .Dv KRESP_LAST_MODIFIED ,
 .Dv KRESP_DATE ,
