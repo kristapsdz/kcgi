@@ -641,6 +641,8 @@
 				Also add two useful functions: <a href="kutil_epoch2str.3.html">kutil_epoch2str(3)</a> for converting from
 				integral (epoch) UNIX time into an HTTP date and <a href="kutil_date2epoch.3.html">kutil_date2epoch(3)</a> and <a
 					href="kutil_date2epoch.3.html">kutil_datetime2epoch(3)</a> for converting from dates to integral time.
+				Lastly, clarify that <a href="khttp_parse.3.html">khttp_parse(3)</a> requires a call to <a
+					href="khttp_free.3.html">khttp_free(3) if and only if it returns success.
 			</div>
 		</aside>
 	</article>

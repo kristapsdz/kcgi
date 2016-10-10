@@ -76,12 +76,12 @@
 int main(void) {
   struct kreq r;
   const char *page = "index";
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0)) {
-    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
     return(EXIT_FAILURE);
-  }
-  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
+  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
+    "%s", khttps[KHTTP_200]);
+  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+    "%s", kmimetypes[r.mime]);
   <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
   <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
   <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
@@ -101,10 +101,8 @@ int main(void) {
    * the default page if none is supplied.
    * (We don't validate any input fields.)
    */
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0)) {
-    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
+  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
     return(EXIT_FAILURE);
-  }
 
   /* 
    * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
@@ -114,9 +112,11 @@ int main(void) {
    */
 
   /* Emit the HTTP status 200 header: everything's ok. */
-  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
+    "%s", khttps[KHTTP_200]);
   /* Echo our content-type, defaulting to HTML if none was specified. */
-  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[r.mime]);
+  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+    "%s", kmimetypes[r.mime]);
   /* No more HTTP headers: start the HTTP document body. */
   <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
   

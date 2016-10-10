@@ -678,6 +678,7 @@ khttp_parsex(struct kreq *req,
 	}
 
 	close(work_dat[KWORKER_CHILD]);
+	work_dat[KWORKER_CHILD] = -1;
 
 	if ( ! ksandbox_init_parent
 		 (work_box, SAND_WORKER, work_pid)) {
@@ -751,15 +752,24 @@ khttp_parsex(struct kreq *req,
 	}
 
 	close(work_dat[KWORKER_PARENT]);
+	work_dat[KWORKER_PARENT] = -1;
 	kerr = kxwaitpid(work_pid);
+	work_pid = -1;
+	if (KCGI_OK != kerr)
+		goto err;
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
 	return(kerr);
 err:
-	close(work_dat[KWORKER_PARENT]);
-	kxwaitpid(work_pid);
+	assert(KCGI_OK != kerr);
+	if (-1 != work_dat[KWORKER_PARENT])
+		close(work_dat[KWORKER_PARENT]);
+	if (-1 != work_pid)
+		kxwaitpid(work_pid);
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
+	kdata_free(req->kdata, 0);
+	req->kdata = NULL;
 	kreq_free(req);
 	return(kerr);
 }
