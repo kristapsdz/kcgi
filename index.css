@@ -15,7 +15,7 @@ body > header nav li + li	{ margin-top: 0.5em; }
 #usage nav ul			{ list-style-type: none; 
 				  padding: 0; }
 #header				{ background-color: #333; 
-				  padding: 3em 5% 1ex 5%;
+				  padding: 3em 15% 1ex 15%;
 				  color: #fff; }
 #header a			{ color: #ddd; }
 #header a:hover			{ color: #fff; }
@@ -24,7 +24,7 @@ body > header nav li + li	{ margin-top: 0.5em; }
 				  color: #abc;
 				  padding-right: 1ex; }
 #version			{ background-color: #ddd; 
-				  padding: 1em 5% 0 5%; }
+				  padding: 1em 15% 0.5em 15%; }
 #version a, 
 #version time, 
 #version span.version		{ font-style: normal; }
@@ -35,7 +35,7 @@ body > header nav li + li	{ margin-top: 0.5em; }
 				  text-shadow: 0 0 0px #000; }
 #version > a:hover		{ color: #666; }
 h1				{ font-size: 32pt; 
-				  margin: 0 0 1ex 0;
+				  margin: 0;
 				  line-height: 34pt;
 				  font-weight: normal; }
 .nm, .file			{ font-style: italic; }
@@ -61,7 +61,7 @@ article[data-sblg-article],
 article section,
 #permlink,
 figure nav,
-article figcaption		{ padding: 1ex 10%; 
+article figcaption		{ padding: 1ex 15%; 
 				  margin: 0; }
 article[data-sblg-article] header address,
 article[data-sblg-article] header time
@@ -95,7 +95,7 @@ pre.prettyprint			{ border: none;
 				  width: auto; }
 pre.prettyprint a		{ font-style: italic; }
 pre.prettyprint a:hover		{ font-style: italic; }
-#sample pre.prettyprint ol	{ padding: 0 10%; }
+#sample pre.prettyprint ol	{ padding: 0.5em 15%; }
 pre.prettyprint ol.linenums > li { list-style-type: decimal; }
 footer				{ padding: 1ex;
 				  margin-top: 1em;
@@ -106,16 +106,22 @@ footer				{ padding: 1ex;
 				  margin-right: auto; }
 #archive li + li		{ margin-top: 12pt; }
 
-@media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
+@media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
 h1				{ font-size: 16pt; 
 				  line-height: 18pt; }
 h1 .nd				{ font-size: 14pt; }
 pre				{ font-size: 8pt; }
 figure img			{ display: block;
+				  max-width: 400px;
+				  margin-left: auto;
+				  margin-right: auto;
 				  width: 100%; }
 article[data-sblg-article],
 article section,
 #permlink,
 figure nav,
 article figcaption		{ padding: 1ex 2%; }
+#version			{ padding: 1em 2% 0 2%; }
+#header				{ padding: 3em 2% 1ex 2%; }
+#sample pre.prettyprint ol	{ padding: 0.5em 2%; }
 }
