@@ -129,8 +129,20 @@ int64_t
 kutil_date2epoch(int64_t day, int64_t mon, int64_t year)
 {
 
-	if (year < 1970)
+	if (year < 1970 || mon < 0 || year < 0)
 		return(0);
 	return(mkdate(day, mon, year) -
 	       mkdate(1, 1, 1970));
+}
+
+int64_t
+kutil_datetime2epoch(int64_t day, int64_t mon, int64_t year,
+	int64_t hour, int64_t minute, int64_t sec)
+{
+
+	if (year < 1970 || mon < 0 || year < 0 ||
+	    hour < 0 || minute < 0 || sec < 0)
+		return(0);
+	return(kutil_date2epoch(day, mon, year) +
+		hour * (60 * 60) + minute * 60 + sec);
 }
