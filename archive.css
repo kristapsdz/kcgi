@@ -14,8 +14,8 @@ body > header nav li + li	{ margin-top: 0.5em; }
 #header				{ background-color: #333; 
 				  padding: 3em 15% 1ex 15%;
 				  color: #fff; }
-#header a			{ color: #ddd; }
-#header a:hover			{ color: #fff; }
+#header a			{ color: #dd5; }
+#header a:hover			{ color: #ff0; }
 #header nav			{ padding: 0.5ex 0 1ex 0; }
 #header nav .version		{ border-right: thin solid silver; 
 				  color: #abc;
