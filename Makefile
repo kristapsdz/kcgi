@@ -32,6 +32,7 @@ LIBCONFIGOBJS	 = compat-memmem.o \
 		   compat-strtonum.o
 LIBOBJS 	 = auth.o \
 		   child.o \
+		   datetime.o \
 		   fcgi.o \
 		   httpauth.o \
 		   kcgi.o \
@@ -109,6 +110,7 @@ SRCS 		 = auth.c \
      		   compat-strlcpy.c \
      		   compat-strtonum.c \
      		   extern.h \
+		   datetime.c \
 		   fcgi.c \
 		   httpauth.c \
 		   md5.c \
