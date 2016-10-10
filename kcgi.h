@@ -516,6 +516,8 @@ int		 khttp_fcgi_test(void);
 
 char		*kutil_epoch2str(int64_t, char *, size_t);
 int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t);
+int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
+			int64_t, int64_t, int64_t);
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *);

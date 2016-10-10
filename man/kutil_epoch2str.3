@@ -38,6 +38,15 @@
 .Fa "int64_t mon"
 .Fa "int64_t year"
 .Fc
+.Ft "int64_t"
+.Fo kutil_datetime2epoch
+.Fa "int64_t day"
+.Fa "int64_t mon"
+.Fa "int64_t year"
+.Fa "int64_t hour"
+.Fa "int64_t min"
+.Fa "int64_t sec"
+.Fc
 .Sh DESCRIPTION
 The
 .Nm kutil_epoch2str
@@ -54,17 +63,23 @@ trailing nil terminator.
 The format conforms to RFC 822.
 This will truncate all values before the zeroth epoch to zero (Jan 1 as
 given).
-.Pp
-The
-.Nm kutil_date2epoch
-function converts a day, month, and year into an epoch.
-If the year is before 1970, this returns zero.
-.Pp
-These functions is useful for properly setting date-time header values:
+This function is useful for properly setting date-time header values:
 .Dv KRESP_SET_COOKIE ,
 .Dv KRESP_LAST_MODIFIED ,
 .Dv KRESP_DATE ,
 etc.
+.Pp
+The
+.Nm kutil_date2epoch
+function converts a day, month, and year into an epoch (at time 00:00:00).
+If the year is before 1970 or any values are negative, this returns zero.
+The behaviour for invalid dates (e.g., a
+.Fn mon
+value of 14) is undefined.
+The
+.Nm kutil_datetime2epoch
+is similar, but acts upon time values as well.
+The same rules regarding negative numbers and undefinedness apply.
 .Pp
 All of these date functions are designed to avoid how native
 .Xr gmtime 3
