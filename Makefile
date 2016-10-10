@@ -395,25 +395,22 @@ sample-fcgi: sample-fcgi.o libkcgi.a
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(STATIC) sample-cgi.o 
 
-www: $(SVGS) index.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
+www: $(SVGS) index.html archive.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 index.html index.css mandoc.css extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
+	install -m 0444 index.html archive.html index.css mandoc.css extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
 	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
 	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
 
-updatewww: www
-	mkdir -p $(PREFIX)
-	install -m 0444 index.html index.css $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
-	install -m 0444 sample.c $(PREFIX)/sample.c.txt
-	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
-
 index.html: index.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+
+archive.html: archive.xml versions.xml $(TUTORIALHTMLS)
+	sblg -t archive.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 $(TUTORIALHTMLS): tutorial.xml versions.xml $(TUTORIALXMLS)
 
@@ -454,7 +451,7 @@ kcgi.tgz:
 
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
-	rm -f index.html $(TUTORIALHTMLS) extending01.html
+	rm -f index.html about.html $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
 	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
