@@ -62,7 +62,7 @@ child(void)
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_head(&r, kresps[KRESP_LAST_MODIFIED], "%s", 
-		kutil_http_datetime(t, buf, sizeof(buf)));
+		kutil_epoch2str(t, buf, sizeof(buf)));
 	khttp_body(&r);
 	khttp_free(&r);
 	return(1);
