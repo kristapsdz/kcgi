@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> /* khttp_util_datetime */
 #include <unistd.h>
 
 #include "kcgi.h"
@@ -974,21 +973,10 @@ valid_email(char *p)
 	return(start);
 }
 
-static long
-mkdate(int d, int m, int y)
-{
-
-	m = (m + 9) % 12;
-	y = y - m / 10;
-	return(365 * y + y / 4 - y / 100 + 
-		y / 400 + (m * 306 + 5) / 10 + (d - 1));
-}
-
 int
 kvalid_date(struct kpair *kp)
 {
 	int		 mday, mon, year;
-	long		 v;
 
 	if ( ! kvalid_stringne(kp))
 		return(0);
@@ -1010,8 +998,7 @@ kvalid_date(struct kpair *kp)
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
-	v = mkdate(mday, mon, year) * 86400;
-	kp->parsed.i = v - mkdate(1, 1, 1970) * 86400;
+	kp->parsed.i = kutil_date2epoch(mday, mon, year);
 	kp->type = KPAIR_INTEGER;
 	return(1);
 }
@@ -1233,15 +1220,4 @@ khttp_templatex(const struct ktemplate *t,
 	munmap(buf, sz);
 	close(fd);
 	return(rc);
-}
-
-char *
-kutil_http_datetime(int64_t tt, char *buf, size_t sz)
-{
-	struct tm	 tm;
-	time_t		 t = (time_t)tt;
-
-	gmtime_r(&t, &tm);
-	strftime(buf, sz, "%a, %d %b %Y %T GMT", &tm);
-	return(buf);
 }
