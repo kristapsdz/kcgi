@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2015, 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014--2016 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -70,9 +70,11 @@ They are the central functions in the
 .Xr kcgi 3
 library, parsing and validating key-value form (query string, message
 body, cookie) data and opaque message bodies.
-They must always be matched by
+They must be matched by
 .Xr khttp_free 3
-regardless of return value.
+if and only if the return value is
+.Dv KERR_OK
+.Pq otherwise, resources are internally freed .
 .Pp
 The collective arguments are as follows:
 .Bl -tag -width Ds

@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: August 7 2015 $
 .Dt KHTTP_FREE 3
 .Os
 .Sh NAME
@@ -48,7 +48,7 @@ or
 flushing the HTTP data stream in the process.
 After calling this function, the members of
 .Fa req
-should not be used.
+should not be used and the function should not be called again.
 .Pp
 The
 .Nm khttp_child_free
