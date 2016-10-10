@@ -628,7 +628,7 @@
 	</article>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
-			<h1>0.8.6</h1>
+			<h1>0.9.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2016-10-10">2016-10-10</time>
 		</header>
@@ -638,6 +638,9 @@
 				Fix <a href="kcgiregress.3.html">kcgiregress(3)</a> to work in a more general fashion, adding an example usage
 				along the way.
 				Regression tests are (sadly) not used often for web applications, so this tool should be a welcome one!
+				Also add two useful functions: <a href="kutil_epoch2str.3.html">kutil_epoch2str(3)</a> for converting from
+				integral (epoch) UNIX time into an HTTP date and <a href="kutil_epoch2str.3.html">kutil_date2epoch(3)</a> for
+				converting from dates to integral time.
 			</div>
 		</aside>
 	</article>
