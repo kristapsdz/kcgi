@@ -19,6 +19,8 @@ TUTORIALHTMLS	 = tutorial0.html \
 		   tutorial1.html \
 		   tutorial2.html \
 		   tutorial3.html
+SBLGS		 = archive.html \
+		   index.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
@@ -222,6 +224,9 @@ SVGS		 = figure1.svg \
 		   extending01-b.svg \
 		   extending01-c.svg \
 		   extending01-d.svg
+CSSS	         = archive.css \
+	           index.css \
+	           mandoc.css
 
 all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
 
@@ -395,11 +400,11 @@ sample-fcgi: sample-fcgi.o libkcgi.a
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(STATIC) sample-cgi.o 
 
-www: $(SVGS) index.html archive.html kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
+www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
 
 installwww: www
 	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 index.html archive.html index.css mandoc.css extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
+	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
 	install -m 0444 sample.c $(PREFIX)/sample.c.txt
 	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
@@ -451,7 +456,7 @@ kcgi.tgz:
 
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
-	rm -f index.html about.html $(TUTORIALHTMLS) extending01.html
+	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
 	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
 	rm -f libkcgihtml.a kcgihtml.o
@@ -459,6 +464,7 @@ clean:
 	rm -f libkcgixml.a kcgixml.o
 	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
+	rm -f test-arc4random
 	rm -f test-abort-valid.core core
 	rm -f test-memmem test-memmem.o 
 	rm -f test-reallocarray test-reallocarray.o 

@@ -34,10 +34,10 @@
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
 				<nav>
-					<a itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
-					<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
-					<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
-					<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
+					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
+					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
+					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
+					<a title="Source repository" href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
 				</nav>
 			</section>
 			<section id="version">
@@ -47,7 +47,7 @@
 						<div>${sblg-aside}</div>
 					</div>
 				</nav>
-				<a href="archive.html">Archive</a>
+				<a href="archive.html">Version archive</a>
 			</section>
 		</header>
 		<article>
