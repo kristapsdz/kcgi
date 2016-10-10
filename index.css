@@ -36,6 +36,7 @@ body > header nav li + li	{ margin-top: 0.5em; }
 #version > a:hover		{ color: #666; }
 h1				{ font-size: 32pt; 
 				  margin: 0 0 1ex 0;
+				  line-height: 34pt;
 				  font-weight: normal; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
@@ -81,14 +82,10 @@ dd				{ margin: 0 0 1em 0; }
 .sample nav a			{ color: #333; }
 .sample nav a:hover i		{ text-shadow: 1px 1px #aaa; }
 body > header nav		{ overflow: hidden; }
-body > header nav li >div:first-child
-				{ font-weight: bold; }
+body > header nav .title	{ font-weight: bold; 
+				  margin-bottom: 0.5em; }
 body > header nav li + li	{ margin-top: 1.5em; }
-				{ font-weight: bold; }
-body > header nav li >div > div	{ margin-top: 0.5em; }
-#longnews,
 #comments			{ max-height: 0; }
-#nolongnews,
 #nocomments			{ max-height: 500em; }
 pre.prettyprint			{ border: none; 
 				  line-height: 150%;
@@ -104,8 +101,14 @@ footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
 .flag				{ font-weight: bold; }
+#archive			{ width: 80%;
+				  margin-left: auto;
+				  margin-right: auto; }
+#archive li + li		{ margin-top: 12pt; }
+
 @media only screen and (max-width: 480px), only screen and (max-device-width: 480px) {
-h1				{ font-size: 16pt; }
+h1				{ font-size: 16pt; 
+				  line-height: 18pt; }
 h1 .nd				{ font-size: 14pt; }
 pre				{ font-size: 8pt; }
 figure img			{ display: block;

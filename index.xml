@@ -41,15 +41,13 @@
 				</nav>
 			</section>
 			<section id="version">
-				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1" id="nolongnews">
-					<div>Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
-					<div>${sblg-aside}</div>
+				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1">
+					<div>
+						<div class="title">Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
+						<div>${sblg-aside}</div>
+					</div>
 				</nav>
-				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navcontent="1" id="longnews">
-					<div>Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
-					<div>${sblg-aside}</div>
-				</nav>
-				<a href="#version" onclick="showBits('longnews');">Toggle All News</a>
+				<a href="archive.html">Archive</a>
 			</section>
 		</header>
 		<article>
