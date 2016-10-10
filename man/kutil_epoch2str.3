@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 9 2016 $
+.Dd $Mdocdate: October 10 2016 $
 .Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
@@ -44,7 +44,7 @@ The
 function formats an
 .Fa epoch
 value
-.Pa seconds since Jan 1, 1970, 00:00:00 UTC
+.Pq seconds since Jan 1, 1970, 00:00:00 UTC
 into the buffer
 .Fa buf
 of size
@@ -65,10 +65,17 @@ These functions is useful for properly setting date-time header values:
 .Dv KRESP_LAST_MODIFIED ,
 .Dv KRESP_DATE ,
 etc.
+.Pp
+All of these date functions are designed to avoid how native
+.Xr gmtime 3
+and time formatting functions access time-zone files, which may
+unwittingly crash given some operating system's sandbox mechanisms.
 .Sh AUTHORS
 The
-.Nm
-library was written by
+.Nm kutil_epoch2str
+and
+.Nm kutil_date2epoch
+functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The
