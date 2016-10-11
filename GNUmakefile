@@ -35,6 +35,7 @@ LIBOBJS 	 = auth.o \
 		   fcgi.o \
 		   httpauth.o \
 		   kcgi.o \
+		   logging.o \
 		   md5.o \
 		   output.o \
 		   parent.o \
@@ -95,6 +96,7 @@ SRCS 		 = auth.c \
 		   datetime.c \
 		   fcgi.c \
 		   httpauth.c \
+		   logging.c \
 		   md5.c \
 		   md5.h \
      		   kcgi.c \
