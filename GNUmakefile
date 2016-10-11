@@ -164,8 +164,13 @@ SVGS		 = figure1.svg \
 CSSS	         = archive.css \
 	           index.css \
 	           mandoc.css
+LIBS		 = libkcgi.a \
+		   libkcgihtml.a \
+		   libkcgijson.a \
+		   libkcgixml.a \
+		   libkcgiregress.a
 
-all: kfcgi libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a
+all: kfcgi $(LIBS)
 
 afl: $(AFL)
 
@@ -261,7 +266,7 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN3DIR)
 	mkdir -p $(DESTDIR)$(MAN8DIR)
 	mkdir -p $(DESTDIR)$(SBINDIR)
-	install -m 0444 libkcgi.a libkcgihtml.a libkcgijson.a libkcgixml.a libkcgiregress.a $(DESTDIR)$(LIBDIR)
+	install -m 0444 $(LIBS) $(DESTDIR)$(LIBDIR)
 	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
 	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
@@ -335,11 +340,8 @@ clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
-	rm -f libkcgi.a $(LIBOBJS) $(LIBCONFIGOBJS) 
-	rm -f libkcgihtml.a kcgihtml.o
-	rm -f libkcgijson.a kcgijson.o
-	rm -f libkcgixml.a kcgixml.o
-	rm -f libkcgiregress.a kcgiregress.o
+	rm -f $(LIBOBJS) $(LIBCONFIGOBJS) 
+	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o
 	rm -f config.log config.h
 	rm -f $(TESTS) $(TESTOBJS)
 	rm -f test-abort-valid.core core
