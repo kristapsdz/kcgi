@@ -15,10 +15,7 @@ TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml \
 		   tutorial3.xml
-TUTORIALHTMLS	 = tutorial0.html \
-		   tutorial1.html \
-		   tutorial2.html \
-		   tutorial3.html
+TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $(xml) .xml)))
 SBLGS		 = archive.html \
 		   index.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
@@ -48,40 +45,21 @@ LIBOBJS 	 = auth.o \
 		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
 		   wrappers.o
-HTMLS		 = man/kcgi.3.html \
-		   man/kcgihtml.3.html \
-		   man/kcgijson.3.html \
-		   man/kcgiregress.3.html \
-		   man/kcgixml.3.html \
-		   man/kfcgi.8.html \
-		   man/khttp_body.3.html \
-		   man/khttp_fcgi_free.3.html \
-		   man/khttp_fcgi_init.3.html \
-		   man/khttp_fcgi_parse.3.html \
-		   man/khttp_fcgi_test.3.html \
-		   man/khttp_free.3.html \
-		   man/khttp_head.3.html \
-		   man/khttp_parse.3.html \
-		   man/khttp_template.3.html \
-		   man/khttp_write.3.html \
-		   man/khttpbasic_validate.3.html \
-		   man/khttpdigest_validate.3.html \
-		   man/kmalloc.3.html \
-		   man/kutil_urlencode.3.html \
-		   man/kutil_epoch2str.3.html \
-		   man/kvalid_string.3.html
-TESTS 		 = test-arc4random.c \
-		   test-memmem.c \
-      		   test-reallocarray.c \
-      		   test-sandbox_init.c \
-      		   test-capsicum.c \
-      		   test-pledge.c \
-      		   test-strlcat.c \
-      		   test-strlcpy.c \
-      		   test-strtonum.c \
-      		   test-seccomp-filter.c \
-      		   test-systrace.c \
-      		   test-zlib.c
+HTMLS	 	 = $(addsuffix .html, $(MANS))
+TESTOBJS	 = $(addsuffix .o, $(TESTS))
+TESTSRCS	 = $(addsuffix .c, $(TESTS))
+TESTS 		 = test-arc4random \
+		   test-memmem \
+      		   test-reallocarray \
+      		   test-sandbox_init \
+      		   test-capsicum \
+      		   test-pledge \
+      		   test-strlcat \
+      		   test-strlcpy \
+      		   test-strtonum \
+      		   test-seccomp-filter \
+      		   test-systrace \
+      		   test-zlib
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
@@ -143,7 +121,7 @@ SRCS 		 = auth.c \
      		   sandbox-systrace.c \
      		   wrappers.c \
      		   $(MANS) \
-     		   $(TESTS)
+     		   $(TESTSRCS)
 AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
 		   afl/afl-urlencoded
@@ -169,56 +147,13 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-post \
 		   regress/test-returncode \
 		   regress/test-upload
-REGRESS_OBJS	 = regress/regress.o \
-		   regress/test-abort-validator.o \
-		   regress/test-basic.o \
-		   regress/test-bigfile.o \
-		   regress/test-digest.o \
-		   regress/test-fcgi-abort-validator.o \
-		   regress/test-fcgi-bigfile.o \
-		   regress/test-fcgi-file-get.o \
-		   regress/test-fcgi-path-check.o \
-		   regress/test-fcgi-ping.o \
-		   regress/test-fcgi-upload.o \
-		   regress/test-file-get.o \
-		   regress/test-fork.o \
-		   regress/test-gzip.o \
-		   regress/test-gzip-bigfile.o \
-		   regress/test-header.o \
-		   regress/test-httpdate.o \
-		   regress/test-nogzip.o \
-		   regress/test-path-check.o \
-		   regress/test-ping.o \
-		   regress/test-post.o \
-		   regress/test-returncode.o \
-		   regress/test-upload.o
+REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS))
 AFL_SRCS	 = afl/afl-multipart.c \
 		   afl/afl-plain.c \
 		   afl/afl-urlencoded.c
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
-		   regress/test-abort-validator.c \
-		   regress/test-basic.c \
-		   regress/test-bigfile.c \
-		   regress/test-digest.c \
-		   regress/test-fcgi-abort-validator.c \
-		   regress/test-fcgi-bigfile.c \
-		   regress/test-fcgi-file-get.c \
-		   regress/test-fcgi-path-check.c \
-		   regress/test-fcgi-ping.c \
-		   regress/test-fcgi-upload.c \
-		   regress/test-file-get.c \
-		   regress/test-fork.c \
-		   regress/test-gzip.c \
-		   regress/test-gzip-bigfile.c \
-		   regress/test-header.c \
-		   regress/test-httpdate.c \
-		   regress/test-nogzip.c \
-		   regress/test-path-check.c \
-		   regress/test-ping.c \
-		   regress/test-post.c \
-		   regress/test-returncode.c \
-		   regress/test-upload.c
+		   $(addsuffix .c, $(REGRESS))
 SVGS		 = figure1.svg \
 		   figure2.png \
 		   figure4.svg \
@@ -259,71 +194,12 @@ kfcgi.o: config.h
 
 $(REGRESS_OBJS): config.h
 
-regress/test-bigfile: regress/test-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+define REGRESS_TEMPLATE
+$(1): $(1).c regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $(1) $(1).c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+endef
 
-regress/test-returncode: regress/test-returncode.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-returncode.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-basic: regress/test-basic.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-basic.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-post: regress/test-post.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-post.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-ping: regress/test-ping.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-digest: regress/test-digest.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-digest.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-abort-validator: regress/test-fcgi-abort-validator.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-abort-validator.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-bigfile: regress/test-fcgi-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-file-get: regress/test-fcgi-file-get.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-file-get.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-path-check: regress/test-fcgi-path-check.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-path-check.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-ping: regress/test-fcgi-ping.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-ping.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fcgi-upload: regress/test-fcgi-upload.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fcgi-upload.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-path-check: regress/test-path-check.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-path-check.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-nogzip: regress/test-nogzip.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-nogzip.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-fork: regress/test-fork.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-fork.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-gzip: regress/test-gzip.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-gzip.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-gzip-bigfile: regress/test-gzip-bigfile.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-gzip-bigfile.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-header: regress/test-header.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-header.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-file-get: regress/test-file-get.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-file-get.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-abort-validator: regress/test-abort-validator.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-abort-validator.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-upload: regress/test-upload.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-upload.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-
-regress/test-httpdate: regress/test-httpdate.c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ regress/test-httpdate.c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
+$(foreach bin,$(REGRESS),$(eval $(call REGRESS_TEMPLATE,$(bin))))
 
 regress/regress.o: regress/regress.c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
@@ -368,7 +244,7 @@ auth.c child.c md5.c parent.c: md5.h
 
 $(LIBCONFIGOBJS): config.h
 
-config.h: config.h.pre config.h.post configure $(TESTS)
+config.h: config.h.pre config.h.post configure $(TESTSRCS)
 	rm -f config.log
 	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
 
@@ -391,7 +267,6 @@ install: all
 	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
 	install -m 0555 kfcgi $(DESTDIR)$(SBINDIR)
 	install -m 0444 template.xml sample.c sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
-	rm -f kcgi.h~
 
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
@@ -466,17 +341,7 @@ clean:
 	rm -f libkcgixml.a kcgixml.o
 	rm -f libkcgiregress.a kcgiregress.o
 	rm -f config.log config.h
-	rm -f test-arc4random
+	rm -f $(TESTS) $(TESTOBJS)
 	rm -f test-abort-valid.core core
-	rm -f test-memmem test-memmem.o 
-	rm -f test-reallocarray test-reallocarray.o 
-	rm -f test-sandbox_init test-sandbox_init.o
-	rm -f test-seccomp-filter test-seccomp-filter.o
-	rm -f test-strlcat test-strlcat.o
-	rm -f test-strlcpy test-strlcpy.o
-	rm -f test-strtonum test-strtonum.o
-	rm -f test-systrace test-systrace.o
-	rm -f test-zlib test-zlib.o 
-	rm -f test-capsicum test-capsicum.o
 	rm -f $(REGRESS) $(AFL) $(REGRESS_OBJS)
 	rm -rf *.dSYM regress/*.dSYM afl/*.dSYM
