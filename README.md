@@ -16,8 +16,10 @@ known form inputs.
 kcgi then parses the request.
 
 ``` c
-#include <stdint.h>
+#include <stdarg.h> /* va_list */
+#include <stdint.h> /* int64_t */
 #include <stdlib.h>
+#include <unistd.h> /* ssize_t */
 #include <kcgi.h>
  
 int main(void) {
