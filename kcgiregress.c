@@ -893,8 +893,11 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		 */
 
 		if ( ! dochild_params(in, NULL, NULL, 
-		    dochild_params_cgi))
+		    dochild_params_cgi)) {
+			close(in);
+			close(fd[0]);
 			return(0);
+		}
 
 		if (STDIN_FILENO != dup2(in, STDIN_FILENO)) {
 			perror("dup2");
@@ -1007,7 +1010,8 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			goto out;
 
 		while ((ssz = read(fd[1], buf, sizeof(buf))) > 0)
-			nb_write(in, buf, ssz);
+			if ( ! nb_write(in, buf, ssz))
+				goto out;
 
 		if (ssz < 0) {
 			perror("read");
