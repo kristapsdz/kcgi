@@ -129,7 +129,7 @@ kutil_warnx(const struct kreq *r,
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	kutil_vlogx(r, "warn", ident, fmt, ap);
+	kutil_vlogx(r, "WARN", ident, fmt, ap);
 	va_end(ap);
 }
 
@@ -140,7 +140,7 @@ kutil_warn(const struct kreq *r,
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	kutil_vlog(r, "warn", ident, fmt, ap);
+	kutil_vlog(r, "WARN", ident, fmt, ap);
 	va_end(ap);
 }
 
@@ -151,7 +151,7 @@ kutil_info(const struct kreq *r,
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	kutil_vlog(r, "info", ident, fmt, ap);
+	kutil_vlogx(r, "INFO", ident, fmt, ap);
 	va_end(ap);
 }
 

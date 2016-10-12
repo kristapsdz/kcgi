@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 10 2016 $
+.Dd $Mdocdate: October 12 2016 $
 .Dt KUTIL_LOG 3
 .Os
 .Sh NAME
@@ -125,6 +125,15 @@ and
 .Fa ident
 variables may be
 .Dv NULL .
+For
+.Nm kutil_info ,
+.Nm kutil_warn ,
+and
+.Nm kutil_warnx ,
+the level is
+.Dq INFO
+and
+.Dq WARN .
 .Pp
 The
 .Nm kutil_vlog
