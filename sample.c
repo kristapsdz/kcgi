@@ -14,6 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -228,7 +229,7 @@ sendindex(struct kreq *req)
 	(void)kasprintf(&page, "%s/%s", 
 		req->pname, pages[PAGE_INDEX]);
 	resp_open(req, KHTTP_200);
-	khtml_open(&r, req);
+	khtml_open(&r, req, 0);
 	khtml_elem(&r, KELEM_DOCTYPE);
 	khtml_elem(&r, KELEM_HTML);
 	khtml_elem(&r, KELEM_HEAD);
