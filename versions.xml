@@ -646,4 +646,31 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-10-11">2016-10-11</time>
+		</header>
+		<aside>
+			<div>
+				Get rid of BSD make in favour of <a href="https://www.gnu.org/software/make/">GNU make</a>.
+				I generally don't like GNU software, so let me explain: portability and readability.
+				The original Makefile was almost 500 lines; the new one is 350.
+				While this software isn't exactly a moving target, it's still annoying to add the same lines over and over
+				again.
+				If you can think of a better way, please let me know.
+			</div>
+			<div>
+				Next, add some logging functions: <a href="kutil_log.3.html">kutil_log(3)</a> and friends.
+				Why?
+				I find myself re-rolling these same routines over and over again.
+				They're similar (enough) to the NCSA format, sanitise (and bound) output, and time-stamp without tripping <a
+					href="http://man.openbsd.org/pledge.2">pledge(2)</a>.
+			</div>
+			<div>
+				Lastly, add an index of all <a href="functions.html">functions</a>.
+			</div>
+		</aside>
+	</article>
 </articles>
