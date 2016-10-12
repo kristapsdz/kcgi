@@ -46,7 +46,8 @@ LIBOBJS 	 = auth.o \
 		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
 		   wrappers.o
-HTMLS	 	 = $(addsuffix .html, $(MANS))
+HTMLS	 	 = $(addsuffix .html, $(MANS)) \
+		   functions.html
 TESTOBJS	 = $(addsuffix .o, $(TESTS))
 TESTSRCS	 = $(addsuffix .c, $(TESTS))
 TESTS 		 = test-arc4random \
@@ -337,6 +338,9 @@ kcgi.tgz:
 
 .gnuplot.png:
 	gnuplot $<
+
+functions.html: functions.xml genindex.sh
+	sh ./genindex.sh functions.xml | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
