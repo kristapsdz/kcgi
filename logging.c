@@ -37,7 +37,7 @@
  * variable array, which may contain anything and is filtered.
  */
 static void
-logmsg(const struct kreq *r, const char *err, const char *lvl,
+logmsg(const struct kreq *r, const char *err, const char *lvl, 
 	const char *ident, const char *fmt, va_list ap)
 {
 	int		 i, sz;
@@ -56,7 +56,8 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	/* Everything up to the message itself. */
 
 	fprintf(stderr, "%s %s [%s] %s ", r->remote, 
-		NULL == ident ? "-" : ident, date, lvl);
+		NULL == ident ? "-" : ident, date, 
+		NULL == lvl ? "-" : lvl);
 
 	/*
 	 * Now format the message itself.
@@ -96,6 +97,31 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	fputc('\n', stderr);
 }
 
+int
+kutil_openlog(const char *file)
+{
+
+	if (NULL != file && NULL == freopen(file, "a", stderr))
+		return(0);
+	return(EOF != setlinebuf(stderr));
+}
+
+void
+kutil_vlog(const struct kreq *r, const char *lvl,
+	const char *ident, const char *fmt, va_list ap)
+{
+
+	logmsg(r, strerror(errno), lvl, ident, fmt, ap);
+}
+
+void
+kutil_vlogx(const struct kreq *r, const char *lvl,
+	const char *ident, const char *fmt, va_list ap)
+{
+
+	logmsg(r, NULL, lvl, ident, fmt, ap);
+}
+
 void
 kutil_warnx(const struct kreq *r, 
 	const char *ident, const char *fmt, ...)
@@ -103,7 +129,7 @@ kutil_warnx(const struct kreq *r,
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	logmsg(r, NULL, "warn", ident, fmt, ap);
+	kutil_vlogx(r, "warn", ident, fmt, ap);
 	va_end(ap);
 }
 
@@ -112,10 +138,9 @@ kutil_warn(const struct kreq *r,
 	const char *ident, const char *fmt, ...)
 {
 	va_list	 ap;
-	int	 er = errno;
 
 	va_start(ap, fmt);
-	logmsg(r, strerror(er), "warn", ident, fmt, ap);
+	kutil_vlog(r, "warn", ident, fmt, ap);
 	va_end(ap);
 }
 
@@ -126,6 +151,28 @@ kutil_info(const struct kreq *r,
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	logmsg(r, NULL, "info", ident, fmt, ap);
+	kutil_vlog(r, "info", ident, fmt, ap);
+	va_end(ap);
+}
+
+void
+kutil_logx(const struct kreq *r, const char *lvl,
+	const char *ident, const char *fmt, ...)
+{
+	va_list	 ap;
+
+	va_start(ap, fmt);
+	kutil_vlogx(r, lvl, ident, fmt, ap);
+	va_end(ap);
+}
+
+void
+kutil_log(const struct kreq *r, const char *lvl,
+	const char *ident, const char *fmt, ...)
+{
+	va_list	 ap;
+
+	va_start(ap, fmt);
+	kutil_vlog(r, lvl, ident, fmt, ap);
 	va_end(ap);
 }

@@ -1,0 +1,182 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KUTIL_LOG 3
+.Os
+.Sh NAME
+.Nm kutil_info ,
+.Nm kutil_log ,
+.Nm kutil_logx ,
+.Nm kutil_openlog ,
+.Nm kutil_vlog ,
+.Nm kutil_vlogx ,
+.Nm kutil_warn ,
+.Nm kutil_warnx
+.Nd format log messages
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In stdint.h
+.In kcgi.h
+.Ft "void"
+.Fo kutil_info
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Ft "void"
+.Fo kutil_log
+.Fa "const struct kreq *r"
+.Fa "const char *level"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Ft "void"
+.Fo kutil_logx
+.Fa "const struct kreq *r"
+.Fa "const char *level"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Ft "int"
+.Fo kutil_openlog
+.Fa "const char *file"
+.Fc
+.Ft "void"
+.Fo kutil_vlog
+.Fa "const struct kreq *r"
+.Fa "const char *level"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
+.Fo kutil_vlogx
+.Fa "const struct kreq *r"
+.Fa "const char *level"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
+.Fo kutil_warn
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Ft "void"
+.Fo kutil_warnx
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Sh DESCRIPTION
+These convenience functions format messages for reporting on
+.Vt stderr ,
+avoiding common CGI script pitfalls such as unwittingly using
+.Xr localtime 3
+when in a
+.Xr chroot 2 .
+.Pp
+The logging functions should be preceded by
+.Nm kutil_openlog ,
+which redirects
+.Vt stderr
+to
+.Fa file
+.Pq if it's not Dv NULL
+and sets the output as line-buffered to minimise line clobbering.
+It returns zero on failure (system error) and non-zero on success.
+.Pp
+The remaining functions accept
+.Fa r ,
+the active request handle opened with
+.Xr khttp_parse 3 ;
+.Fa level ,
+a human-readable level such as
+.Dq warn
+or
+.Dq info ;
+and
+.Fa ident ,
+used in the common scenario of connecting a message to a logged-in user.
+The
+.Fa level
+and
+.Fa ident
+variables may be
+.Dv NULL .
+.Pp
+The
+.Nm kutil_vlog
+and
+.Nm kutil_vlogx
+functions accept a
+.Xr va_start 3
+list, while the others use
+.Xr printf 3
+format string and arguments.
+In either format, these printed values are considered untrusted and have
+non-printable characters replaced with
+.Dq \&?
+and with white-space
+.Pq \et, \er, \en
+shown as literal escape characters.
+.Pp
+The
+.Nm kutil_log ,
+.Nm kutil_vlog
+and
+.Nm kutil_warn
+functions print out the current
+.Vt errno
+as an additional error message.
+.Pp
+The output format is as follows, with a trailing newline:
+.Pp
+.Dl addr ident [date] level msg
+.Dl addr ident [date] level msg: errmsg
+.Pp
+Here,
+.Dq addr
+is the remote host as passed to the CGI script; and where
+.Dq ident
+and
+.Dq level ,
+if
+.Dv NULL ,
+will be rendered as
+.Dq - .
+The date is formatted as an HTTP date (RFC 822) in GMT.
+.Sh AUTHORS
+The
+.Nm kutil_info ,
+.Nm kutil_log ,
+.Nm kutil_logx ,
+.Nm kutil_openlog ,
+.Nm kutil_vlog ,
+.Nm kutil_vlogx ,
+.Nm kutil_warn ,
+and
+.Nm kutil_warnx
+functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
