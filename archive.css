@@ -40,7 +40,7 @@ footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
 .flag				{ font-weight: bold; }
-#archive			{ width: 70%;
+#functions, #archive		{ width: 70%;
 				  margin-left: auto;
 				  margin-right: auto; }
 #archive li + li		{ margin-top: 16pt; }
@@ -54,6 +54,9 @@ footer				{ padding: 1ex;
 #archive .title > :last-child	{ flex: 1; 
 				  font-size: 11pt;
 				  text-align: right; }
+#functions ul			{ margin-left: 0; 
+				  padding-left: 0; }
+#functions dd + dt		{ margin-top: 12pt; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
 h1				{ font-size: 16pt; 
