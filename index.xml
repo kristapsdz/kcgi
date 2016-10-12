@@ -69,8 +69,10 @@
 					response to a CGI request.
 					Click on any italicitised fields to link to the documentation.
 				</figcaption>
-				<pre id="nocomments" class="prettyprint linenums">#include &lt;stdint.h&gt;
+				<pre id="nocomments" class="prettyprint linenums">#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stdint.h&gt; /* int64_t */
 #include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt; /* ssize_t */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {
@@ -87,8 +89,10 @@ int main(void) {
   <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
   return(EXIT_SUCCESS);
 }</pre>
-				<pre id="comments" class="prettyprint linenums">#include &lt;stdint.h&gt;
+				<pre id="comments" class="prettyprint linenums">#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stdint.h&gt; /* int64_t */
 #include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt; /* ssize_t */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {
@@ -226,8 +230,10 @@ int main(void) {
 					Applications using <span class="nm">kcgi</span> behave just like any other application.
 					To compile <span class="nm">kcgi</span> applications, just include the <span class="nm">kcgi.h</span>
 					header file and make sure it appears in the compiler inclusion path.
-					(According to C99, you'll need to include <span class="nm">stdint.h</span> before it for the
-					<code>int64_t</code> type used for parsing integers.)
+					(You'll need to include <span class="nm">stdint.h</span> before it for the
+					<code>int64_t</code> type,
+					<span class="file">stdarg.h</span> for the <code>va_list</code> type, and possibly
+					<span class="file">unistd.h</span> for the <code>ssize_t</code> type).
 					Linking is similarly normative: link to <span class="file">libkcgi</span> and, if your system has
 					compression support, <span class="file">libz</span>.
 				</p>
