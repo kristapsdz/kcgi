@@ -185,6 +185,7 @@ int main(void) {
 				<p>
 					The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
 					canonical source of documentation.  
+					You can also <a href="functions.html">see all functions</a>.
 					The following are introductory materials to the system.
 				</p>
 				<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1">
