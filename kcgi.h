@@ -460,8 +460,9 @@ int		 khttp_body(struct kreq *);
 int		 khttp_body_compress(struct kreq *, int);
 void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
-void		 khttp_head(struct kreq *, const char *, const char *,
-			...) __attribute__((format(printf, 3, 4)));
+void		 khttp_head(struct kreq *, const char *, 
+			const char *, ...) 
+			__attribute__((format(printf, 3, 4)));
 enum kcgi_err	 khttp_parse(struct kreq *, 
 			const struct kvalid *, size_t,
 			const char *const *, size_t, size_t);
@@ -528,7 +529,29 @@ char		*kutil_urlpartx(struct kreq *, const char *,
 char		*kutil_urlencode(const char *);
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
-int		 kasprintf(char **, const char *, ...);
+int		 kutil_openlog(const char *);
+void		 kutil_vlog(const struct kreq *, const char *,
+			const char *, const char *, va_list);
+void		 kutil_vlogx(const struct kreq *, const char *,
+			const char *, const char *, va_list);
+void		 kutil_log(const struct kreq *, const char *,
+			const char *, const char *, ...)
+			__attribute__((format(printf, 4, 5)));
+void		 kutil_logx(const struct kreq *, const char *,
+			const char *, const char *, ...)
+			__attribute__((format(printf, 4, 5)));
+void		 kutil_info(const struct kreq *, 
+			const char *, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
+void		 kutil_warn(const struct kreq *, 
+			const char *, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
+void		 kutil_warnx(const struct kreq *, 
+			const char *, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
+
+int		 kasprintf(char **, const char *, ...)
+			__attribute__((format(printf, 2, 3)));
 void		*kcalloc(size_t, size_t);
 void		*kmalloc(size_t);
 void		*krealloc(void *, size_t);
