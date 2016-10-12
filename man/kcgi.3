@@ -92,11 +92,21 @@ when all processing is complete.
 .Pp
 To compile applications with
 .Nm ,
-make sure
+include the
+.Pa kcgi.h
+as follows:
+.Bd -literal
+#include <stdarg.h> /* va_list */
+#include <stdint.h> /* int64_t */
+#include <unistd.h> /* ssize_t */
+#include <kcgi.h>
+.Ed
+.Pp
+Then make sure
 .Pa kcgi.h
 is in the header path and
 .Pa libkcgi.a
-in the library path, then link with
+is in the library path, then link with
 .Fl Ar lkcgi
 and
 .Fl Ar lz
@@ -123,8 +133,10 @@ It does nothing but emit
 .Dq Hello, world!
 to the output.
 .Bd -literal
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -149,8 +161,10 @@ int main(void) {
 This can be extended to work with the FastCGI interface by allowing the
 request parser to operate within a loop.
 .Bd -literal
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -184,8 +198,10 @@ to validate and display.
 This might be provided as part of an HTML form or directly as part of
 the URL query string.
 .Bd -literal
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -275,6 +291,9 @@ Permanent URI schemes are registered with IANA.
 .It
 The
 .Lk http://kristaps.bsd.lv/kcgi/extending01.html "FastCGI Extensions for Management Control" .
+.It
+HTTP dates (logging and date-time management) are specified by
+.Dq RFC 822 .
 .El
 .Pp
 Additional HTTP methods are defined by RFC 4918,
