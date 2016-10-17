@@ -108,6 +108,10 @@ to
 .Pq if it's not Dv NULL
 and sets the output as line-buffered to minimise line clobbering.
 It returns zero on failure (system error) and non-zero on success.
+.Em Note :
+if it fails to re-open
+.Vt stderr ,
+the stream may no longer be operable.
 .Pp
 The remaining functions accept
 .Fa r ,
