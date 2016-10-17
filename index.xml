@@ -4,8 +4,9 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset='utf-8' /> 
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
-		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" />
-		<link rel="stylesheet" href="index.css" type="text/css" />
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:300,300italic,400" />
+		<link rel="stylesheet" href="index.css" />
 		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?skin=sons-of-obsidian"></script>
 		<script>
 			function showBits(name) 
