@@ -8,6 +8,9 @@ repository of the project.
 To keep up to date with the current stable release of kcgi, visit the
 [kcgi website](https://kristaps.bsd.lv/kcgi).
 
+See [kcgi-framework](https://github.com/kristapsdz/kcgi-framework) for a
+set of files to get your project going.
+
 ## Code Example
 
 Implementing a CGI or FastCGI application with kcgi is easy.
