@@ -1,11 +1,13 @@
 html, body			{ margin: 0; 
 				  padding: 0; }
 body				{ color: #333; 
-				  font-family: Times,serif; 
-				  font-size: 12pt;
-				  line-height: 120%; }
+				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
+				  font-weight: 300;
+				  font-size: 13pt;
+				  line-height: 17pt; }
 code, pre			{ font-size: 11pt; }
-a				{ text-decoration: none; }
+a				{ text-decoration: none; 
+				  color: blue; }
 body > header			{ box-shadow: 0 1px 4px #888; }
 body > header nav ul		{ margin: auto 0; 
 				  padding: 0;
@@ -17,7 +19,7 @@ body > header nav li + li	{ margin-top: 0.5em; }
 #header				{ background-color: #333; 
 				  padding: 3em 15% 1ex 15%;
 				  color: #fff; }
-#header a			{ color: #dd5; }
+#header a			{ color: #ee5; }
 #header a:hover			{ color: #ff0; }
 #header nav			{ padding: 0.5ex 0 1ex 0; }
 #header nav .version		{ border-right: thin solid silver; 
@@ -52,7 +54,7 @@ footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
 			  	  padding-left: 1ex; }
 article h2			{ font-size: x-large; 
-				  font-weight: bolder; 
+				  font-weight: 400; 
 				  color: #333; }
 article h3			{ font-size: large; 
 				  color: #333; }
@@ -71,7 +73,7 @@ article[data-sblg-article] img	{ width: 100%;
 figure				{ margin: 0; 
 				  text-align: center; 
 				  color: #444; }
-figcaption span			{ font-weight: bolder; }
+figcaption span			{ font-weight: 400; }
 dd				{ margin: 0 0 1em 0; }
 #permlink 			{ color: #888; 
 				  margin-top: 1em; }
@@ -82,7 +84,7 @@ dd				{ margin: 0 0 1em 0; }
 .sample nav a			{ color: #333; }
 .sample nav a:hover i		{ text-shadow: 1px 1px #aaa; }
 body > header nav		{ overflow: hidden; }
-body > header nav .title	{ font-weight: bold; 
+body > header nav .title	{ font-weight: 400; 
 				  margin-bottom: 0.5em; }
 body > header nav li + li	{ margin-top: 1.5em; }
 #comments			{ max-height: 0; }
@@ -100,7 +102,7 @@ pre.prettyprint ol.linenums > li { list-style-type: decimal; }
 footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
-.flag				{ font-weight: bold; }
+.flag				{ font-weight: 400; }
 #archive			{ width: 80%;
 				  margin-left: auto;
 				  margin-right: auto; }
