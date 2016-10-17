@@ -189,7 +189,9 @@ int main(void) {
 				<p>
 					The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
 					canonical source of documentation.  
-					You can also <a href="functions.html">see all functions</a>.
+					You can also <a href="functions.html">see all functions</a>; or if it's easier to start by example, you can use 
+					<a href="https://github.com/kristapsdz/kcgi-framework">kcgi-framework</a> as an initial boilerplate to
+					start your project.
 					The following are introductory materials to the system.
 				</p>
 				<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1">
