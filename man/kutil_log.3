@@ -98,6 +98,8 @@ avoiding common CGI script pitfalls such as unwittingly using
 .Xr localtime 3
 when in a
 .Xr chroot 2 .
+Moreover, they allow for a consist logging output format, as most web
+servers are inconsistent on how they log script output.
 .Pp
 The logging functions should be preceded by
 .Nm kutil_openlog ,
