@@ -151,7 +151,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-post \
 		   regress/test-returncode \
 		   regress/test-upload
-REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS))
+REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
+		   regress/regress.o
 AFL_SRCS	 = afl/afl-multipart.c \
 		   afl/afl-plain.c \
 		   afl/afl-urlencoded.c
