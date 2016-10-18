@@ -20,6 +20,7 @@
 
 #include <sys/stat.h>
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
