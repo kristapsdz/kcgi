@@ -329,7 +329,7 @@ kcgi.tgz:
 	cp $(SRCS) .dist/kcgi-$(VERSION)
 	cp $(REGRESS_SRCS) .dist/kcgi-$(VERSION)/regress
 	cp $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
-	cp Makefile template.xml .dist/kcgi-$(VERSION)
+	cp GNUmakefile template.xml .dist/kcgi-$(VERSION)
 	cp $(MANS) .dist/kcgi-$(VERSION)/man
 	cp configure config.h.pre config.h.post .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
