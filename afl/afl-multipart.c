@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 		close(fdout);
 		close(fdin);
 		return(EXIT_FAILURE);
-	} else if (KCGI_OK != xsocketprep(fdin)) {
+	} else if (KCGI_OK != kxsocketprep(fdin)) {
 		perror(argv[1]);
 		close(fdout);
 		close(fdin);
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 		"boundary=---------------------------9051914041544843365972754266", 1);
 	setenv("REQUEST_METHOD", "post", 1);
 	setenv("CONTENT_LENGTH", buf, 1);
-	kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX);
+	kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX, 0);
 	close(fdin);
 	close(fdout);
 	return(EXIT_SUCCESS);
