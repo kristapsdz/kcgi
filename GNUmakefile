@@ -202,17 +202,13 @@ kfcgi: kfcgi.o libconfig.a
 
 kfcgi.o: config.h
 
-$(REGRESS_OBJS): config.h
+regress/%.o: regress/%.c config.h regress/regress.h
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c $<
 
-define REGRESS_TEMPLATE
-$(1): $(1).c regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $(1) $(1).c regress/regress.o libkcgiregress.a `curl-config --libs` libkcgi.a -lz
-endef
+regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgi.a
+	$(CC) -o $@ $^ `curl-config --libs` -lz
 
-$(foreach bin,$(REGRESS),$(eval $(call REGRESS_TEMPLATE,$(bin))))
-
-regress/regress.o: regress/regress.c
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c regress/regress.c
+.PRECIOUS: $(REGRESS_OBJS)
 
 afl/afl-multipart: afl/afl-multipart.c libkcgi.a
 	$(CC) $(CFLAGS) -o $@ afl/afl-multipart.c libkcgi.a -lz
