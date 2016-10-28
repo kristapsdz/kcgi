@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	setenv("CONTENT_TYPE", "text/plain", 1);
 	setenv("REQUEST_METHOD", "post", 1);
 	setenv("CONTENT_LENGTH", buf, 1);
-	kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX);
+	kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX, 0);
 	close(fdin);
 	close(fdout);
 	return(EXIT_SUCCESS);
