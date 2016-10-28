@@ -250,7 +250,7 @@ $(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 
-auth.c child.c md5.c parent.c: md5.h
+auth.o child.o md5.o parent.o: md5.h
 
 $(LIBCONFIGOBJS): config.h
 
