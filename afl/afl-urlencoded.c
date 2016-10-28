@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 		close(fdout);
 		close(fdin);
 		return(EXIT_FAILURE);
-	} else if (KCGI_OK != xsocketprep(fdin)) {
+	} else if (KCGI_OK != kxsocketprep(fdin)) {
 		perror(argv[1]);
 		close(fdout);
 		close(fdin);
