@@ -35,6 +35,7 @@ int
 main(int argc, char *argv[])
 {
 	int	 	 fdout, fdin;
+	enum kcgi_err	 kerr;
 	struct stat	 st;
 	char		 buf[1024];
 
@@ -70,8 +71,8 @@ main(int argc, char *argv[])
 	setenv("CONTENT_TYPE", "text/plain", 1);
 	setenv("REQUEST_METHOD", "post", 1);
 	setenv("CONTENT_LENGTH", buf, 1);
-	kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX, 0);
+	kerr = kworker_child(fdout, NULL, 0, kmimetypes, KMIME__MAX, 0);
 	close(fdin);
 	close(fdout);
-	return(EXIT_SUCCESS);
+	return(KCGI_OK == kerr ? EXIT_SUCCESS : EXIT_FAILURE);
 }
