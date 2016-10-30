@@ -103,7 +103,7 @@ kutil_openlog(const char *file)
 
 	if (NULL != file && NULL == freopen(file, "a", stderr))
 		return(0);
-	return(EOF != setlinebuf(stderr));
+	return (EOF != setvbuf(stderr, NULL, _IOLBF, 1000));
 }
 
 void
