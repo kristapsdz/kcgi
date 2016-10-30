@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 10 2016 $
+.Dd $Mdocdate: October 12 2016 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -42,7 +42,7 @@
 .Fa "struct kreq *req"
 .Fa "const struct kmimemap *suffixes"
 .Fa "const char *const *mimes"
-.Fa "size_t mimemax"
+.Fa "size_t mimesz"
 .Fa "const struct kvalid *keys"
 .Fa "size_t keysz"
 .Fa "const char *const *pages"
@@ -128,8 +128,10 @@ An array of input and validation fields.
 .It Fa keysz
 The number of elements in
 .Fa keys .
-.It Fa mimemax
-The MIME index used if no MIME type was matched.
+.It Fa mimesz
+The number of elements in
+.Fa mimes .
+Also the MIME index used if no MIME type was matched.
 This differs from
 .Fa defmime ,
 which is used if there is no MIME suffix at all.
@@ -313,7 +315,7 @@ or the default
 if using
 .Fn khttp_parse .
 This defaults to the
-.Va mimemax
+.Va mimesz
 value passed to
 .Fn khttp_parsex
 or the default
