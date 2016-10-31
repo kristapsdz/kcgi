@@ -658,7 +658,7 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 /*
  * This is described by the "multipart-body" BNF part of RFC 2046,
  * section 5.1.1.
- * We return TRUE if the parse was ok, FALSE if errors occured (all
+ * We return TRUE if the parse was ok, FALSE if errors occurred (all
  * calling parsers should bail too).
  */
 static int
@@ -1342,7 +1342,7 @@ kworker_child(int sock,
 	pp.mimesz = mimesz;
 
 	/*
-	 * Pull the enire environment into an array.
+	 * Pull the entire environment into an array.
 	 */
 	for (envsz = 0, evp = environ; NULL != *evp; evp++) 
 		envsz++;
