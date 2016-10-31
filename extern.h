@@ -49,7 +49,7 @@ void		 kdata_free(struct kdata *, int);
 
 int		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
-void	 	 kworker_child(int,
+enum kcgi_err	 kworker_child(int,
 			const struct kvalid *, size_t, 
 			const char *const *, size_t,
 			unsigned int);

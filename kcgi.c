@@ -660,17 +660,17 @@ khttp_parsex(struct kreq *req,
 			(*argfree)(arg);
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
+		er = EXIT_FAILURE;
 		if ( ! ksandbox_init_child
 			(work_box, SAND_WORKER,
 			 work_dat[KWORKER_CHILD], -1, -1, -1)) {
 			XWARNX("ksandbox_init_child");
-			er = EXIT_FAILURE;
-		} else {
-			kworker_child(work_dat[KWORKER_CHILD], 
-				keys, keysz, mimes, mimesz,
-				debugging);
+		} else if (KCGI_OK != kworker_child
+			   (work_dat[KWORKER_CHILD], keys,
+			    keysz, mimes, mimesz, debugging)) {
+			XWARNX("kworker_child");
+		} else
 			er = EXIT_SUCCESS;
-		}
 		ksandbox_free(work_box);
 		close(work_dat[KWORKER_CHILD]);
 		_exit(er);
