@@ -1319,7 +1319,7 @@ kworker_child_last(int fd)
  * value size along with the field type.
  * We use the CGI specification in RFC 3875.
  */
-void
+enum kcgi_err
 kworker_child(int sock,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz,
@@ -1348,7 +1348,7 @@ kworker_child(int sock,
 		envsz++;
 	envs = XCALLOC(envsz, sizeof(struct env));
 	if (NULL == envs)
-		return;
+		return(KCGI_ENOMEM);
 	/*
 	 * While pulling in the environment, look for HTTP headers
 	 * (those beginning with HTTP_).
@@ -1394,6 +1394,7 @@ kworker_child(int sock,
 	for (i = 0; i < envsz; i++) 
 		free(envs[i].key);
 	free(envs);
+	return(KCGI_OK);
 }
 
 /*
