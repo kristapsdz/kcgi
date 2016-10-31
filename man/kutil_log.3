@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 17 2016 $
+.Dd $Mdocdate: October 18 2016 $
 .Dt KUTIL_LOG 3
 .Os
 .Sh NAME
@@ -22,8 +22,11 @@
 .Nm kutil_log ,
 .Nm kutil_logx ,
 .Nm kutil_openlog ,
+.Nm kutil_vinfo ,
 .Nm kutil_vlog ,
 .Nm kutil_vlogx ,
+.Nm kutil_vwarn ,
+.Nm kutil_vwarnx
 .Nm kutil_warn ,
 .Nm kutil_warnx
 .Nd format log messages
@@ -62,6 +65,13 @@
 .Fa "const char *file"
 .Fc
 .Ft "void"
+.Fo kutil_vinfo
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
 .Fo kutil_vlog
 .Fa "const struct kreq *r"
 .Fa "const char *level"
@@ -73,6 +83,20 @@
 .Fo kutil_vlogx
 .Fa "const struct kreq *r"
 .Fa "const char *level"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
+.Fo kutil_vwarn
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
+.Fo kutil_vwarnx
+.Fa "const struct kreq *r"
 .Fa "const char *ident"
 .Fa "const char *fmt"
 .Fa "va_list ap"
@@ -135,6 +159,9 @@ variables may be
 .Dv NULL .
 For
 .Nm kutil_info ,
+.Nm kutil_vinfo ,
+.Nm kutil_vwarn ,
+.Nm kutil_vwarnx ,
 .Nm kutil_warn ,
 and
 .Nm kutil_warnx ,
@@ -144,9 +171,12 @@ and
 .Dq WARN .
 .Pp
 The
-.Nm kutil_vlog
+.Nm kutil_vinfo ,
+.Nm kutil_vlog ,
+.Nm kutil_vlogx ,
+.Nm kutil_vwarn ,
 and
-.Nm kutil_vlogx
+.Nm kutil_vwarnx
 functions accept a
 .Xr va_start 3
 list, while the others use
@@ -161,7 +191,8 @@ shown as literal escape characters.
 .Pp
 The
 .Nm kutil_log ,
-.Nm kutil_vlog
+.Nm kutil_vlog ,
+.Nm kutil_vwarn ,
 and
 .Nm kutil_warn
 functions print out the current
@@ -190,8 +221,11 @@ The
 .Nm kutil_log ,
 .Nm kutil_logx ,
 .Nm kutil_openlog ,
+.Nm kutil_vinfo ,
 .Nm kutil_vlog ,
 .Nm kutil_vlogx ,
+.Nm kutil_vwarn ,
+.Nm kutil_vwarnx ,
 .Nm kutil_warn ,
 and
 .Nm kutil_warnx
