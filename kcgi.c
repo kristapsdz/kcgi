@@ -1207,7 +1207,7 @@ khttp_templatex(const struct ktemplate *t,
 		XWARN("fstat: %s", fname);
 		close(fd);
 		return(0);
-	} else if (st.st_size >= (1U << 31)) {
+	} else if ((unsigned long int)st.st_size >= (1U << 31)) {
 		XWARNX("size overflow: %s", fname);
 		close(fd);
 		return(0);
