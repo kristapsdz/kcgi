@@ -41,20 +41,20 @@ static const uint64_t monthdays[2][12] = {
 
 /*
  * This algorithm is simple and cribbed from NetBSD.
- * It's truncated below at the epoch.
+ * It sets the values of "tm" according to "tt", an epoch value.
+ * It's truncated below at the zero epoch.
  */
-char *
-kutil_epoch2str(int64_t tt, char *buf, size_t sz)
+static void
+kutil_epoch2time(int64_t tt, struct tm *tm)
 {
-        struct tm	 tm;
         time_t 	 	 time = (time_t)tt;
         uint64_t	 dayclock, dayno, year;
+
+	memset(tm, 0, sizeof(struct tm));
 	
 	/* Bound below. */
-	if (tt < 0) {
-		strlcpy(buf, "Thu, 01 Jan 1970 00:00:00 GMT", sz);
-		return(buf);
-	}
+	if (tt < 0) 
+		return;
         
 	/* 
 	 * This is easy: time of day is the number of seconds within a
@@ -70,10 +70,10 @@ kutil_epoch2str(int64_t tt, char *buf, size_t sz)
 	 * Same for the weekday.
 	 */
 
-        tm.tm_sec = dayclock % 60;
-        tm.tm_min = (dayclock % 3600) / 60;
-        tm.tm_hour = dayclock / 3600;
-        tm.tm_wday = (dayno + 4) % 7;
+        tm->tm_sec = dayclock % 60;
+        tm->tm_min = (dayclock % 3600) / 60;
+        tm->tm_hour = dayclock / 3600;
+        tm->tm_wday = (dayno + 4) % 7;
 
 	/*
 	 * More complicated: slough away the number of years.
@@ -87,27 +87,69 @@ kutil_epoch2str(int64_t tt, char *buf, size_t sz)
                 year++;
         }
 
-        tm.tm_year = year - 1900;
-        tm.tm_yday = dayno;
-        tm.tm_mon = 0;
+        tm->tm_year = year - 1900;
+        tm->tm_yday = dayno;
+        tm->tm_mon = 0;
 
 	/*
 	 * Similar computation as the year: increment ahead the day of
 	 * the month depending on our month value.
 	 */
 
-        while (dayno >= monthdays[LEAPYR(year)][tm.tm_mon]) {
-                dayno -= monthdays[LEAPYR(year)][tm.tm_mon];
-                tm.tm_mon++;
+        while (dayno >= monthdays[LEAPYR(year)][tm->tm_mon]) {
+                dayno -= monthdays[LEAPYR(year)][tm->tm_mon];
+                tm->tm_mon++;
         }
 
-        tm.tm_mday = dayno + 1;
-        tm.tm_isdst = 0;
+        tm->tm_mday = dayno + 1;
+        tm->tm_isdst = 0;
+}
 
-	/* XXX: replace with a simple lookup? */
+/*
+ * Format an epoch time as RFC 822, bounding below at the zero epoch.
+ * Returns "buf".
+ */
+char *
+kutil_epoch2str(int64_t tt, char *buf, size_t sz)
+{
+	struct tm	 tm;
+
+	kutil_epoch2time(tt, &tm);
+
+	/* FIXME: replace with numeric values and table lookup */
 
 	strftime(buf, sz, "%a, %d %b %Y %T GMT", &tm);
 	return(buf);
+}
+
+/*
+ * Breaks down the given epoch time as a series of values.
+ * Each of these can be NULL.
+ */
+void
+kutil_epoch2tmvals(int64_t tt, int *tm_sec, int *tm_min, 
+	int *tm_hour, int *tm_mday, int *tm_mon, 
+	int *tm_year, int *tm_wday, int *tm_yday)
+{
+	struct tm	 tm;
+
+	kutil_epoch2time(tt, &tm);
+	if (NULL != tm_sec)
+		*tm_sec = tm.tm_sec;
+	if (NULL != tm_min)
+		*tm_min = tm.tm_min;
+	if (NULL != tm_hour)
+		*tm_hour = tm.tm_hour;
+	if (NULL != tm_mday)
+		*tm_mday = tm.tm_mday;
+	if (NULL != tm_mon)
+		*tm_mon = tm.tm_mon;
+	if (NULL != tm_year)
+		*tm_year = tm.tm_year;
+	if (NULL != tm_wday)
+		*tm_wday = tm.tm_wday;
+	if (NULL != tm_yday)
+		*tm_yday = tm.tm_yday;
 }
 
 /*
