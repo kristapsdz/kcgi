@@ -132,6 +132,7 @@ AFL		 = afl/afl-multipart \
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-bigfile \
+		   regress/test-datetime \
 		   regress/test-digest \
 		   regress/test-fcgi-abort-validator \
 		   regress/test-fcgi-bigfile \
