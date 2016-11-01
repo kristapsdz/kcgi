@@ -14,12 +14,15 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 10 2016 $
+.Dd $Mdocdate: October 12 2016 $
 .Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
 .Nm kutil_epoch2str ,
-.Nm kutil_date2epoch
+.Nm KUTIL_EPOCH2TM ,
+.Nm kutil_epoch2tmvals ,
+.Nm kutil_date2epoch ,
+.Nm kutil_datetime2epoch
 .Nd format and parse time for HTTP operations
 .Sh LIBRARY
 .Lb libkcgi
@@ -33,6 +36,19 @@
 .Fa "int64_t epoch"
 .Fa "char *buf"
 .Fa "size_t sz"
+.Fc
+.Fd KUTIL_EPOCH2TM(_tt, _tm)
+.Ft void
+.Fo kutil_epoch2tmvals
+.Fa "int64_t epoch"
+.Fa "int *tm_sec"
+.Fa "int *tm_min"
+.Fa "int *tm_hour"
+.Fa "int *tm_mday"
+.Fa "int *tm_mon"
+.Fa "int *tm_year"
+.Fa "int *tm_wday"
+.Fa "int *tm_yday"
 .Fc
 .Ft "int64_t"
 .Fo kutil_date2epoch
@@ -51,7 +67,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm kutil_epoch2str
+.Nm kutil_epoch2str ,
 function formats an
 .Fa epoch
 value
@@ -70,6 +86,40 @@ This function is useful for properly setting date-time header values:
 .Dv KRESP_LAST_MODIFIED ,
 .Dv KRESP_DATE ,
 etc.
+.Pp
+The form
+.Nm kutil_epoch2tmvals
+breaks down the epoch value as seconds 0\(en60
+.Pq Fa tm_sec ,
+minutes 0\(en59
+.Pq Fa tm_min ,
+hours 0\(en23
+.Pq Fa tm_hour ,
+day of month 1\(en31
+.Pq Fa tm_mday ,
+month 0\(en11
+.Pq Fa tm_mon ,
+year minus 1900,
+.Pq Fa tm_year ,
+day of week with Sunday at 0
+.Pq Fa tm_wday ,
+and day of year 0\(en365
+.Pq Fa tm_yday .
+If any of the pointer values are
+.Dv NULL ,
+they are ignored.
+Negative input epoch values are bound to zero.
+.Pp
+You can use the convenience
+.Dv KUTIL_EPOCH2TM
+macro to convert into
+.Vt "struct tm" ,
+which is not provided directly to avoid pulling in the
+.Pa time.h
+header.
+The macro accepts an epoch and a
+.Va "struct tm" ,
+which the caller must have zeroed beforehand.
 .Pp
 The
 .Nm kutil_date2epoch
@@ -97,7 +147,9 @@ functions were written by
 .Sh CAVEATS
 The
 .Vt time_t
-type is not used for the epoch to avoid expanding header requirements
+and
+.Vt "struct tm"
+types are not used for the epoch to avoid expanding header requirements
 for
 .In kcgi.h
 and because the
