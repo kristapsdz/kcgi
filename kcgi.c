@@ -1207,11 +1207,11 @@ khttp_templatex(const struct ktemplate *t,
 		XWARN("fstat: %s", fname);
 		close(fd);
 		return(0);
-	} else if (st.st_size >= (1U << 31)) {
+	} else if (st.st_size > SSIZE_MAX) {
 		XWARNX("size overflow: %s", fname);
 		close(fd);
 		return(0);
-	} else if (0 == st.st_size) {
+	} else if (st.st_size <= 0) {
 		XWARNX("zero-length: %s", fname);
 		close(fd);
 		return(1);
