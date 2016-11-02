@@ -613,7 +613,7 @@ khttp_fcgi_init(struct kfcgi **fcgi,
 /*
  * Here we wait for the next FastCGI connection in such a way that, if
  * we're notified that we must exit via a SIGTERM, we'll properly close
- * down without spurrious warnings.
+ * down without spurious warnings.
  */
 static int 
 fcgi_waitread(int fd)

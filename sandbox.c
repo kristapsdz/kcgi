@@ -135,7 +135,7 @@ ksandbox_close(void *arg)
  * This function depends on "type": if SAND_WORKER, we set fd1 to be the
  * descriptor between the child and the application; if fd2 isn't -1,
  * it's the FastCGI control connection (fdfiled and fdaccept should be
- * ignord in SAND_WORKER case).
+ * ignored in SAND_WORKER case).
  * If not SAND_WORKER, we're the control process in a FastCGI context:
  * fd1 is the control connection; fd2 is -1; fdaccept, if not -1, is the
  * old-style FastCGI socket; fdfiled, if not -1, is the new-style
