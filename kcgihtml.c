@@ -36,7 +36,7 @@
 
 /*
  * A type of HTML5 element.
- * Note: we don't list transitoinal elements, though I do note them in
+ * Note: we don't list transitional elements, though I do note them in
  * the tag array.
  */
 enum	htype {

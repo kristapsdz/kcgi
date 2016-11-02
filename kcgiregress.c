@@ -829,7 +829,7 @@ out:
 	/*
 	 * Now mandate that the child dies and reap its resources.
 	 * FIXME: we might kill the process before it's done actually
-	 * terminating, which is unfair and will raise spurrious
+	 * terminating, which is unfair and will raise spurious
 	 * warnings elsewhere.
 	 */
 
