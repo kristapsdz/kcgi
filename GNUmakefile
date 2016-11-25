@@ -13,6 +13,8 @@ endif
 ifeq ($(shell uname), Darwin)
 # Mac OS X doesn't support static linking.
 STATIC 		 = 
+# Mac OS X has deprecated daemon(3).
+CFLAGS		+= -Wno-deprecated-declarations
 endif
 
 # You probably don't need to change anything else...
