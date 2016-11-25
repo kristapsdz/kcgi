@@ -5,6 +5,16 @@
 # This is only for the sample program!
 STATIC 		 = -static
 
+ifeq ($(shell uname), Linux)
+# Linux needs libbsd for regression tests.
+LIBADD		+= -lbsd
+endif
+
+ifeq ($(shell uname), Darwin)
+# Mac OS X doesn't support static linking.
+STATIC 		 = 
+endif
+
 # You probably don't need to change anything else...
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
@@ -207,7 +217,7 @@ regress/%.o: regress/%.c config.h regress/regress.h
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c $<
 
 regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgi.a
-	$(CC) -o $@ $^ `curl-config --libs` -lz
+	$(CC) -o $@ $^ `curl-config --libs` -lz $(LIBADD)
 
 .PRECIOUS: $(REGRESS_OBJS)
 
