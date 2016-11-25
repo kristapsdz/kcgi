@@ -267,6 +267,13 @@ and the
 version 1.0, published 29 April 1996.
 .Bl -bullet
 .It
+Cookies are parsed according to
+.Dq HTTP State Management Mechanism ,
+RFC 6265.
+However, quoted cookies are
+.Em not
+supported.
+.It
 The
 .Dq Authentication
 header is parsed for digest or basic tokens as defined by RFC 2617,
