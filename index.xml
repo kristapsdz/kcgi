@@ -148,6 +148,11 @@ int main(void) {
 					for <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
 						href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>.
 					If so, install using that system.
+					The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
+					If you're running <code>make regress</code>, you'll need <a
+						href="https://curl.haxx.se/libcurl/">libcurl</a> and (if you're on Linux without <a
+						href="https://www.musl-libc.org">musl-libc</a>) <a
+						href="https://libbsd.freedesktop.org">libbsd</a>.
 				</p>
 				<p>
 					If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
@@ -160,6 +165,8 @@ int main(void) {
 						href="http://nginx.org">nginx</a>, and OpenBSD's <a
 						href="http://man.openbsd.org/httpd.8">httpd(8)</a>
 					(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
+				</p>
+				<p>
 					Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 						href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
 					Once downloaded, compile the software with <code>make</code>, which will automatically run a
