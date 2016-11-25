@@ -607,6 +607,9 @@ urldecode(char *p)
  * Parse out key-value pairs from an HTTP cookie.
  * These are not URL encoded (at this phase): they're just simple
  * key-values "crumbs" with opaque values.
+ * This is defined by RFC 6265, however, we don't [yet] do the
+ * quoted-string implementation, nor do we check for accepted
+ * characters so long as the delimiters aren't used.
  */
 static void
 parse_pairs(const struct parms *pp, char *p)
@@ -637,6 +640,7 @@ parse_pairs(const struct parms *pp, char *p)
 		}
 
 		if ('\0' == *key) {
+			/* This is sort-of allowed. */
 			XWARNX("cookie key: zero length");
 			continue;
 		}
