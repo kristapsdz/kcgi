@@ -150,9 +150,8 @@ int main(void) {
 					If so, install using that system.
 					The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
 					If you're running <code>make regress</code>, you'll need <a
-						href="https://curl.haxx.se/libcurl/">libcurl</a> and (if you're on Linux without <a
-						href="https://www.musl-libc.org">musl-libc</a>) <a
-						href="https://libbsd.freedesktop.org">libbsd</a>.
+						href="https://curl.haxx.se/libcurl/">libcurl</a> and <a
+						href="https://libbsd.freedesktop.org">libbsd</a> (on Linux).
 				</p>
 				<p>
 					If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
