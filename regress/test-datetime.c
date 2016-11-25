@@ -41,7 +41,15 @@ main(int argc, char *argv[])
 	char	 	 inbuf[64], testbuf[64];
 
 	for (i = 0; i < 100000; i++) {
-		v = arc4random_uniform(300 * 365 * 24 * 60 * 60);
+		/*
+		 * arc4random_uniform is of course fine on BSD systems,
+		 * but isn't implemented properly on all systems, e.g.,
+		 * Alpine Linux, so we don't pull in <bsd/stdlib.h> and
+		 * this might cause compile problems.
+		 * We would do more values, but Linux sometimes has
+		 * 32-bit time.
+		 */
+		v = arc4random_uniform(50 * 365 * 24 * 60 * 60);
 		tm = gmtime(&v);
 		strftime(inbuf, sizeof(inbuf), "%a, %d %b %Y %T GMT", tm);
 		kutil_epoch2str(v, testbuf, sizeof(testbuf));
