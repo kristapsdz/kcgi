@@ -604,8 +604,50 @@ urldecode(char *p)
 }
 
 /*
+ * Parse out key-value pairs from an HTTP cookie.
+ * These are not URL encoded (at this phase): they're just simple
+ * key-values "crumbs" with opaque values.
+ */
+static void
+parse_pairs(const struct parms *pp, char *p)
+{
+	char            *key, *val;
+
+	while (NULL != p && '\0' != *p) {
+		/* Skip leading whitespace. */
+		while (' ' == *p)
+			p++;
+
+		key = p;
+		val = NULL;
+		if (NULL != (p = strchr(p, '='))) {
+			/* Key/value pair. */
+			*p++ = '\0';
+			val = p;
+			p = strchr(p, ';');
+			if (NULL != p)
+				*p++ = '\0';
+		} else {
+			/* No value--error. */
+			p = strchr(key, ';');
+			if (NULL != p)
+				p++;
+			XWARNX("cookie key: no value");
+			continue;
+		}
+
+		if ('\0' == *key) {
+			XWARNX("cookie key: zero length");
+			continue;
+		}
+
+		output(pp, key, val, strlen(val), NULL);
+	}
+}
+
+/*
  * Parse out key-value pairs from an HTTP request variable.
- * This can be either a cookie or a POST/GET string.
+ * This is either a POST or GET string.
  * This MUST be a non-binary (i.e., nil-terminated) string!
  */
 static void
@@ -1298,7 +1340,7 @@ kworker_child_cookies(struct env *env,
 
 	pp->type = IN_COOKIE;
 	if (NULL != (cp = kworker_env(env, envsz, "HTTP_COOKIE")))
-		parse_pairs_urlenc(pp, cp);
+		parse_pairs(pp, cp);
 }
 
 /*
