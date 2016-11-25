@@ -237,7 +237,7 @@ const char *const pages[PAGE__MAX] = {
 	</figure>
 	<p>
 		Next, we use the <a href="http://man.openbsd.org/rcctl.8">rcctl(8)</a> tool to enable and
-		start the the <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> webserver and
+		start the <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> webserver and
 		<a href="http://man.openbsd.org/slowcgi.8">slowcgi(8)</a> wrapper.
 		(The latter is necessary because <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> only
 		directly supports FastCGI, so a proxy is necessary.)
