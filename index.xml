@@ -272,10 +272,10 @@ int main(void) {
 					The bulk of <span class="nm">kcgi</span>'s CGI handling lies in <a
 						href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses the HTTP request.
 					Application developers must invoke this function before all others.
-					For FastCGI, it's split between <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, which
+					For FastCGI, this function is split between <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, which
 					initialises context; and <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, which receives new
 					parsed requests.
-					In either case, requests must be freed by an <a href="khttp_free.3.html">khttp_free(3)</a>.
+					In either case, requests must be freed by <a href="khttp_free.3.html">khttp_free(3)</a>.
 				</p>
 				<p>
 					All functions isolate the parsing and validation of untrusted network data within a <i>sandboxed</i>
