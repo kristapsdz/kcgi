@@ -6,8 +6,11 @@
 STATIC 		 = -static
 
 ifeq ($(shell uname), Linux)
-# Linux needs libbsd for regression tests.
-LIBADD		+= -lbsd
+# Linux (without musl) needs libbsd for regression tests.
+ifeq ($(shell ldd --version 2>&1 | grep 'musl libc'),)
+LIBADD		+= $(shell pkg-config --libs libbsd)
+CFLAGS		+= $(shell pkg-config --cflags libbsd)
+endif
 endif
 
 ifeq ($(shell uname), Darwin)
