@@ -673,4 +673,20 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2016-11-27">2016-11-27</time>
+		</header>
+		<aside>
+			<div>
+				Following a report by Ross Richardson (thanks!), fix cookie handling.
+				Before, cookie values (and keys) were being handled as URL-encoded strings.
+				Now they're correctly handled as opaque values; and moreover, they use a stricter check against <a
+					href="https://tools.ietf.org/html/rfc6265">RFC 6265</a>.
+				While there, update some spelling and typos (thanks Svyatoslav!).
+			</div>
+		</aside>
+	</article>
 </articles>
