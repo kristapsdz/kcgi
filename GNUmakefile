@@ -22,7 +22,7 @@ endif
 
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
-PREFIX 		 = /usr/local
+PREFIX 		?= /usr/local
 DATADIR 	 = $(PREFIX)/share/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
