@@ -20,6 +20,7 @@
 
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -119,6 +120,18 @@ kutil_epoch2str(int64_t tt, char *buf, size_t sz)
 	/* FIXME: replace with numeric values and table lookup */
 
 	strftime(buf, sz, "%a, %d %b %Y %T GMT", &tm);
+	return(buf);
+}
+
+char *
+kutil_epoch2utcstr(int64_t tt, char *buf, size_t sz)
+{
+	struct tm	 tm;
+
+	kutil_epoch2time(tt, &tm);
+	snprintf(buf, sz, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2dZ",
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+		tm.tm_hour, tm.tm_min, tm.tm_sec);
 	return(buf);
 }
 

@@ -528,6 +528,7 @@ int		 khttp_fcgi_test(void);
 void		 kutil_epoch2tmvals(int64_t, int *, int *, int *, 
 			int *, int *, int *, int *, int *);
 char		*kutil_epoch2str(int64_t, char *, size_t);
+char		*kutil_epoch2utcstr(int64_t, char *, size_t);
 int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t);
 int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
 			int64_t, int64_t, int64_t);
