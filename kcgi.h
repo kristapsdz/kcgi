@@ -517,14 +517,14 @@ int		 khttp_fcgi_test(void);
 
 #define		KUTIL_EPOCH2TM(_tt, _tm) \
 		kutil_epoch2tmvals((_tt), \
-			&(_tm)->tt_sec, \
-			&(_tm)->tt_min, \
-			&(_tm)->tt_hour, \
-			&(_tm)->tt_mday, \
-			&(_tm)->tt_mon, \
-			&(_tm)->tt_year, \
-			&(_tm)->tt_wday, \
-			&(_tm)->tt_yday);
+			&(_tm)->tm_sec, \
+			&(_tm)->tm_min, \
+			&(_tm)->tm_hour, \
+			&(_tm)->tm_mday, \
+			&(_tm)->tm_mon, \
+			&(_tm)->tm_year, \
+			&(_tm)->tm_wday, \
+			&(_tm)->tm_yday);
 void		 kutil_epoch2tmvals(int64_t, int *, int *, int *, 
 			int *, int *, int *, int *, int *);
 char		*kutil_epoch2str(int64_t, char *, size_t);
