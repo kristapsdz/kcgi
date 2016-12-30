@@ -96,7 +96,7 @@ int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
 
 /*
  * These are just wrappers over the native functions that report when
- * failure has occured.
+ * failure has occurred.
  * They do nothing else and return the normal values.
  */
 int		 kxasprintf(const char *, int, 
