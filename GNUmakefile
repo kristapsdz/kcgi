@@ -23,6 +23,7 @@ endif
 CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 PREFIX 		?= /usr/local
+WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 DATADIR 	 = $(PREFIX)/share/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
@@ -300,13 +301,13 @@ sample-cgi: sample-cgi.o
 www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
 
 installwww: www
-	mkdir -p $(PREFIX)/snapshots
-	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(PREFIX)
-	install -m 0444 sample.c $(PREFIX)/sample.c.txt
-	install -m 0444 sample-fcgi.c $(PREFIX)/sample-fcgi.c.txt
-	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(PREFIX)/snapshots/
-	install -m 0444 kcgi.tgz $(PREFIX)/snapshots/kcgi-$(VERSION).tgz
-	install -m 0444 kcgi.tgz.sha512 $(PREFIX)/snapshots/kcgi-$(VERSION).tgz.sha512
+	mkdir -p $(WWWDIR)/snapshots
+	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(WWWDIR)
+	install -m 0444 sample.c $(WWWDIR)/sample.c.txt
+	install -m 0444 sample-fcgi.c $(WWWDIR)/sample-fcgi.c.txt
+	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(WWWDIR)/snapshots/
+	install -m 0444 kcgi.tgz $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz
+	install -m 0444 kcgi.tgz.sha512 $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz.sha512
 
 index.html: index.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
