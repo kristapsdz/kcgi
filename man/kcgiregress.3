@@ -118,7 +118,7 @@ parent(void *fp)
   long http;
 
   curl = curl_easy_init();
-  curl_easy_setopt(curl, CURLOPT_URL, 
+  curl_easy_setopt(curl, CURLOPT_URL,
     "http://localhost:17123/login.json");
   if (CURLE_OK != curl_easy_perform(curl))
     return(0);
