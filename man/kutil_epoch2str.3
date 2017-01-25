@@ -14,11 +14,12 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 12 2016 $
+.Dd $Mdocdate: November 1 2016 $
 .Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
 .Nm kutil_epoch2str ,
+.Nm kutil_epoch2utcstr ,
 .Nm KUTIL_EPOCH2TM ,
 .Nm kutil_epoch2tmvals ,
 .Nm kutil_date2epoch ,
@@ -33,6 +34,12 @@
 .In kcgi.h
 .Ft "void"
 .Fo kutil_epoch2str
+.Fa "int64_t epoch"
+.Fa "char *buf"
+.Fa "size_t sz"
+.Fc
+.Ft "void"
+.Fo kutil_epoch2utcstr
 .Fa "int64_t epoch"
 .Fa "char *buf"
 .Fa "size_t sz"
@@ -78,7 +85,8 @@ of size
 .Fa sz ,
 which should be greater than or equal to 30 bytes for the date and
 trailing nil terminator.
-The format conforms to RFC 822.
+The format conforms to RFC 822, e.g.,
+.Li Wed, 02 Oct 2002 13:00:00 GMT .
 This will truncate all values before the zeroth epoch to zero (Jan 1 as
 given).
 This function is useful for properly setting date-time header values:
@@ -86,6 +94,10 @@ This function is useful for properly setting date-time header values:
 .Dv KRESP_LAST_MODIFIED ,
 .Dv KRESP_DATE ,
 etc.
+The
+.Nm kutil_epoch2utcstr
+is similar, conforming to ISO 8601, e.g.,
+.Li 2002-10-02T13:00:00Z .
 .Pp
 The form
 .Nm kutil_epoch2tmvals
