@@ -689,4 +689,18 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-01-25">2017-01-25</time>
+		</header>
+		<aside>
+			<div>
+				Numerous spelling errors fixed (no functional change) and added <a
+					href="kutil_epoch2str.3.html">kutil_epoch2utcstr(3)</a> for formatting ISO 8601 dates.
+				Also fixed <a href="kutil_epoch2str.3.html">KUTIL_EPOCH2TM(3)</a> macro to set correct fields.
+			</div>
+		</aside>
+	</article>
 </articles>
