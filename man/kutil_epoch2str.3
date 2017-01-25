@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2016--2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: November 1 2016 $
+.Dd $Mdocdate: January 25 2017 $
 .Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
@@ -151,9 +151,13 @@ and time formatting functions access time-zone files, which may
 unwittingly crash given some operating system's sandbox mechanisms.
 .Sh AUTHORS
 The
-.Nm kutil_epoch2str
+.Nm kutil_epoch2str ,
+.Nm kutil_epoch2utcstr ,
+.Nm KUTIL_EPOCH2TM ,
+.Nm kutil_epoch2tmvals ,
+.Nm kutil_date2epoch ,
 and
-.Nm kutil_date2epoch
+.Nm kutil_datetime2epoch
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
