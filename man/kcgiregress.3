@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 7 2016 $
+.Dd $Mdocdate: December 30 2016 $
 .Dt KCGIREGRESS 3
 .Os
 .Sh NAME
@@ -118,7 +118,7 @@ parent(void *fp)
   long http;
 
   curl = curl_easy_init();
-  curl_easy_setopt(curl, CURLOPT_URL, 
+  curl_easy_setopt(curl, CURLOPT_URL,
     "http://localhost:17123/login.json");
   if (CURLE_OK != curl_easy_perform(curl))
     return(0);
