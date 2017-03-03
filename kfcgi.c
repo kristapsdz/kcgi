@@ -853,6 +853,7 @@ out:
 	 * This can take forever, but properly-written children will
 	 * exit when receiving SIGTERM.
 	 */
+	signal(SIGCHLD, SIG_DFL);
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == kill(ws[i], SIGTERM))
 			syslog(LOG_ERR, "kill: worker-%u: %m", ws[i]);
@@ -860,6 +861,7 @@ out:
 	for (i = 0; i < wsz; i++)
 		if (-1 != ws[i] && -1 == waitpid(ws[i], NULL, 0))
 			syslog(LOG_ERR, "wait: worker-%u: %m", ws[i]);
+	signal(SIGCHLD, sighandlechld);
 
 	signal(SIGCHLD, sigfp);
 
