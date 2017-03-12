@@ -1109,20 +1109,40 @@ int
 khttp_template_buf(struct kreq *req, 
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
+	struct ktemplatex x;
 
-	return(khttp_templatex_buf(t, buf, sz, khttp_templatex_write, req));
+	memset(&x, 0, sizeof(struct ktemplatex));
+	x.writer = khttp_templatex_write;
+
+	return(khttp_templatex_buf(t, buf, sz, &x, req));
 }
 
 int
 khttp_templatex_buf(const struct ktemplate *t, 
-	const char *buf, size_t sz, ktemplate_writef fp, void *arg)
+	const char *buf, size_t sz, 
+	const struct ktemplatex *opt, void *arg)
 {
 	size_t		 i, j, len, start, end;
+	ktemplate_writef fp;
 
 	if (0 == sz)
 		return(1);
 
-	if (NULL == t)
+	/* Require a writer. */
+
+	if (NULL == opt || NULL == opt->writer)
+		return(0);
+	
+	fp = opt->writer;
+
+	/*
+	 * If we have no callback mechanism, then we're going to push
+	 * the unmodified text out.
+	 * Check both the per-key template system and the fallback, if
+	 * provided.
+	 */
+
+	if (NULL == t && NULL == opt->fbk)
 		return(fp(buf, sz, arg));
 
 	for (i = 0; i < sz - 1; i++) {
@@ -1134,19 +1154,27 @@ khttp_templatex_buf(const struct ktemplate *t,
 		} 
 
 		/* Seek to find the end "@@" marker. */
+
 		start = i + 2;
-		for (end = start + 2; end < sz - 1; end++)
+		for (end = start + 1; end < sz - 1; end++)
 			if ('@' == buf[end] && '@' == buf[end + 1])
 				break;
 
 		/* Continue printing if not found of 0-length. */
+
 		if (end == sz - 1 || end == start) {
 			if ( ! fp(&buf[i], 1, arg))
 				return(0);
 			continue;
 		}
 
-		/* Look for a matching key. */
+		/* 
+		 * Look for a matching key.
+		 * If we find no matching key, use the fallback (if
+		 * found), otherwise just continue as if the key were
+		 * opaque text.
+		 */
+
 		for (j = 0; j < t->keysz; j++) {
 			len = strlen(t->key[j]);
 			if (len != end - start)
@@ -1160,8 +1188,12 @@ khttp_templatex_buf(const struct ktemplate *t,
 			break;
 		}
 
-		/* Didn't find it... */
-		if (j == t->keysz) {
+		if (j == t->keysz && NULL != opt->fbk) {
+			if ( ! (*opt->fbk)(&buf[start], len, t->arg)) {
+				XWARNX("template error");
+				return(0);
+			}
+		} else if (j == t->keysz) {
 			if ( ! fp(&buf[i], 1, arg))
 				return(0);
 		} else
@@ -1178,8 +1210,11 @@ int
 khttp_template(struct kreq *req, 
 	const struct ktemplate *t, const char *fname)
 {
+	struct ktemplatex x;
 
-	return(khttp_templatex(t, fname, khttp_templatex_write, req));
+	memset(&x, 0, sizeof(struct ktemplatex));
+	x.writer = khttp_templatex_write;
+	return(khttp_templatex(t, fname, &x, req));
 }
 
 /*
@@ -1193,7 +1228,7 @@ khttp_template(struct kreq *req,
  */
 int
 khttp_templatex(const struct ktemplate *t, 
-	const char *fname, ktemplate_writef fp, void *arg)
+	const char *fname, const struct ktemplatex *opt, void *arg)
 {
 	struct stat 	 st;
 	char		*buf;
@@ -1226,7 +1261,7 @@ khttp_templatex(const struct ktemplate *t,
 		return(0);
 	}
 
-	rc = khttp_templatex_buf(t, buf, sz, fp, arg);
+	rc = khttp_templatex_buf(t, buf, sz, opt, arg);
 	munmap(buf, sz);
 	close(fd);
 	return(rc);
