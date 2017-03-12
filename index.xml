@@ -206,9 +206,14 @@ int main(void) {
 					${sblg-aside}
 				</nav>
 				<p>
-					In addition to these resources, the following conference papers have referenced <span class="nm">kcgi</span>.
+					In addition to these resources, the following conference sessions have referenced <span class="nm">kcgi</span>.
 				</p>
 				<ul>
+					<li> 
+						Dzonsons, Kristaps. <i>Secure BSD Web Applications in C: Practical Strategies</i>. 
+						Proceedings of <a href="https://2017.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2017.
+						(<a href="https://kristaps.bsd.lv/absdcon2017">Slides</a>.)
+					</li>
 					<li> 
 						Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>. 
 						Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
