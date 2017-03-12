@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 16 2015 $
+.Dd $Mdocdate: October 12 2016 $
 .Dt KHTTP_TEMPLATE 3
 .Os
 .Sh NAME
@@ -40,7 +40,7 @@
 .Fo khttp_templatex
 .Fa "const struct ktemplate *t"
 .Fa "const char *fname"
-.Fa "ktemplate_writef fp"
+.Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
 .Ft int
@@ -55,7 +55,7 @@
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
 .Fa "size_t sz"
-.Fa "ktemplate_writef fp"
+.Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
@@ -73,52 +73,95 @@ They may only be called after
 .Xr khttp_body 3 ,
 else behaviour is undefined.
 .Pp
-.Fn khttp_template
+These functions all accept
+.Vt "struct ktemplate" ,
+which consists of the following fields:
+.Bl -tag -width Ds
+.It Va "const char *const *key"
+An array of keys.
+When the template is parsed and encounters a key, it is looked up in
+this array.
+.It Va "size_t keysz"
+The number of keys in
+.Va key .
+.It Va "void *arg"
+The optional argument passed to
+.Va cb .
+.It Va "int (*cb)(size_t index, void *arg)"
+The callback function called when a key in
+.Va key
+is found.
+The
+.Va index
+is the position in
+.Va key ,
+which is always less than
+.Va keysz .
+The argument is given by the 
+.Va arg
+field to the structure.
+.El
+.Pp
+The
+.Nm khttp_templatex
 and
-.Fn khttp_templatex
-memory-map the regular file
+.Nm khttp_templatex_buf
+functions accept
+.Vt struct ktemplatex ,
+which has the following fields:
+.Bl -tag -width Ds
+.It Va "int (*writer)(const char *b, size_t sz, void *arg)"
+The function that writes data in
+.Fa b
+of size
+.Fa sz
+with private argument
+.Fa arg
+that's passed to the functions.
+This may not be
+.Dv NULL .
+.It Va "int (*fbk)(const char *k, size_t sz, void *arg)"
+If the given key
+.Fa k
+of length
+.Fa sz
+is not found in the template array, this function is invoked.
+This will usually use
+.Fa writer
+to write any data.
+.El
+.Pp
+The
+.Nm khttp_template
+and
+.Nm khttp_templatex
+functions memory-map the regular file
 .Fa fname
 and pass the string into
-.Fn khttp_template_buf
+.Nm khttp_template_buf
 and
-.Fn khttp_templatex_buf .
-.Fn khttp_template
-uses the
-.Xr khttp_write 3
-family of functions for writing data, while
-.Fn khttp_templatex
-uses a function callback
-.Fa fp
-and opaque pointer
-.Fa arg
-for applications to override this behaviour.
-Passing
-.Dv NULL
-as
-.Fa fp
-causes undefined behaviour.
+.Nm khttp_templatex_buf ,
+respectively.
 .Pp
-.Fn khttp_template_buf
-and
-.Fn khttp_templatex_buf
-template an input buffer directly using
+The
+.Nm khttp_template_buf
+function further invokes
+.Nm khttp_templatex_buf
+with
 .Xr khttp_write 3
-and friends for
-.Fn khttp_template_buf
-or
-.Fa fp
-and opaque pointer
-.Fa arg
-for
-.Fn khttp_templatex_buf .
-The buffer is emitted until a
+as the writer function.
+.Pp
+When
+.Nm khttp_templatex_buf
+is invoked (it is used by all of the templating functions),
+the buffer is emitted until a
 .Li @@foo@@
 sequence (two
 .Qq at
 signs followed by a key, followed by a trailing pair of
 .Qq at
 signs) is encountered.
-The key is then looked up in the
+The key is first looked up in the
 .Fa t
 argument's
 .Va key
@@ -129,13 +172,19 @@ If found, the callback
 is invoked with the key index and the optional
 argument
 .Va arg .
-Callbacks may continue to process, emit HTML trees, and so on.
-If it returns 0,
-.Nm khttp_template_buf
+If not found and one of
+.Nm khttp_templatex
+or
+.Nm khttp_templatex_buf
+was used with a callback function, the callback function will be
+invoked.
+If the callback returns zero,
+.Nm khttp_templatex_buf
 fails.
-If the key is not found, it is emitted as opaque text via
-.Xr khttp_write 3
-and friends.
+This will trigger the failure of any invoking function such as
+.Nm khttp_template .
+If the key is not found and there is no fallthrough callback, it is
+emitted as opaque text.
 .Pp
 If
 .Fa t
