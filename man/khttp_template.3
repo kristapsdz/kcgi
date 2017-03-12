@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 12 2016 $
+.Dd $Mdocdate: March 12 2017 $
 .Dt KHTTP_TEMPLATE 3
 .Os
 .Sh NAME
@@ -126,6 +126,10 @@ If the given key
 of length
 .Fa sz
 is not found in the template array, this function is invoked.
+The
+.Fa arg
+is given within each function's
+.Vt "struct ktemplate" .
 This will usually use
 .Fa writer
 to write any data.
@@ -137,19 +141,23 @@ and
 .Nm khttp_templatex
 functions memory-map the regular file
 .Fa fname
-and pass the string into
+and pass the buffer into
 .Nm khttp_template_buf
 and
 .Nm khttp_templatex_buf ,
 respectively.
-.Pp
 The
 .Nm khttp_template_buf
 function further invokes
 .Nm khttp_templatex_buf
 with
 .Xr khttp_write 3
-as the writer function.
+as the writer function and
+.Fa req
+as the optional argument.
+So in the end,
+.Nm khttp_templatex_buf
+is always invoked.
 .Pp
 When
 .Nm khttp_templatex_buf
@@ -176,9 +184,9 @@ If not found and one of
 .Nm khttp_templatex
 or
 .Nm khttp_templatex_buf
-was used with a callback function, the callback function will be
-invoked.
-If the callback returns zero,
+was used with a fallthrough callback function, the fallthrough callback
+function will be invoked.
+In either event, if the callback returns zero,
 .Nm khttp_templatex_buf
 fails.
 This will trigger the failure of any invoking function such as
