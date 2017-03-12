@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 10 2016 $
+.Dd $Mdocdate: October 12 2016 $
 .Dt KHTTP_FREE 3
 .Os
 .Sh NAME
@@ -60,6 +60,17 @@ but does not flush the HTTP data stream.
 Thus, it may be used after invoking
 .Xr fork 2
 without confusing the output buffer.
+.Pp
+.Em Note :
+if you're forking within your CGI application, be aware of some caveats.
+Most web servers will continue to wait while
+.Dv stdout ,
+.Dv stderr ,
+and
+.Dv stdin
+are open to the CGI application.
+Thus, if you fork a long-running application, you must close out these
+file descriptors.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_parse 3
