@@ -433,7 +433,14 @@ struct	ktemplate {
 	const char *const	 *key;
 	size_t		 	  keysz;
 	void		 	 *arg;
-	int		 	(*cb)(size_t key, void *arg);
+	int		 	(*cb)(size_t, void *);
+};
+
+typedef int (*ktemplate_writef)(const char *, size_t, void *);
+
+struct	ktemplatex {
+	ktemplate_writef	 writer;
+	int			(*fbk)(const char *, size_t, void *);
 };
 
 enum	kcgi_err {
@@ -453,8 +460,6 @@ enum	kcgi_err {
 };
 
 __BEGIN_DECLS
-
-typedef int	(*ktemplate_writef)(const char *, size_t, void *);
 
 int		 khttp_body(struct kreq *);
 int		 khttp_body_compress(struct kreq *, int);
@@ -477,11 +482,15 @@ void		 khttp_puts(struct kreq *, const char *);
 int		 khttp_template(struct kreq *, 
 			const struct ktemplate *, const char *);
 int		 khttp_template_buf(struct kreq *, 
-			const struct ktemplate *, const char *, size_t);
+			const struct ktemplate *, const char *, 
+			size_t);
 int		 khttp_templatex(const struct ktemplate *, 
-			const char *, ktemplate_writef, void *);
+			const char *, const struct ktemplatex *, 
+			void *);
 int		 khttp_templatex_buf(const struct ktemplate *, 
-			const char *, size_t, ktemplate_writef, void *);
+			const char *, size_t, 
+			const struct ktemplatex *, void *);
+
 void		 khttp_write(struct kreq *, const char *, size_t);
 
 int		 khttpdigest_validate(const struct kreq *, 
