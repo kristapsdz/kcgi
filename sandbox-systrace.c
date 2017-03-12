@@ -20,6 +20,8 @@
 
 #ifdef HAVE_SYSTRACE
 
+#warning This feature is deprecated!
+
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
