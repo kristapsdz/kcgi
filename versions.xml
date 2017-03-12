@@ -703,4 +703,25 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-03-12">2017-03-12</time>
+		</header>
+		<aside>
+			<div>
+				Add a feature inspired by Ross Richardson: a fallback function for templates.
+				As described for the <a href="khttp_template.3.html">khttp_template(3)</a> family of functions, 
+				a fallback function is invoked if none of the fixed keys are found.
+				This is handy because you can provide parsed template keys, e.g., <code>foo[bar]</code> and
+				<code>foo[baz]</code>, which would be parsed for a type <code>foo</code> that's passed a dynamic value
+				<code>bar</code> or <code>baz</code>.
+			</div>
+			<div>
+				<strong>Nota bene</strong>: this required the <a href="khttp_template.3.html">khttp_templatex(3)</a> and <a
+					href="khttp_template.3.html">khttp_templatex_buf(3)</a> functions to have an argument change.
+			</div>
+		</aside>
+	</article>
 </articles>
