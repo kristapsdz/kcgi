@@ -142,6 +142,7 @@ SRCS 		 = auth.c \
      		   $(TESTSRCS)
 AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
+		   afl/afl-template \
 		   afl/afl-urlencoded
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
@@ -168,9 +169,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-upload
 REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
 		   regress/regress.o
-AFL_SRCS	 = afl/afl-multipart.c \
-		   afl/afl-plain.c \
-		   afl/afl-urlencoded.c
+AFL_SRCS	 = $(addsuffix .c, $(AFL)) 
 REGRESS_SRCS	 = regress/regress.c \
 		   regress/regress.h \
 		   $(addsuffix .c, $(REGRESS))
@@ -223,16 +222,10 @@ regress/%.o: regress/%.c config.h regress/regress.h
 regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgi.a
 	$(CC) -o $@ $^ `curl-config --libs` -lz $(LIBADD)
 
+afl/%: afl/%.c libkcgi.a
+	$(CC) $(CFLAGS) -o $@ $< libkcgi.a -lz
+
 .PRECIOUS: $(REGRESS_OBJS)
-
-afl/afl-multipart: afl/afl-multipart.c libkcgi.a
-	$(CC) $(CFLAGS) -o $@ afl/afl-multipart.c libkcgi.a -lz
-
-afl/afl-plain: afl/afl-plain.c libkcgi.a
-	$(CC) $(CFLAGS) -o $@ afl/afl-plain.c libkcgi.a -lz
-
-afl/afl-urlencoded: afl/afl-urlencoded.c libkcgi.a
-	$(CC) $(CFLAGS) -o $@ afl/afl-urlencoded.c libkcgi.a -lz
 
 libkcgi.a: $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
 	$(AR) rs $@ $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
