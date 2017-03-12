@@ -228,3 +228,11 @@ The
 .Nm
 library was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+The
+.Nm khttp_template
+and
+.Nm khttp_templatex
+functions need access to the file-system.
+So if you're sandboxing your application, you should read the files
+before the sandbox and use the buffer versions.
