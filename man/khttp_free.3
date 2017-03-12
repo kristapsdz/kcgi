@@ -60,6 +60,17 @@ but does not flush the HTTP data stream.
 Thus, it may be used after invoking
 .Xr fork 2
 without confusing the output buffer.
+.Pp
+.Em Note :
+if you're forking within your CGI application, be aware of some caveats.
+Most web servers will continue to wait while
+.Dv stdout ,
+.Dv stderr ,
+and
+.Dv stdin
+are open to the CGI application.
+Thus, if you fork a long-running application, you must close out these
+file descriptors.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_parse 3
