@@ -282,6 +282,14 @@ install: all
 	install -m 0555 kfcgi $(DESTDIR)$(SBINDIR)
 	install -m 0444 template.xml sample.c sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
 
+uninstall:
+	$(foreach $@_LIB, $(LIBS), rm -f $(DESTDIR)$(LIBDIR)/$($@_LIB);)
+	$(foreach $@_INC, kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h, rm -f $(DESTDIR)$(INCLUDEDIR)/$($@_INC);)
+	$(foreach $@_MAN, $(MAN3S), rm -f $(DESTDIR)$(MAN3DIR)/$(notdir $($@_MAN));)
+	$(foreach $@_MAN, $(MAN8S), rm -f $(DESTDIR)$(MAN8DIR)/$(notdir $($@_MAN));)
+	rm -f $(DESTDIR)$(SBINDIR)/kfcgi
+	$(foreach $@_TMP, template.xml sample.c sample-fcgi.c sample-cgi.c, rm -f $(DESTDIR)$(DATADIR)/$($@_TMP);)
+
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
 
