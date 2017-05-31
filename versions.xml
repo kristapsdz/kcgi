@@ -724,4 +724,18 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-05-31">2017-05-31</time>
+		</header>
+		<aside>
+			<div>
+				Clarify documentation for <a href="kcgijson.3.html">kcgijson(3)</a> and add an <code>uninstall</code> rule to
+				the GNUmakefile for those not using a package-managed version of the library.
+				No code changes.
+			</div>
+		</aside>
+	</article>
 </articles>
