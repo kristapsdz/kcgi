@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 12 2016 $
+.Dd $Mdocdate: November 25 2016 $
 .Dt KCGIJSON 3
 .Os
 .Sh NAME
@@ -282,11 +282,29 @@ argument to
 .Sh RETURN VALUES
 Functions returning an
 .Vt int
-indicate 0 on failure.
-This occurs if the requested statement occurs out of context, for
-example, emitting a key-value pair in an array context (or the root
-context), or emitting a standalone value in an object.
-On failure, the request is ignored.
+indicate zero on failure and non-zero on success.
+.Pp
+Failure for
+.Dq open ,
+.Dq write
+and
+.Dq put
+functions occurs if the request occurs out of context, for example,
+emitting a key-value pair in an array context (or the root context), or
+emitting a standalone value in an object.
+.Pp
+For
+.Dq close
+functions, failure occurs when trying to close a different type, for
+example, closing an array when an object is open.
+Failure also occurs if there is nothing open to close.
+For either of these, failure means that the requested operation was
+ignored.
+.Pp
+For
+.Fn kcgijson_close ,
+failure only means that there are open scopes when the function was
+invoked: all scopes are still closed.
 .Sh STANDARDS
 The
 .Nm kcgijson
@@ -296,3 +314,7 @@ The
 .Nm
 library was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+The current hard-coded limit of nested objects is 128 levels.
+When this is reached, the system will
+.Xr assert 3 .
