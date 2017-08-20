@@ -1117,6 +1117,15 @@ khttp_template_buf(struct kreq *req,
 	return(khttp_templatex_buf(t, buf, sz, &x, req));
 }
 
+/*
+ * There are all sorts of ways to make this faster and more efficient.
+ * For now, do it the easily-auditable way.
+ * Memory-map the given file and look through it character by character
+ * til we get to the key delimiter "@@".
+ * Once there, scan to the matching "@@".
+ * Look for the matching key within these pairs.
+ * If found, invoke the callback function with the given key.
+ */
 int
 khttp_templatex_buf(const struct ktemplate *t, 
 	const char *buf, size_t sz, 
@@ -1217,38 +1226,54 @@ khttp_template(struct kreq *req,
 	return(khttp_templatex(t, fname, &x, req));
 }
 
-/*
- * There are all sorts of ways to make this faster and more efficient.
- * For now, do it the easily-auditable way.
- * Memory-map the given file and look through it character by character
- * til we get to the key delimiter "@@".
- * Once there, scan to the matching "@@".
- * Look for the matching key within these pairs.
- * If found, invoke the callback function with the given key.
- */
 int
 khttp_templatex(const struct ktemplate *t, 
 	const char *fname, const struct ktemplatex *opt, void *arg)
 {
-	struct stat 	 st;
-	char		*buf;
-	size_t		 sz;
 	int		 fd, rc;
 
 	if (-1 == (fd = open(fname, O_RDONLY, 0))) {
 		XWARN("open: %s", fname);
 		return(0);
-	} else if (-1 == fstat(fd, &st)) {
+	}
+
+	rc = khttp_templatex_fd(t, fd, fname, opt, arg);
+	close(fd);
+	return(rc);
+}
+
+int
+khttp_template_fd(struct kreq *req, 
+	const struct ktemplate *t, int fd, const char *fname)
+{
+	struct ktemplatex x;
+
+	memset(&x, 0, sizeof(struct ktemplatex));
+	x.writer = khttp_templatex_write;
+	return(khttp_templatex_fd(t, fd, fname, &x, req));
+}
+
+int
+khttp_templatex_fd(const struct ktemplate *t, 
+	int fd, const char *fname,
+	const struct ktemplatex *opt, void *arg)
+{
+	struct stat 	 st;
+	char		*buf;
+	size_t		 sz;
+	int		 rc;
+
+	if (NULL == fname)
+		fname = "<unknown descriptor>";
+
+	if (-1 == fstat(fd, &st)) {
 		XWARN("fstat: %s", fname);
-		close(fd);
 		return(0);
 	} else if (st.st_size > SSIZE_MAX) {
 		XWARNX("size overflow: %s", fname);
-		close(fd);
 		return(0);
 	} else if (st.st_size <= 0) {
 		XWARNX("zero-length: %s", fname);
-		close(fd);
 		return(1);
 	}
 
@@ -1257,12 +1282,10 @@ khttp_templatex(const struct ktemplate *t,
 
 	if (MAP_FAILED == buf) {
 		XWARN("mmap: %s", fname);
-		close(fd);
 		return(0);
 	}
 
 	rc = khttp_templatex_buf(t, buf, sz, opt, arg);
 	munmap(buf, sz);
-	close(fd);
 	return(rc);
 }
