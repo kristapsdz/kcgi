@@ -481,6 +481,8 @@ void		 khttp_putc(struct kreq *, int);
 void		 khttp_puts(struct kreq *, const char *);
 int		 khttp_template(struct kreq *, 
 			const struct ktemplate *, const char *);
+int		 khttp_template_fd(struct kreq *, 
+			const struct ktemplate *, int, const char *);
 int		 khttp_template_buf(struct kreq *, 
 			const struct ktemplate *, const char *, 
 			size_t);
@@ -489,6 +491,9 @@ int		 khttp_templatex(const struct ktemplate *,
 			void *);
 int		 khttp_templatex_buf(const struct ktemplate *, 
 			const char *, size_t, 
+			const struct ktemplatex *, void *);
+int		 khttp_templatex_fd(const struct ktemplate *, 
+			int, const char *,
 			const struct ktemplatex *, void *);
 
 void		 khttp_write(struct kreq *, const char *, size_t);
