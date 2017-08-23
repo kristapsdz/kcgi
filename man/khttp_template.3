@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,9 @@
 .Nm khttp_template ,
 .Nm khttp_templatex ,
 .Nm khttp_template_buf ,
-.Nm khttp_templatex_buf
+.Nm khttp_templatex_buf ,
+.Nm khttp_template_fd ,
+.Nm khttp_templatex_fd
 .Nd emit filled-in templates for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -58,13 +60,30 @@
 .Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
+.Ft int
+.Fo khttp_template_fd
+.Fa "struct kreq *req"
+.Fa "const struct ktemplate *t"
+.Fa "int fd"
+.Fa "const char *filename"
+.Fc
+.Ft int
+.Fo khttp_templatex_fd
+.Fa "const struct ktemplate *t"
+.Fa "int fd"
+.Fa "const char *filename"
+.Fa "const struct ktemplatex *tx"
+.Fa "void *arg"
+.Fc
 .Sh DESCRIPTION
 The
 .Nm khttp_template ,
 .Nm khttp_templatex ,
 .Nm khttp_template_buf ,
+.Nm khttp_templatex_buf ,
+.Nm khttp_template_fd ,
 and
-.Nm khttp_templatex_buf
+.Nm khttp_templatex_fd
 functions comprise a template system for a
 .Xr kcgi 3
 context allocated with
@@ -103,9 +122,10 @@ field to the structure.
 .El
 .Pp
 The
-.Nm khttp_templatex
+.Nm khttp_templatex ,
+.Nm khttp_templatex_buf ,
 and
-.Nm khttp_templatex_buf
+.Nm khttp_templatex_fd
 functions accept
 .Vt struct ktemplatex ,
 which has the following fields:
@@ -135,33 +155,9 @@ This will usually use
 to write any data.
 .El
 .Pp
-The
-.Nm khttp_template
-and
-.Nm khttp_templatex
-functions memory-map the regular file
-.Fa fname
-and pass the buffer into
-.Nm khttp_template_buf
-and
-.Nm khttp_templatex_buf ,
-respectively.
-The
-.Nm khttp_template_buf
-function further invokes
-.Nm khttp_templatex_buf
-with
-.Xr khttp_write 3
-as the writer function and
-.Fa req
-as the optional argument.
-So in the end,
-.Nm khttp_templatex_buf
-is always invoked.
-.Pp
 When
 .Nm khttp_templatex_buf
-is invoked (it is used by all of the templating functions),
+is invoked (it is internally used by all of the templating functions),
 the buffer is emitted until a
 .Li @@foo@@
 sequence (two
@@ -181,7 +177,8 @@ is invoked with the key index and the optional
 argument
 .Va arg .
 If not found and one of
-.Nm khttp_templatex
+.Nm khttp_templatex ,
+.Nm khttp_templatex_fd ,
 or
 .Nm khttp_templatex_buf
 was used with a fallthrough callback function, the fallthrough callback
@@ -208,15 +205,17 @@ or
 .Xr mmap 2
 functions fail on the file, or the file is too large to map.
 .Pp
-Both
-.Nm khttp_template
-and
-.Nm khttp_template_buf
-fail if the callback function returns 0.
 The
-.Nm khttp_templatex
+.Nm khttp_template ,
+.Nm khttp_template_buf ,
 and
-.Nm khttp_atemplatex_buf
+.Nm khttp_template_fd
+functions fail if the callback function returns 0.
+The
+.Nm khttp_templatex ,
+.Nm khttp_atemplatex_buf ,
+and
+.Nm khttp_atemplatex_fd
 functions may also return 0 if the write functions return 0.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
@@ -235,4 +234,4 @@ and
 .Nm khttp_templatex
 functions need access to the file-system.
 So if you're sandboxing your application, you should read the files
-before the sandbox and use the buffer versions.
+before the sandbox and use the buffer or file descriptor versions.
