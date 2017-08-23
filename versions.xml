@@ -738,4 +738,17 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-08-22">2017-08-22</time>
+		</header>
+		<aside>
+			<div>
+				Add the <a href="khttp_template.3.html">khttp_template_fd(3)</a> functions for passing a file descriptor into
+				the template utility instead of an open file or buffer.
+			</div>
+		</aside>
+	</article>
 </articles>
