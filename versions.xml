@@ -742,12 +742,13 @@
 		<header>
 			<h1>0.9.6</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-08-30">2017-08-30</time>
+			<time datetime="2017-08-31">2017-08-31</time>
 		</header>
 		<aside>
 			<div>
 				Add the <a href="khttp_template.3.html">khttp_template_fd(3)</a> functions for passing a file descriptor into
 				the template utility instead of an open file or buffer.
+				(Also clean up that documentation.)
 			</div>
 		</aside>
 	</article>
