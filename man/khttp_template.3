@@ -155,6 +155,24 @@ This will usually use
 to write any data.
 .El
 .Pp
+The buffer version of this set accept a buffer
+.Fa buf
+of length
+.Fa sz .
+The file descriptor version accepts
+.Fa fd ,
+an open file descriptor that will be passed to
+.Xr mmap 2
+and on to the buffer version; and the associated
+.Fa filename ,
+which is used for error reporting and may be
+.Dv NULL
+.Pq in which case <unknown descriptor> is used .
+The file version accepts
+.Fa fname ,
+the file that will be opened read-only and passed into the file
+descriptor version.
+.Pp
 When
 .Nm khttp_templatex_buf
 is invoked (it is internally used by all of the templating functions),
@@ -165,6 +183,7 @@ sequence (two
 signs followed by a key, followed by a trailing pair of
 .Qq at
 signs) is encountered.
+.Pp
 The key is first looked up in the
 .Fa t
 argument's
