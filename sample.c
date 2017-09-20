@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,22 +14,35 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
+#include <sys/types.h> /* size_t, ssize_t */
+#include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
+#include <stdint.h> /* int64_t */
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <string.h> /* memset */
 
 #include "kcgi.h"
 #include "kcgihtml.h"
 
 /*
- * All of the pages we're going to display.
- * These will be mapped from the first name part of requests, e.g.,
- * /sample.cgi/index.html will map index.html into PAGE_INDEX.
- * The names are in the "pages" array.
+ * Simple CGI application.
+ * Compile it with `make samples` (or using gmake) and install it into
+ * your web server's /cgi-bin.
+ * The "template.xml" file should be in the /cgi-bin directory as well
+ * and readable by the server process.
+ * (Obviously this is just for a sample.)
+ *
+ * Assuming localhost/cgi-bin, the script is localhost/cgi-bin/sample.
+ * The pages recognised are:
+ *
+ *   - /cgi-bin/sample/index.html
+ *   - /cgi-bin/sample/template.html
+ *   - /cgi-bin/sample/senddata.html
+ *
+ * See the sendindex et al. functions for what these do.
  */
+
+/* Recognised page requests.  See pages[]. */
 enum	page {
 	PAGE_INDEX,
 	PAGE_TEMPLATE,
@@ -96,7 +109,8 @@ static const char *const templs[TEMPL__MAX] = {
 };
 
 /* 
- * Page names (as in the URL component).
+ * Page names (as in the URL component) mapped from the first name part
+ * of requests, e.g., /sample.cgi/index.html -> index -> PAGE_INDEX.
  */
 static const char *const pages[PAGE__MAX] = {
 	"index", /* PAGE_INDEX */
@@ -107,11 +121,21 @@ static const char *const pages[PAGE__MAX] = {
 /*
  * Open an HTTP response with a status code and a particular
  * content-type, then open the HTTP content body.
- * We'll usually just use the same content type...
+ * You can call khttp_head(3) before this: CGI doesn't dictate any
+ * particular header order.
  */
 static void
 resp_open(struct kreq *req, enum khttp http)
 {
+	enum kmime	 mime;
+
+	/*
+	 * If we've been sent an unknown suffix like '.foo', we won't
+	 * know what it is.
+	 * Default to an octet-stream response.
+	 */
+	if (KMIME__MAX == (mime = req->mime))
+		mime = KMIME_APP_OCTET_STREAM;
 
 	khttp_head(req, kresps[KRESP_STATUS], 
 		"%s", khttps[http]);
@@ -140,18 +164,15 @@ template(size_t key, void *arg)
 		khtml_puts(req, req->req->remote);
 		break;
 	default:
-		abort();
+		return(0);
 	}
 
 	return(1);
 }
 
 /*
- * Send the "templated" file.
- * This demonstrates how to use templates.
- * One will usually have more powerful machinery to look up the XML file
- * in a template directory, or possibly populate it from a database via
- * khttp_template_buf().
+ * Demonstrates how to use templates.
+ * Returns HTTP 200 and the template content.
  */
 static void
 sendtemplate(struct kreq *req)
@@ -174,10 +195,10 @@ sendtemplate(struct kreq *req)
 
 /*
  * Send a random amount of data.
- * This tests how well the application performs under load.
- * We accept two optional parameters: page size and count.
+ * Requires KEY_PAGECOUNT (optional), KEY_PAGESIZE (optional).
  * Page count is the number of times we flush a page (with the given
  * size) to the wire.
+ * Returns HTTP 200 and the random data.
  */
 static void
 senddata(struct kreq *req)
@@ -214,10 +235,9 @@ senddata(struct kreq *req)
 }
 
 /*
- * Send the "index" page.
- * This demonstrates how to use GET and POST forms and building with the
- * HTML builder functions.
- * You probably want to use the template instead...
+ * Demonstrates how to use GET and POST forms and building with the HTML
+ * builder functions.
+ * Returns HTTP 200 and HTML content.
  */
 static void
 sendindex(struct kreq *req)
@@ -226,8 +246,10 @@ sendindex(struct kreq *req)
 	struct khtmlreq	 r;
 	const char	*cp;
 
-	(void)kasprintf(&page, "%s/%s", 
-		req->pname, pages[PAGE_INDEX]);
+	cp = NULL == req->fieldmap[KEY_INTEGER] ?
+		"" : req->fieldmap[KEY_INTEGER]->val;
+	kasprintf(&page, "%s/%s", req->pname, pages[PAGE_INDEX]);
+
 	resp_open(req, KHTTP_200);
 	khtml_open(&r, req, 0);
 	khtml_elem(&r, KELEM_DOCTYPE);
@@ -248,8 +270,6 @@ sendindex(struct kreq *req)
 	khtml_puts(&r, "Post (multipart)");
 	khtml_closeelem(&r, 1);
 	khtml_elem(&r, KELEM_P);
-	cp = NULL == req->fieldmap[KEY_INTEGER] ?
-		"" : req->fieldmap[KEY_INTEGER]->val;
 	khtml_attr(&r, KELEM_INPUT,
 		KATTR_TYPE, "number",
 		KATTR_NAME, keys[KEY_INTEGER].name,
@@ -289,47 +309,30 @@ main(void)
 	enum kcgi_err	 er;
 
 	/* Set up our main HTTP context. */
+
 	er = khttp_parse(&r, keys, KEY__MAX, 
 		pages, PAGE__MAX, PAGE_INDEX);
 
-	if (KCGI_OK != er) {
-		fprintf(stderr, "Terminate: parse error: %d\n", er);
-		khttp_free(&r);
+	if (KCGI_OK != er)
 		return(EXIT_FAILURE);
-	}
+
+	/* 
+	 * Accept only GET, POST, and OPTIONS.
+	 * Restrict to text/html and a valid page.
+	 * If all of our parameters are valid, use a dispatch array to
+	 * send us to the page handlers.
+	 */
 
 	if (KMETHOD_OPTIONS == r.method) {
-		/* Indicate that we accept GET, POST, and PUT. */
-		khttp_head(&r, kresps[KRESP_STATUS], 
-			"%s", khttps[KHTTP_200]);
 		khttp_head(&r, kresps[KRESP_ALLOW], 
-			"OPTIONS GET POST PUT");
-		khttp_body(&r);
-	} else if (KMETHOD_PUT == r.method) {
-		/* PUT makes us just drop to the browser. */
-		khttp_head(&r, kresps[KRESP_STATUS], 
-			"%s", khttps[KHTTP_200]);
-		if (r.fieldsz > 0) {
-			khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-				"%s", NULL == r.fields[0].ctype ?
-				kmimetypes[KMIME_APP_OCTET_STREAM]:
-				r.fields[0].ctype);
-			khttp_body(&r);
-			khttp_write(&r, r.fields[0].val, r.fields[0].valsz);
-		} else
-			khttp_body(&r);
+			"OPTIONS GET POST");
+		resp_open(&r, KHTTP_200);
 	} else if (KMETHOD_GET != r.method && 
-			KMETHOD_POST != r.method) {
-		/* Don't accept anything else. */
+		   KMETHOD_POST != r.method) {
 		resp_open(&r, KHTTP_405);
 	} else if (PAGE__MAX == r.page || 
-			KMIME_TEXT_HTML != r.mime) {
-		/*
-		 * We've been asked for an unknown page or something
-		 * with an unknown extension.
-		 */
+		   KMIME_TEXT_HTML != r.mime) {
 		resp_open(&r, KHTTP_404);
-		khttp_puts(&r, "Page not found.");
 	} else
 		(*disps[r.page])(&r);
 
