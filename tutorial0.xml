@@ -27,7 +27,10 @@
 		I'll also include the HTML library for <span class="nm">kcgi</span>&#8212;I'll explain why later.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint linenums">#include &lt;stdint.h&gt;
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
 #include &lt;stdlib.h&gt;
 #include &lt;kcgi.h&gt;
 #include &lt;kcgihtml.h&gt;</pre>
