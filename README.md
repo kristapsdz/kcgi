@@ -43,6 +43,9 @@ int main(void) {
 }
 ```
 
+For a fuller example reflecting the repository sources, see
+[sample.c](https://github.com/kristapsdz/kcgi/blob/master/sample.c).
+
 ## Installation
 
 To use the bleeding-edge version of kcgi (instead of from your system's
