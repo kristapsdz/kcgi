@@ -229,7 +229,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 		for (i = 0; i < sz; i++, p->bytes++) {
 			if (p->linebufpos + 4 >= p->linebufsz)
 				linebuf_flush(p, 1);
-			if (isprint((int)buf[i]) || '\n' == buf[i]) {
+			if (isprint((unsigned char)buf[i]) || '\n' == buf[i]) {
 				p->linebuf[p->linebufpos++] = buf[i];
 				p->linebuf[p->linebufpos] = '\0';
 			} else if ('\t' == buf[i]) {

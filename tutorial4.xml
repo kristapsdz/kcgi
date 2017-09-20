@@ -193,7 +193,7 @@ str_to_adate(const char* s, char sep, struct adate *d)
   d-&gt;day = 0;
 
   i = 0;
-  while (isdigit(s[i]) || s[i] == sep)
+  while (isdigit((unsigned char)s[i]) || s[i] == sep)
     i++;
 
   if (i &gt; 0 &amp;&amp; s[i] == '\0') {
