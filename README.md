@@ -52,10 +52,10 @@ To use the bleeding-edge version of kcgi (instead of from your system's
 packages or a stable version), the process it the similar as for source
 releases.
 
-Begin by cloning or downloading.  Then compile with `make` (GNU make),
-then `sudo make install` (or using `doas`).  To install in an
-alternative directory to `/usr/local`, set the `PREFIX` variable when
-installing.
+Begin by cloning or downloading.  Then compile with `make` (GNU make, so
+it may be `gmake` on your system), then `sudo make install` (or using
+`doas`).  To install in an alternative directory to `/usr/local`, set
+the `PREFIX` variable when installing.
 
 ```sh
 make
@@ -86,6 +86,7 @@ appropriate to your system.
 
 It's useful to run the installed regression tests on the bleeding edge
 sources.
+(Again, this uses GNU make, so it may be `gmake` on your system.)
 
 ```sh
 make regress
@@ -95,6 +96,7 @@ The system contains a full regression suite and is also built to work
 with [AFL](http://lcamtuf.coredump.cx/afl/).
 To run some of the bundled tests, use the binaries compiled into the
 `afl` directory.
+(Again, this uses GNU make, so it may be `gmake` on your system.)
 
 ```sh
 make afl
