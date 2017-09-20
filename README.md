@@ -2,28 +2,29 @@
 
 kcgi is an open source CGI and FastCGI library for C web applications.
 It is minimal, secure, and auditable; and fits within your
-[BCHS](https://learnbchs.org) software stack.  This repository
-consists of bleeding-edge code between versions: to keep up to date with
-the current stable release of kcgi, visit the [kcgi
+[BCHS](https://learnbchs.org) software stack.
+
+This repository consists of bleeding-edge code between versions: to keep
+up to date with the current stable release of kcgi, visit the [kcgi
 website](https://kristaps.bsd.lv/kcgi).
+The website also contains canonical installation, deployment, and usage
+documentation.
+This page describes using the bleeding-edge version of the system.
 
-To get started with a kcgi project, see
-[kcgi-framework](https://github.com/kristapsdz/kcgi-framework) for a set
-of files to get your project going.
-
-## Code Example
+## Example
 
 Implementing a CGI or FastCGI application with kcgi is easy (for values
-of easy greater than "knows C").
-One usually specifies the pages recognised by the application and the
-known form inputs.
-kcgi then parses the request.
+of easy strictly greater than "knows C").
+Specify the pages recognised by the application and the known HTML form
+inputs.
+kcgi parses the request and can manage output.
 
-``` c
+```c
+#include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
 #include <stdint.h> /* int64_t */
 #include <stdlib.h>
-#include <unistd.h> /* ssize_t */
 #include <kcgi.h>
  
 int main(void) {
@@ -44,27 +45,59 @@ int main(void) {
 
 ## Installation
 
-kcgi works out-of-the-box with modern UNIX systems.
-Simply download the latest version's [source
-archive](https://kristaps.bsd.lv/kcgi/snapshots/kcgi.tar.gz) (or download
-the project from GitHub), compile with `make`, then `sudo make install`
-(or using `doas`).
-Your operating system might already have kcgi as one of its third-party
-libraries: check to make sure!
+To use the bleeding-edge version of kcgi (instead of from your system's
+packages or a stable version), the process it the similar as for source
+releases.
+
+Begin by cloning or downloading.  Then compile with `make` (GNU make),
+then `sudo make install` (or using `doas`).  To install in an
+alternative directory to `/usr/local`, set the `PREFIX` variable when
+installing.
+
+```sh
+make
+doas make install PREFIX=/opt
+```
+
+You can also change the default value in the
+[GNUmakefile](https://github.com/kristapsdz/kcgi/blob/master/GNUmakefile).
 
 ## API Reference
 
-See the [kcgi(3) manpage](https://kristaps.bsd.lv/kcgi/kcgi.3.html) for
-complete library documentation.
-You can also browse [all
-functions](https://kristaps.bsd.lv/kcgi/functions.html).
+For the repository version of kcgi, the locally-installed manpages are
+the canonical source of information.  (The web-site reflects the latest
+release, which may be older than what you have.)
+
+```sh
+man kcgi
+apropos kcgi
+```
+
+This assumes that kcgi has been installed in a path recognised by your
+manpage reader.
+On most systems, `/opt` (as in the above example) is not recognised, so
+you may need to edit `/etc/man.conf` or other configuration file
+appropriate to your system.
 
 ## Tests
 
+It's useful to run the installed regression tests on the bleeding edge
+sources.
+
+```sh
+make regress
+```
+
 The system contains a full regression suite and is also built to work
 with [AFL](http://lcamtuf.coredump.cx/afl/).
-See the [kcgi website](https://kristaps.bsd.lv/kcgi) for details on how
-to deploy (or write) tests.
+To run some of the bundled tests, use the binaries compiled into the
+`afl` directory.
+
+```sh
+make afl
+cd afl
+afl-fuzz -i in/urlencoded -o out -- ./afl-urlencoded
+```
 
 ## License
 
