@@ -2,7 +2,7 @@
 
 kcgi is an open source CGI and FastCGI library for C web applications.
 It is minimal, secure, and auditable; and fits within your
-[BCHS](https://learnbchs.org) software stack.  This repository is
+[BCHS](https://learnbchs.org) software stack.  This repository
 consists of bleeding-edge code between versions: to keep up to date with
 the current stable release of kcgi, visit the [kcgi
 website](https://kristaps.bsd.lv/kcgi).
