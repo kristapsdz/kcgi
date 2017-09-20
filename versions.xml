@@ -752,4 +752,18 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.7</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-08-31">2017-08-31</time>
+		</header>
+		<aside>
+			<div>
+				Fix headers to be more minimal and standards-compliant.
+				Add Ross Richardson's <a href="tutorial4.html">Using Pages</a> tutorial.
+				Clarify some function elements in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+		</aside>
+	</article>
 </articles>
