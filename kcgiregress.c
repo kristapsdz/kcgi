@@ -476,7 +476,7 @@ dochild_params(int fd, void *arg, size_t *length,
 			/* Split this into the path and query. */
 
 			cp = path;
-			while ('\0' != *cp && ! isspace((int)*cp))
+			while ('\0' != *cp && ! isspace((unsigned char)*cp))
 				cp++;
 			*cp = '\0';
 			if (NULL != (query = strchr(path, '?')))
@@ -501,7 +501,7 @@ dochild_params(int fd, void *arg, size_t *length,
 		if (NULL == (val = strchr(key, ':')))
 			continue;
 		*val++ = '\0';
-		while ('\0' != *val && isspace((int)*val))
+		while ('\0' != *val && isspace((unsigned char)*val))
 			val++;
 
 		/* Recognise some attributes... */
@@ -529,8 +529,8 @@ dochild_params(int fd, void *arg, size_t *length,
 		for (cp = buf; '\0' != *cp; cp++) 
 			if ('-' == *cp)
 				*cp = '_';
-			else if (isalpha((int)*cp))
-				*cp = toupper((int)*cp);
+			else if (isalpha((unsigned char)*cp))
+				*cp = toupper((unsigned char)*cp);
 
 		if ( ! fp(buf, val, arg))
 			return(0);

@@ -84,19 +84,19 @@ kauth_nexttok(const char **next, char delim, size_t *sz)
 {
 	const char	*cp;
 
-	while (isspace((int)**next))
+	while (isspace((unsigned char)**next))
 		(*next)++;
 
 	for (*sz = 0, cp = *next; '\0' != **next; (*next)++, (*sz)++)
 		if ('\0' != delim && delim == **next)
 			break;
-		else if (isspace((int)**next))
+		else if (isspace((unsigned char)**next))
 			break;
 
 	if ('\0' != delim && delim == **next) 
 		(*next)++;
 
-	while (isspace((int)**next))
+	while (isspace((unsigned char)**next))
 		(*next)++;
 
 	return(cp);
@@ -126,7 +126,7 @@ kauth_nextvalue(struct pdigbuf *val, const char **cp)
 	for ( ; '\0' != **cp; (*cp)++) {
 		if (quot && '"' == **cp && '\\' != (*cp)[-1])
 			break;
-		else if ( ! quot && isspace((int)**cp))
+		else if ( ! quot && isspace((unsigned char)**cp))
 			break;
 		else if ( ! quot && ',' == **cp)
 			break;
@@ -136,11 +136,11 @@ kauth_nextvalue(struct pdigbuf *val, const char **cp)
 
 	if (quot && '"' == **cp)
 		(*cp)++;
-	while (isspace((int)**cp))
+	while (isspace((unsigned char)**cp))
 		(*cp)++;
 	if (',' == **cp)
 		(*cp)++;
-	while (isspace((int)**cp))
+	while (isspace((unsigned char)**cp))
 		(*cp)++;
 }
 
@@ -237,7 +237,7 @@ khttpbasic_input(int fd, const char *cp)
 
 	auth = KAUTH_BASIC;
 	fullwrite(fd, &auth, sizeof(enum kauth));
-	while (isspace((int)*cp))
+	while (isspace((unsigned char)*cp))
 		cp++;
 
 	if ('\0' == *cp) {

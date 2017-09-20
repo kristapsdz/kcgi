@@ -955,7 +955,7 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 				c = cp[j];
 				first = 0;
 			} else
-				c = tolower((int)cp[j]);
+				c = tolower((unsigned char)cp[j]);
 			fullwrite(fd, &c, 1);
 		}
 
@@ -1269,7 +1269,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 			}
 
 			/* Filter output. */
-			if (isprint((int)b[i]) || '\n' == b[i])
+			if (isprint((unsigned char)b[i]) || '\n' == b[i])
 				fputc(b[i], stderr);
 			else if ('\t' == b[i])
 				fputs("\\t", stderr);

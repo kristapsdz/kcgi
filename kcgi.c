@@ -409,7 +409,7 @@ kutil_urlencode(const char *cp)
 		memset(buf, 0, sizeof(buf));
 		if (' ' == ch) 
 			buf[0] = '+';
-		else if (isalnum((int)ch) || ch == '-' || 
+		else if (isalnum((unsigned char)ch) || ch == '-' || 
 			ch == '_' || ch == '.' || ch == '~') 
 			buf[0] = ch;
 		else
@@ -995,16 +995,16 @@ kvalid_date(struct kpair *kp)
 		return(0);
 	else if (kp->valsz != 10)
 		return(0);
-	else if ( ! isdigit((int)kp->val[0]) ||
-		! isdigit((int)kp->val[1]) ||
-		! isdigit((int)kp->val[2]) ||
-		! isdigit((int)kp->val[3]) ||
+	else if ( ! isdigit((unsigned char)kp->val[0]) ||
+		! isdigit((unsigned char)kp->val[1]) ||
+		! isdigit((unsigned char)kp->val[2]) ||
+		! isdigit((unsigned char)kp->val[3]) ||
 		'-' != kp->val[4] || 
-		! isdigit((int)kp->val[5]) ||
-		! isdigit((int)kp->val[6]) ||
+		! isdigit((unsigned char)kp->val[5]) ||
+		! isdigit((unsigned char)kp->val[6]) ||
 		'-' != kp->val[7] || 
-		! isdigit((int)kp->val[8]) ||
-		! isdigit((int)kp->val[9]))
+		! isdigit((unsigned char)kp->val[8]) ||
+		! isdigit((unsigned char)kp->val[9]))
 		return(0);
 
 	year = atoi(&kp->val[0]);

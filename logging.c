@@ -78,7 +78,7 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 			fputs("\\t", stderr);
 			break;
 		default:
-			if (isprint((int)msg[i]))
+			if (isprint((unsigned char)msg[i]))
 				fputc(msg[i], stderr);
 			else
 				fputc('?', stderr);
