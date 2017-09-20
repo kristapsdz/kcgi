@@ -20,7 +20,8 @@ endif
 
 # You probably don't need to change anything else...
 
-CFLAGS 		+= -g -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
+CFLAGS 		+= -g -W -Wall -Wextra -Wstrict-prototypes 
+CFLAGS		+= -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 PREFIX 		?= /usr/local
 WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
