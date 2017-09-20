@@ -7,9 +7,7 @@
 		<time itemprop="datePublished" datetime="2015-10-04">4 October, 2016</time>
 	</header>
 	<p>
-		<i>
-			(Thanks to Ross Richardson, who wrote this tutorial!)
-		</i>
+		<strong>Thanks to Ross Richardson's fine work in contributing this tutorial!</strong>
 	</p>
 	<p>
 		In order to facilitate convenient handling of common cases, <span class="nm">kcgi</span> provides functionality for dealing with
@@ -20,29 +18,26 @@
 	</p>
 	<p>
 		This tutorial describes an example CGI which implements a news site devoted to some particular topic.
-		The default document shows an index page, and there are sections for particular relevant areas:
+		The default document shows an index page, and there are sections for particular relevant areas.
+		In each of these, the trailing slash may be included or omitted.
+		I assume that your script is available at <span class="file">/cgi-bin/news</span>.
 	</p>
 	<dl>
-		<dt><span class="file">http://www.example.com/cgi-bin/news</span></dt>
+		<dt><span class="file">/cgi-bin/news</span>, <span class="file">/cgi-bin/news/index</span></dt>
 		<dd>main index</dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/index/</span></dt>
-		<dd>main index</dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/about/</span></dt>
+		<dt><span class="file">/cgi-bin/news/about/</span></dt>
 		<dd>about the site</dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/</span></dt>
+		<dt><span class="file">/cgi-bin/news/archive/</span></dt>
 		<dd>archive of old articles</dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var></span></dt>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/</span></dt>
+		<dt><span class="file">/cgi-bin/news/archive/<var>yyyy</var></span></dt>
 		<dd>archive/index of articles for year <var>yyyy</var></dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var></span></dt>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/</span></dt>
+		<dt><span class="file">/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var></span></dt>
 		<dd>archive/index of articles for month <var>mm</var> of year <var>yyyy</var></dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/<var>dd</var></span></dt>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/<var>dd</var>/</span></dt>
+		<dt><span class="file">/cgi-bin/news/archive/<var>yyyy</var>/<var>mm</var>/<var>dd</var></span></dt>
 		<dd>archive/index of articles for date <var>yyyy</var>-<var>mm</var>-<var>dd</var></dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/random/</span></dt>
+		<dt><span class="file">/cgi-bin/news/random</span></dt>
 		<dd>a random article</dd>
-		<dt><span class="file">http://www.example.com/cgi-bin/news/tag/<var>subj</var></span></dt>
+		<dt><span class="file">/cgi-bin/news/tag/<var>subj</var></span></dt>
 		<dd>articles tagged with &quot;<var>subj</var>&quot;</dd>
 	</dl>
 	<p>
@@ -68,11 +63,11 @@
 		<dd>
 			<ul>
 				<li>if <code>pagename</code> is the empty string, the <code>defpage</code> parameter passed to
-					<code>http_parse(3)</code> (that is, the index corrsponding to the default page)</li>
+					<a href="khttp_parse.3.html">khttp_parse(3)</a> (that is, the index corrsponding to the default page)</li>
 				<li>if <code>pagename</code> matches one of the strings in the <code>pages</code> parameter passed to
-					<code>http_parse(3)</code>, the index of that string</li>
+					<a href="khttp_parse.3.html">khttp_parse(3)</a>, the index of that string</li>
 				<li>if <code>pagename</code> does not match any of the strings in <code>pages</code>, the <code>pagesz</code>
-					parameter passed to <code>http_parse(3)</code></li>
+					parameter passed to <a href="khttp_parse.3.html">khttp_parse(3)</a></li>
 			</ul>
 		</dd>
 		<dt><code>path</code></dt>
@@ -398,4 +393,13 @@ static const struct kvalid keys[KEY__MAX] = {
 		<li><strong>involve parsing/validation in a sandboxed environment</strong></li>
 		<li>allows for greater flexibility</li>
 	</ul>
+	<p>
+		<strong>Editor's note</strong>: Ross makes a good case
+		for putting some sort of handling facility for URLs into
+		the protected child process.
+		For example, we could pass a string into <a href="khttp_parse.3.html">khttp_parsex(3)</a> that would define a template for
+		splitting the path into arguments.
+		For example, <q>/@@0@@/@@1@@/@@2@@</q> might consider a pathname matching <q>/foo/bar/baz</q> with components being validated as
+		query arguments.
+	</p>
 </article>
