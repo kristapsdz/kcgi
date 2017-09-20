@@ -29,7 +29,8 @@ DATADIR 	 = $(PREFIX)/share/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml \
-		   tutorial3.xml
+		   tutorial3.xml \
+		   tutorial4.xml
 TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $(xml) .xml)))
 SBLGS		 = archive.html \
 		   index.html
