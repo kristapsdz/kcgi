@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 12 2016 $
+.Dd $Mdocdate: November 25 2016 $
 .Dt KCGI 3
 .Os
 .Sh NAME
@@ -96,9 +96,11 @@ include the
 .Pa kcgi.h
 as follows:
 .Bd -literal
+#include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
 #include <stdint.h> /* int64_t */
-#include <unistd.h> /* ssize_t */
+#include <stdlib.h>
 #include <kcgi.h>
 .Ed
 .Pp
@@ -133,10 +135,11 @@ It does nothing but emit
 .Dq Hello, world!
 to the output.
 .Bd -literal
-#include <stdarg.h>
-#include <stdint.h>
+#include <sys/types.h> /* size_t, ssize_t */
+#include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
+#include <stdint.h> /* int64_t */
 #include <stdlib.h>
-#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -161,10 +164,11 @@ int main(void) {
 This can be extended to work with the FastCGI interface by allowing the
 request parser to operate within a loop.
 .Bd -literal
-#include <stdarg.h>
-#include <stdint.h>
+#include <sys/types.h> /* size_t, ssize_t */
+#include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
+#include <stdint.h> /* int64_t */
 #include <stdlib.h>
-#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -198,10 +202,11 @@ to validate and display.
 This might be provided as part of an HTML form or directly as part of
 the URL query string.
 .Bd -literal
-#include <stdarg.h>
-#include <stdint.h>
+#include <sys/types.h> /* size_t, ssize_t */
+#include <stdarg.h> /* va_list */
+#include <stddef.h> /* NULL */
+#include <stdint.h> /* int64_t */
 #include <stdlib.h>
-#include <unistd.h>
 #include <kcgi.h>
 
 int main(void) {
@@ -297,7 +302,7 @@ and further in RFC 4229,
 Permanent URI schemes are registered with IANA.
 .It
 The
-.Lk http://kristaps.bsd.lv/kcgi/extending01.html "FastCGI Extensions for Management Control" .
+.Lk https://kristaps.bsd.lv/kcgi/extending01.html "FastCGI Extensions for Management Control" .
 .It
 HTTP dates (logging and date-time management) are specified by
 .Dq RFC 822 .
