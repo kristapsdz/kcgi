@@ -696,22 +696,24 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	if (NULL == req->kdata)
 		goto err;
 	fd = -1;
-	req->cookiemap = XCALLOC
-		(fcgi->keysz, sizeof(struct kpair *));
-	if (fcgi->keysz && NULL == req->cookiemap)
-		goto err;
-	req->cookienmap = XCALLOC
-		(fcgi->keysz, sizeof(struct kpair *));
-	if (fcgi->keysz && NULL == req->cookienmap)
-		goto err;
-	req->fieldmap = XCALLOC
-		(fcgi->keysz, sizeof(struct kpair *));
-	if (fcgi->keysz && NULL == req->fieldmap)
-		goto err;
-	req->fieldnmap = XCALLOC
-		(fcgi->keysz, sizeof(struct kpair *));
-	if (fcgi->keysz && NULL == req->fieldnmap)
-		goto err;
+	if (fcgi->keysz) {
+		req->cookiemap = XCALLOC
+			(fcgi->keysz, sizeof(struct kpair *));
+		if (NULL == req->cookiemap)
+			goto err;
+		req->cookienmap = XCALLOC
+			(fcgi->keysz, sizeof(struct kpair *));
+		if (NULL == req->cookienmap)
+			goto err;
+		req->fieldmap = XCALLOC
+			(fcgi->keysz, sizeof(struct kpair *));
+		if (NULL == req->fieldmap)
+			goto err;
+		req->fieldnmap = XCALLOC
+			(fcgi->keysz, sizeof(struct kpair *));
+		if (NULL == req->fieldnmap)
+			goto err;
+	}
 
 	/*
 	 * Now read the request itself from the worker child.
