@@ -45,7 +45,7 @@
 				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1">
 					<div>
 						<div class="title">Version <span class="version">${sblg-title}</span> (<time datetime="${sblg-date}">${sblg-date}</time>)</div>
-						<div>${sblg-aside}</div>
+						<div class="content">${sblg-aside}</div>
 					</div>
 				</nav>
 				<a href="archive.html">Version archive</a>
