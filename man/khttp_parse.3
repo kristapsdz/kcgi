@@ -296,11 +296,13 @@ The
 .Dv KMETHOD_TRACE ,
 or
 .Dv KMETHOD_UNLOCK
-submission method.
-If the method was not understand,
+submission method obtained from the
+.Ev REQUEST_METHOD
+header variable.
+If an unknown method was requested,
 .Dv KMETHOD__MAX
 is used.
-If no method was used, the default is
+If no method was specified, the default is
 .Dv KMETHOD_GET .
 .Pp
 .Em Note :
@@ -310,7 +312,7 @@ and
 .Dv KMETHOD_POST ,
 so be sure to emit a
 .Dv KHTTP_405
-status for non-conforming methods.
+status for undesired methods.
 .It Va kdata
 Internal data.
 Should not be touched.
