@@ -208,7 +208,14 @@ If a managed authorisation is specified but with unknown type (i.e., not
 digest or basic authentiation), this is set to
 .Dv KAUTH_UNKNOWN .
 .It Va cookies
-All key-value pairs read from user cookies.
+Key-value pairs read from request cookies, or
+.Dv NULL
+if
+.Va cookiesz
+is 0.
+See
+.Va fields
+for key-value pairs from the request query string or message body.
 .It Va cookiemap
 Entries in successfully-parsed (or un-parsed)
 .Va cookies
@@ -228,8 +235,14 @@ The size of the
 .Va cookies
 array.
 .It Va fields
-All key-value pairs read from the requests (query string, cookies,
-message body).
+Key-value pairs read from the request query string and message body, or
+.Dv NULL
+if
+.Dv fieldsz
+is 0.
+See
+.Va cookies
+for key-value pairs from request cookies.
 .It Va fieldmap
 Entries in successfully-parsed (or un-parsed)
 .Fa fields
@@ -379,7 +392,11 @@ parsed from the input stream.
 .It Va reqs
 List of all HTTP request headers, known via
 .Vt "enum krequ"
-and not known, parsed from the input stream.
+and not known, parsed from the input stream, or
+.Dv NULL
+if
+.Va reqsz
+is 0.
 .It Va reqsz
 Number of request headers in
 .Va reqs .
