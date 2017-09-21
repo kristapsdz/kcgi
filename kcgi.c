@@ -1201,6 +1201,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 		}
 
 		if (j == t->keysz && NULL != opt->fbk) {
+			len = end - start;
 			if ( ! (*opt->fbk)(&buf[start], len, t->arg)) {
 				XWARNX("template error");
 				return(0);
