@@ -3,8 +3,8 @@
 		<h2 itemprop="name">
 			Using Pages
 		</h2>
-		<address itemprop="author"><a href="https://kristaps.bsd.lv">Ross Richardson</a></address>
-		<time itemprop="datePublished" datetime="2015-10-04">4 October, 2016</time>
+		<address itemprop="author">Ross Richardson</address>
+		<time itemprop="datePublished" datetime="2017-09-20">20 September, 2017</time>
 	</header>
 	<p>
 		<strong>Thanks to Ross Richardson's fine work in contributing this tutorial!</strong>
