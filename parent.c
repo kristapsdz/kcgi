@@ -192,10 +192,12 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 		XWARNX("failed to read request header size");
 		goto out;
 	}
-	r->reqs = XCALLOC(r->reqsz, sizeof(struct khead));
-	if (NULL == r->reqs) {
-		ke = KCGI_ENOMEM;
-		goto out;
+	if (r->reqsz) {
+		r->reqs = XCALLOC(r->reqsz, sizeof(struct khead));
+		if (NULL == r->reqs) {
+			ke = KCGI_ENOMEM;
+			goto out;
+		}
 	}
 	for (i = 0; i < r->reqsz; i++) {
 		if (fullread(fd, &requ, sizeof(enum krequ), 0, &ke) < 0) {
