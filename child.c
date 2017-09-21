@@ -908,6 +908,7 @@ parse_multi(const struct parms *pp, char *line,
  * Output all of the HTTP_xxx headers.
  * This transforms the HTTP_xxx header (CGI form) into HTTP form, which
  * is the second part title-cased, e.g., HTTP_FOO = Foo.
+ * Disallow zero-length values as per RFC 3875, 4.1.18.
  */
 static void
 kworker_child_env(const struct env *env, int fd, size_t envsz)
@@ -919,21 +920,27 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 	const char	*cp;
 
 	for (reqs = i = 0; i < envsz; i++)
-		if (0 == strncmp(env[i].key, "HTTP_", 5))
+		if (0 == strncmp(env[i].key, "HTTP_", 5) &&
+		    '\0' != env[i].key[5])
 			reqs++;
 
 	fullwrite(fd, &reqs, sizeof(size_t));
+
 	for (i = 0; i < envsz; i++) {
 		/*
 		 * First, search for the key name (HTTP_XXX) in our list
 		 * of known headers.
+		 * We must have non-zero-length keys.
 		 */
-		if (strncmp(env[i].key, "HTTP_", 5))
+
+		if (strncmp(env[i].key, "HTTP_", 5) || 
+		    '\0' == env[i].key[5])
 			continue;
-		for (requ = 0; requ < KREQU__MAX; requ++) {
+
+		for (requ = 0; requ < KREQU__MAX; requ++)
 			if (0 == strcmp(krequs[requ], env[i].key))
 				break;
-		}
+
 		fullwrite(fd, &requ, sizeof(enum krequ));
 
 		/*
@@ -944,6 +951,7 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 		 * headers are properly identified.
 		 * (We also skip the HTTP_ leading part.)
 		 */
+
 		sz = env[i].keysz - 5;
 		cp = env[i].key + 5;
 		fullwrite(fd, &sz, sizeof(size_t));
@@ -1373,6 +1381,7 @@ kworker_child(int sock,
 {
 	struct parms	  pp;
 	char		 *cp;
+	const char	 *start;
 	char		**evp;
 	int		  wfd, md5;
 	enum kmethod	  meth;
@@ -1398,15 +1407,37 @@ kworker_child(int sock,
 		if (NULL == envs)
 			return(KCGI_ENOMEM);
 	}
-	/*
-	 * While pulling in the environment, look for HTTP headers
-	 * (those beginning with HTTP_).
-	 * This conforms to RFC 3875, 4.1.18.
+
+	/* 
+	 * Pull all reasonable values from the environment into "envs".
+	 * Filter out variables that don't meet RFC 3875, section 4.1.
+	 * However, we're a bit more relaxed: we don't let through
+	 * zero-length, non-ASCII, control characters, and whitespace.
 	 */
+
 	for (i = 0, evp = environ; NULL != *evp; evp++) {
-		/* Disregard crappy environment entries. */
-		if (NULL == (cp = strchr(*evp, '=')))
+		if (NULL == (cp = strchr(*evp, '=')) ||
+		    cp == *evp)
 			continue;
+		for (start = *evp; '=' != *start; start++)
+			if ( ! isascii((unsigned char)*start) ||
+			    iscntrl((unsigned char)*start) ||
+			    isspace((unsigned char)*start))
+				break;
+
+		/* 
+		 * This means something is seriously wrong, so make sure
+		 * that the operator knows.
+		 */
+
+		if ('=' != *start) {
+			XWARNX("bad environment: %.*s",
+				(int)(cp - *evp), *evp);
+			continue;
+		}
+
+		assert(i < envsz);
+
 		envs[i].key = XSTRDUP(*evp);
 		envs[i].val = strchr(envs[i].key, '=');
 		*envs[i].val++ = '\0';
@@ -1414,13 +1445,16 @@ kworker_child(int sock,
 		envs[i].valsz = strlen(envs[i].val);
 		i++;
 	}
+
 	/* Reset this, accounting for crappy entries. */
+
 	envsz = i;
 
 	/*
 	 * Now run a series of transmissions based upon what's in our
-	 * environment array.
+	 * environment.
 	 */
+
 	kworker_child_env(envs, wfd, envsz);
 	meth = kworker_child_method(envs, wfd, envsz);
 	kworker_child_auth(envs, wfd, envsz);
@@ -1433,6 +1467,7 @@ kworker_child(int sock,
 	kworker_child_port(envs, wfd, envsz);
 
 	/* And now the message body itself. */
+
 	kworker_child_body(envs, wfd, envsz, 
 		&pp, meth, NULL, 0, debugging, md5);
 	kworker_child_query(envs, wfd, envsz, &pp);
@@ -1440,6 +1475,7 @@ kworker_child(int sock,
 	kworker_child_last(wfd);
 
 	/* Note: the "val" is from within the key. */
+
 	for (i = 0; i < envsz; i++) 
 		free(envs[i].key);
 	free(envs);
@@ -1464,6 +1500,7 @@ kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
 	} 
 
 	/* Translate from network-byte order. */
+
 	ptr = (struct fcgi_hdr *)buf;
 	hdr->version = ptr->version;
 	hdr->type = ptr->type;
@@ -1616,6 +1653,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	void		*ptr;
 
 	/* Read the content and discard the padding. */
+
 	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
 		XWARNX("failed read FastCGI param content");
 		return(0);
@@ -1629,6 +1667,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	 * then value length, then key, then value.
 	 * There can be arbitrarily many key-values per string.
 	 */
+
 	b = *bp;
 	remain = hdr->contentLength;
 	pos = 0;
@@ -1672,14 +1711,38 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		}
 
 		/* Make sure we have room for data. */
+
 		if (pos + keysz + valsz > hdr->contentLength) {
 			XWARNX("invalid FastCGI params data");
 			return(0);
 		}
+
 		remain -= keysz;
 		remain -= valsz;
 
+		/* 
+		 * First, make sure that the key is valid.
+		 * There's no documented precedent for this, so we
+		 * follow CGI's constraints in RFC 3875, sec. 4.1.
+		 * If it's not valid, just skip it.
+		 */
+
+		for (i = 0; i < keysz; i++)
+			if ( ! isascii((unsigned char)b[pos + i]) ||
+			    iscntrl((unsigned char)b[pos + i]) ||
+			    isspace((unsigned char)b[pos + i]))
+				break;
+
+		if (0 == keysz || i < keysz) {
+			XWARNX("bad environment key: %.*s",
+				(int)keysz, &b[pos]);
+			pos += keysz + valsz;
+			continue;
+		}
+
+
 		/* Look up the key in our existing keys. */
+
 		for (i = 0; i < *envsz; i++) {
 			if ((*envs)[i].keysz != keysz)
 				continue;
@@ -1691,16 +1754,19 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		 * If we don't have the key: expand our table. 
 		 * If we do, clear the current value.
 		 */
+
 		if (i == *envsz) {
 			ptr = XREALLOCARRAY
 				(*envs, *envsz + 1, 
 				 sizeof(struct env));
 			if (NULL == ptr)
 				return(0);
+
 			*envs = ptr;
 			(*envs)[i].key = XMALLOC(keysz + 1);
 			if (NULL == (*envs)[i].key)
 				return(0);
+
 			memcpy((*envs)[i].key, &b[pos], keysz);
 			(*envs)[i].key[keysz] = '\0';
 			(*envs)[i].keysz = keysz;
@@ -1711,12 +1777,15 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		pos += keysz;
 
 		/* Copy the value. */
+
 		(*envs)[i].val = XMALLOC(valsz + 1);
 		if (NULL == (*envs)[i].val)
 			return(0);
+
 		memcpy((*envs)[i].val, &b[pos], valsz);
 		(*envs)[i].val[valsz] = '\0';
 		(*envs)[i].valsz = valsz;
+
 		pos += valsz;
 #if 0
 		fprintf(stderr, "%s: DEBUG: params: %s=%s\n", 
@@ -1790,6 +1859,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		 * We'll reply with it on the control channel to
 		 * indicate that we've finished our reads.
 		 */
+
 		if ((rc = fullread(work_ctl,
 			 &cookie, sizeof(uint32_t), 1, &er)) < 0) {
 			XWARNX("failed read FastCGI cookie");
@@ -1807,6 +1877,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		 * We'll first read them all at once, then parse the
 		 * headers in the content one by one.
 		 */
+
 		envsz = 0;
 		for (;;) {
 			hdr = kworker_fcgi_header
@@ -1842,6 +1913,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		 * These will end with a single zero-length record.
 		 * Keep looping til we've flushed all input.
 		 */
+
 		for (;;) {
 			rc = kworker_fcgi_stdin
 				(work_ctl, hdr, &buf, &bsz, &sbuf, &ssz);
@@ -1871,12 +1943,15 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		 * Notify the control process that we've received all of
 		 * our data by giving back the cookie and requestId.
 		 */
+
 		fullwrite(work_ctl, &cookie, sizeof(uint32_t));
 		fullwrite(work_ctl, &rid, sizeof(uint16_t));
+
 		/* 
 		 * Now we can reply to our request.
 		 * These are in a very specific order.
 		 */
+
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
 		kworker_child_auth(envs, wfd, envsz);
@@ -1887,7 +1962,9 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 		kworker_child_scriptname(envs, wfd, envsz);
 		kworker_child_httphost(envs, wfd, envsz);
 		kworker_child_port(envs, wfd, envsz);
+
 		/* And now the message body itself. */
+
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
 			meth, (char *)sbuf, ssz, debugging, md5);
