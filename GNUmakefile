@@ -154,6 +154,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-fcgi-abort-validator \
 		   regress/test-fcgi-bigfile \
 		   regress/test-fcgi-file-get \
+		   regress/test-fcgi-header \
+		   regress/test-fcgi-header-bad \
 		   regress/test-fcgi-path-check \
 		   regress/test-fcgi-ping \
 		   regress/test-fcgi-upload \
@@ -162,6 +164,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-gzip \
 		   regress/test-gzip-bigfile \
 		   regress/test-header \
+		   regress/test-header-bad \
 		   regress/test-httpdate \
 		   regress/test-nogzip \
 		   regress/test-path-check \
