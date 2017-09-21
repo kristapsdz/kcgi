@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014--2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -70,6 +70,9 @@ kxcalloc(const char *file, int line, size_t nm, size_t sz)
 {
 	void	 *p;
 
+	if (0 == nm || 0 == sz)
+		kxwarnx(file, line, "calloc(%zu, %zu) "
+			"(non-portable zero-length)", nm, sz);
 	if (NULL != (p = calloc(nm, sz)))
 		return(p);
 	kxwarn(file, line, "calloc(%zu, %zu)", nm, sz);
@@ -81,6 +84,9 @@ kxmalloc(const char *file, int line, size_t sz)
 {
 	void	 *p;
 
+	if (0 == sz)
+		kxwarnx(file, line, "malloc(0) "
+			"(non-portable zero-length)");
 	if (NULL != (p = malloc(sz)))
 		return(p);
 	kxwarn(file, line, "malloc(%zu)", sz);
@@ -92,6 +98,9 @@ kxrealloc(const char *file, int line, void *pp, size_t sz)
 {
 	void	 *p;
 
+	if (0 == sz)
+		kxwarnx(file, line, "realloc(x, 0) "
+			"(non-portable zero-length)");
 	if (NULL != (p = realloc(pp, sz)))
 		return(p);
 	kxwarn(file, line, "realloc(%p, %zu)", pp, sz);
@@ -104,6 +113,9 @@ kxreallocarray(const char *file,
 {
 	void	 *p;
 
+	if (0 == sz || 0 == nm)
+		kxwarnx(file, line, "reallocarray(x, %zu, %zu) "
+			"(non-portable zero-length)", nm, sz);
 	if (NULL != (p = reallocarray(pp, nm, sz)))
 		return(p);
 	kxwarn(file, line, "reallocarray(%p, %zu, %zu)", pp, nm, sz);
@@ -115,6 +127,9 @@ kxstrdup(const char *file, int line, const char *cp)
 {
 	char	*p;
 
+	if (NULL == cp)
+		kxwarnx(file, line, "strdup(NULL) "
+			"(non-portable null pointer)");
 	if (NULL != (p = strdup(cp)))
 		return(p);
 	kxwarn(file, line, "strdup(%p)", cp);
