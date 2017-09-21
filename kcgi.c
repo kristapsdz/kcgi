@@ -713,18 +713,21 @@ khttp_parsex(struct kreq *req,
 	req->kdata = kdata_alloc(-1, -1, 0, debugging, &kopts);
 	if (NULL == req->kdata)
 		goto err;
-	req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->cookiemap)
-		goto err;
-	req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->cookienmap)
-		goto err;
-	req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->fieldmap)
-		goto err;
-	req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
-	if (keysz && NULL == req->fieldnmap)
-		goto err;
+
+	if (keysz) {
+		req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
+		if (NULL == req->cookiemap)
+			goto err;
+		req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
+		if (NULL == req->cookienmap)
+			goto err;
+		req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
+		if (NULL == req->fieldmap)
+			goto err;
+		req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
+		if (NULL == req->fieldnmap)
+			goto err;
+	}
 
 	/*
 	 * Now read the input fields from the child and conditionally
