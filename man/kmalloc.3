@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 12 2016 $
+.Dd $Mdocdate: September 20 2017 $
 .Dt KMALLOC 3
 .Os
 .Sh NAME
@@ -59,10 +59,19 @@ functions are wrappers around the usual libc versions of these
 functions, only these will
 .Xr exit 3
 on allocation failure.
+.Pp
+Note that calling any of these functions with an allocation length of
+zero produces non-portable results.
 .Sh SEE ALSO
 .Xr kcgi 3
 .Sh AUTHORS
 The
-.Nm
-library was written by
+.Nm kasprintf ,
+.Nm kcalloc ,
+.Nm kmalloc ,
+.Nm krealloc ,
+.Nm kreallocarray ,
+and
+.Nm kstrdup
+functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
