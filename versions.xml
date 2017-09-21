@@ -760,9 +760,17 @@
 		</header>
 		<aside>
 			<div>
+				Many fixes:
+			</div>
+			<ul>
 				Fix headers to be more minimal and standards-compliant.
 				Add Ross Richardson's <a href="tutorial4.html">Using Pages</a> tutorial.
 				Clarify some function elements in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+				Fixed undefined behaviour caused when <a href="khttp_template.3.html">khttp_templatex_buf(3)</a> is passed a
+				fallback function and mis-reports the input key length.
+				If you use templating with a fallback function, you <strong>must update</strong>.
+				Lastly, fix all instances of zero-length allocations.
+				These are non-portable and might cause erroneous failure on some systems.
 			</div>
 		</aside>
 	</article>
