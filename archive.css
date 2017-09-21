@@ -45,6 +45,8 @@ footer				{ padding: 1ex;
 				  margin-left: auto;
 				  margin-right: auto; }
 #archive li + li		{ margin-top: 16pt; }
+#archive div.content > div + div	
+				{ margin-top: 8pt; }
 #archive ul			{ list-style-type: none;
 				  padding: 0;
 				  margin: 2em 0; }

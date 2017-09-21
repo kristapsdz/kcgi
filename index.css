@@ -13,7 +13,8 @@ body > header nav ul		{ margin: auto 0;
 				  padding: 0;
 				  list-style-type: none; }
 body > header nav li		{ margin: 0; }
-body > header nav li + li	{ margin-top: 0.5em; }
+body > header nav div.content > div + div
+				{ margin-top: 0.5em; }
 #usage nav ul			{ list-style-type: none; 
 				  padding: 0; }
 #header				{ background-color: #333; 

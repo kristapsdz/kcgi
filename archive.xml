@@ -32,7 +32,7 @@
 						<span>Version <span class="version">${sblg-title}</span></span>
 						<span><i class="fa fa-clock-o"></i> <time datetime="${sblg-date}">${sblg-date}</time></span>
 					</div>
-					<div>${sblg-aside}</div>
+					<div class="content">${sblg-aside}</div>
 				</div>
 			</nav>
 		</article>
