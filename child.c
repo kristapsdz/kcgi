@@ -1378,7 +1378,7 @@ kworker_child(int sock,
 	enum kmethod	  meth;
 	size_t	 	  i;
 	extern char	**environ;
-	struct env	 *envs;
+	struct env	 *envs = NULL;
 	size_t		  envsz;
 
 	pp.fd = wfd = sock;
@@ -1392,9 +1392,12 @@ kworker_child(int sock,
 	 */
 	for (envsz = 0, evp = environ; NULL != *evp; evp++) 
 		envsz++;
-	envs = XCALLOC(envsz, sizeof(struct env));
-	if (NULL == envs)
-		return(KCGI_ENOMEM);
+
+	if (envsz) {
+		envs = XCALLOC(envsz, sizeof(struct env));
+		if (NULL == envs)
+			return(KCGI_ENOMEM);
+	}
 	/*
 	 * While pulling in the environment, look for HTTP headers
 	 * (those beginning with HTTP_).
