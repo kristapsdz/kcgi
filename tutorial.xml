@@ -32,7 +32,7 @@
 			<a href="${sblg-url}"><i class="fa fa-link"></i>Permanent link</a> to this article.
 		</div>
 		<footer>
-			<div>&#169; 2014&#8211;2016 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2017 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
