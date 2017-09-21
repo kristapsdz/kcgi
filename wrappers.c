@@ -132,6 +132,7 @@ kxstrdup(const char *file, int line, const char *cp)
 			"(non-portable null pointer)");
 	if (NULL != (p = strdup(cp)))
 		return(p);
+
 	kxwarn(file, line, "strdup(%p)", cp);
 	return(p);
 }
@@ -145,6 +146,9 @@ kxwarnx(const char *file, int line, const char *fmt, ...)
 	va_start(ap, fmt);
 	(void)vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
+
+	/* FIXME: filter bad characters. */
+
 	fprintf(stderr, "%s:%d: %s\n", file, line, buf);
 }
 
@@ -158,6 +162,9 @@ kxwarn(const char *file, int line, const char *fmt, ...)
 	va_start(ap, fmt);
 	(void)vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
+
+	/* FIXME: filter bad characters. */
+
 	fprintf(stderr, "%s:%d: %s: %s\n", 
 		file, line, buf, strerror(e));
 }
