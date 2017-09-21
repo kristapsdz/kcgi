@@ -168,6 +168,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-ping \
 		   regress/test-post \
 		   regress/test-returncode \
+		   regress/test-template \
 		   regress/test-upload
 REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
 		   regress/regress.o
