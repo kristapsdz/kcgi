@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015, 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015--2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -88,6 +88,8 @@ khttpbasic_validate(const struct kreq *req,
 
 	if (KAUTH_BASIC != req->rawauth.type)
 		return(-1);
+	else if (KMETHOD__MAX == req->method)
+		return(-1);
 	else if (0 == req->rawauth.authorised)
 		return(-1);
 
@@ -125,6 +127,8 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 	 * Make sure we're a digest with all fields intact.
 	 */
 	if (KAUTH_DIGEST != req->rawauth.type)
+		return(-1);
+	else if (KMETHOD__MAX == req->method)
 		return(-1);
 	else if (0 == req->rawauth.authorised)
 		return(-1);
@@ -214,7 +218,10 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 	/*
 	 * Make sure we're a digest with all fields intact.
 	 */
+
 	if (KAUTH_DIGEST != req->rawauth.type)
+		return(-1);
+	else if (KMETHOD__MAX == req->method)
 		return(-1);
 	else if (0 == req->rawauth.authorised)
 		return(-1);
@@ -228,6 +235,7 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 	MD5Update(&ctx, ":", 1);
 	MD5Update(&ctx, pass, strlen(pass));
 	MD5Final(ha4, &ctx);
+
 	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
 		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
 

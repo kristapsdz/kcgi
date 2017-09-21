@@ -51,8 +51,9 @@ or
 .Sh RETURN VALUES
 .Nm
 will return zero if validation failed, less than zero if the request was
-not properly set up for HTTP basic validation, or greater than zero if
-the validation succeeded.
+not properly set up for HTTP basic validation (no HTTP method, not a
+basic request, not already authenticated by the web server), or greater
+than zero if the validation succeeded.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_fcgi_parse 3 ,
