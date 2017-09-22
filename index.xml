@@ -35,6 +35,7 @@
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
 				</h1>
 				<nav>
+					<span class="version">Version @VERSION@</span>
 					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
@@ -74,7 +75,7 @@
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt;
+#include &lt;stdlib.h&gt; /* EXIT_SUCCESS, etc. */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {
@@ -95,7 +96,7 @@ int main(void) {
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt;
+#include &lt;stdlib.h&gt; /* EXIT_SUCCESS, etc. */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {

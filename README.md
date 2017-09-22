@@ -24,7 +24,7 @@ kcgi parses the request and can manage output.
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
 #include <stdint.h> /* int64_t */
-#include <stdlib.h>
+#include <stdlib.h> /* EXIT_SUCCESS, etc. */
 #include <kcgi.h>
  
 int main(void) {
