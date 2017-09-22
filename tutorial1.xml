@@ -29,7 +29,7 @@
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt;
+#include &lt;stdlib.h&gt; /* EXIT_FAILURE, etc. */
 #include &lt;kcgi.h&gt;</pre>
 	</figure>
 	<p>
