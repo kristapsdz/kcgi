@@ -33,7 +33,8 @@ TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial4.xml
 TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $(xml) .xml)))
 SBLGS		 = archive.html \
-		   index.html
+		   index.html \
+		   sample.c.html
 MAN3DIR	 	 = $(PREFIX)/man/man3
 MAN8DIR	 	 = $(PREFIX)/man/man8
 SBINDIR		 = $(PREFIX)/sbin
@@ -318,6 +319,9 @@ installwww: www
 
 index.html: index.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+
+sample.c.html: sample.c
+	highlight -o $@ --inline-css --doc sample.c
 
 archive.html: archive.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t archive.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
