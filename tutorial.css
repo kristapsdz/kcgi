@@ -10,27 +10,19 @@ a				{ text-decoration: none;
 				  color: blue; }
 body > header			{ box-shadow: 0 1px 4px #888; 
 				  background-color: #333;
-				  padding: 5em 20% 1ex 20%;
+				  padding: 2em 20% 1ex 20%;
 				  color: #fff; }
 body > header a			{ color: #dd5; }
 body > header a:hover		{ color: #ff0; }
-#version ul,
-#header ul			{ margin: auto 0; 
+body > header ul		{ margin: auto 0; 
 				  padding: 0;
 				  list-style-type: none; }
-#version nav li,
-#header nav li			{ margin: 0; }
-#usage nav ul			{ list-style-type: none; 
-				  padding: 0; }
-#header				{ padding-top: 2em; }
-#header nav			{ padding: 0.5ex 0 1ex 0; }
-#version			{ background-color: #ddd; }
-#version a, 
-#version time, 
-#version span.version		{ font-style: normal; }
-#version .content > div + div	{ margin-top: 0.5em; }
-#version nav .title		{ font-weight: 400; 
-				  margin-bottom: 1em; }
+body > header nav li		{ margin: 0; }
+body > header			{ padding-top: 2em; }
+body > header nav		{ padding: 0.5ex 0 1ex 0; }
+body > header nav .version	{ border-right: thin solid silver; 
+				  color: #abc;
+				  padding-right: 1ex; }
 h1				{ font-size: 32pt; 
 				  margin: 0;
 				  line-height: 34pt;
@@ -40,20 +32,6 @@ h1 .nm				{ text-shadow: 1px 1px #666;
 				  font-style: inherit; }
 h1 .nd				{ font-size: 28pt; 
 				  text-shadow: 1px 1px #333; }
-#intro				{ font-size: 14pt; }
-#sample				{ margin: 2em 0; }
-#sample > input			{ display: none; }
-#sample > input ~ pre		{ display: none; }
-#sample > input ~ nav label	{ display: none; 
-				  cursor: pointer; }
-#sample				{ text-align: left; }
-#sample nav label		{ color: blue; }
-#sample nav			{ margin: 1ex 0; }
-#show-comments:checked ~ nav #label-nocomments,
-#show-nocomments:checked ~ nav #label-comments,
-#show-comments:checked ~ #comments,
-#show-nocomments:checked ~ #nocomments	
-				{ display: block; }
 footer				{ margin-top: 1em; 
 				  text-align: center;
 				  font-size: 11pt;
@@ -61,21 +39,33 @@ footer				{ margin-top: 1em;
 footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
 			  	  padding-left: 1ex; }
-body > section h2		{ font-size: x-large; 
+article h2			{ font-size: x-large; 
 				  font-weight: 400; 
 				  color: #333; }
-body > section h3		{ font-size: large; 
+article h3			{ font-size: large; 
 				  color: #333; }
-#usage h3			{ margin-bottom: 1ex; }
-body > section			{ padding: 0.5em 20%; 
-				  margin: 0.5em 0; }
-figure figcaption		{ margin: 0; }
+article[data-sblg-article],
+article section,
+#permlink,
+figure nav,
+article figcaption		{ padding: 1ex 20%; 
+				  margin: 0; }
+article[data-sblg-article] header address,
+article[data-sblg-article] header time
+				{ display: none; }
+article[data-sblg-article] img	{ width: 100%;
+				  max-width: 800px; }
 figure				{ margin: 0; 
 				  text-align: center; 
 				  color: #444; }
 figcaption span			{ font-weight: 400; }
 dd				{ margin: 0 0 1em 0; }
+#permlink 			{ color: #888; 
+				  margin-top: 1em; }
+.sample				{ text-align: left; }
 body > header nav		{ overflow: hidden; }
+body > header nav .title	{ font-weight: 400; 
+				  margin-bottom: 0.5em; }
 body > header nav li + li	{ margin-top: 1.5em; }
 pre.prettyprint			{ border: none; 
 				  line-height: 150%;
@@ -88,7 +78,6 @@ pre.prettyprint ol.linenums > li { list-style-type: decimal; }
 footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
-.flag				{ font-weight: 400; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
  h1				{ font-size: 16pt; 
@@ -100,8 +89,10 @@ footer				{ padding: 1ex;
  				  margin-left: auto;
  				  margin-right: auto;
  				  width: 100%; }
- body > section			{ padding: 0.5em 2%; 
-				  margin: 0.5em 0; }
- #header			{ padding-top: 1em; }
+ article[data-sblg-article],
+ article section,
+ #permlink,
+ figure nav,
+ article figcaption		{ padding: 1ex 2%; }
  body > header			{ padding: 1em 2% 1ex 2%; }
 }
