@@ -8,23 +8,6 @@
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:300,300italic,400" />
 		<link rel="stylesheet" href="index.css" />
 		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?skin=sons-of-obsidian"></script>
-		<script>
-			function showBits(name) 
-			{
-				var show, nshow;
-
-				show = document.getElementById(name);
-				noshow = document.getElementById('no' + name);
-
-				if (show.style.maxHeight == '' || show.style.maxHeight == '0px') {
-					show.style.maxHeight = '500em';
-					noshow.style.maxHeight = 0;
-				} else {
-					show.style.maxHeight = 0;
-					noshow.style.maxHeight = '500em';
-				}
-			}
-		</script>
 	</head>
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
@@ -66,6 +49,8 @@
 				</p>
 			</section>
 			<figure id="sample" class="sample">
+				<input type="radio" name="sample-show" value="0" id="show-nocomments" checked="checked" />
+				<input type="radio" name="sample-show" value="1" id="show-comments" />
 				<figcaption>
 					The following simple example implements a server that just echoes <q>Hello, World!</q> as an HTTP
 					response to a CGI request.
@@ -139,7 +124,12 @@ int main(void) {
   return(EXIT_SUCCESS);
 }</pre>
 				<nav>
-					<a href="#sample" onclick="showBits('comments');"><i class="fa fa-comments"></i> Toggle comments</a>
+					<label id="label-nocomments" for="show-nocomments">
+						<i class="fa fa-comments"></i> Toggle comments
+					</label>
+					<label id="label-comments" for="show-comments">
+						<i class="fa fa-comments"></i> Toggle comments
+					</label>
 				</nav>
 			</figure>
 			<section id="install">
