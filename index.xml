@@ -177,40 +177,41 @@ int main(void) {
 				for <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
 					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>.
 				If so, install using that system.
-				The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
-				If you're running <code>make regress</code>, you'll need <a
-					href="https://curl.haxx.se/libcurl/">libcurl</a> and <a
-					href="https://libbsd.freedesktop.org">libbsd</a> (on Linux).
 			</p>
 			<p>
 				If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
 				To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="http://www.linux.org"
-					itemprop="operatingSystem">Linux</a> machines, BSD (<a href="http://www.openbsd.org"
-					itemprop="operatingSystem">OpenBSD</a>, <a href="http://www.freebsd.org"
+					itemprop="operatingSystem">Linux</a> machines, BSD (<a href="https://www.openbsd.org"
+					itemprop="operatingSystem">OpenBSD</a>, <a href="https://www.freebsd.org"
 					itemprop="operatingSystem">FreeBSD</a>), and <a href="http://www.apple.com/osx"
 					itemprop="operatingSystem">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
 				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 					href="http://nginx.org">nginx</a>, and OpenBSD's <a
-					href="http://man.openbsd.org/httpd.8">httpd(8)</a>
+					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
 				(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
+				The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
+				If you're running the regression tests (see <a href="#testing">Testing</a>), you'll need <a
+					href="https://curl.haxx.se/libcurl/">libcurl</a> and <a
+					href="https://libbsd.freedesktop.org">libbsd</a> (on Linux).
 			</p>
 			<p>
 				Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 					href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
-				Once downloaded, compile the software with <code>make</code>, which will automatically run a
+				Once downloaded, compile the software with <code>make</code> (or <code>gmake</code> on OpenBSD systems), which
+				will automatically run a
 				configuration script to conditionally deploy portability glue.
 				Finally, install the software using <code>make install</code>, optionally specifying the
 				<code>PREFIX</code> if you don't intend to use <span class="file">/usr/local</span>.
 			</p>
 			<p>
-				If you'd like to contribute to <span class="nm">kcgi</span>, the CVS repository is mirrored on <a
-					href="https://github.com">GitHub</a> at <a
-					href="https://github.com/kristapsdz/kcgi.git">kcgi.git</a>.
-				You can use this and follow the same instructions as above.
+				If you'd like to contribute to <span class="nm">kcgi</span> or to use the bleeding-edge version between
+				releases, the CVS repository is mirrored on <a href="https://github.com/kristapsdz/kcgi">GitHub</a>.
+				Installation instructions tracking the repository version may be found on that page.
 			</p>
 			<p>
 				If <span class="nm">kcgi</span> doesn't compile, please send me the <span class="file">config.log</span>
 				file and the output of the failed compilation.
+				If it's non-trivial, it'll help if I have access to the system (or one like it) where the error occurred.
 				If you're running on an operating system with an unsupported sandbox, let me know and we can work
 				together to fit it into the configuration and portability layer.
 				Lastly, I'd love to compile with <a href="http://www.mingw.org/">mingw</a> for Microsoft machines:
@@ -267,7 +268,7 @@ int main(void) {
 		</section>
 		<section id="deploying">
 			<h2>
-				Deploying
+				Deployment
 			</h2>
 			<p>
 				Applications using <span class="nm">kcgi</span> behave just like any other application.
@@ -282,14 +283,14 @@ int main(void) {
 				compression support, <span class="file">libz</span>.
 			</p>
 			<p>
-				Well-deployed web servers, such as the default <a href="http://www.openbsd.org">OpenBSD</a> server, by
+				Well-deployed web servers, such as the default <a href="https://www.openbsd.org">OpenBSD</a> server, by
 				default are deployed within a <a
-					href="http://man.openbsd.org/chroot.2">chroot(2)</a>.  If
+					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
 				this is the case, you'll need to statically link your binary.
 				If running within a <a
-					href="http://man.openbsd.org/chroot.2">chroot(2)</a> and on
+					href="https://man.openbsd.org/chroot.2">chroot(2)</a> and on
 				OpenBSD prior to 5.9 (i.e., with <a
-					href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>),
+					href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>),
 				be aware that the sandbox method requires <span class="file">/dev/systrace</span> within the
 				server root.
 				By default, this file does not exist in the web server root.
@@ -301,7 +302,7 @@ int main(void) {
 				FastCGI applications may either be started directly by the web server (which is popular with <a
 					href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
 					href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
-					href="http://man.openbsd.org/httpd.8">httpd(8)</a> and
+					href="https://man.openbsd.org/httpd.8">httpd(8)</a> and
 				suggested for the security precautions taken by the wrapper).
 			</p>
 		</section>
@@ -349,23 +350,23 @@ int main(void) {
 					the correct <code>AUDIT_ARCH_xxx</code> found in <code>/usr/include/linux/audit.h</code>.
 				</dd>
 				<dt>
-					<a href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
-					(<a href="http://www.openbsd.org">OpenBSD</a>)
+					<a href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
+					(<a href="https://www.openbsd.org">OpenBSD</a>)
 				</dt>
 				<dd>
 					This requires the existence of <i>/dev/systrace</i> if running in a
 					<code>chroot(2)</code>, which is strongly suggested.
-					If you're using a stock <a href="http://www.openbsd.org">OpenBSD</a>, make sure that the
+					If you're using a stock <a href="https://www.openbsd.org">OpenBSD</a>, make sure that the
 					mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
 				</dd>
 				<dt>
-					<a href="http://man.openbsd.org/pledge.2">pledge(2)</a>
-					(<a href="http://www.openbsd.org">OpenBSD</a>)
+					<a href="https://man.openbsd.org/pledge.2">pledge(2)</a>
+					(<a href="https://www.openbsd.org">OpenBSD</a>)
 				</dt>
 				<dd>
 					This will only work on OpenBSD &gt;5.8.
 					It is selected with higher priority over <a
-						href="http://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
+						href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
 					on OpenBSD machines.
 				</dd>
 				<dt>
@@ -382,7 +383,7 @@ int main(void) {
 					(<a href="https://www.freebsd.org">FreeBSD</a>)
 				</dt>
 				<dd>
-					Uses the capabilities facility on <a href="http://www.freebsd.org">FreeBSD</a> 10 and later.
+					Uses the capabilities facility on <a href="https://www.freebsd.org">FreeBSD</a> 10 and later.
 					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
 				</dd>
 			</dl>
@@ -425,7 +426,7 @@ int main(void) {
 			<p>
 				The system has also been passed through a <a href="http://coverity.com">Coverity</a> scan, with the
 				results available at <a href="https://scan.coverity.com/projects/kcgi">projects/kcgi</a>.
-				Coverity has now been integrated as an ongoing mechanism to ensure against regressions.
+				<em>Coverity has been discontinued as an ongoing mechanism due to the lack of an OpenBSD client.</em>
 			</p>
 		</section>
 		<section>
@@ -460,18 +461,16 @@ int main(void) {
 			</p>
 		</section>
 		<footer>
-			<div>&#169; 2014&#8211;2016 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>
+				&#169; 2014&#8211;2017 
+				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
+			</div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
-			</div>
-			<div>
-				<a href="https://scan.coverity.com/projects/kcgi">
-					<img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/7727/badge.svg" />
-				</a>
+				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="https://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
 	</body>
