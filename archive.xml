@@ -37,18 +37,16 @@
 			</nav>
 		</article>
 		<footer>
-			<div>&#169; 2014&#8211;2016 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>
+				&#169; 2014&#8211;2017 
+				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
+			</div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
-			</div>
-			<div>
-				<a href="https://scan.coverity.com/projects/kcgi">
-					<img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/7727/badge.svg" />
-				</a>
+				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="https://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
 	</body>
