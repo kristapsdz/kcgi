@@ -14,6 +14,9 @@ body > header			{ box-shadow: 0 1px 4px #888;
 				  color: #fff; }
 body > header a			{ color: #dd5; }
 body > header a:hover		{ color: #ff0; }
+body > header nav .version	{ border-right: thin solid silver; 
+				  color: #abc;
+				  padding-right: 1ex; }
 #version ul,
 #header ul			{ margin: auto 0; 
 				  padding: 0;
@@ -31,21 +34,25 @@ body > header a:hover		{ color: #ff0; }
 #version .content > div + div	{ margin-top: 0.5em; }
 #version nav .title		{ font-weight: 400; 
 				  margin-bottom: 1em; }
-h1				{ font-size: 32pt; 
+h1				{ font-size: 28pt; 
 				  margin: 0;
 				  line-height: 34pt;
 				  font-weight: normal; }
+#breadcrumbs			{ font-size: 14pt; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
 				  font-style: inherit; }
-h1 .nd				{ font-size: 28pt; 
-				  text-shadow: 1px 1px #333; }
+h1 .nd				{ text-shadow: 1px 1px #333; }
 #intro				{ font-size: 14pt; }
 #sample				{ margin: 2em 0; }
 #sample > input			{ display: none; }
-#sample > input ~ pre		{ display: none; }
-#sample > input ~ nav label	{ display: none; 
-				  cursor: pointer; }
+#sample > input ~ nav label,
+#sample > input ~ pre		{ max-height: 0;
+				  display: block;
+				  opacity: 0;
+				  overflow: hidden; }
+#sample > input ~ pre		{ transition: opacity 0.5s ease-in; }
+#sample > input ~ nav label	{ cursor: pointer; }
 #sample				{ text-align: left; }
 #sample nav label		{ color: blue; }
 #sample nav			{ margin: 1ex 0; }
@@ -53,7 +60,8 @@ h1 .nd				{ font-size: 28pt;
 #show-nocomments:checked ~ nav #label-comments,
 #show-comments:checked ~ #comments,
 #show-nocomments:checked ~ #nocomments	
-				{ display: block; }
+				{ max-height: 1000em; 
+				  opacity: 1; }
 footer				{ margin-top: 1em; 
 				  text-align: center;
 				  font-size: 11pt;
@@ -65,8 +73,9 @@ body > section h2		{ font-size: x-large;
 				  font-weight: 400; 
 				  color: #333; }
 body > section h3		{ font-size: large; 
+				  font-weight: bolder;
+				  margin-bottom: 0.25ex;
 				  color: #333; }
-#usage h3			{ margin-bottom: 1ex; }
 body > section			{ padding: 0.5em 20%; 
 				  margin: 0.5em 0; }
 figure figcaption		{ margin: 0; }
@@ -91,9 +100,7 @@ footer				{ padding: 1ex;
 .flag				{ font-weight: 400; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
- h1				{ font-size: 16pt; 
- 				  line-height: 18pt; }
- h1 .nd				{ font-size: 14pt; }
+ h1				{ font-size: 15pt; }
  pre				{ font-size: 8pt; }
  figure img			{ display: block;
  				  max-width: 400px;
