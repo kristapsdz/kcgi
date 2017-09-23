@@ -23,15 +23,14 @@ body > header nav		{ padding: 0.5ex 0 1ex 0; }
 body > header nav .version	{ border-right: thin solid silver; 
 				  color: #abc;
 				  padding-right: 1ex; }
-h1				{ font-size: 32pt; 
+h1				{ font-size: 24pt; 
 				  margin: 0;
-				  line-height: 34pt;
+				  margin-bottom: 8pt;
 				  font-weight: normal; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
 				  font-style: inherit; }
-h1 .nd				{ font-size: 28pt; 
-				  text-shadow: 1px 1px #333; }
+h1 .nd				{ text-shadow: 1px 1px #333; }
 footer				{ margin-top: 1em; 
 				  text-align: center;
 				  font-size: 11pt;
@@ -80,9 +79,7 @@ footer				{ padding: 1ex;
 				  margin-bottom: 1em; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
- h1				{ font-size: 16pt; 
- 				  line-height: 18pt; }
- h1 .nd				{ font-size: 14pt; }
+ h1				{ font-size: 15pt; }
  pre				{ font-size: 8pt; }
  figure img			{ display: block;
  				  max-width: 400px;

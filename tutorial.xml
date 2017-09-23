@@ -29,7 +29,7 @@
 		<article data-sblg-article="1" data-sblg-permlink="0">
 		</article>
 		<div id="permlink">
-			<a href="${sblg-url}"><i class="fa fa-link"></i>Permanent link</a> to this article.
+			<a href="${sblg-url}"><i class="fa fa-link"></i> Permanent link</a> to this article.
 		</div>
 		<footer>
 			<div>&#169; 2014&#8211;2017 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
