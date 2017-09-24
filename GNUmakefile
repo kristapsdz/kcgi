@@ -318,13 +318,13 @@ installwww: www
 	install -m 0444 kcgi.tgz.sha512 $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz.sha512
 
 index.html: index.xml versions.xml $(TUTORIALHTMLS)
-	sblg -t index.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t index.xml -s date -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 sample.c.html: sample.c
 	highlight -o $@ --inline-css --doc sample.c
 
 archive.html: archive.xml versions.xml $(TUTORIALHTMLS)
-	sblg -t archive.xml -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t archive.xml -s date -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 $(TUTORIALHTMLS): tutorial.xml versions.xml $(TUTORIALXMLS)
 
@@ -332,7 +332,7 @@ extending01.html: extending01.xml tutorial.xml
 	sblg -t tutorial.xml -o- -c $< | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .xml.html:
-	sblg -t tutorial.xml -o- -C $< versions.xml $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t tutorial.xml -s date -o- -C $< versions.xml $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
 	mandoc -Thtml -Ostyle=mandoc.css,man=%N.%S.html $< >$@
