@@ -231,7 +231,7 @@ int main(void) {
 				start your project.
 				The following are introductory materials to the system.
 			</p>
-			<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1">
+			<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1" data-sblg-navsort="rdate">
 				<h3><a href="${sblg-base}.html">${sblg-titletext}</a></h3>
 				${sblg-aside}
 			</nav>
