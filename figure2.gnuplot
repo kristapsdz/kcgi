@@ -1,5 +1,5 @@
 #!/usr/local/bin/gnuplot
-set terminal pngcairo crop enhanced font "Times,15"
+set terminal pngcairo crop enhanced font "Times,12"
 set output 'figure2.png'
 set border linewidth 1.5
 set style line 1 lc rgb '#800000' lt 1 lw 2
@@ -29,7 +29,7 @@ stats 'figure2-cgi-naked.tsv' u 5 nooutput
 nr4=STATS_records
 
 set xrange [0:60]
-plot 'figure2-static.tsv'    u 5:(1.0/nr3) s cum lw 4 ti 'static', \
-     'figure2-cgi.tsv'       u 5:(1.0/nr1) s cum lw 4 ti 'CGI', \
-     'figure2-cgi-naked.tsv' u 5:(1.0/nr4) s cum lw 4 ti 'CGI (simple)', \
-     'figure2-fcgi.tsv'      u 5:(1.0/nr2) s cum lw 4 ti 'FastCGI'
+plot 'figure2-static.tsv'    u 5:(1.0/nr3) s cum lw 2 ti 'static', \
+     'figure2-cgi.tsv'       u 5:(1.0/nr1) s cum lw 2 ti 'CGI', \
+     'figure2-cgi-naked.tsv' u 5:(1.0/nr4) s cum lw 2 ti 'CGI (simple)', \
+     'figure2-fcgi.tsv'      u 5:(1.0/nr2) s cum lw 2 ti 'FastCGI'
