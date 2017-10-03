@@ -18,6 +18,7 @@
 #include "config.h"
 #endif
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -169,7 +170,7 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 
 	if (KHTTPQOP_AUTH_INT == auth->qop || 
 	    KHTTPQOP_AUTH == auth->qop) {
-		snprintf(count, sizeof(count), "%08zx", auth->count);
+		snprintf(count, sizeof(count), "%08" PRIx32, auth->count);
 		MD5Init(&ctx);
 		MD5Update(&ctx, skey1, MD5_DIGEST_LENGTH * 2);
 		MD5Update(&ctx, ":", 1);
