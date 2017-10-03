@@ -369,7 +369,7 @@ struct	khttpdigest {
 	char		*nonce;
 	char		*cnonce;
 	char		*response;
-	size_t		 count;
+	uint32_t	 count;
 	char		*opaque;
 };
 
