@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -54,7 +54,7 @@ struct	pdigest {
 	struct pdigbuf	 cnonce;
 	struct pdigbuf	 response;
 	struct pdigbuf	 opaque;
-	size_t		 count;
+	uint32_t	 count;
 };
 
 /*
@@ -197,39 +197,41 @@ kauth_qop(enum khttpqop *val, const char **cp)
 	*val = i;
 }
 
+/*
+ * Parse the 8-byte nonce count ("nc") value.
+ * See RFC 7616 section 3.4.
+ */
 static void
-kauth_count(size_t *count, const char **cp)
+kauth_count(uint32_t *count, const char **cp)
 {
 	struct pdigbuf	 buf;
 	char		 numbuf[9];
-	const char	*numstr;
-	char		*ep;
-	unsigned long long ll;
 
 	*count = 0;
 
 	memset(&buf, 0, sizeof(struct pdigbuf));
 
 	/* According to the RFC, this is 8 bytes long. */
+
 	kauth_nextvalue(&buf, cp);
 	if (buf.sz != 8)
 		return;
 
 	/* Copy into a nil-terminated buffer. */
+
 	memcpy(numbuf, buf.pos, buf.sz);
 	numbuf[buf.sz] = '\0';
-	numstr = numbuf;
 
-	/* Convert from the hex string into a number. */
-	ll = strtoull(numstr, &ep, 16);
-	if (numstr == ep || *ep != '\0')
-		*count = 0;
-	else if (ll == ULLONG_MAX && errno == ERANGE)
-		*count = 0;
-	else if (ll > SIZE_MAX)
-		*count = 0;
-	else	
-		*count = ll;
+	/* 
+	 * Convert from the hex string into a number.
+	 * There are a maximum of 8 possible digits in this hex value,
+	 * so we'll have no more than that.
+	 * Since 
+	 * Default to zero if there are errors.
+	 * Note: UINT32_MAX < long long int maximum.
+	 */
+
+	*count = strtonum(numbuf, 0, UINT32_MAX, NULL);
 }
 
 static int
