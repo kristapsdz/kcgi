@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 22 2017 $
+.Dd $Mdocdate: October 3 2017 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -387,11 +387,27 @@ passed to the server.
 This may not reflect a file-system entity if re-written by the web
 server.
 .It Va rawauth
-If the web server passes the
-.Qq Authorization
-header (which, for example, Apache doesn't by default), then the header
-is parsed into this field, which is of type
-.Vt struct khttpauth .
+The raw authorization request according to the
+.Ev HTTP_AUTHORIZATION
+header variable passed by the web server.
+This is
+.Dv KAUTH_DIGEST
+for
+.Qq digest ,
+.Dv KAUTH_BASIC
+for
+.Qq basic ,
+.Dv KAUTH_UNKNOWN
+for other values of
+.Ev HTTP_AUTHORIZATION ,
+or
+.Dv KAUTH_NONE
+if
+.Ev HTTP_AUTHORIZATION
+is unset or empty.
+Note that some web servers, for example Apache, do not set
+.Ev HTTP_AUTHORIZATION
+by default.
 .It Va remote
 The string form of the client's IPV4 or IVP6 address.
 .It Va reqmap
