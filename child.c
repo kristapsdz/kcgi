@@ -1421,8 +1421,7 @@ kworker_child(int sock,
 			continue;
 		for (start = *evp; '=' != *start; start++)
 			if ( ! isascii((unsigned char)*start) ||
-			    iscntrl((unsigned char)*start) ||
-			    isspace((unsigned char)*start))
+			     ! isgraph((unsigned char)*start))
 				break;
 
 		/* 
@@ -1729,8 +1728,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 
 		for (i = 0; i < keysz; i++)
 			if ( ! isascii((unsigned char)b[pos + i]) ||
-			    iscntrl((unsigned char)b[pos + i]) ||
-			    isspace((unsigned char)b[pos + i]))
+			     ! isgraph((unsigned char)b[pos + i]))
 				break;
 
 		if (0 == keysz || i < keysz) {
