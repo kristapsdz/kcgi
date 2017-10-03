@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 21 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -193,19 +193,29 @@ This is set during
 .Fn khttp_parse .
 .It Va auth
 Type of
-.Qq managed
-HTTP authorisation, if any.
-This is digest
-.Pq Dv KAUTH_DIGEST
-or basic
-.Pq Dv KAUTH_BASIC
-authorisation performed by the web server.
+.Dq managed
+HTTP authorisation performed by the web server according to the
+.Ev AUTH_TYPE
+header variable, if any.
+This is
+.Dv KAUTH_DIGEST
+for the
+.Ev AUTH_TYPE
+.Qq digest ,
+.Dv KAUTH_BASIC
+for
+.Qq basic ,
+.Ev KAUTH_UNKNOWN
+for other values of
+.Ev AUTH_TYPE ,
+or
+.Dv KAUTH_NONE
+if
+.Ev AUTH_TYPE
+is not set.
 See the
 .Va rawauth
 field for raw authorisation requests.
-If a managed authorisation is specified but with unknown type (i.e., not
-digest or basic authentiation), this is set to
-.Dv KAUTH_UNKNOWN .
 .It Va cookies
 Key-value pairs read from request cookies, or
 .Dv NULL
