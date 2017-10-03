@@ -187,11 +187,11 @@ and
 .Nm khttp_parsex .
 It consists of the following fields:
 .Bl -tag -width Ds
-.It Va arg
+.It Vt "void *" Ns Va arg
 Private application data.
 This is set during
 .Fn khttp_parse .
-.It Va auth
+.It Vt "enum kauth" Va auth
 Type of
 .Dq managed
 HTTP authorisation performed by the web server according to the
@@ -216,7 +216,21 @@ is not set.
 See the
 .Va rawauth
 field for raw authorisation requests.
-.It Va cookies
+.It Vt "struct kpair **" Ns Va cookiemap
+Entries in successfully-parsed (or un-parsed)
+.Va cookies
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Vt "struct kpair **" Ns Va cookienmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa cookies
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Vt "struct kpair *" Ns Va cookies
 Key-value pairs read from request cookies, or
 .Dv NULL
 if
@@ -225,25 +239,25 @@ is 0.
 See
 .Va fields
 for key-value pairs from the request query string or message body.
-.It Va cookiemap
-Entries in successfully-parsed (or un-parsed)
-.Va cookies
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
-.It Va cookienmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa cookies
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
-.It Va cookiesz
+.It Vt size_t Va cookiesz
 The size of the
 .Va cookies
 array.
-.It Va fields
+.It Vt "struct kpair **" Ns Va fieldmap
+Entries in successfully-parsed (or un-parsed)
+.Fa fields
+mapped into field indices as defined by the
+.Fa keys
+arguments to
+.Fn khttp_parse .
+.It Vt "struct kpair **" Ns Va fieldnmap
+Entries in unsuccessfully-parsed (but still attempted)
+.Fa fields
+mapped into field indices as defined by the
+.Fa keys
+argument to
+.Fn khttp_parse .
+.It Vt "struct kpair *" Ns Va fields
 Key-value pairs read from the request query string and message body, or
 .Dv NULL
 if
@@ -252,25 +266,11 @@ is 0.
 See
 .Va cookies
 for key-value pairs from request cookies.
-.It Va fieldmap
-Entries in successfully-parsed (or un-parsed)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-arguments to
-.Fn khttp_parse .
-.It Va fieldnmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
-.It Va fieldsz
+.It Vt size_t Va fieldsz
 The number of elements in the
 .Va fields
 array.
-.It Va fullpath
+.It Vt "char *" Ns Va fullpath
 The full path following the server name or
 an empty string
 if there is no path following the server.
@@ -280,11 +280,20 @@ is the
 .Dv PATH_INFO ,
 this would be
 .Pa /bar/baz .
-.It Va host
+.It Vt "char *" Ns Va host
 The host-name (i.e., the host of the web application) request passed to
 the application.
 This shouldn't be confused with the application host's canonical name.
-.It Va method
+.It Vt "struct kdata *" Ns Va kdata
+Internal data.
+Should not be touched.
+.It Vt "const struct kvalid *" Ns Va keys
+Value passed to
+.Fn khttp_parse .
+.It Vt size_t Va keysz
+Value passed to
+.Fn khttp_parse .
+.It Vt "enum kmethod" Va method
 The
 .Dv KMETHOD_ACL ,
 .Dv KMETHOD_CONNECT ,
@@ -322,16 +331,7 @@ and
 so be sure to emit a
 .Dv KHTTP_405
 status for undesired methods.
-.It Va kdata
-Internal data.
-Should not be touched.
-.It Va keys
-Value passed to
-.Fn khttp_parse .
-.It Va keysz
-Value passed to
-.Fn khttp_parse .
-.It Va mime
+.It Vt size_t Va mime
 The MIME type of the requested file as determined by its
 .Pa suffix
 matched to the
@@ -351,7 +351,7 @@ or the default
 if using
 .Fn khttp_parse
 when no suffix is specified or when the suffix is specified but not known.
-.It Va page
+.It Vt size_t Va page
 The page index as defined by the
 .Va pages
 array passed to
@@ -365,12 +365,10 @@ The default page provided to
 is used if no path was specified or
 .Fa pagesz
 if the path failed lookup.
-.It Va pagename
+.It Vt "char *" Ns Va pagename
 The string corresponding to
 .Va page .
-.It Va port
-The server's receiving TCP port.
-.It Va path
+.It Vt "char *" Ns Va path
 The path (or empty string) following the parsed component regardless of
 whether it was located in the path array provided to
 .Fn khttp_parse .
@@ -381,12 +379,14 @@ is
 the path component would be
 .Pa baz
 .Pq with the leading slash stripped .
-.It Va pname
+.It Vt "char *" Ns Va pname
 The script name (which may be an empty string in degenerate cases)
 passed to the server.
 This may not reflect a file-system entity if re-written by the web
 server.
-.It Va rawauth
+.It Vt uint16_t Va port
+The server's receiving TCP port.
+.It Vt "struct khttpauth" Va rawauth
 The raw authorization request according to the
 .Ev HTTP_AUTHORIZATION
 header variable passed by the web server.
@@ -408,15 +408,15 @@ is unset or empty.
 Note that some web servers, for example Apache, do not set
 .Ev HTTP_AUTHORIZATION
 by default.
-.It Va remote
+.It Vt "char *" Ns Va remote
 The string form of the client's IPV4 or IVP6 address.
-.It Va reqmap
+.It Vt "struct khead *" Ns Va reqmap Ns Bq Dv KREQU__MAX
 Mapping of
 .Vt "enum krequ"
 enumeration values to
 .Va reqs
 parsed from the input stream.
-.It Va reqs
+.It Vt "struct khead *" Ns Va reqs
 List of all HTTP request headers, known via
 .Vt "enum krequ"
 and not known, parsed from the input stream, or
@@ -424,10 +424,10 @@ and not known, parsed from the input stream, or
 if
 .Va reqsz
 is 0.
-.It Va reqsz
+.It Vt size_t Va reqsz
 Number of request headers in
 .Va reqs .
-.It Va scheme
+.It Vt "enum kscheme" Va scheme
 The access scheme, which is either
 .Dv KSCHEME_HTTP
 or
@@ -435,7 +435,7 @@ or
 The scheme defaults to
 .Dv KSCHEME_HTTP
 if not specified by the request.
-.It Va suffix
+.It Vt "char *" Ns Va suffix
 The suffix part of the
 .Dv PATH_INFO
 or
