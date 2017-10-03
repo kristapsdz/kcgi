@@ -75,26 +75,36 @@ static	const char *const httpqops[KHTTPQOP__MAX] = {
 };
 
 /*
- * Parses the next token part.
+ * Parses the next token part---a sequence of non-whitespace (and
+ * non-"delim", with '\0' being the noop delimeter) characters---after
+ * skipping leading whitespace, then positions "next" to be at the next
+ * token (after any whitespace).
  * Returns the start of the token and its size.
- * Positions "next" to be at the next token.
  */
 static const char *
 kauth_nexttok(const char **next, char delim, size_t *sz)
 {
 	const char	*cp;
 
+	/* Skip past leading white-space. */
+
 	while (isspace((unsigned char)**next))
 		(*next)++;
 
-	for (*sz = 0, cp = *next; '\0' != **next; (*next)++, (*sz)++)
-		if ('\0' != delim && delim == **next)
-			break;
-		else if (isspace((unsigned char)**next))
-			break;
+	/* Scan til whitespace or delimiter. */
+
+	cp = *next;
+	while ('\0' != **next && delim != **next && 
+	       ! isspace((unsigned char)**next))
+		(*next)++;
+	*sz = *next - cp;
+
+	/* Scan after delimiter, if applicable. */
 
 	if ('\0' != delim && delim == **next) 
 		(*next)++;
+
+	/* Scan til next non-whitespace. */
 
 	while (isspace((unsigned char)**next))
 		(*next)++;
