@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 22 2017 $
+.Dd $Mdocdate: October 4 2017 $
 .Dt KUTIL_LOG 3
 .Os
 .Sh NAME
@@ -23,6 +23,8 @@
 .Nm kutil_info ,
 .Nm kutil_log ,
 .Nm kutil_logx ,
+.Nm kutil_verr ,
+.Nm kutil_verrx ,
 .Nm kutil_vinfo ,
 .Nm kutil_vlog ,
 .Nm kutil_vlogx ,
@@ -77,6 +79,20 @@
 .Fa "..."
 .Fc
 .Ft "void"
+.Fo kutil_verr
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
+.Fo kutil_verrx
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "va_list ap"
+.Fc
+.Ft "void"
 .Fo kutil_vinfo
 .Fa "const struct kreq *r"
 .Fa "const char *ident"
@@ -128,7 +144,7 @@
 .Fa "..."
 .Fc
 .Sh DESCRIPTION
-These convenience functions format messages for reporting on
+These functions format messages for reporting on
 .Vt stderr ,
 avoiding common CGI script pitfalls such as unwittingly using
 .Xr localtime 3
@@ -173,6 +189,16 @@ style format string for the variable argument or argument list
 following.
 This formats the log message.
 .El
+.Pp
+The
+.Nm kutil_err ,
+.Nm kutil_errx ,
+.Nm kutil_verr ,
+and
+.Nm kutil_verrx
+functions exit with
+.Dv EXIT_FAILURE .
+They will never return.
 .Ss Output format
 The log messages are filtered on output: non-printable
 .Pq see Xr isprint 3
@@ -183,6 +209,8 @@ and space characters
 are shown as literal escape characters.
 .Pp
 The
+.Nm kutil_err ,
+.Nm kutil_verr ,
 .Nm kutil_log ,
 .Nm kutil_vlog ,
 .Nm kutil_vwarn ,
@@ -211,3 +239,6 @@ The date is formatted as an HTTP date (RFC 822) in GMT.
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh BUGS
+The log message size is limited to 1023 bytes.
+Anything over that will be silently truncated.
