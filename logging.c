@@ -35,6 +35,9 @@
  * other message who are writing at the same time.
  * All strings are trusted to have "good" characters except for the
  * variable array, which may contain anything and is filtered.
+ *
+ * FIXME: don't use fixed-length buffer.
+ * FIXME: don't trust "lvl" and "ident".
  */
 static void
 logmsg(const struct kreq *r, const char *err, const char *lvl, 
@@ -47,8 +50,8 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	/* 
 	 * Convert to GMT.
 	 * We can't use localtime because we're probably going to be
-	 * chrooted, and maybe pledged, and touching our timezone files
-	 * will crash us (or at least not be applicable).
+	 * chrooted, and maybe sandboxed, and touching our timezone
+	 * files will crash us (or at least not be applicable).
 	 */
 
 	kutil_epoch2str(time(NULL), date, sizeof(date));
@@ -142,6 +145,7 @@ kutil_errx(const struct kreq *r,
 	va_start(ap, fmt);
 	kutil_vlogx(r, "ERROR", ident, fmt, ap);
 	va_end(ap);
+	exit(EXIT_FAILURE);
 }
 
 void
@@ -161,6 +165,7 @@ kutil_err(const struct kreq *r,
 	va_start(ap, fmt);
 	kutil_vlog(r, "ERROR", ident, fmt, ap);
 	va_end(ap);
+	exit(EXIT_FAILURE);
 }
 
 void
