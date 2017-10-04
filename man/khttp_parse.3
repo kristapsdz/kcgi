@@ -463,7 +463,7 @@ as an array of
 This structure is central to the validation of input data.
 It consists of the following fields:
 .Bl -tag -width Ds
-.It Va name
+.It Vt "const char *" Ns Va name
 The field name, i.e., how it appears in the HTML form input name.
 This cannot be
 .Dv NULL .
@@ -473,7 +473,7 @@ validate the HTTP message body.
 This is useful for
 .Dv KMETHOD_PUT
 style requests.
-.It Va valid
+.It Vt "int (*)(struct kpair *)" Va valid
 Validating function.
 This function accepts a single
 .Ft "struct kpair *"
@@ -534,13 +534,13 @@ In this case, the MIME-related fields are already filled in and may be
 examined to determine the method of validation.
 This is useful when validating opaque message bodies.
 .Bl -tag -width Ds
-.It Va ctype
+.It Vt "char *" Ns Va ctype
 The value's MIME content type (e.g.,
 .Li image/jpeg ) ,
 or
 an empty string
 if not defined.
-.It Va ctypepos
+.It Vt "size_t" Va ctypepos
 If
 .Va ctype
 is not
@@ -556,16 +556,16 @@ if using
 If found, it is set to the appropriate index.
 Otherwise, it's
 .Fa mimesz .
-.It Va file
+.It Vt "char *" Ns Va file
 The value's MIME source filename or
 an empty string
 if not defined.
-.It Va key
+.It Vt "char *" Ns Va key
 The nil-terminated key (input) name.
 If the HTTP message body is opaque (e.g.,
 .Dv KMETHOD_PUT ) ,
 then an empty-string key is cooked up.
-.It Va keypos
+.It Vt "size_t" Va keypos
 If looked up in the
 .Fa keys
 variable passed to
@@ -573,7 +573,7 @@ variable passed to
 the index of the looked-up key.
 Otherwise
 .Fa keysz .
-.It Va next
+.It Vt "struct kpair *" Ns Va next
 In a cookie or field map,
 .Fa next
 points to the next parsed key-value pair with the same
@@ -581,34 +581,36 @@ points to the next parsed key-value pair with the same
 name.
 This occurs most often in HTML checkbox forms, where many fields may
 have the same name.
-.It Va parsed
+.It Vt "union parsed" Va parsed
 The parsed, validated value.
-These may be integer, for a 64-bit signed integer; string, for a
-nil-termianted character string; or double, for a double-precision
-floating-point number.
+These may be integer in
+.Va i ,
+for a 64-bit signed integer; a string
+.Va s ,
+for a nil-termianted character string; or a double
+.Va d ,
+for a double-precision floating-point number.
 This is intentionally basic because the resulting data must be reliably
 passed from the parsing context back into the web application.
-.It Va state
+.It Vt "enum kpairstate" Va state
 The validation state: whether validated by a parse, invalidated by a
 parse, or non-validated (unparsed).
-.It Va type
+.It Vt "enum kpairtype" Va type
 If parsed, the type of data in
 .Fa parsed ,
 otherwise
 .Dv KFIELD__MAX .
-.It Va val
+.It Vt "char *" Ns Va val
 The (input) value, which is always nil-terminated, but if the data is
 binary, nil terminators may occur before the true data length of
 .Fa valsz .
-.It Va valsz
+.It Vt "size_t" Va valsz
 The true length of
 .Fa val .
-.It Va xcode
+.It Vt "char *" Ns Va xcode
 The value's MIME content transfer encoding (e.g.,
 .Li base64 ) ,
-or
-an empty string
-if not defined.
+or an empty string if not defined.
 .El
 .Pp
 The
