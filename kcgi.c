@@ -179,6 +179,7 @@ const char *const kmimetypes[KMIME__MAX] = {
 	"application/json", /* KMIME_APP_JSON */
 	"application/octet-stream", /* KMIME_APP_OCTET_STREAM */
 	"application/pdf", /* KMIME_APP_PDF */
+	"application/zip", /* KMIME_APP_ZIP */
 	"image/gif", /* KMIME_IMAGE_GIF */
 	"image/jpeg", /* KMIME_IMAGE_JPEG */
 	"image/png", /* KMIME_IMAGE_PNG */
@@ -264,6 +265,7 @@ const struct kmimemap ksuffixmap[] = {
 	{ "svgz", KMIME_IMAGE_SVG_XML },
 	{ "txt", KMIME_TEXT_PLAIN },
 	{ "xml", KMIME_TEXT_XML },
+	{ "zip", KMIME_APP_ZIP },
 	{ NULL, KMIME__MAX },
 };
 
@@ -275,6 +277,7 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"json", /* KMIME_APP_JSON */
 	NULL, /* KMIME_APP_OCTET_STREAM */
 	"pdf", /* KMIME_APP_PDF */
+	"zip", /* KMIME_APP_ZIP */
 	"gif", /* KMIME_IMAGE_GIF */
 	"jpg", /* KMIME_IMAGE_JPEG */
 	"png", /* KMIME_IMAGE_PNG */
