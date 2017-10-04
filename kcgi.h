@@ -583,6 +583,12 @@ void		 kutil_warn(const struct kreq *,
 void		 kutil_warnx(const struct kreq *, 
 			const char *, const char *, ...)
 			__attribute__((format(printf, 3, 4)));
+void		 kutil_err(const struct kreq *, 
+			const char *, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
+void		 kutil_errx(const struct kreq *, 
+			const char *, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
 
 int		 kasprintf(char **, const char *, ...)
 			__attribute__((format(printf, 2, 3)));

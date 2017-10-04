@@ -134,11 +134,33 @@ kutil_warnx(const struct kreq *r,
 }
 
 void
+kutil_errx(const struct kreq *r, 
+	const char *ident, const char *fmt, ...)
+{
+	va_list	 ap;
+
+	va_start(ap, fmt);
+	kutil_vlogx(r, "ERROR", ident, fmt, ap);
+	va_end(ap);
+}
+
+void
 kutil_vwarnx(const struct kreq *r, 
 	const char *ident, const char *fmt, va_list ap)
 {
 
 	kutil_vlogx(r, "WARN", ident, fmt, ap);
+}
+
+void
+kutil_err(const struct kreq *r, 
+	const char *ident, const char *fmt, ...)
+{
+	va_list	 ap;
+
+	va_start(ap, fmt);
+	kutil_vlog(r, "ERROR", ident, fmt, ap);
+	va_end(ap);
 }
 
 void
