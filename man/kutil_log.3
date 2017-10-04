@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2016--2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -14,19 +14,20 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 20 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KUTIL_LOG 3
 .Os
 .Sh NAME
+.Nm kutil_err ,
+.Nm kutil_errx ,
 .Nm kutil_info ,
 .Nm kutil_log ,
 .Nm kutil_logx ,
-.Nm kutil_openlog ,
 .Nm kutil_vinfo ,
 .Nm kutil_vlog ,
 .Nm kutil_vlogx ,
 .Nm kutil_vwarn ,
-.Nm kutil_vwarnx
+.Nm kutil_vwarnx ,
 .Nm kutil_warn ,
 .Nm kutil_warnx
 .Nd format log messages
@@ -38,6 +39,20 @@
 .In stddef.h
 .In stdint.h
 .In kcgi.h
+.Ft "void"
+.Fo kutil_err
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
+.Ft "void"
+.Fo kutil_errx
+.Fa "const struct kreq *r"
+.Fa "const char *ident"
+.Fa "const char *fmt"
+.Fa "..."
+.Fc
 .Ft "void"
 .Fo kutil_info
 .Fa "const struct kreq *r"
@@ -60,10 +75,6 @@
 .Fa "const char *ident"
 .Fa "const char *fmt"
 .Fa "..."
-.Fc
-.Ft "int"
-.Fo kutil_openlog
-.Fa "const char *file"
 .Fc
 .Ft "void"
 .Fo kutil_vinfo
@@ -125,70 +136,51 @@ when in a
 .Xr chroot 2 .
 Moreover, they allow for a consist logging output format, as most web
 servers are inconsistent on how they log script output.
+See
+.Xr kutil_openlog 3
+for configuring an alternative log file.
 .Pp
-The logging functions should be preceded by
-.Nm kutil_openlog ,
-which redirects
-.Vt stderr
-to
-.Fa file
-.Pq if it's not Dv NULL
-and sets the output as line-buffered to minimise line clobbering.
-It returns zero on failure (system error) and non-zero on success.
-.Em Note :
-if it fails to re-open
-.Vt stderr ,
-the stream may no longer be operable.
-.Pp
-The remaining functions accept
-.Fa r ,
-the active request handle opened with
-.Xr khttp_parse 3 ;
-.Fa level ,
-a human-readable level such as
-.Dq warn
-or
-.Dq info ;
-and
-.Fa ident ,
-used in the common scenario of connecting a message to a logged-in user.
-The
-.Fa level
-and
-.Fa ident
-variables may be
+These functions accept the following variables:
+.Bl -tag -width Ds
+.It Ft "const struct kreq *" Ns Fa r
+Active request handle opened with
+.Xr khttp_parse 3 .
+May not be
 .Dv NULL .
-For
-.Nm kutil_info ,
-.Nm kutil_vinfo ,
-.Nm kutil_vwarn ,
-.Nm kutil_vwarnx ,
-.Nm kutil_warn ,
+.It Ft "const char *" Ns Fa level
+A human-readable log level.
+If
+.Dv NULL ,
+no level is printed.
+For functions not accepting this argument, the
+.Li INFO ,
+.Li WARN ,
 and
-.Nm kutil_warnx ,
-the level is
-.Dq INFO
-and
-.Dq WARN .
-.Pp
+.Li ERROR
+values are used for the informational, warning, and error functions,
+respectively.
+.It Ft "const char *" Ns Fa ident
+The client identity of the caller.
+This adheres to the common CGI practise of connecting a message to a
+logged-in user.
+If
+.Dv NULL ,
+no ident is printed.
+.It Ft "const char *" Ns Fa fmt
 The
-.Nm kutil_vinfo ,
-.Nm kutil_vlog ,
-.Nm kutil_vlogx ,
-.Nm kutil_vwarn ,
-and
-.Nm kutil_vwarnx
-functions accept a
-.Xr va_start 3
-list, while the others use
 .Xr printf 3
-format string and arguments.
-In either format, these printed values are considered untrusted and have
-non-printable characters replaced with
+style format string for the variable argument or argument list
+following.
+This formats the log message.
+.El
+.Ss Output format
+The log messages are filtered on output: non-printable
+.Pq see Xr isprint 3
+characters are replaced with
 .Dq \&?
-and with white-space
+and space characters
 .Pq \et, \er, \en
-shown as literal escape characters.
+are shown as literal escape characters.
 .Pp
 The
 .Nm kutil_log ,
@@ -198,7 +190,7 @@ and
 .Nm kutil_warn
 functions print out the current
 .Vt errno
-as an additional error message.
+following the log message.
 .Pp
 The output format is as follows, with a trailing newline:
 .Pp
@@ -217,18 +209,5 @@ will be rendered as
 .Dq - .
 The date is formatted as an HTTP date (RFC 822) in GMT.
 .Sh AUTHORS
-The
-.Nm kutil_info ,
-.Nm kutil_log ,
-.Nm kutil_logx ,
-.Nm kutil_openlog ,
-.Nm kutil_vinfo ,
-.Nm kutil_vlog ,
-.Nm kutil_vlogx ,
-.Nm kutil_vwarn ,
-.Nm kutil_vwarnx ,
-.Nm kutil_warn ,
-and
-.Nm kutil_warnx
-functions were written by
+These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

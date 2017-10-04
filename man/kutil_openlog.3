@@ -1,0 +1,91 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: September 22 2017 $
+.Dt KUTIL_OPENLOG 3
+.Os
+.Sh NAME
+.Nm kutil_openlog
+.Nd configure log message sink
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stddef.h
+.In stdint.h
+.In kcgi.h
+.Ft "int"
+.Fo kutil_openlog
+.Fa "const char *file"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm
+function configures output for the
+.Xr kutil_log 3
+family of functions.
+By default, these functions log to
+.Dv stderr
+and inherit the initial output buffering behaviour
+.Pq see Xr setvbuf 3 .
+.Pp
+If
+.Fa file
+is not
+.Dv NULL ,
+.Nm
+first redirects
+.Vt stderr
+to
+.Fa file .
+Then, regardless of whether
+.Fa file
+is
+.Dv NULL ,
+the output buffering of the stream is set to line buffered.
+.Pp
+CGI scripts invoking long-running child processes via
+.Xr fork 2
+should use this function with a valid
+.Fa file
+as the web server might wait for all file descriptors to close before
+closing the request connection.
+.Sh RETURN VALUES
+The
+.Nm
+function returns zero on failure (system error) and non-zero on success.
+If
+.Nm
+fails to re-open
+.Vt stderr ,
+the output stream may no longer be operable: the caller should exit.
+.Sh AUTHORS
+The
+.Nm
+function was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+In most situations,
+.Fa file
+is configured in the default log directory, which is not writable to the
+CGI process.
+Thus,
+.Fa file
+must be pre-created and be writable to the CGI process.
+Otherwise,
+.Nm
+will fail to create the file and exit with failure.
