@@ -629,7 +629,7 @@ with
 if the authorisation type was not recognised.
 The specific fields are as follows.
 .Bl -tag -width Ds
-.It Va authorised
+.It Vt "int" Va authorised
 For
 .Dv KAUTH_BASIC
 or
@@ -637,12 +637,12 @@ or
 authorisation, this field indicates whether all required values were
 specified.
 .It Va d
-A union containing parsed fields per type:
-.Va basic
+An anonymous union containing parsed fields per type:
+.Vt "struct khttpbasic" Va basic
 for
 .Dv KAUTH_BASIC
 or
-.Va digest
+.Vt "struct khttpdigest" Va digest
 for
 .Dv KAUTH_DIGEST .
 .El
