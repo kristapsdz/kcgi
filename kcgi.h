@@ -559,6 +559,10 @@ char		*kutil_urlencode(const char *);
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
 int		 kutil_openlog(const char *);
+__dead void	 kutil_verr(const struct kreq *, 
+			const char *, const char *, va_list);
+__dead void	 kutil_verrx(const struct kreq *, 
+			const char *, const char *, va_list);
 void		 kutil_vinfo(const struct kreq *, 
 			const char *, const char *, va_list);
 void		 kutil_vlog(const struct kreq *, const char *,
