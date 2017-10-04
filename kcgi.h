@@ -559,10 +559,12 @@ char		*kutil_urlencode(const char *);
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
 int		 kutil_openlog(const char *);
-__dead void	 kutil_verr(const struct kreq *, 
-			const char *, const char *, va_list);
-__dead void	 kutil_verrx(const struct kreq *, 
-			const char *, const char *, va_list);
+void	 	 kutil_verr(const struct kreq *, 
+			const char *, const char *, va_list)
+			__attribute__((noreturn));
+void	 	 kutil_verrx(const struct kreq *, 
+			const char *, const char *, va_list)
+			__attribute__((noreturn));
 void		 kutil_vinfo(const struct kreq *, 
 			const char *, const char *, va_list);
 void		 kutil_vlog(const struct kreq *, const char *,
@@ -590,10 +592,12 @@ void		 kutil_warnx(const struct kreq *,
 			__attribute__((format(printf, 3, 4)));
 void		 kutil_err(const struct kreq *, 
 			const char *, const char *, ...)
-			__attribute__((format(printf, 3, 4)));
+			__attribute__((format(printf, 3, 4)))
+			__attribute__((noreturn));
 void		 kutil_errx(const struct kreq *, 
 			const char *, const char *, ...)
-			__attribute__((format(printf, 3, 4)));
+			__attribute__((format(printf, 3, 4)))
+			__attribute__((noreturn));
 
 int		 kasprintf(char **, const char *, ...)
 			__attribute__((format(printf, 2, 3)));
