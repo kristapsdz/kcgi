@@ -345,7 +345,7 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, d.cnonce.pos, d.cnonce.sz);
 	fullwrite(fd, &d.response.sz, sizeof(size_t));
 	fullwrite(fd, d.response.pos, d.response.sz);
-	fullwrite(fd, &d.count, sizeof(size_t));
+	fullwrite(fd, &d.count, sizeof(uint32_t));
 	fullwrite(fd, &d.opaque.sz, sizeof(size_t));
 	fullwrite(fd, d.opaque.pos, d.opaque.sz);
 
@@ -383,7 +383,7 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 			return(ke);
 		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.response)))
 			return(ke);
-		if (fullread(fd, &auth->d.digest.count, sizeof(size_t), 0, &ke) < 0)
+		if (fullread(fd, &auth->d.digest.count, sizeof(uint32_t), 0, &ke) < 0)
 			return(ke);
 		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.opaque)))
 			return(ke);
