@@ -390,21 +390,6 @@ The server's receiving TCP port.
 The raw authorization request according to the
 .Ev HTTP_AUTHORIZATION
 header variable passed by the web server.
-This is
-.Dv KAUTH_DIGEST
-for
-.Qq digest ,
-.Dv KAUTH_BASIC
-for
-.Qq basic ,
-.Dv KAUTH_UNKNOWN
-for other values of
-.Ev HTTP_AUTHORIZATION ,
-or
-.Dv KAUTH_NONE
-if
-.Ev HTTP_AUTHORIZATION
-is unset or empty.
 Note that some web servers, for example Apache, do not set
 .Ev HTTP_AUTHORIZATION
 by default.
@@ -616,6 +601,9 @@ or an empty string if not defined.
 The
 .Vt struct khttpauth
 structure holds authorisation data if passed by the server.
+The specific fields are as follows.
+.Bl -tag -width Ds
+.It Vt "enum kauth" Va type
 If no data was passed by the server, the
 .Va type
 value is
@@ -627,8 +615,6 @@ or
 with
 .Dv KAUTH_UNKNOWN
 if the authorisation type was not recognised.
-The specific fields are as follows.
-.Bl -tag -width Ds
 .It Vt "int" Va authorised
 For
 .Dv KAUTH_BASIC
@@ -645,6 +631,17 @@ or
 .Vt "struct khttpdigest" Va digest
 for
 .Dv KAUTH_DIGEST .
+.It Vt "char *" Ns Va digest
+For
+.Dv KAUTH_DIGEST
+authentication, this contains the request message body MD5 hash required
+for the authentication of integrity
+.Pq Dq auth-int
+form of quality of protection.
+See
+.Vt "enum khttpqop" .
+Otherwise it is
+.Dv NULL .
 .El
 .Pp
 If the field for an HTTP authorisation request is
