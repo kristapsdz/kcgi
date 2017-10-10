@@ -1069,54 +1069,79 @@ kworker_child_scheme(struct env *env, int fd, size_t envsz)
 
 /*
  * Send remote address to the parent.
- * Since we need this to be defined, use a meaningful default if it's
- * not provided and also warn about it.
+ * This is required by RFC 3875, 4.1.8.
+ * Use 127.0.0.1 on protocol violation.
  */
 static void
 kworker_child_remote(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	/* RFC 3875, 4.1.8. */
-	/* Never supposed to be NULL, but to be sure... */
-
 	if (NULL == (cp = kworker_env(env, envsz, "REMOTE_ADDR"))) {
-		XWARNX("bad environment: REMOTE_ADDR not set");
+		XWARNX("RFC violation: REMOTE_ADDR not set");
 		cp = "127.0.0.1";
 	}
+
 	fullwriteword(fd, cp);
 }
 
+/*
+ * Parse and send the port to the parent.
+ * This is required by RFC 3875, 4.1.15.
+ * Use port 80 if not provided or on parse error.
+ */
 static void
 kworker_child_port(struct env *env, int fd, size_t envsz)
 {
 	uint16_t	 port;
-	const char	*cp;
+	const char	*cp, *er;
 
 	port = 80;
-	if (NULL != (cp = kworker_env(env, envsz, "SERVER_PORT")))
-		port = strtonum(cp, 0, UINT16_MAX, NULL);
+	if (NULL != (cp = kworker_env(env, envsz, "SERVER_PORT"))) {
+		port = strtonum(cp, 0, UINT16_MAX, &er);
+		if (NULL != er) {
+			XWARNX("RFC violation: invalid SERVER_PORT");
+			port = 80;
+		}
+	} else
+		XWARNX("RFC violation: SERVER_PORT not set");
 
 	fullwrite(fd, &port, sizeof(uint16_t));
 }
 
+/*
+ * Send requested host to the parent.
+ * This is required by RFC 7230, 5.4.
+ * Use "localhost" if not provided.
+ */
 static void
 kworker_child_httphost(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	if (NULL == (cp = kworker_env(env, envsz, "HTTP_HOST")))
+	if (NULL == (cp = kworker_env(env, envsz, "HTTP_HOST"))) {
+		XWARNX("RFC violation: HTTP_HOST not set");
 		cp = "localhost";
+	}
+
 	fullwriteword(fd, cp);
 }
 
+/* 
+ * Send script name to the parent.
+ * This is required by RFC 3875, 4.1.13.
+ * Use the empty string on error.
+ */
 static void
 kworker_child_scriptname(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	if (NULL == (cp = kworker_env(env, envsz, "SCRIPT_NAME")))
+	if (NULL == (cp = kworker_env(env, envsz, "SCRIPT_NAME"))) {
+		XWARNX("RFC violation: SCRIPT_NAME not set");
 		cp = "";
+	}
+
 	fullwriteword(fd, cp);
 }
 
