@@ -275,13 +275,13 @@ The full requested path as contained in the
 .Ev PATH_INFO
 header variable.
 For example, requesting
-.Qq https://bsd.lv/foo.cgi/foo/bar.html?q=v ,
+.Qq https://bsd.lv/app.cgi/dir/file.html?q=v ,
 where
-.Qq foo.cgi
-is the CGI script, this value would be
-.Pa /foo/bar.html .
-It may be an empty string.
-This path is not guaranteed to be absolute.
+.Qq app.cgi
+is the CGI program, this value would be
+.Pa /dir/file.html .
+It is not guaranteed to start with a slash and it may be an empty
+string.
 .It Vt "char *" Ns Va host
 The host-name (i.e., the host of the web application) request passed to
 the application.
