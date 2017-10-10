@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 9 2017 $
+.Dd $Mdocdate: October 10 2017 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -394,7 +394,14 @@ Note that some web servers, for example Apache, do not set
 .Ev HTTP_AUTHORIZATION
 by default.
 .It Vt "char *" Ns Va remote
-The string form of the client's IPV4 or IVP6 address.
+The string form of the client's IPv4 or IPv6 address taken from the
+.Ev REMOTE_ADDR
+header variable, or
+.Qq 127.0.0.1
+if that is not defined.
+.Em Note :
+this value is not guaranteed to be in either address format, only that
+it be nil-terminated.
 .It Vt "struct khead *" Ns Va reqmap Ns Bq Dv KREQU__MAX
 Mapping of
 .Vt "enum krequ"
