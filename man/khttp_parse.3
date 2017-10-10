@@ -555,7 +555,7 @@ The value's MIME source filename or
 an empty string
 if not defined.
 .It Vt "char *" Ns Va key
-The nil-terminated key (input) name.
+The NUL-terminated key (input) name.
 If the HTTP message body is opaque (e.g.,
 .Dv KMETHOD_PUT ) ,
 then an empty-string key is cooked up.
@@ -581,7 +581,7 @@ These may be integer in
 .Va i ,
 for a 64-bit signed integer; a string
 .Va s ,
-for a nil-termianted character string; or a double
+for a NUL-termianted character string; or a double
 .Va d ,
 for a double-precision floating-point number.
 This is intentionally basic because the resulting data must be reliably
@@ -595,8 +595,8 @@ If parsed, the type of data in
 otherwise
 .Dv KFIELD__MAX .
 .It Vt "char *" Ns Va val
-The (input) value, which is always nil-terminated, but if the data is
-binary, nil terminators may occur before the true data length of
+The (input) value, which is always NUL-terminated, but if the data is
+binary, NUL terminators may occur before the true data length of
 .Fa valsz .
 .It Vt "size_t" Va valsz
 The true length of
