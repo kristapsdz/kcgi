@@ -283,9 +283,23 @@ is the CGI program, this value would be
 It is not guaranteed to start with a slash and it may be an empty
 string.
 .It Vt "char *" Ns Va host
-The host-name (i.e., the host of the web application) request passed to
-the application.
-This shouldn't be confused with the application host's canonical name.
+The host name received in the
+.Ev HTTP_HOST
+header variable.
+When using name-based virtual hosting, this is typically the virtual
+host name specified by the client in the HTTP request, and it should
+not be confused with the canonical DNS name of the host running the
+web server.
+For example, a request to
+.Qq https://bsd.lv/app.cgi/file
+would have a host of
+.Qq bsd.lv .
+If
+.Ev HTTP_HOST
+is not defined,
+.Va host
+is set to
+.Qq localhost .
 .It Vt "struct kdata *" Ns Va kdata
 Internal data.
 Should not be touched.
