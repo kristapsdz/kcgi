@@ -427,7 +427,9 @@ this would be
 .Pa app.cgi .
 This may not reflect a file system entity and it may be an empty string.
 .It Vt uint16_t Va port
-The server's receiving TCP port.
+The server's receiving TCP port according to the
+.Ev SERVER_PORT
+header variable, or 80 if that is not defined or an invalid number.
 .It Vt "struct khttpauth" Va rawauth
 The raw authorization request according to the
 .Ev HTTP_AUTHORIZATION
