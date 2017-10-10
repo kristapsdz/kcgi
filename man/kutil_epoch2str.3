@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 20 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KUTIL_EPOCH2STR 3
 .Os
 .Sh NAME
@@ -85,7 +85,7 @@ into the buffer
 of size
 .Fa sz ,
 which should be greater than or equal to 30 bytes for the date and
-trailing nil terminator.
+trailing NUL terminator.
 The format conforms to RFC 822, e.g.,
 .Li Wed, 02 Oct 2002 13:00:00 GMT .
 This will truncate all values before the zeroth epoch to zero (Jan 1 as

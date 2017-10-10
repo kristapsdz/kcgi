@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 20 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KVALID_STRING 3
 .Os
 .Sh NAME
@@ -138,10 +138,10 @@ A 64-bit signed integer.
 Sets
 .Dv KPAIR_INTEGER .
 .It Fn kvalid_string
-A nil-terminated (possibly-empty) string.
+A NUL-terminated (possibly-empty) string.
 .Po
 Since all field entries are binary, this checks whether the binary
-length is the same as the nil-terminated string, so no truncation
+length is the same as the NUL-terminated string, so no truncation
 occurs.
 .Pc
 This sets

@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 20 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KHTTP_WRITE 3
 .Os
 .Sh NAME
@@ -64,7 +64,7 @@ else their behaviour is undefined.
 .Nm khttp_putc
 emits a single character;
 .Nm khttp_puts
-emits a nil-terminated character string
+emits a NUL-terminated character string
 .Po
 note, this does not append a newline like
 .Xr puts 3
