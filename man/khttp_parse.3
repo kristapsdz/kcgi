@@ -353,33 +353,54 @@ if using
 .Fn khttp_parse
 when no suffix is specified or when the suffix is specified but not known.
 .It Vt size_t Va page
-The page index as defined by the
-.Va pages
-array passed to
-.Fn khttp_parse
-and parsed from the requested file.
-This is the
-.Em first
-path component!
-The default page provided to
-.Fn khttp_parse
-is used if no path was specified or
+The page index found by looking up
+.Va pagename
+in the
+.Fa pages
+array.
+If
+.Va pagename
+is not found in
+.Fa pages ,
 .Fa pagesz
-if the path failed lookup.
+is used; if
+.Va pagename
+is empty,
+.Fa defpage
+is used.
 .It Vt "char *" Ns Va pagename
-The string corresponding to
-.Va page .
+The first component of
+.Va fullpath
+or an empty string if there is none.
+It is compared to the elements of the
+.Fa pages
+array to determine which
+.Va page
+it corresponds to.
+For example, for a
+.Va fullpath
+of
+.Qq /dir/file.html
+this component corresponds to
+.Pa dir .
+For
+.Qq /file.html ,
+it's
+.Pa file .
 .It Vt "char *" Ns Va path
-The path (or empty string) following the parsed component regardless of
-whether it was located in the path array provided to
-.Fn khttp_parse .
+The middle part of
+.Va fullpath ,
+after stripping
+.Va pagename Ns /
+at the beginning and
+.Pf \&. Va suffix
+at the end, or an empty string if there is none.
 For example, if the
-.Dv PATH_INFO
+.Va fullpath
 is
-.Pa foo.cgi/bar/baz.html ,
-the path component would be
-.Pa baz
-.Pq with the leading slash stripped .
+.Pa bar/baz.html ,
+this component is
+.Pa baz .
 .It Vt "char *" Ns Va pname
 The script name (which may be an empty string in degenerate cases)
 passed to the server.
@@ -431,16 +452,14 @@ or
 .Dv KSCHEME_HTTP
 otherwise.
 .It Vt "char *" Ns Va suffix
-The suffix part of the
-.Dv PATH_INFO
-or
-an empty string
-if none exists.
+The suffix part of the last component of
+.Va fullpath
+or an empty string if there is none.
 For example, if the
-.Dv PATH_INFO
+.Va fullpath
 is
-.Pa foo.cgi/bar/baz.html ,
-the suffix would be
+.Pa /bar/baz.html ,
+this component is
 .Pa html .
 See the
 .Va mime
