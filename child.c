@@ -1069,6 +1069,8 @@ kworker_child_scheme(struct env *env, int fd, size_t envsz)
 
 /*
  * Send remote address to the parent.
+ * Since we need this to be defined, use a meaningful default if it's
+ * not provided and also warn about it.
  */
 static void
 kworker_child_remote(struct env *env, int fd, size_t envsz)
@@ -1078,8 +1080,10 @@ kworker_child_remote(struct env *env, int fd, size_t envsz)
 	/* RFC 3875, 4.1.8. */
 	/* Never supposed to be NULL, but to be sure... */
 
-	if (NULL == (cp = kworker_env(env, envsz, "REMOTE_ADDR")))
+	if (NULL == (cp = kworker_env(env, envsz, "REMOTE_ADDR"))) {
+		XWARNX("bad environment: REMOTE_ADDR not set");
 		cp = "127.0.0.1";
+	}
 	fullwriteword(fd, cp);
 }
 
