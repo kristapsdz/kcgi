@@ -281,8 +281,7 @@ where
 is the CGI script, this value would be
 .Pa /foo/bar.html .
 It may be an empty string.
-.Em Note :
-this path is not guaranteed to be absolute.
+This path is not guaranteed to be absolute.
 .It Vt "char *" Ns Va host
 The host-name (i.e., the host of the web application) request passed to
 the application.
@@ -326,8 +325,7 @@ is used.
 If no method was specified, the default is
 .Dv KMETHOD_GET .
 .Pp
-.Em Note :
-applications will usually accept only
+Applications will usually accept only
 .Dv KMETHOD_GET
 and
 .Dv KMETHOD_POST ,
@@ -393,7 +391,7 @@ The server's receiving TCP port.
 The raw authorization request according to the
 .Ev HTTP_AUTHORIZATION
 header variable passed by the web server.
-Note that some web servers, for example Apache, do not set
+Some web servers, for example Apache, do not set
 .Ev HTTP_AUTHORIZATION
 by default.
 .It Vt "char *" Ns Va remote
@@ -402,9 +400,7 @@ The string form of the client's IPv4 or IPv6 address taken from the
 header variable, or
 .Qq 127.0.0.1
 if that is not defined.
-.Em Note :
-this value is not guaranteed to be in either address format, only that
-it be nil-terminated.
+The address format of the string is not checked.
 .It Vt "struct khead *" Ns Va reqmap Ns Bq Dv KREQU__MAX
 Mapping of
 .Vt "enum krequ"
@@ -511,8 +507,7 @@ if the value of
 changes during your validation, the new value will be freed with
 .Xr free 3
 after being passed out of the sandbox.
-.Em Note :
-these functions are invoked from within a system-specific sandbox.
+These functions are invoked from within a system-specific sandbox.
 You should assume that you cannot invoke any
 .Qq invasive
 system calls such as opening files, sockets, etc.
@@ -799,8 +794,7 @@ and name
 .It Va ksuffixes
 Indexed list of canonical suffixes for MIME types corresponding to
 .Vt enum kmime .
-.Em Note :
-this may be a
+This may be a
 .Dv NULL
 pointer for types that have no canonical suffix, for example.
 .Dq application/octet-stream .
