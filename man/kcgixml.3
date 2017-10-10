@@ -165,7 +165,7 @@ onto the output stream.
 .It Fn kxml_pushattrs
 Push the element-open tag indexed by
 .Fn elem
-onto the output stream, as well as a sequence of nil-terminated pairs of
+onto the output stream, as well as a sequence of NUL-terminated pairs of
 attributes.
 The last attribute key must be a
 .Dv NULL
@@ -191,7 +191,7 @@ properly as opaque text.
 .It Fn kxml_puts
 Invokes
 .Fn kxml_putc
-for all characters in the nil-terminated string.
+for all characters in the NUL-terminated string.
 .It Fn kxml_write
 Invokes
 .Fn kxml_putc
