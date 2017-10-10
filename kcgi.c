@@ -290,11 +290,6 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"xml", /* KMIME_TEXT_XML */
 };
 
-/* 
- * Name of executing CGI script.
- */
-const char	*pname = NULL;
-
 static int
 khttp_templatex_write(const char *dat, size_t sz, void *arg)
 {
