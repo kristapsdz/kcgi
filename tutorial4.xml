@@ -71,8 +71,8 @@
 			</ul>
 		</dd>
 		<dt><code>path</code></dt>
-		<dd>the substring of <code>PATH_INFO</code> from (but not including) the second '/' to the end-of-string (or the empty string if
-			no such substring exists)</dd>
+		<dd>the middle part of <code>PATH_INFO</code> after stripping <code>pagename/</code> at the beginning and <code>.suffix</code>
+			at the end.</dd>
 	</dl>
 	<p>
 		In addition, the field <code>pname</code> contains the value of the <abbr>CGI</abbr> meta variable <code>SCRIPT_NAME</code>.
