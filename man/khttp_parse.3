@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 4 2017 $
+.Dd $Mdocdate: October 9 2017 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -413,13 +413,17 @@ is 0.
 Number of request headers in
 .Va reqs .
 .It Vt "enum kscheme" Va scheme
-The access scheme, which is either
-.Dv KSCHEME_HTTP
+The access scheme according to the
+.Ev HTTPS
+header variable, either
+.Dv KSCHEME_HTTPS
+if
+.Ev HTTPS
+is set and equal to the string
+.Qq on
 or
-.Dv KSCHEME_HTTPS .
-The scheme defaults to
 .Dv KSCHEME_HTTP
-if not specified by the request.
+otherwise.
 .It Vt "char *" Ns Va suffix
 The suffix part of the
 .Dv PATH_INFO
