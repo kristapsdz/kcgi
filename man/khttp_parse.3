@@ -402,10 +402,16 @@ is
 this component is
 .Pa baz .
 .It Vt "char *" Ns Va pname
-The script name (which may be an empty string in degenerate cases)
-passed to the server.
-This may not reflect a file-system entity if re-written by the web
-server.
+The script name received in the
+.Ev SCRIPT_NAME
+header variable.
+For example, for a request to a CGI program
+.Pa /var/www/cgi-bin/app.cgi
+mapped by the web server from
+.Qq https://bsd.lv/app.cgi/file ,
+this would be
+.Pa app.cgi .
+This may not reflect a file system entity and it may be an empty string.
 .It Vt uint16_t Va port
 The server's receiving TCP port.
 .It Vt "struct khttpauth" Va rawauth
