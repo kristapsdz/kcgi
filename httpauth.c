@@ -225,8 +225,7 @@ kauth_count(uint32_t *count, const char **cp)
 	/* 
 	 * Convert from the hex string into a number.
 	 * There are a maximum of 8 possible digits in this hex value,
-	 * so we'll have no more than that.
-	 * Since 
+	 * so we'll have no more than 0xffffffff.
 	 * Default to zero if there are errors.
 	 * Note: UINT32_MAX < long long int maximum.
 	 */
