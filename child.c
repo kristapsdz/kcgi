@@ -1403,7 +1403,7 @@ kworker_child_last(int fd)
  * We use the CGI specification in RFC 3875.
  */
 enum kcgi_err
-kworker_child(int sock,
+kworker_child(int wfd,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz,
 	unsigned int debugging)
@@ -1412,14 +1412,14 @@ kworker_child(int sock,
 	char		 *cp;
 	const char	 *start;
 	char		**evp;
-	int		  wfd, md5;
+	int		  md5;
 	enum kmethod	  meth;
 	size_t	 	  i;
 	extern char	**environ;
 	struct env	 *envs = NULL;
 	size_t		  envsz;
 
-	pp.fd = wfd = sock;
+	pp.fd = wfd;
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
@@ -1828,7 +1828,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
  * April 1996.
  */
 void
-kworker_fcgi_child(int work_dat, int work_ctl,
+kworker_fcgi_child(int wfd, int work_ctl,
 	const struct kvalid *keys, size_t keysz, 
 	const char *const *mimes, size_t mimesz,
 	unsigned int debugging)
@@ -1842,7 +1842,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 	uint16_t	 rid;
 	uint32_t	 cookie;
 	size_t		 i, bsz, ssz, envsz;
-	int		 wfd, rc, md5;
+	int		 rc, md5;
 	enum kmethod	 meth;
 
 	sbuf = NULL;
@@ -1854,7 +1854,7 @@ kworker_fcgi_child(int work_dat, int work_ctl,
 	if (NULL == (buf = XMALLOC(bsz)))
 		return;
 
-	pp.fd = wfd = work_dat;
+	pp.fd = wfd;
 	pp.keys = keys;
 	pp.keysz = keysz;
 	pp.mimes = mimes;
