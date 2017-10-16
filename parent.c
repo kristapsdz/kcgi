@@ -38,8 +38,8 @@
  * Otherwise, it returns 1 and the pair is zeroed and filled in.
  */
 static int
-input(enum input *type, struct kpair *kp, 
-	int fd, enum kcgi_err *ke, int eofok)
+input(enum input *type, struct kpair *kp, int fd, 
+	enum kcgi_err *ke, int eofok, size_t mimesz, size_t keysz)
 {
 	size_t		 sz;
 	int		 rc;
@@ -54,14 +54,16 @@ input(enum input *type, struct kpair *kp,
 		XWARNX("parent: unexpected eof from child");
 		*ke = KCGI_FORM;
 		return(-1);
-	} else if (rc < 0)
+	} else if (rc < 0) {
+		XWARNX("parent: failed read kpair input type");
 		return(-1);
+	}
 
 	if (*type == IN__MAX)
 		return(0);
 
 	if (*type > IN__MAX) {
-		XWARNX("parent: unknown input type");
+		XWARNX("parent: invalid kpair input type");
 		*ke = KCGI_FORM;
 		return(-1);
 	}
@@ -100,7 +102,10 @@ input(enum input *type, struct kpair *kp,
 	if (fullread(fd, &kp->keypos, sz, 0, ke) < 0) {
 		XWARNX("parent: failed read kpair pos");
 		return(-1);
-	} 
+	} else if (kp->keypos > keysz) {
+		XWARNX("parent: invalid kpair keypos");
+		return(-1);
+	}
 
 	if (KPAIR_VALID == kp->state)
 		switch (kp->type) {
@@ -158,6 +163,9 @@ input(enum input *type, struct kpair *kp,
 	if (fullread(fd, &kp->ctypepos, sz, 0, ke) < 0) {
 		XWARNX("parent: failed read kpair ctypepos");
 		return(-1);
+	} else if (kp->ctypepos > mimesz) {
+		XWARNX("parent: invalid kpair mimepos");
+		return(-1);
 	}
 
 	*ke = fullreadword(fd, &kp->xcode);
@@ -188,7 +196,7 @@ kpair_expand(struct kpair **kv, size_t *kvsz)
  * kpairs into named buckets.
  */
 enum kcgi_err
-kworker_parent(int fd, struct kreq *r, int eofok)
+kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 {
 	struct kpair	 kp;
 	struct kpair	*kpp;
@@ -283,7 +291,7 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 		}
 	}
 
-	while ((rc = input(&type, &kp, fd, &ke, eofok)) > 0) {
+	while ((rc = input(&type, &kp, fd, &ke, eofok, mimesz, r->keysz)) > 0) {
 		assert(type < IN__MAX);
 		/*
 		 * We have a parsed field from the child process.
@@ -316,10 +324,7 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 
 	for (i = 0; i < r->fieldsz; i++) {
 		kpp = &r->fields[i];
-		if (kpp->keypos > r->keysz) {
-			XWARNX("parent: field keypos exceeds size");
-			continue;
-		} else if (kpp->keypos == r->keysz)
+		if (kpp->keypos == r->keysz)
 			continue;
 
 		if (KPAIR_INVALID != kpp->state) {
@@ -332,10 +337,7 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 	}
 	for (i = 0; i < r->cookiesz; i++) {
 		kpp = &r->cookies[i];
-		if (kpp->keypos > r->keysz) {
-			XWARNX("parent: cookie keypos exceeds size");
-			continue;
-		} else if (kpp->keypos == r->keysz)
+		if (kpp->keypos == r->keysz)
 			continue;
 
 		if (KPAIR_INVALID != kpp->state) {
