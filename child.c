@@ -600,7 +600,6 @@ urldecode(char *p)
 			*p = '+' == *p ? ' ' : *p;
 	}
 
-	*p = '\0';
 	return(1);
 }
 
