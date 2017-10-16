@@ -568,6 +568,7 @@ parse_body(const char *ct, const struct parms *pp, char *b, size_t bsz)
  * In-place HTTP-decode a string.  The standard explanation is that this
  * turns "%4e+foo" into "n foo" in the regular way.  This is done
  * in-place over the allocated string.
+ * Returns zero on decoding failure, non-zero otherwise.
  */
 static int
 urldecode(char *p)
@@ -686,18 +687,22 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 			continue;
 		}
 
-		if ('\0' == *key) {
-			XWARNX("url key: zero length");
-			continue;
-		} else if ( ! urldecode(key)) {
-			XWARNX("url key: key decode");
-			break;
-		} else if ( ! urldecode(val)) {
-			XWARNX("url key: val decode");
-			break;
-		}
+		/*
+		 * Both the key and the value can be URL encoded, so
+		 * decode those into the character string now.
+		 * If decoding fails, don't decode the given pair, but
+		 * instead move on to the next one after logging the
+		 * failure.
+		 */
 
-		output(pp, key, val, strlen(val), NULL);
+		if ('\0' == *key)
+			XWARNX("url key: zero length");
+		else if ( ! urldecode(key))
+			XWARNX("url key: key decode");
+		else if ( ! urldecode(val))
+			XWARNX("url key: val decode");
+		else
+			output(pp, key, val, strlen(val), NULL);
 	}
 }
 
