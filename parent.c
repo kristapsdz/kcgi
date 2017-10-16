@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014--2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,8 +32,9 @@
 
 /*
  * Read a single kpair from the child.
- * This returns 0 if there are no more pairs to read and -1 if any
- * errors occur (the parent should also exit with server failure).
+ * This returns 0 if there are no more pairs to read (and eofok has been
+ * set) and -1 if any errors occur (the parent should also exit with
+ * server failure).
  * Otherwise, it returns 1 and the pair is zeroed and filled in.
  */
 static int
@@ -46,12 +47,11 @@ input(enum input *type, struct kpair *kp,
 
 	memset(kp, 0, sizeof(struct kpair));
 
-	/* This will return EOF for the last one. */
 	rc = fullread(fd, type, sizeof(enum input), 1, ke);
 	if (0 == rc) {
 		if (eofok) 
 			return(0);
-		XWARNX("unexpected eof from child");
+		XWARNX("parent: unexpected eof from child");
 		*ke = KCGI_FORM;
 		return(-1);
 	} else if (rc < 0)
@@ -61,53 +61,79 @@ input(enum input *type, struct kpair *kp,
 		return(0);
 
 	if (*type > IN__MAX) {
-		XWARNX("unknown input type %d", *type);
+		XWARNX("parent: unknown input type");
 		*ke = KCGI_FORM;
 		return(-1);
 	}
 
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
-		return(-1);
-	if (NULL == (kp->key = XCALLOC(sz + 1, 1))) {
-		*ke = KCGI_ENOMEM;
+	*ke = fullreadword(fd, &kp->key);
+	if (KCGI_OK != *ke) {
+		XWARNX("parent: failed read kpair key");
 		return(-1);
 	}
-	if (fullread(fd, kp->key, sz, 0, ke) < 0)
-		return(-1);
 
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &kp->valsz, sizeof(size_t), 0, ke) < 0)
-		return(-1);
-	if (NULL == (kp->val = XCALLOC(kp->valsz + 1, 1))) {
-		*ke = KCGI_ENOMEM;
+	*ke = fullreadwordsz(fd, &kp->val, &kp->valsz);
+	if (KCGI_OK != *ke) {
+		XWARNX("parent: failed read kpair val");
 		return(-1);
 	}
-	if (fullread(fd, kp->val, kp->valsz, 0, ke) < 0)
-		return(-1);
 
-	if (fullread(fd, &kp->state, sizeof(enum kpairstate), 0, ke) < 0)
+	sz = sizeof(enum kpairstate);
+	if (fullread(fd, &kp->state, sz, 0, ke) < 0) {
+		XWARNX("parent: failed read kpair state");
 		return(-1);
-	if (fullread(fd, &kp->type, sizeof(enum kpairtype), 0, ke) < 0)
+	} else if (kp->state > KPAIR_INVALID) {
+		XWARNX("parent: unknown kpair state");
 		return(-1);
-	if (fullread(fd, &kp->keypos, sizeof(size_t), 0, ke) < 0)
+	}
+
+	sz = sizeof(enum kpairtype);
+	if (fullread(fd, &kp->type, sz, 0, ke) < 0) {
+		XWARNX("parent: failed read kpair type");
 		return(-1);
+	} else if (kp->type > KPAIR__MAX) {
+		XWARNX("parent: unknown kpair type");
+		return(-1);
+	}
+
+	sz = sizeof(size_t);
+	if (fullread(fd, &kp->keypos, sz, 0, ke) < 0) {
+		XWARNX("parent: failed read kpair pos");
+		return(-1);
+	} 
 
 	if (KPAIR_VALID == kp->state)
 		switch (kp->type) {
 		case (KPAIR_DOUBLE):
-			if (fullread(fd, &kp->parsed.d, sizeof(double), 0, ke) < 0)
+			sz = sizeof(double);
+			rc = fullread(fd, &kp->parsed.d, sz, 0, ke);
+			if (rc < 0) {
+				XWARNX("parent: failed "
+					"read kpair double");
 				return(-1);
+			}
 			break;
 		case (KPAIR_INTEGER):
-			if (fullread(fd, &kp->parsed.i, sizeof(int64_t), 0, ke) < 0)
+			sz = sizeof(int64_t);
+			rc = fullread(fd, &kp->parsed.i, sz, 0, ke);
+			if (rc < 0) {
+				XWARNX("parent: failed "
+					"read kpair integer");
 				return(-1);
+			}
 			break;
 		case (KPAIR_STRING):
-			if (fullread(fd, &diff, sizeof(ptrdiff_t), 0, ke) < 0)
+			sz = sizeof(ptrdiff_t);
+			rc = fullread(fd, &diff, sz, 0, ke);
+			if (rc < 0) {
+				XWARNX("parent: failed "
+					"read kpair ptrdiff");
 				return(-1);
+			}
 			if (diff > (ssize_t)kp->valsz) {
 				*ke = KCGI_FORM;
+				XWARNX("parent: kpair offset"
+					"exceeds value size");
 				return(-1);
 			}
 			kp->parsed.s = kp->val + diff;
@@ -116,37 +142,29 @@ input(enum input *type, struct kpair *kp,
 			break;
 		}
 
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
-		return(-1);
-	if (NULL == (kp->file = XCALLOC(sz + 1, 1))) {
-		*ke = KCGI_ENOMEM;
+	*ke = fullreadword(fd, &kp->file);
+	if (KCGI_OK != *ke) {
+		XWARNX("parent: failed read kpair file");
 		return(-1);
 	}
-	if (fullread(fd, kp->file, sz, 0, ke) < 0)
-		return(-1);
 
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
-		return(-1);
-	if (NULL == (kp->ctype = XCALLOC(sz + 1, 1))) {
-		*ke = KCGI_ENOMEM;
+	*ke = fullreadword(fd, &kp->ctype);
+	if (KCGI_OK != *ke) {
+		XWARNX("parent: failed read kpair ctype");
 		return(-1);
 	}
-	if (fullread(fd, kp->ctype, sz, 0, ke) < 0)
-		return(-1);
-	if (fullread(fd, &kp->ctypepos, sizeof(size_t), 0, ke) < 0)
-		return(-1);
 
-	/* TODO: check additive overflow. */
-	if (fullread(fd, &sz, sizeof(size_t), 0, ke) < 0)
-		return(-1);
-	if (NULL == (kp->xcode = XCALLOC(sz + 1, 1)))  {
-		*ke = KCGI_ENOMEM;
+	sz = sizeof(size_t);
+	if (fullread(fd, &kp->ctypepos, sz, 0, ke) < 0) {
+		XWARNX("parent: failed read kpair ctypepos");
 		return(-1);
 	}
-	if (fullread(fd, kp->xcode, sz, 0, ke) < 0) 
+
+	*ke = fullreadword(fd, &kp->xcode);
+	if (KCGI_OK != *ke) {
+		XWARNX("parent: failed read kpair xcode");
 		return(-1);
+	}
 
 	return(1);
 }
@@ -293,11 +311,17 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 	 * Now that the field and cookie arrays are fixed and not going
 	 * to be reallocated any more, we run through both arrays and
 	 * assign the named fields into buckets.
+	 * Disallow excessive keyposes.
 	 */
+
 	for (i = 0; i < r->fieldsz; i++) {
 		kpp = &r->fields[i];
-		if (kpp->keypos == r->keysz)
+		if (kpp->keypos > r->keysz) {
+			XWARNX("parent: field keypos exceeds size");
 			continue;
+		} else if (kpp->keypos == r->keysz)
+			continue;
+
 		if (KPAIR_INVALID != kpp->state) {
 			kpp->next = r->fieldmap[kpp->keypos];
 			r->fieldmap[kpp->keypos] = kpp;
@@ -308,8 +332,12 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 	}
 	for (i = 0; i < r->cookiesz; i++) {
 		kpp = &r->cookies[i];
-		if (kpp->keypos == r->keysz)
+		if (kpp->keypos > r->keysz) {
+			XWARNX("parent: cookie keypos exceeds size");
 			continue;
+		} else if (kpp->keypos == r->keysz)
+			continue;
+
 		if (KPAIR_INVALID != kpp->state) {
 			kpp->next = r->cookiemap[kpp->keypos];
 			r->cookiemap[kpp->keypos] = kpp;
@@ -320,6 +348,7 @@ kworker_parent(int fd, struct kreq *r, int eofok)
 	}
 
 	ke = KCGI_OK;
+
 	/*
 	 * Usually, "kp" would be zeroed after its memory is copied into
 	 * one of the form-input arrays.
