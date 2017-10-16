@@ -481,6 +481,8 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
  * Return KCGI_OK on success or another error, otherwise.
  * This will initially set cp to NULL and sz to zero, and only allocate
  * on success (on failure, cp will be NULL, sz be zero).
+ * The cp array is always nil-terminated, although the buffer it reads
+ * is opaque.
  */
 enum kcgi_err
 fullreadwordsz(int fd, char **cp, size_t *sz)
