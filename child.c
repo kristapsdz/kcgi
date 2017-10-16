@@ -586,10 +586,10 @@ urldecode(char *p)
 				XWARNX("urldecode: short hex");
 				return(0);
 			} else if (1 != sscanf(hex, "%x", &c)) {
-				XWARN("urldecode: bad hex");
+				XWARNX("urldecode: bad hex");
 				return(0);
 			} else if ('\0' == c) {
-				XWARN("urldecode: nil byte");
+				XWARNX("urldecode: nil byte");
 				return(0);
 			}
 
