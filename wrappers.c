@@ -480,7 +480,7 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
  * by the word itself, not including the nil terminator.
  * Return KCGI_OK on success or another error, otherwise.
  * This will initially set cp to NULL and sz to zero, and only allocate
- * on success.
+ * on success (on failure, cp will be NULL, sz be zero).
  */
 enum kcgi_err
 fullreadwordsz(int fd, char **cp, size_t *sz)
@@ -495,8 +495,10 @@ fullreadwordsz(int fd, char **cp, size_t *sz)
 
 	/* TODO: check additive overflow of "sz + 1". */
 
-	if (NULL == (*cp = XMALLOC(*sz + 1)))
+	if (NULL == (*cp = XMALLOC(*sz + 1))) {
+		*sz = 0;
 		return(KCGI_ENOMEM);
+	}
 
 	(*cp)[*sz] = '\0';
 	if (0 == *sz)
