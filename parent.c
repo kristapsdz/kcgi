@@ -291,41 +291,48 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		}
 	}
 
-	while ((rc = input(&type, &kp, fd, &ke, eofok, mimesz, r->keysz)) > 0) {
-		assert(type < IN__MAX);
+	for (;;) {
+		rc = input(&type, &kp, fd, &ke, 
+			eofok, mimesz, r->keysz);
+		if (rc < 0)
+			goto out;
+		else if (0 == rc)
+			break;
+
 		/*
 		 * We have a parsed field from the child process.
 		 * Begin by expanding the number of parsed fields
 		 * depending on whether we have a cookie or form input.
 		 * Then copy the new data.
 		 */
+
+		assert(type < IN__MAX);
 		kpp = IN_COOKIE == type ?
 			kpair_expand(&r->cookies, &r->cookiesz) :
 			kpair_expand(&r->fields, &r->fieldsz);
 
 		if (NULL == kpp) {
-			rc = -1;
 			ke = KCGI_ENOMEM;
-			break;
+			goto out;
 		}
 
 		*kpp = kp;
 	}
 
-	if (rc < 0)
-		goto out;
+	assert(0 == rc);
 
 	/*
 	 * Now that the field and cookie arrays are fixed and not going
 	 * to be reallocated any more, we run through both arrays and
 	 * assign the named fields into buckets.
-	 * Disallow excessive keyposes.
+	 * The assignment enqueues into the field.
 	 */
 
 	for (i = 0; i < r->fieldsz; i++) {
 		kpp = &r->fields[i];
 		if (kpp->keypos == r->keysz)
 			continue;
+		assert(kpp->keypos < r->keysz);
 
 		if (KPAIR_INVALID != kpp->state) {
 			kpp->next = r->fieldmap[kpp->keypos];
@@ -335,10 +342,12 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 			r->fieldnmap[kpp->keypos] = kpp;
 		}
 	}
+
 	for (i = 0; i < r->cookiesz; i++) {
 		kpp = &r->cookies[i];
 		if (kpp->keypos == r->keysz)
 			continue;
+		assert(kpp->keypos < r->keysz);
 
 		if (KPAIR_INVALID != kpp->state) {
 			kpp->next = r->cookiemap[kpp->keypos];
@@ -349,15 +358,9 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		}
 	}
 
-	ke = KCGI_OK;
-
-	/*
-	 * Usually, "kp" would be zeroed after its memory is copied into
-	 * one of the form-input arrays.
-	 * However, in the case of error, these may still have
-	 * allocations, so free them now.
-	 */
+	return(KCGI_OK);
 out:
+	assert(KCGI_OK != ke);
 	free(kp.key);
 	free(kp.val);
 	free(kp.file);
