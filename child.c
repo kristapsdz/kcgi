@@ -594,10 +594,10 @@ urldecode(char *p)
 				return(0);
 			}
 
-			*p = (char)c;
+			*p = c;
 			memmove(p + 1, p + 3, strlen(p + 3) + 1);
-		} else
-			*p = '+' == *p ? ' ' : *p;
+		} else if ('+' == *p)
+			*p = ' ';
 	}
 
 	return(1);
