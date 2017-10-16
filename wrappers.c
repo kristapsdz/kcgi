@@ -478,23 +478,28 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 /*
  * Read a word from the stream, which consists of the word size followed
  * by the word itself, not including the nil terminator.
+ * Return KCGI_OK on success or another error, otherwise.
+ * This will initially set cp to NULL and sz to zero, and only allocate
+ * on success.
  */
 enum kcgi_err
-fullreadword(int fd, char **cp)
+fullreadwordsz(int fd, char **cp, size_t *sz)
 {
-	size_t	 	 sz;
-	enum kcgi_err	 ke;
+	enum kcgi_err	 ke = KCGI_SYSTEM;
 
-	ke = KCGI_SYSTEM;
+	*cp = NULL;
+	*sz = 0;
 
-	if (fullread(fd, &sz, sizeof(size_t), 0, &ke) < 0)
+	if (fullread(fd, sz, sizeof(size_t), 0, &ke) < 0)
 		return(ke);
 
-	if (NULL == (*cp = XMALLOC(sz + 1)))
+	/* TODO: check additive overflow of "sz + 1". */
+
+	if (NULL == (*cp = XMALLOC(*sz + 1)))
 		return(KCGI_ENOMEM);
 
-	(*cp)[sz] = '\0';
-	if (0 == sz)
+	(*cp)[*sz] = '\0';
+	if (0 == *sz)
 		return(KCGI_OK);
 
 	/* 
@@ -502,9 +507,27 @@ fullreadword(int fd, char **cp)
 	 * This will set "ke" regardless of the return value, and we
 	 * want to pass that back to the caller.
 	 */
+
 	/* coverity[check_return] */
-	(void)fullread(fd, *cp, sz, 0, &ke);
+	(void)fullread(fd, *cp, *sz, 0, &ke);
+
+	if (KCGI_OK != ke) {
+		free(*cp);
+		*cp = NULL;
+		*sz = 0;
+	}
 	return(ke);
+}
+
+/*
+ * See fullreadwordsz() with a discarded size.
+ */
+enum kcgi_err
+fullreadword(int fd, char **cp)
+{
+	size_t sz;
+
+	return(fullreadwordsz(fd, cp, &sz));
 }
 
 int
