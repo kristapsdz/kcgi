@@ -731,7 +731,7 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
-	kerr = kworker_parent(work_dat[KWORKER_PARENT], req, 1);
+	kerr = kworker_parent(work_dat[KWORKER_PARENT], req, 1, mimesz);
 	if (KCGI_OK != kerr)
 		goto err;
 

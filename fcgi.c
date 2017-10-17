@@ -720,7 +720,7 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	 * We'll wait perpetually on data until the channel closes or
 	 * until we're interrupted during a read by the parent.
 	 */
-	kerr = kworker_parent(fcgi->work_dat, req, 0);
+	kerr = kworker_parent(fcgi->work_dat, req, 0, fcgi->mimesz);
 	if (sig) {
 		kerr = KCGI_OK;
 		goto err;
