@@ -22,10 +22,7 @@ endif
 
 # You probably don't need to change anything else...
 
-CFLAGS 		+= -g -W -Wall -Wextra -Wstrict-prototypes 
-CFLAGS		+= -Wno-unused-parameter -Wwrite-strings -DHAVE_CONFIG_H
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
-PREFIX 		?= /usr/local
 WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 DATADIR 	 = $(PREFIX)/share/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
@@ -37,11 +34,8 @@ TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $
 SBLGS		 = archive.html \
 		   index.html \
 		   sample.c.html
-MAN3DIR	 	 = $(PREFIX)/man/man3
-MAN8DIR	 	 = $(PREFIX)/man/man8
-SBINDIR		 = $(PREFIX)/sbin
-LIBDIR 		 = $(PREFIX)/lib
-INCLUDEDIR 	 = $(PREFIX)/include
+MAN3DIR	 	 = $(MANDIR)/man3
+MAN8DIR	 	 = $(MANDIR)/man8
 VERSION 	 = 0.9.8
 LIBOBJS 	 = auth.o \
 		   child.o \
