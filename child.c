@@ -202,17 +202,17 @@ str2ctype(const struct parms *pp, const char *ctype)
 }
 
 /*
- * Given a parsed field, first try to look it up and conditionally
- * validate any looked-up fields.
- * Then output the type, parse status (key, type, etc.), and values to
- * the output stream.
- * This is read by the parent's input() function.
+ * Given a parsed field "key" with value "val" of size "valsz" and MIME
+ * information "mime", first try to look it up in the array of
+ * recognised keys ("pp->keys") and optionally validate.
+ * Then output the type, parse status (key, type, etc.), and values read
+ * by the parent input() function.
  */
 static void
 output(const struct parms *pp, char *key, 
 	char *val, size_t valsz, struct mime *mime)
 {
-	size_t	 	 i, sz;
+	size_t	 	 i;
 	ptrdiff_t	 diff;
 	char		*save;
 	struct kpair	 pair;
@@ -234,6 +234,7 @@ output(const struct parms *pp, char *key,
 	 * Either way, the keypos parameter is going to be the key
 	 * identifier or keysz if none is found.
 	 */
+
 	for (i = 0; i < pp->keysz; i++) {
 		if (strcmp(pp->keys[i].name, pair.key)) 
 			continue;
@@ -245,14 +246,9 @@ output(const struct parms *pp, char *key,
 	pair.keypos = i;
 
 	fullwrite(pp->fd, &pp->type, sizeof(enum input));
-
-	sz = strlen(key);
-	fullwrite(pp->fd, &sz, sizeof(size_t));
-	fullwrite(pp->fd, pair.key, sz);
-
+	fullwriteword(pp->fd, pair.key);
 	fullwrite(pp->fd, &pair.valsz, sizeof(size_t));
 	fullwrite(pp->fd, pair.val, pair.valsz);
-
 	fullwrite(pp->fd, &pair.state, sizeof(enum kpairstate));
 	fullwrite(pp->fd, &pair.type, sizeof(enum kpairtype));
 	fullwrite(pp->fd, &pair.keypos, sizeof(size_t));
@@ -260,10 +256,12 @@ output(const struct parms *pp, char *key,
 	if (KPAIR_VALID == pair.state) 
 		switch (pair.type) {
 		case (KPAIR_DOUBLE):
-			fullwrite(pp->fd, &pair.parsed.d, sizeof(double));
+			fullwrite(pp->fd, 
+				&pair.parsed.d, sizeof(double));
 			break;
 		case (KPAIR_INTEGER):
-			fullwrite(pp->fd, &pair.parsed.i, sizeof(int64_t));
+			fullwrite(pp->fd, 
+				&pair.parsed.i, sizeof(int64_t));
 			break;
 		case (KPAIR_STRING):
 			assert(pair.parsed.s >= pair.val);
@@ -275,24 +273,16 @@ output(const struct parms *pp, char *key,
 			break;
 		}
 
-	sz = NULL != pair.file ? strlen(pair.file) : 0;
-	fullwrite(pp->fd, &sz, sizeof(size_t));
-	fullwrite(pp->fd, pair.file, sz);
-
-	sz = NULL != pair.ctype ? strlen(pair.ctype) : 0;
-	fullwrite(pp->fd, &sz, sizeof(size_t));
-	fullwrite(pp->fd, pair.ctype, sz);
+	fullwriteword(pp->fd, pair.file);
+	fullwriteword(pp->fd, pair.ctype);
 	fullwrite(pp->fd, &pair.ctypepos, sizeof(size_t));
-
-	sz = NULL != pair.xcode ? strlen(pair.xcode) : 0;
-	fullwrite(pp->fd, &sz, sizeof(size_t));
-	fullwrite(pp->fd, pair.xcode, sz);
+	fullwriteword(pp->fd, pair.xcode);
 
 	/*
 	 * We can write a new "val" in the validator allocated on the
-	 * heap.
-	 * If we do, free it here.
+	 * heap: if we do, free it here.
 	 */
+
 	if (save != pair.val)
 		free(pair.val);
 }
