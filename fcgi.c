@@ -174,10 +174,10 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		}
 
 		/* This doesn't need to be crypto quality. */
-#ifndef HAVE_ARC4RANDOM
-		cookie = random();
-#else
+#if HAVE_ARC4RANDOM
 		cookie = arc4random();
+#else
+		cookie = random();
 #endif
 
 		/* Write a header cookie to the work. */
@@ -265,10 +265,10 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		}
 
 		/* Doesn't need to be crypto quality. */
-#ifndef HAVE_ARC4RANDOM
-		cookie = random();
-#else
+#if HAVE_ARC4RANDOM
 		cookie = arc4random();
+#else
+		cookie = random();
 #endif
 		/*
 		 * Pass the file descriptor, which has had its data
