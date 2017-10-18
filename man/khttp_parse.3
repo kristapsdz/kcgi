@@ -623,6 +623,8 @@ The NUL-terminated key (input) name.
 If the HTTP message body is opaque (e.g.,
 .Dv KMETHOD_PUT ) ,
 then an empty-string key is cooked up.
+The key may contain an arbitrary sequence of non-NUL bytes, even
+non-ASCII bytes, control characters, and shell metacharacters.
 .It Vt "size_t" Va keypos
 If found in the
 .Fa keys
@@ -665,13 +667,17 @@ If parsed, the type of data in
 otherwise
 .Dv KFIELD__MAX .
 .It Vt "char *" Ns Va val
-The (input) value, which is always NUL-terminated, but if the data is
-binary, NUL bytes may also occur before the true data length of
-.Fa valsz .
+The (input) value, which may contain an arbitrary sequence of bytes,
+even NUL bytes, non-ASCII bytes, control characters, and shell
+metacharacters.
+The byte following the end of the array,
+.Va val Ns Va [ valsz ] ,
+is always guaranteed to be NUL.
 .It Vt "size_t" Va valsz
-The true length of
-.Fa val
-in bytes.
+The length of the
+.Va val
+buffer in bytes.
+It is not a string length.
 .It Vt "char *" Ns Va xcode
 The value's MIME content transfer encoding (e.g.,
 .Li base64 ) ,
