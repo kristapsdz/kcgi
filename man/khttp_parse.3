@@ -624,11 +624,11 @@ If the HTTP message body is opaque (e.g.,
 .Dv KMETHOD_PUT ) ,
 then an empty-string key is cooked up.
 .It Vt "size_t" Va keypos
-If looked up in the
+If found in the
 .Fa keys
-variable passed to
+array passed to
 .Nm khttp_parse ,
-the index of the looked-up key.
+the index of the matching key.
 Otherwise
 .Fa keysz .
 .It Vt "struct kpair *" Ns Va next
@@ -651,8 +651,14 @@ for a double-precision floating-point number.
 This is intentionally basic because the resulting data must be reliably
 passed from the parsing context back into the web application.
 .It Vt "enum kpairstate" Va state
-The validation state: whether validated by a parse, invalidated by a
-parse, or non-validated (unparsed).
+The validation state:
+.Dv KPAIR_VALID
+if the pair was successfully validated by a validation function,
+.Dv KPAIR_INVALID
+if a validation function was invoked but failed, or
+.Dv KPAIR_UNCHECKED
+if no validation function is defined for this
+.Va key .
 .It Vt "enum kpairtype" Va type
 If parsed, the type of data in
 .Fa parsed ,
@@ -660,11 +666,12 @@ otherwise
 .Dv KFIELD__MAX .
 .It Vt "char *" Ns Va val
 The (input) value, which is always NUL-terminated, but if the data is
-binary, NUL terminators may occur before the true data length of
+binary, NUL bytes may also occur before the true data length of
 .Fa valsz .
 .It Vt "size_t" Va valsz
 The true length of
-.Fa val .
+.Fa val
+in bytes.
 .It Vt "char *" Ns Va xcode
 The value's MIME content transfer encoding (e.g.,
 .Li base64 ) ,
