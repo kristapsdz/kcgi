@@ -30,6 +30,9 @@
 #include "kcgi.h"
 #include "extern.h"
 
+#define MD5Updatec(_ctx, _b, _sz) \
+	MD5Update((_ctx), (const u_int8_t *)(_b), (_sz))
+
 static const char b64[] = 
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
@@ -141,11 +144,11 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 	 */
 	if (KHTTPALG_MD5_SESS == auth->alg) {
 		MD5Init(&ctx);
-		MD5Update(&ctx, skey4, strlen(skey4));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->nonce, strlen(auth->nonce));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->cnonce, strlen(auth->cnonce));
+		MD5Updatec(&ctx, skey4, strlen(skey4));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->cnonce, strlen(auth->cnonce));
 		MD5Final(ha1, &ctx);
 		for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
 			snprintf(&skey1[i * 2], 3, "%02x", ha1[i]);
@@ -159,10 +162,10 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 		memcpy(ha2, req->rawauth.digest, sizeof(ha2));
 	} else {
 		MD5Init(&ctx);
-		MD5Update(&ctx, kmethods[req->method], 
+		MD5Updatec(&ctx, kmethods[req->method], 
 			strlen(kmethods[req->method]));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->uri, strlen(auth->uri));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->uri, strlen(auth->uri));
 		MD5Final(ha2, &ctx);
 	}
 
@@ -173,28 +176,28 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 	    KHTTPQOP_AUTH == auth->qop) {
 		snprintf(count, sizeof(count), "%08" PRIx32, auth->count);
 		MD5Init(&ctx);
-		MD5Update(&ctx, skey1, MD5_DIGEST_LENGTH * 2);
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->nonce, strlen(auth->nonce));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, count, strlen(count));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->cnonce, strlen(auth->cnonce));
-		MD5Update(&ctx, ":", 1);
+		MD5Updatec(&ctx, skey1, MD5_DIGEST_LENGTH * 2);
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, count, strlen(count));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->cnonce, strlen(auth->cnonce));
+		MD5Updatec(&ctx, ":", 1);
 		if (KHTTPQOP_AUTH_INT == auth->qop)
-			MD5Update(&ctx, "auth-int", 8);
+			MD5Updatec(&ctx, "auth-int", 8);
 		else
-			MD5Update(&ctx, "auth", 4);
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, skey2, MD5_DIGEST_LENGTH * 2);
+			MD5Updatec(&ctx, "auth", 4);
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, skey2, MD5_DIGEST_LENGTH * 2);
 		MD5Final(ha3, &ctx);
 	} else {
 		MD5Init(&ctx);
-		MD5Update(&ctx, skey1, MD5_DIGEST_LENGTH * 2);
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, auth->nonce, strlen(auth->nonce));
-		MD5Update(&ctx, ":", 1);
-		MD5Update(&ctx, skey2, MD5_DIGEST_LENGTH * 2);
+		MD5Updatec(&ctx, skey1, MD5_DIGEST_LENGTH * 2);
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		MD5Updatec(&ctx, ":", 1);
+		MD5Updatec(&ctx, skey2, MD5_DIGEST_LENGTH * 2);
 		MD5Final(ha3, &ctx);
 	}
 
@@ -227,11 +230,11 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 	auth = &req->rawauth.d.digest;
 
 	MD5Init(&ctx);
-	MD5Update(&ctx, auth->user, strlen(auth->user));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, auth->realm, strlen(auth->realm));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, pass, strlen(pass));
+	MD5Updatec(&ctx, auth->user, strlen(auth->user));
+	MD5Updatec(&ctx, ":", 1);
+	MD5Updatec(&ctx, auth->realm, strlen(auth->realm));
+	MD5Updatec(&ctx, ":", 1);
+	MD5Updatec(&ctx, pass, strlen(pass));
 	MD5Final(ha4, &ctx);
 
 	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
