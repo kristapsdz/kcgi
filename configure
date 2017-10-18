@@ -71,6 +71,7 @@ SBINDIR=
 INCLUDEDIR=
 LIBDIR=
 MANDIR=
+SHAREDIR=
 INSTALL="install"
 INSTALL_PROGRAM=
 INSTALL_LIB=
@@ -103,6 +104,8 @@ do
 		LIBDIR="$val" ;;
 	BINDIR)
 		BINDIR="$val" ;;
+	SHAREDIR)
+		SHAREDIR="$val" ;;
 	SBINDIR)
 		SBINDIR="$val" ;;
 	INCLUDEDIR)
@@ -433,6 +436,7 @@ exec > Makefile.configure
 [ -z "${INCLUDEDIR}" ] && INCLUDEDIR="${PREFIX}/include"
 [ -z "${LIBDIR}"     ] && LIBDIR="${PREFIX}/lib"
 [ -z "${MANDIR}"     ] && MANDIR="${PREFIX}/man"
+[ -z "${SHAREDIR}"   ] && SHAREDIR="${PREFIX}/share"
 
 [ -z "${INSTALL_PROGRAM}" ] && INSTALL_PROGRAM="${INSTALL} -m 0555"
 [ -z "${INSTALL_LIB}"     ] && INSTALL_LIB="${INSTALL} -m 0444"
@@ -448,6 +452,7 @@ LDFLAGS		= ${LDFLAGS}
 STATIC		= ${STATIC}
 PREFIX		= ${PREFIX}
 BINDIR		= ${BINDIR}
+SHAREDIR	= ${SHAREDIR}
 SBINDIR		= ${SBINDIR}
 INCLUDEDIR	= ${INCLUDEDIR}
 LIBDIR		= ${LIBDIR}

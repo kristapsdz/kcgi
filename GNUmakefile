@@ -24,7 +24,7 @@ endif
 
 #CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
-DATADIR 	 = $(PREFIX)/share/kcgi
+DATADIR 	 = $(SHAREDIR)/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml \
