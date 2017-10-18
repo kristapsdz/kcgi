@@ -2,10 +2,11 @@ html, body			{ margin: 0;
 				  padding: 0; }
 body				{ color: #333; 
 				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
-				  font-weight: 300;
+				  font-weight: 400;
 				  font-size: 13pt;
 				  line-height: 17pt; }
 a				{ text-decoration: none; }
+strong, b			{ font-weight: 700; }
 code, pre			{ font-size: 11pt; }
 body > header			{ box-shadow: 0 1px 4px #888; 
 				  background-color: #333; 
@@ -25,7 +26,7 @@ body > header nav .version	{ border-right: thin solid silver;
 h1				{ font-size: 24pt; 
 				  margin: 0;
 				  margin-bottom: 8pt;
-				  font-weight: normal; }
+				  font-weight: 400; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
 				  font-style: inherit; }
@@ -40,7 +41,7 @@ footer span			{ border-left: thin solid #ccc;
 footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
-.flag				{ font-weight: 400; }
+.flag				{ font-weight: 500; }
 #functions, #archive		{ width: 60%;
 				  margin-left: auto;
 				  margin-right: auto; }
@@ -53,7 +54,7 @@ footer				{ padding: 1ex;
 #archive .title			{ display: flex;
 				  border-bottom: thin solid #eee;
 				  margin-bottom: 0.25em; }
-#archive .title > :first-child	{ font-weight: 400; }
+#archive .title > :first-child	{ font-weight: 500; }
 #archive .title > :last-child	{ flex: 1; 
 				  font-size: 11pt;
 				  text-align: right; }

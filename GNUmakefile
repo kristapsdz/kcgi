@@ -1,6 +1,8 @@
 .SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html
 .PHONY: regress
 
+include Makefile.configure
+
 # Comment if you don't need statically linked.
 # This is only for the sample program!
 STATIC 		 = -static
@@ -41,11 +43,6 @@ SBINDIR		 = $(PREFIX)/sbin
 LIBDIR 		 = $(PREFIX)/lib
 INCLUDEDIR 	 = $(PREFIX)/include
 VERSION 	 = 0.9.8
-LIBCONFIGOBJS	 = compat-memmem.o \
-		   compat-reallocarray.o \
-		   compat-strlcat.o \
-		   compat-strlcpy.o \
-		   compat-strtonum.o
 LIBOBJS 	 = auth.o \
 		   child.o \
 		   datetime.o \
@@ -53,7 +50,6 @@ LIBOBJS 	 = auth.o \
 		   httpauth.o \
 		   kcgi.o \
 		   logging.o \
-		   md5.o \
 		   output.o \
 		   parent.o \
 		   sandbox.o \
@@ -65,20 +61,6 @@ LIBOBJS 	 = auth.o \
 		   wrappers.o
 HTMLS	 	 = $(addsuffix .html, $(MANS)) \
 		   functions.html
-TESTOBJS	 = $(addsuffix .o, $(TESTS))
-TESTSRCS	 = $(addsuffix .c, $(TESTS))
-TESTS 		 = test-arc4random \
-		   test-memmem \
-      		   test-reallocarray \
-      		   test-sandbox_init \
-      		   test-capsicum \
-      		   test-pledge \
-      		   test-strlcat \
-      		   test-strlcpy \
-      		   test-strtonum \
-      		   test-seccomp-filter \
-      		   test-systrace \
-      		   test-zlib
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
@@ -106,18 +88,12 @@ MANS		 = $(MAN3S) \
 		   $(MAN8S)
 SRCS 		 = auth.c \
 		   child.c \
-		   compat-memmem.c \
-     		   compat-reallocarray.c \
-     		   compat-strlcat.c \
-     		   compat-strlcpy.c \
-     		   compat-strtonum.c \
+		   compats.c \
      		   extern.h \
 		   datetime.c \
 		   fcgi.c \
 		   httpauth.c \
 		   logging.c \
-		   md5.c \
-		   md5.h \
      		   kcgi.c \
      		   kcgihtml.c \
 		   kcgijson.c \
@@ -140,9 +116,9 @@ SRCS 		 = auth.c \
      		   sandbox-pledge.c \
      		   sandbox-seccomp-filter.c \
      		   sandbox-systrace.c \
+		   tests.c \
      		   wrappers.c \
-     		   $(MANS) \
-     		   $(TESTSRCS)
+     		   $(MANS)
 AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
 		   afl/afl-template \
@@ -216,8 +192,8 @@ regresslog: $(REGRESS)
 		./$$f >/dev/null || exit 1 ; \
 	done
 
-libconfig.a: config.h $(LIBCONFIGOBJS)
-	$(AR) rs $@ $(LIBCONFIGOBJS)
+libconfig.a: config.h compats.o
+	$(AR) rs $@ compats.o
 
 kfcgi: kfcgi.o libconfig.a
 	$(CC) $(CFLAGS) -o $@ kfcgi.o libconfig.a
@@ -235,8 +211,8 @@ afl/%: afl/%.c libkcgi.a
 
 .PRECIOUS: $(REGRESS_OBJS)
 
-libkcgi.a: $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
-	$(AR) rs $@ $(LIBOBJS) $(LIBCONFIGOBJS) $(LIBSANDBOXOBJS)
+libkcgi.a: $(LIBOBJS) compats.o $(LIBSANDBOXOBJS)
+	$(AR) rs $@ $(LIBOBJS) compats.o $(LIBSANDBOXOBJS)
 
 kcgihtml.o: kcgihtml.h
 
@@ -262,13 +238,7 @@ $(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 
-auth.o child.o md5.o parent.o: md5.h
-
-$(LIBCONFIGOBJS): config.h
-
-config.h: config.h.pre config.h.post configure $(TESTSRCS)
-	rm -f config.log
-	CC="$(CC)" CFLAGS="$(CFLAGS)" ./configure
+compats.o: config.h
 
 installcgi: sample  sample-fcgi sample-cgi
 	install -m 0755 sample $(PREFIX)/sample.cgi
@@ -354,7 +324,7 @@ kcgi.tgz:
 	cp $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
 	cp GNUmakefile template.xml .dist/kcgi-$(VERSION)
 	cp $(MANS) .dist/kcgi-$(VERSION)/man
-	cp configure config.h.pre config.h.post .dist/kcgi-$(VERSION)
+	cp configure .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
@@ -371,10 +341,11 @@ clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html
 	rm -f libconfig.a
-	rm -f $(LIBOBJS) $(LIBCONFIGOBJS) 
+	rm -f $(LIBOBJS) compats.o
 	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o
-	rm -f config.log config.h
-	rm -f $(TESTS) $(TESTOBJS)
 	rm -f test-abort-valid.core core
 	rm -f $(REGRESS) $(AFL) $(REGRESS_OBJS)
 	rm -rf *.dSYM regress/*.dSYM afl/*.dSYM
+
+distclean: clean
+	rm -f config.h config.log Makefile.configure

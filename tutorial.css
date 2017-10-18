@@ -2,12 +2,13 @@ html, body			{ margin: 0;
 				  padding: 0; }
 body				{ color: #333; 
 				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
-				  font-weight: 300;
+				  font-weight: 400;
 				  font-size: 13pt;
 				  line-height: 17pt; }
 code, pre			{ font-size: 11pt; }
 a				{ text-decoration: none; 
 				  color: blue; }
+strong, b			{ font-weight: 700; }
 body > header			{ box-shadow: 0 1px 4px #888; 
 				  background-color: #333;
 				  padding: 2em 20% 1ex 20%;
@@ -26,7 +27,7 @@ body > header nav .version	{ border-right: thin solid silver;
 h1				{ font-size: 24pt; 
 				  margin: 0;
 				  margin-bottom: 8pt;
-				  font-weight: normal; }
+				  font-weight: 400; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
 				  font-style: inherit; }
@@ -39,7 +40,7 @@ footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
 			  	  padding-left: 1ex; }
 article h2			{ font-size: x-large; 
-				  font-weight: 400; 
+				  font-weight: 500; 
 				  color: #333; }
 article h3			{ font-size: large; 
 				  color: #333; }
@@ -57,13 +58,13 @@ article[data-sblg-article] img	{ width: 100%;
 figure				{ margin: 0; 
 				  text-align: center; 
 				  color: #444; }
-figcaption span			{ font-weight: 400; }
+figcaption span			{ font-weight: 500; }
 dd				{ margin: 0 0 1em 0; }
 #permlink 			{ color: #888; 
 				  margin-top: 1em; }
 .sample				{ text-align: left; }
 body > header nav		{ overflow: hidden; }
-body > header nav .title	{ font-weight: 400; 
+body > header nav .title	{ font-weight: 500; 
 				  margin-bottom: 0.5em; }
 body > header nav li + li	{ margin-top: 1.5em; }
 pre.prettyprint			{ border: none; 
