@@ -189,7 +189,8 @@ SVGS		 = figure1.svg \
 		   extending01-d.svg
 CSSS	         = archive.css \
 	           index.css \
-	           mandoc.css
+	           mandoc.css \
+		   tutorial.css
 LIBS		 = libkcgi.a \
 		   libkcgihtml.a \
 		   libkcgijson.a \
