@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
 .\" Copyright (c) 2014--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 10 2017 $
+.Dd $Mdocdate: October 18 2017 $
 .Dt KHTTP_PARSE 3
 .Os
 .Sh NAME
@@ -532,51 +533,49 @@ This is useful for
 .Dv KMETHOD_PUT
 style requests.
 .It Vt "int (*)(struct kpair *)" Va valid
-Validating function.
-This function accepts a single
-.Ft "struct kpair *"
-argument and returns an
-.Ft int
-where zero is failure and non-zero is parse success.
-If the function is
+A validation function returning non-zero if parsing and validation
+succeed or 0 otherwise.
+If it is
 .Dv NULL ,
-then no validation is performed and the data is considered as valid and
-is bucketed into
+then no validation is performed, the data is considered as valid,
+and it is bucketed into
 .Va cookiemap
 or
 .Va fieldmap
 as such.
-If you provide your own
+.Pp
+User-defined
 .Fa valid
-function, it usually sets the
+functions usually set the
 .Va type
 and
 .Va parsed
-variables in the key-value pair.
-However, if you're working with binary or alternatively-typed data, you
-can set the
+fields in the key-value pair.
+When working with binary data or with a key that can take different
+data types, it is acceptable for a validation function to set the
 .Va type
 to
-.Dv KPAIR__MAX ,
-ignore the
-.Va parsed field, and work directly with
+.Dv KPAIR__MAX
+and for the application to ignore the
+.Va parsed
+field and to work directly with
 .Va val
 and
 .Va valsz .
-You can also allocate new memory for the
+.Pp
+The validation function is allowed to allocate new memory for
+.Va val :
+if the
 .Va val
-and thus
-.Va valsz :
-if the value of
-.Va val
-changes during your validation, the new value will be freed with
+pointer changes during validation, the memory pointed to after validation
+will be freed with
 .Xr free 3
-after being passed out of the sandbox.
-These functions are invoked from within a system-specific sandbox.
-You should assume that you cannot invoke any
-.Qq invasive
-system calls such as opening files, sockets, etc.
-In other words, these must be pure computation.
+after the data is passed out of the sandbox.
+.Pp
+These functions are invoked from within a system-specific sandbox
+that may not allow some system calls, for example opening files or
+sockets.
+In other words, validation functions should only do pure computation.
 .El
 .Pp
 The
