@@ -217,21 +217,42 @@ See the
 .Va rawauth
 field for raw authorisation requests.
 .It Vt "struct kpair **" Ns Va cookiemap
-Entries in successfully-parsed (or un-parsed)
+An array of
+.Fa keysz
+singly linked lists of elements of the
 .Va cookies
-mapped into field indices as defined by the
+array.
+If
+.Va cookie Ns -> Ns Va key
+is equal to one of the entries of
 .Fa keys
-argument to
-.Fn khttp_parse .
+and
+.Va cookie Ns -> Ns Va state
+is
+.Dv KPAIR_VALID
+or
+.Dv KPAIR_UNCHECKED ,
+the cookie is added to the list
+.Va cookiemap Ns Bq Va cookie Ns -> Ns Va keypos .
+Empty lists are
+.Dv NULL .
+If a list contains more than one cookie,
+.Va cookie Ns -> Ns Va next
+points to the next cookie.
+For the last cookie in a list,
+.Va cookie Ns -> Ns Va next
+is NULL.
 .It Vt "struct kpair **" Ns Va cookienmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa cookies
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
+Similar to
+.Va cookiemap ,
+except that it contains the cookies where
+.Va cookie Ns -> Ns Va state
+is
+.Dv KPAIR_INVALID .
 .It Vt "struct kpair *" Ns Va cookies
-Key-value pairs read from request cookies, or
+Key-value pairs read from request cookies found in the
+.Ev HTTP_COOKIE
+header variable, or
 .Dv NULL
 if
 .Va cookiesz
@@ -244,21 +265,22 @@ The size of the
 .Va cookies
 array.
 .It Vt "struct kpair **" Ns Va fieldmap
-Entries in successfully-parsed (or un-parsed)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-arguments to
-.Fn khttp_parse .
+Similar to
+.Va cookiemap ,
+except that the lists contain elements of the
+.Va fields
+array.
 .It Vt "struct kpair **" Ns Va fieldnmap
-Entries in unsuccessfully-parsed (but still attempted)
-.Fa fields
-mapped into field indices as defined by the
-.Fa keys
-argument to
-.Fn khttp_parse .
+Similar to
+.Va fieldmap ,
+except that it contains the fields where
+.Va field Ns -> Ns Va state
+is
+.Dv KPAIR_INVALID .
 .It Vt "struct kpair *" Ns Va fields
-Key-value pairs read from the request query string and message body, or
+Key-value pairs read from the
+.Ev QUERY_STRING
+header variable and from the message body, or
 .Dv NULL
 if
 .Dv fieldsz
@@ -520,6 +542,8 @@ If the function is
 .Dv NULL ,
 then no validation is performed and the data is considered as valid and
 is bucketed into
+.Va cookiemap
+or
 .Va fieldmap
 as such.
 If you provide your own
