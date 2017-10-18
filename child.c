@@ -39,6 +39,9 @@
 #include "kcgi.h"
 #include "extern.h"
 
+#define MD5Updatec(_ctx, _b, _sz) \
+	MD5Update((_ctx), (const u_int8_t *)(_b), (_sz))
+
 /*
  * For handling HTTP multipart forms.
  * This consists of data for a single multipart form entry.
@@ -1224,12 +1227,12 @@ kworker_child_bodymd5(struct env *env, int fd,
 		method = "";
 
 	MD5Init(&ctx);
-	MD5Update(&ctx, method, strlen(method));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, script, strlen(script));
-	MD5Update(&ctx, uri, strlen(uri));
-	MD5Update(&ctx, ":", 1);
-	MD5Update(&ctx, b, bsz);
+	MD5Updatec(&ctx, method, strlen(method));
+	MD5Updatec(&ctx, ":", 1);
+	MD5Updatec(&ctx, script, strlen(script));
+	MD5Updatec(&ctx, uri, strlen(uri));
+	MD5Updatec(&ctx, ":", 1);
+	MD5Updatec(&ctx, b, bsz);
 	MD5Final(ha2, &ctx);
 
 	/* This is a binary write! */
