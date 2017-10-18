@@ -16,11 +16,11 @@
  */
 #include "config.h"
 
-#ifndef HAVE_PLEDGE
-#ifndef HAVE_SYSTRACE
-#ifndef HAVE_SECCOMP_FILTER
-#ifndef HAVE_CAPSICUM
-#ifndef HAVE_SANDBOX_INIT
+#if !HAVE_PLEDGE
+#if !HAVE_SYSTRACE
+#if !HAVE_SECCOMP_FILTER
+#if !HAVE_CAPSICUM
+#if !HAVE_SANDBOX_INIT
 #warning Compiling without a sandbox!?
 #endif
 #endif
