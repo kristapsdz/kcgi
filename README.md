@@ -52,14 +52,18 @@ To use the bleeding-edge version of kcgi (instead of from your system's
 packages or a stable version), the process it the similar as for source
 releases.
 
-Begin by cloning or downloading.  Then compile with `make` (GNU make, so
-it may be `gmake` on your system), then `sudo make install` (or using
-`doas`).  To install in an alternative directory to `/usr/local`, set
-the `PREFIX` variable when installing.
+Begin by cloning or downloading.  Then configure with `./configure`,
+compile with `make` (GNU make, so it may be `gmake` on your system),
+then `sudo make install` (or using `doas`).  To install in an
+alternative directory to `/usr/local`, set the `PREFIX` variable in the
+`configure.local` file prior to configuration.  (See the
+[configure](https://github.com/kristapsdz/kcgi/blob/master/configure)
+script for details.)
 
 ```sh
+./configure
 make
-doas make install PREFIX=/opt
+doas make install
 ```
 
 You can also change the default value in the

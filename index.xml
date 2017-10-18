@@ -197,11 +197,12 @@ int main(void) {
 			<p>
 				Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 					href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
-				Once downloaded, compile the software with <code>make</code> (or <code>gmake</code> on OpenBSD systems), which
-				will automatically run a
-				configuration script to conditionally deploy portability glue.
-				Finally, install the software using <code>make install</code>, optionally specifying the
-				<code>PREFIX</code> if you don't intend to use <span class="file">/usr/local</span>.
+				Once downloaded, configure with <code>./configure</code>, compile with <code>make</code> (or <code>gmake</code>
+				on OpenBSD systems).
+				Finally, install the software using <code>make install</code>. 
+				You can override default paths with a <code>configure.local</code> file (see the <a
+					href="https://github.com/kristapsdz/kcgi/blob/master/configure">configure</a> script for details)
+				prior to configuration.
 			</p>
 			<p>
 				If you'd like to contribute to <span class="nm">kcgi</span> or to use the bleeding-edge version between
