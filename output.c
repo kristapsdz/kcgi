@@ -60,7 +60,7 @@ struct	kdata {
 	uint64_t	 bytes; /* total bytes written */
 	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
-#ifdef	HAVE_ZLIB
+#if HAVE_ZLIB
 	gzFile		 gz;
 #endif
 	char		*outbuf;
@@ -166,7 +166,7 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 
 	if (0 == sz || NULL == buf)
 		return;
-#ifdef HAVE_ZLIB
+#if HAVE_ZLIB
 	if (NULL != p->gz && KSTATE_HEAD != p->state) {
 		/*
 		 * FIXME: make this work properly on all systems.
@@ -408,7 +408,7 @@ kdata_free(struct kdata *p, int flush)
 		close(STDIN_FILENO);
 	}
 
-#ifdef HAVE_ZLIB
+#if HAVE_ZLIB
 	if (NULL != p->gz)
 		gzclose(p->gz);
 #endif
@@ -456,7 +456,7 @@ kdata_compress(struct kdata *p)
 {
 
 	assert(KSTATE_HEAD == p->state);
-#ifdef	HAVE_ZLIB
+#if HAVE_ZLIB
 	if (-1 != p->fcgi)
 		return(0);
 	assert(NULL == p->gz);
