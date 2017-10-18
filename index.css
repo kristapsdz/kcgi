@@ -2,12 +2,13 @@ html, body			{ margin: 0;
 				  padding: 0; }
 body				{ color: #333; 
 				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
-				  font-weight: 300;
+				  font-weight: 400;
 				  font-size: 13pt;
 				  line-height: 17pt; }
 code, pre			{ font-size: 11pt; }
 a				{ text-decoration: none; 
 				  color: blue; }
+strong, b			{ font-weight: 700; }
 body > header			{ box-shadow: 0 1px 4px #888; 
 				  background-color: #333;
 				  padding: 5em 20% 1ex 20%;
@@ -32,12 +33,12 @@ body > header nav .version	{ border-right: thin solid silver;
 #version time, 
 #version span.version		{ font-style: normal; }
 #version .content > div + div	{ margin-top: 0.5em; }
-#version nav .title		{ font-weight: 400; 
+#version nav .title		{ font-weight: 500; 
 				  margin-bottom: 1em; }
 h1				{ font-size: 28pt; 
 				  margin: 0;
 				  line-height: 34pt;
-				  font-weight: normal; }
+				  font-weight: 400; }
 #breadcrumbs			{ font-size: 14pt; }
 .nm, .file			{ font-style: italic; }
 h1 .nm				{ text-shadow: 1px 1px #666; 
@@ -70,10 +71,10 @@ footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
 			  	  padding-left: 1ex; }
 body > section h2		{ font-size: x-large; 
-				  font-weight: 400; 
+				  font-weight: 500; 
 				  color: #333; }
 body > section h3		{ font-size: large; 
-				  font-weight: bolder;
+				  font-weight: 500;
 				  margin-bottom: 0.25ex;
 				  color: #333; }
 body > section			{ padding: 0.5em 20%; 
@@ -82,7 +83,7 @@ figure figcaption		{ margin: 0; }
 figure				{ margin: 0; 
 				  text-align: center; 
 				  color: #444; }
-figcaption span			{ font-weight: 400; }
+figcaption span			{ font-weight: 500; }
 dd				{ margin: 0 0 1em 0; }
 body > header nav		{ overflow: hidden; }
 body > header nav li + li	{ margin-top: 1.5em; }
@@ -97,7 +98,7 @@ pre.prettyprint ol.linenums > li { list-style-type: decimal; }
 footer				{ padding: 1ex;
 				  margin-top: 1em;
 				  margin-bottom: 1em; }
-.flag				{ font-weight: 400; }
+.flag				{ font-weight: 500; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
  h1				{ font-size: 15pt; }

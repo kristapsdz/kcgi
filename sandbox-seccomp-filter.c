@@ -14,11 +14,9 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
-#ifdef HAVE_SECCOMP_FILTER
+#if HAVE_SECCOMP_FILTER
 
 #ifndef SECCOMP_AUDIT_ARCH
 #error Unknown seccomp arch: please contact us with your uname -m
