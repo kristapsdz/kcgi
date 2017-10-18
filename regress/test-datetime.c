@@ -20,6 +20,9 @@
 
 #include <stdarg.h>
 #include <stdint.h>
+#if !HAVE_ARC4RANDOM
+# include <bsd/stdlib.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
