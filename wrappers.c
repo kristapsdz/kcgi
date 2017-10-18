@@ -61,7 +61,7 @@ kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
 	if (len != -1)
 		return(len);
 
-	kxwarn(file, line, "vasprintf");
+	kxwarn(file, line, "asprintf");
 	return(-1);
 }
 
