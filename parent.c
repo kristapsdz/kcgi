@@ -14,11 +14,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <assert.h>
+#if HAVE_MD5
+# include <sys/types.h>
+# include <md5.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -27,7 +29,6 @@
 #include <string.h>
 
 #include "kcgi.h"
-#include "md5.h"
 #include "extern.h"
 
 /*

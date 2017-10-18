@@ -14,9 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #ifndef HAVE_PLEDGE
 #ifndef HAVE_SYSTRACE
@@ -55,18 +53,18 @@ int
 ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 {
 
-#if defined(HAVE_CAPSICUM)
+#if HAVE_CAPSICUM
 	return(1);
-#elif defined(HAVE_SANDBOX_INIT)
+#elif HAVE_SANDBOX_INIT
 	return(1);
-#elif defined(HAVE_PLEDGE)
+#elif HAVE_PLEDGE
 	return(1);
-#elif defined(HAVE_SYSTRACE)
+#elif HAVE_SYSTRACE
 	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
 		XWARNX("ksandbox_systrace_init_child");
 		return(0);
 	}
-#elif defined(HAVE_SECCOMP_FILTER)
+#elif HAVE_SECCOMP_FILTER
 	return(1);
 #endif
 	return(1);
@@ -83,18 +81,18 @@ ksandbox_alloc(void **pp)
 
 	*pp = NULL;
 
-#if defined(HAVE_CAPSICUM)
+#if HAVE_CAPSICUM
 	return(1);
-#elif defined(HAVE_SANDBOX_INIT)
+#elif HAVE_SANDBOX_INIT
 	return(1);
-#elif defined(HAVE_PLEDGE)
+#elif HAVE_PLEDGE
 	return(1);
-#elif defined(HAVE_SYSTRACE)
+#elif HAVE_SYSTRACE
 	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
 		XWARNX("ksandbox_systrace_alloc");
 		return(0);
 	}
-#elif defined(HAVE_SECCOMP_FILTER)
+#elif HAVE_SECCOMP_FILTER
 	return(1);
 #endif
 	return(1);
@@ -115,15 +113,15 @@ void
 ksandbox_close(void *arg)
 {
 
-#if defined(HAVE_CAPSICUM)
+#if HAVE_CAPSICUM
 	return;
-#elif defined(HAVE_SANDBOX_INIT)
+#elif HAVE_SANDBOX_INIT
 	return;
-#elif defined(HAVE_PLEDGE)
+#elif HAVE_PLEDGE
 	return;
-#elif defined(HAVE_SYSTRACE)
+#elif HAVE_SYSTRACE
 	ksandbox_systrace_close(arg);
-#elif defined(HAVE_SECCOMP_FILTER)
+#elif HAVE_SECCOMP_FILTER
 	return;
 #endif
 }
@@ -148,28 +146,28 @@ ksandbox_init_child(void *arg,
 	int fdfiled, int fdaccept)
 {
 
-#if defined(HAVE_CAPSICUM)
+#if HAVE_CAPSICUM
 	if ( ! ksandbox_capsicum_init_child(arg, type, 
 	    fd1, fd2, fdfiled, fdaccept)) {
 		XWARNX("ksandbox_capsicum_init_child");
 		return(0);
 	}
-#elif defined(HAVE_SANDBOX_INIT)
+#elif HAVE_SANDBOX_INIT
 	if ( ! ksandbox_darwin_init_child(arg, type)) {
 		XWARNX("ksandbox_darwin_init_child");
 		return(0);
 	}
-#elif defined(HAVE_PLEDGE)
+#elif HAVE_PLEDGE
 	if ( ! ksandbox_pledge_init_child(arg, type)) {
 		XWARNX("ksandbox_pledge_init_child");
 		return(0);
 	}
-#elif defined(HAVE_SYSTRACE)
+#elif HAVE_SYSTRACE
 	if ( ! ksandbox_systrace_init_child(arg, type)) {
 		XWARNX("ksandbox_systrace_init_child");
 		return(0);
 	}
-#elif defined(HAVE_SECCOMP_FILTER)
+#elif HAVE_SECCOMP_FILTER
 	if ( ! ksandbox_seccomp_init_child(arg, type)) {
 		XWARNX("ksandbox_seccomp_init_child");
 		return(0);

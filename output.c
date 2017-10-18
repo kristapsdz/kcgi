@@ -14,9 +14,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
+
 #include <arpa/inet.h>
 
 #include <assert.h>
@@ -28,8 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_ZLIB
-#include <zlib.h>
+#if HAVE_ZLIB
+# include <zlib.h>
 #endif
 
 #include "kcgi.h"

@@ -14,9 +14,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
+
 #include <arpa/inet.h>
 
 #include <assert.h>
@@ -24,6 +23,10 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
+#if HAVE_MD5
+# include <sys/types.h>
+# include <md5.h>
+#endif
 #include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,7 +38,6 @@
 
 #include "kcgi.h"
 #include "extern.h"
-#include "md5.h"
 
 /*
  * For handling HTTP multipart forms.

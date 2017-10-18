@@ -14,9 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -900,7 +898,7 @@ khttp_body_compress(struct kreq *req, int comp)
 	}
 
 	/* Only work with compression if we support it... */
-#ifdef HAVE_ZLIB
+#if HAVE_ZLIB
 	/* 
 	 * Enable compression if the function argument is zero or if
 	 * it's >0 and the request headers have been set for it.
