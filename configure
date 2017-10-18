@@ -364,7 +364,7 @@ typedef struct MD5Context {
 	echo "extern void MD5Final(u_int8_t [MD5_DIGEST_LENGTH], MD5_CTX *);";
 fi
 
-if [ ${HAVE_SECCOMP_FILTER} -eq 0 ]; then
+if [ ${HAVE_SECCOMP_FILTER} -eq 1 ]; then
 	arch=`uname -m 2>/dev/null || echo unknown`
 	case "$arch" in
 		x86_64)
