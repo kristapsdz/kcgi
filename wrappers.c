@@ -235,6 +235,12 @@ kxsocketpair(int domain, int type, int protocol, int *sock)
 	return(KCGI_SYSTEM);
 }
 
+/*
+ * Given a string "buf", write first the length of the string (w/o NUL
+ * terminator), then the string itself (again, w/o NUL terminator).
+ * If "buf" is NULL, then write a zero-length string.
+ * See fullreadword().
+ */
 void
 fullwriteword(int fd, const char *buf)
 {
