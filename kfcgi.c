@@ -681,10 +681,10 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
-#ifndef HAVE_ARC4RANDOM
-	ws[i].cookie = random();
-#else
+#if HAVE_ARC4RANDOM
 	ws[i].cookie = arc4random();
+#else
+	ws[i].cookie = random();
 #endif
 	dbg("worker-%u: acquire %d "
 		"(pollers %zu/%zu: workers %zu/%zu)", 
