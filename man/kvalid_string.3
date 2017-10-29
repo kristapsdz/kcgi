@@ -19,6 +19,7 @@
 .Os
 .Sh NAME
 .Nm kutil_invalidate ,
+.Nm kvalid_bit ,
 .Nm kvalid_date ,
 .Nm kvalid_double ,
 .Nm kvalid_email ,
@@ -39,6 +40,8 @@
 .Ft void
 .Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
 .Ft int
+.Fn kvalid_bit "struct kpair *kp"
+.Ft int
 .Fn kvalid_date "struct kpair *kp"
 .Ft int
 .Fn kvalid_double "struct kpair *kp"
@@ -56,6 +59,7 @@
 .Fn kvalid_uint "struct kpair *kp"
 .Sh DESCRIPTION
 The
+.Nm kvalid_bit ,
 .Nm kvalid_date ,
 .Nm kvalid_double ,
 .Nm kvalid_email ,
@@ -111,6 +115,12 @@ If the field is not valid to begin with, this fuction does nothing.
 .Pp
 The validators perform the following validations:
 .Bl -tag -width Ds
+.It Fn kvalid_bit
+A bit index.
+Sets a
+.Dv KPAIR_INTEGER
+to be the bit index within a 64-bit integer
+.Pq 0\(en63 .
 .It Fn kvalid_date
 An ISO 8601
 .Li YYYY-MM-DD
@@ -159,6 +169,7 @@ A 64-bit integer via
 that's weakly greater than zero.
 .El
 .Sh RETURN VALUES
+.Nm kvalid_bit ,
 .Nm kvalid_date ,
 .Nm kvalid_double ,
 .Nm kvalid_email ,
@@ -177,6 +188,7 @@ fields are set accordingly.
 .Sh AUTHORS
 The
 .Nm kutil_invalidate ,
+.Nm kvalid_bit ,
 .Nm kvalid_date ,
 .Nm kvalid_double ,
 .Nm kvalid_email ,

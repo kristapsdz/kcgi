@@ -507,6 +507,7 @@ int		 khttpdigest_validatehash(const struct kreq *,
 int		 khttpbasic_validate(const struct kreq *, 
 			const char *, const char *);
 
+int		 kvalid_bit(struct kpair *);
 int		 kvalid_date(struct kpair *);
 int		 kvalid_double(struct kpair *);
 int		 kvalid_email(struct kpair *);
