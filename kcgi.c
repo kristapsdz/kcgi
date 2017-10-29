@@ -1098,6 +1098,15 @@ kvalid_int(struct kpair *p)
 }
 
 int
+kvalid_bit(struct kpair *p)
+{
+
+	if ( ! kvalid_uint(p))
+		return(0);
+	return(p->parsed.i < 64);
+}
+
+int
 kvalid_uint(struct kpair *p)
 {
 	const char	*ep;
