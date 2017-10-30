@@ -116,11 +116,10 @@ If the field is not valid to begin with, this fuction does nothing.
 The validators perform the following validations:
 .Bl -tag -width Ds
 .It Fn kvalid_bit
-A bit index.
+A bit mask.
 Sets a
 .Dv KPAIR_INTEGER
-to be the bit index within a 64-bit integer
-.Pq 0\(en63 .
+to be the single bit mask within a 64-bit integer from 0\(en64.
 .It Fn kvalid_date
 An ISO 8601
 .Li YYYY-MM-DD
