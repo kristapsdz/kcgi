@@ -1103,7 +1103,7 @@ kvalid_bit(struct kpair *p)
 
 	if ( ! kvalid_uint(p))
 		return(0);
-	return(p->parsed.i < 64);
+	return(p->parsed.i <= 64);
 }
 
 int
