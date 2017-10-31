@@ -3,11 +3,10 @@ html, body			{ margin: 0;
 body				{ color: #333; 
 				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
 				  font-weight: 400;
-				  font-size: 13pt;
-				  line-height: 17pt; }
+				  font-size: 14pt; }
 a				{ text-decoration: none; }
 strong, b			{ font-weight: 700; }
-code, pre			{ font-size: 11pt; }
+code, pre			{ font-size: 12pt; }
 body > header			{ box-shadow: 0 1px 4px #888; 
 				  background-color: #333; 
 				  padding: 2em 20% 1ex 20%;
@@ -33,7 +32,7 @@ h1 .nm				{ text-shadow: 1px 1px #666;
 h1 .nd				{ text-shadow: 1px 1px #333; }
 footer				{ margin-top: 1em; 
 				  text-align: center;
-				  font-size: 11pt;
+				  font-size: 12pt;
 				  color: #666; }
 footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
@@ -56,7 +55,7 @@ footer				{ padding: 1ex;
 				  margin-bottom: 0.25em; }
 #archive .title > :first-child	{ font-weight: 500; }
 #archive .title > :last-child	{ flex: 1; 
-				  font-size: 11pt;
+				  font-size: 12pt;
 				  text-align: right; }
 #functions ul			{ margin-left: 0; 
 				  padding-left: 0; }
