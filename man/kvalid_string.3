@@ -120,6 +120,10 @@ A bit mask.
 Sets a
 .Dv KPAIR_INTEGER
 to be the single bit mask within a 64-bit integer from 0\(en64.
+So 0 means no bit, 1 means the first
+.Pq Li 1U << 0 ,
+and so on until 64, the 64th bit
+.Pq Li 1U << 63 .
 .It Fn kvalid_date
 An ISO 8601
 .Li YYYY-MM-DD
