@@ -3,9 +3,8 @@ html, body			{ margin: 0;
 body				{ color: #333; 
 				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
 				  font-weight: 400;
-				  font-size: 13pt;
-				  line-height: 17pt; }
-code, pre			{ font-size: 11pt; }
+				  font-size: 14pt; }
+code, pre			{ font-size: 12pt; }
 a				{ text-decoration: none; 
 				  color: blue; }
 strong, b			{ font-weight: 700; }
@@ -44,7 +43,7 @@ h1				{ font-size: 28pt;
 h1 .nm				{ text-shadow: 1px 1px #666; 
 				  font-style: inherit; }
 h1 .nd				{ text-shadow: 1px 1px #333; }
-#intro				{ font-size: 14pt; }
+#intro				{ font-size: 16pt; }
 #sample				{ margin: 2em 0; }
 #sample > input			{ display: none; }
 #sample > input ~ nav label,
@@ -65,7 +64,7 @@ h1 .nd				{ text-shadow: 1px 1px #333; }
 				  opacity: 1; }
 footer				{ margin-top: 1em; 
 				  text-align: center;
-				  font-size: 11pt;
+				  font-size: 12pt;
 				  color: #666; }
 footer a			{ color: #000; }
 footer span			{ border-left: thin solid #ccc; 
