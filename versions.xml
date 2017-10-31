@@ -804,4 +804,17 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.9</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-10-30">2017-10-30</time>
+		</header>
+		<aside>
+			<div>
+				Switch to using <a href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
+				Add the <a href="kvalid_string.3.html">kvalid_bit(3)</a> function for bit fields.
+			</div>
+		</aside>
+	</article>
 </articles>
