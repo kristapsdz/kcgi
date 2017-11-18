@@ -855,10 +855,10 @@ out:
  * This doesn't actually handle any part of the MIME specification.
  */
 static void
-parse_multi(const struct parms *pp, char *line, 
-	size_t len, char *b, size_t bsz)
+parse_multi(const struct parms *pp, char *line, char *b, size_t bsz)
 {
 	char		*cp;
+	size_t		 len = 0;
 
 	while (' ' == *line)
 		line++;
@@ -889,7 +889,8 @@ parse_multi(const struct parms *pp, char *line,
 	while (' ' == *line)
 		line++;
 
-	/* Make sure the line is terminated in the right place .*/
+	/* Make sure the line is terminated in the right place. */
+
 	if ('"' == *line) {
 		if (NULL == (cp = strchr(++line, '"'))) {
 			XWARNX("RFC violation: unterminated "
@@ -906,8 +907,13 @@ parse_multi(const struct parms *pp, char *line,
 		line[strcspn(line, " ")] = '\0';
 	}
 
-	/* Read in full file. */
-	len = 0;
+	/*
+	 * If we have data following the boundary declaration, we simply
+	 * ignore it.
+	 * The RFC mandates the existence of the boundary, but is silent
+	 * as to whether anything can come after it.
+	 */
+
 	parse_multiform(pp, NULL, line, b, bsz, &len);
 }
 
@@ -1345,7 +1351,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
 			parse_pairs_urlenc(pp, b);
 		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
-			parse_multi(pp, cp + 19, len, b, bsz);
+			parse_multi(pp, cp + 19, b, bsz);
 		else if (KMETHOD_POST == meth && 0 == strcasecmp(cp, "text/plain"))
 			parse_pairs_text(pp, b);
 		else
