@@ -727,17 +727,21 @@ parse_multiform(const struct parms *pp, char *name,
 	memset(&mime, 0, sizeof(struct mime));
 
 	/* Read to the next instance of a buffer boundary. */
+
 	for (first = 1; *pos < len; first = 0, *pos = endpos) {
 		/*
-		 * The conditional is because the prologue FIRST
+		 * The (first ? 2 : 0) is because the first prologue
 		 * boundary will not incur an initial CRLF, so our bb is
 		 * past the CRLF and two bytes smaller.
 		 */
+
 		ln = memmem(&buf[*pos], len - *pos, 
-			bb + (first ? 2 : 0), bbsz - (first ? 2 : 0));
+			bb + (first ? 2 : 0), 
+			bbsz - (first ? 2 : 0));
 
 		if (NULL == ln) {
-			XWARNX("multiform: unexpected eof");
+			XWARNX("RFC violation: unexpected "
+				"eof when scanning for boundary");
 			goto out;
 		}
 
@@ -745,22 +749,35 @@ parse_multiform(const struct parms *pp, char *name,
 		 * Set "endpos" to point to the beginning of the next
 		 * multipart component, i.e, the end of the boundary
 		 * "bb" string.
+		 * Again, be respectful of whether we should scan after
+		 * the lack of initial CRLF.
 		 */
+
 		endpos = *pos + (ln - &buf[*pos]) + 
 			bbsz - (first ? 2 : 0);
 
-		/* Check buffer space... */
+		/* Check buffer space. */
+
 		if (endpos > len - 2) {
-			XWARNX("multiform: end position out of bounds");
+			XWARNX("RFC violation: multipart section "
+				"writes into trailing CRLF");
 			goto out;
 		}
 
-		/* Terminating boundary or not... */
+		/* 
+		 * Terminating boundary has an initial trailing "--".
+		 * It must be followed by a CRLF.
+		 */
+
 		if (memcmp(&buf[endpos], "--", 2)) {
 			while (endpos < len && ' ' == buf[endpos])
 				endpos++;
-			/* We need the CRLF... */
-			if (memcmp(&buf[endpos], "\r\n", 2)) {
+			if (endpos > len - 2) {
+				XWARNX("RFC violation: final "
+					"multipart section writes "
+					"into trailing CRLF");
+				goto out;
+			} else if (memcmp(&buf[endpos], "\r\n", 2)) {
 				XWARNX("multiform: missing crlf");
 				goto out;
 			}
@@ -768,40 +785,52 @@ parse_multiform(const struct parms *pp, char *name,
 		} else
 			endpos = len;
 
+		/* First section: jump directly to reprocess. */
+
+		if (first)
+			continue;
+
 		/* 
-		 * Zero-length part or beginning of sequence.
+		 * Zero-length part.
 		 * This shouldn't occur, but if it does, it'll screw up
 		 * the MIME parsing (which requires a blank CRLF before
 		 * considering itself finished).
 		 */
-		if (first || 0 == (partsz = ln - &buf[*pos]))
+
+		if (0 == (partsz = ln - &buf[*pos])) {
+			XWARNX("RFC indeterminate behaviour: "
+				"zero-length multipart section");
 			continue;
+		}
 
 		/* We now read our MIME headers, bailing on error. */
+
 		mime_free(&mime);
+
 		if ( ! mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
-			XWARNX("multiform: bad MIME headers");
+			XWARNX("RFC violation: MIME headers");
 			goto out;
 		}
+
 		/* 
 		 * As per RFC 2388, we need a name and disposition. 
 		 * Note that multipart/mixed bodies will inherit the
 		 * name of their parent, so the mime.name is ignored.
 		 */
+
 		if (NULL == mime.name && NULL == name) {
-			XWARNX("multiform: no MIME name");
+			XWARNX("RFC violation: no MIME name");
 			continue;
 		} else if (NULL == mime.disp) {
-			XWARNX("multiform: no MIME disposition");
+			XWARNX("RFC violation: no MIME disposition");
 			continue;
 		}
 
 		/* As per RFC 2045, we default to text/plain. */
-		if (NULL == mime.ctype) {
-			mime.ctype = XSTRDUP("text/plain");
-			if (NULL == mime.ctype)
-				_exit(EXIT_FAILURE);
-		}
+
+		if (NULL == mime.ctype &&
+		    NULL == (mime.ctype = XSTRDUP("text/plain")))
+			_exit(EXIT_FAILURE);
 
 		partsz = ln - &buf[*pos];
 
@@ -811,6 +840,7 @@ parse_multiform(const struct parms *pp, char *name,
 		 * This will route into our own function, inheriting the
 		 * current name for content.
 		 */
+
 		if (0 == strcasecmp(mime.ctype, "multipart/mixed")) {
 			if (NULL == mime.bound) {
 				XWARNX("multiform: missing boundary");
@@ -828,10 +858,12 @@ parse_multiform(const struct parms *pp, char *name,
 
 		assert('\r' == buf[*pos + partsz] || 
 		       '\0' == buf[*pos + partsz]);
+
 		if ('\0' != buf[*pos + partsz])
 			buf[*pos + partsz] = '\0';
 
 		/* Assign all of our key-value pair data. */
+
 		output(pp, NULL != name ? name : 
 			mime.name, &buf[*pos], partsz, &mime);
 	}
@@ -842,6 +874,7 @@ parse_multiform(const struct parms *pp, char *name,
 	 * But since we don't care about that crap, just pretend that
 	 * everything's fine and exit.
 	 */
+
 	rc = 1;
 out:
 	free(bb);
