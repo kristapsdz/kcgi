@@ -715,15 +715,15 @@ parse_multiform(const struct parms *pp, char *name,
 	char		*ln, *bb;
 	int		 rc, first;
 
-	rc = 0;
 	/* Define our buffer boundary. */
-	bbsz = asprintf(&bb, "\r\n--%s", bound);
-	if (NULL == bb) {
-		XWARN("asprintf");
+	
+	if ((rc = XASPRINTF(&bb, "\r\n--%s", bound)) < 0)
 		_exit(EXIT_FAILURE);
-	}
 
-	assert(bbsz > 0);
+	assert(rc > 0);
+	bbsz = rc;
+	rc = 0;
+
 	memset(&mime, 0, sizeof(struct mime));
 
 	/* Read to the next instance of a buffer boundary. */
