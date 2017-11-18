@@ -187,6 +187,13 @@ kjson_putint(struct kjsonreq *r, int64_t val)
 }
 
 int
+kjson_putintstr(struct kjsonreq *r, int64_t val)
+{
+
+	return(kjson_putintstrp(r, NULL, val));
+}
+
+int
 kjson_putnullp(struct kjsonreq *r, const char *key)
 {
 
@@ -219,6 +226,16 @@ kjson_putbool(struct kjsonreq *r, int val)
 
 	return(kjson_putboolp(r, NULL, val));
 }
+
+int
+kjson_putintstrp(struct kjsonreq *r, const char *key, int64_t val)
+{
+	char	buf[22];
+
+	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
+	return(kjson_putstringp(r, key, buf));
+}
+
 
 int
 kjson_putintp(struct kjsonreq *r, const char *key, int64_t val)

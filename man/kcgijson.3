@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 20 2017 $
+.Dd $Mdocdate: September 22 2017 $
 .Dt KCGIJSON 3
 .Os
 .Sh NAME
@@ -23,10 +23,12 @@
 .Nm kjson_close ,
 .Nm kjson_putbool ,
 .Nm kjson_putboolp ,
-.Nm kjson_putint ,
-.Nm kjson_putintp ,
 .Nm kjson_putdouble ,
 .Nm kjson_putdoublep ,
+.Nm kjson_putint ,
+.Nm kjson_putintp ,
+.Nm kjson_putintstr ,
+.Nm kjson_putintstrp ,
 .Nm kjson_putnull ,
 .Nm kjson_putnullp ,
 .Nm kjson_putstring ,
@@ -92,6 +94,17 @@
 .Fc
 .Ft int
 .Fo kjson_putintp
+.Fa "struct kjsonreq *r"
+.Fa "const char *key"
+.Fa "int64_t val"
+.Fc
+.Ft int
+.Fo kjson_putintstr
+.Fa "struct kjsonreq *r"
+.Fa "int64_t val"
+.Fc
+.Ft int
+.Fo kjson_putintstrp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "int64_t val"
@@ -239,6 +252,7 @@ with
 The
 .Fn kjson_string_putdouble ,
 .Fn kjson_string_putint ,
+.Fn kjson_string_putintstr ,
 .Fn kjson_string_puts ,
 and
 .Fn kjson_string_write
@@ -271,6 +285,19 @@ emit a null value with or without a name.
 This and
 .Fn kjson_putint
 emit a 64-bit signed integer value with or without a name.
+.Em Important note :
+while JSON supports arbitrary number lengths, JavaScript is limited to
+53 bits of integer precision.
+Thus, use of this function should be avoided for JavaScript
+applications.
+Use
+.Fn kjson_putintstr
+instead.
+.Fn kjson_putintstr
+emit a 64-bit signed integer value in a string context, with or without
+a name.
+This function is generally used for passing integers to JavaScript
+applications, which are limited in integer precision.
 .It Fn kjson_putdoublep
 This and
 .Fn kjson_putdouble
@@ -309,7 +336,9 @@ invoked: all scopes are still closed.
 .Sh STANDARDS
 The
 .Nm kcgijson
-functions conform to the ECMA-404 The JSON Data Interchange Standard.
+functions conform to the ECMA-404 JSON Data Interchange Standard.
+Parts of this document reference ECMAScript 5, commonly known as
+JavaScript.
 .Sh AUTHORS
 The
 .Nm
@@ -318,4 +347,4 @@ library was written by
 .Sh CAVEATS
 The current hard-coded limit of nested objects is 128 levels.
 When this is reached, the system will
-.Xr assert 3 .
+.Xr abort 3 .
