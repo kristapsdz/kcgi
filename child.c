@@ -862,28 +862,38 @@ parse_multi(const struct parms *pp, char *line,
 
 	while (' ' == *line)
 		line++;
-	if (';' != *line++)
+	if (';' != *line++) {
+		XWARNX("RFC violation: expected semicolon following "
+			"multipart/form-data declaration");
 		return;
+	}
 	while (' ' == *line)
 		line++;
 
 	/* We absolutely need the boundary marker. */
 	if (strncmp(line, "boundary", 8)) {
-		XWARNX("multiform: missing boundary");
+		XWARNX("RFC violation: expected \"boundary\" "
+			"following multipart/form-data declaration");
 		return;
 	}
 	line += 8;
 	while (' ' == *line)
 		line++;
-	if ('=' != *line++)
+
+	if ('=' != *line++) {
+		XWARNX("RFC violation: expected key-value "
+			"for multipart/form-data boundary");
 		return;
+	}
+
 	while (' ' == *line)
 		line++;
 
 	/* Make sure the line is terminated in the right place .*/
 	if ('"' == *line) {
 		if (NULL == (cp = strchr(++line, '"'))) {
-			XWARNX("multiform: unterminated quote");
+			XWARNX("RFC violation: unterminated "
+				"boundary quoted string");
 			return;
 		}
 		*cp = '\0';
