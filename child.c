@@ -903,9 +903,7 @@ parse_multi(const struct parms *pp, char *line,
 		 * which specifically lays out the boundary characters.
 		 * We simply jump to the first whitespace.
 		 */
-		for (cp = line; '\0' != *cp && ' ' != *cp; cp++)
-			/* Spin. */ ;
-		*cp = '\0';
+		line[strcspn(line, " ")] = '\0';
 	}
 
 	/* Read in full file. */
