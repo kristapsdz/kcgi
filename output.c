@@ -223,6 +223,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 * Whenever we hit a newline (or the line buffer is filled),
 	 * flush the buffer to stderr.
 	 */
+
 	if (KREQ_DEBUG_WRITE & p->debugging) {
 		linebuf_init(p);
 		for (i = 0; i < sz; i++, p->bytes++) {
@@ -230,27 +231,22 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 				linebuf_flush(p, 1);
 			if (isprint((unsigned char)buf[i]) || '\n' == buf[i]) {
 				p->linebuf[p->linebufpos++] = buf[i];
-				p->linebuf[p->linebufpos] = '\0';
 			} else if ('\t' == buf[i]) {
 				p->linebuf[p->linebufpos++] = '\\';
 				p->linebuf[p->linebufpos++] = 't';
-				p->linebuf[p->linebufpos] = '\0';
 			} else if ('\r' == buf[i]) {
 				p->linebuf[p->linebufpos++] = '\\';
 				p->linebuf[p->linebufpos++] = 'r';
-				p->linebuf[p->linebufpos] = '\0';
 			} else if ('\v' == buf[i]) {
 				p->linebuf[p->linebufpos++] = '\\';
 				p->linebuf[p->linebufpos++] = 'v';
-				p->linebuf[p->linebufpos] = '\0';
 			} else if ('\b' == buf[i]) {
 				p->linebuf[p->linebufpos++] = '\\';
 				p->linebuf[p->linebufpos++] = 'b';
-				p->linebuf[p->linebufpos] = '\0';
-			} else {
+			} else
 				p->linebuf[p->linebufpos++] = '?';
-				p->linebuf[p->linebufpos] = '\0';
-			}
+
+			p->linebuf[p->linebufpos] = '\0';
 			if ('\n' == buf[i])
 				linebuf_flush(p, 0);
 		}
@@ -260,6 +256,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 * Short-circuit: if we have no output buffer, flush directly to
 	 * the wire.
 	 */
+
 	if (0 == p->outbufsz) {
 		kdata_flush(p, buf, sz);
 		return;
@@ -274,6 +271,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 * whole thing out.
 	 * If we don't, then copy it into the buffer.
 	 */
+
 	if (p->outbufpos + sz > p->outbufsz) {
 		kdata_drain(p);
 		if (sz > p->outbufsz) {
