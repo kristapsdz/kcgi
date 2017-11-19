@@ -1617,8 +1617,8 @@ kworker_child(int wfd,
 		 */
 
 		if ('=' != *start) {
-			XWARNX("bad environment: %.*s",
-				(int)(cp - *evp), *evp);
+			XWARNX("RFC violation: bad character "
+				"in environment array");
 			continue;
 		}
 
@@ -1920,8 +1920,8 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				break;
 
 		if (0 == keysz || i < keysz) {
-			XWARNX("bad environment key: %.*s",
-				(int)keysz, &b[pos]);
+			XWARNX("RFC violation: bad character "
+				"in environment parameters");
 			pos += keysz + valsz;
 			continue;
 		}
