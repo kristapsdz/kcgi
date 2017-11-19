@@ -361,6 +361,24 @@ mime_reset(char **dst, const char *src)
 }
 
 /*
+ * Free up all MIME headers.
+ * We might call this more than once, so make sure that it can be
+ * invoked again by setting the memory to zero.
+ */
+static void
+mime_free(struct mime *mime)
+{
+
+	free(mime->disp);
+	free(mime->name);
+	free(mime->file);
+	free(mime->ctype);
+	free(mime->xcode);
+	free(mime->bound);
+	memset(mime, 0, sizeof(struct mime));
+}
+
+/*
  * Parse out all MIME headers.
  * This is defined by RFC 2045.
  * This returns TRUE if we've parsed up to (and including) the last
@@ -372,40 +390,66 @@ static int
 mime_parse(const struct parms *pp, struct mime *mime, 
 	char *buf, size_t len, size_t *pos)
 {
-	char	*key, *val, *end, *start, *line;
+	char	*key, *val, *keyend, *end, *start, *line;
 	int	 rc = 0;
 
 	mime_free(mime);
 
 	while (*pos < len) {
 		/* Each MIME line ends with a CRLF. */
+
 		start = &buf[*pos];
 		end = memmem(start, len - *pos, "\r\n", 2);
 		if (NULL == end) {
-			XWARNX("MIME header without CRLF");
+			XWARNX("RFC violation: MIME header "
+				"line without CRLF");
 			return(0);
 		}
-		/* NUL-terminate to make a nice line. */
+
+		/* 
+		 * NUL-terminate to make a nice line.
+		 * Then re-set our starting position. 
+		 */
+
 		*end = '\0';
-		/* Re-set our starting position. */
 		*pos += (end - start) + 2;
 
-		/* Empty line: we're done here! */
+		/* Empty CRLF line: we're done here! */
+
 		if ('\0' == *start) {
 			rc = 1;
 			break;
 		}
 
 		/* Find end of MIME statement name. */
+
 		key = start;
 		if (NULL == (val = strchr(key, ':'))) {
-			XWARNX("MIME header without key-value colon");
+			XWARNX("RFC violation: MIME header "
+				"without key-value separator");
 			return(0);
-		}
+		} else if (key != val) {
+			/* 
+			 * The RFCs disagree on white-space before the
+			 * colon, but as it's allowed in the original
+			 * RFC 822 and obsolete syntax should be
+			 * supported, we do so here.
+			 */
+			keyend = val - 1;
+			do {
+				if (' ' != *keyend) 
+					break;
+				*keyend = '\0';
+				keyend--;
+			} while (keyend >= key);
+		} else
+			XWARNX("RFC warning: empty MIME "
+				"header name");
 
 		*val++ = '\0';
 		while (' ' == *val)
 			val++;
+
 		line = NULL;
 		if (NULL != (line = strchr(val, ';')))
 			*line++ = '\0';
@@ -414,6 +458,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		 * Allow these specific MIME header statements.
 		 * Ignore all others.
 		 */
+
 		if (0 == strcasecmp(key, "content-transfer-encoding")) {
 			if ( ! mime_reset(&mime->xcode, val))
 				return(0);
@@ -427,6 +472,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 			continue;
 
 		/* Now process any familiar MIME components. */
+
 		while (NULL != (key = line)) {
 			while (' ' == *key)
 				key++;
@@ -473,24 +519,6 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		XWARNX("MIME header unexpected EOF");
 
 	return(rc);
-}
-
-/*
- * Free up all MIME headers.
- * We might call this more than once, so make sure that it can be
- * invoked again by setting the memory to zero.
- */
-static void
-mime_free(struct mime *mime)
-{
-
-	free(mime->disp);
-	free(mime->name);
-	free(mime->file);
-	free(mime->ctype);
-	free(mime->xcode);
-	free(mime->bound);
-	memset(mime, 0, sizeof(struct mime));
 }
 
 /*
