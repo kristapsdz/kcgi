@@ -375,7 +375,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 	char	*key, *val, *end, *start, *line;
 	int	 rc = 0;
 
-	memset(mime, 0, sizeof(struct mime));
+	mime_free(mime);
 
 	while (*pos < len) {
 		/* Each MIME line ends with a CRLF. */
@@ -803,8 +803,6 @@ parse_multiform(const struct parms *pp, char *name,
 		}
 
 		/* We now read our MIME headers, bailing on error. */
-
-		mime_free(&mime);
 
 		if ( ! mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
 			XWARNX("nested error: MIME headers");
