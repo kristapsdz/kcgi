@@ -392,6 +392,11 @@ mime_parse(const struct parms *pp, struct mime *mime,
 	char *buf, size_t len, size_t *pos)
 {
 	char	*key, *val, *keyend, *end, *start, *line;
+	int	 type;
+#define MIMETYPE_UNKNOWN 0
+#define	MIMETYPE_TRANSFER_ENCODING 1
+#define	MIMETYPE_DISPOSITION 2
+#define	MIMETYPE_TYPE 3
 	int	 rc = 0;
 
 	mime_free(mime);
@@ -451,60 +456,115 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		while (' ' == *val)
 			val++;
 
+		/* 
+		 * Set "line" to be at the MIME value subpart, for
+		 * example, "Content-type: text/plain; charset=us-ascii"
+		 * would put us at the parts before "charset".
+		 */
+
 		line = NULL;
 		if (NULL != (line = strchr(val, ';')))
 			*line++ = '\0';
 
 		/* 
 		 * Allow these specific MIME header statements.
-		 * Ignore all others.
+		 * We'll follow up by parsing specific information from
+		 * the header values, so remember what we parsed.
 		 */
 
 		if (0 == strcasecmp(key, "content-transfer-encoding")) {
 			mime_reset(&mime->xcode, val);
+			type = MIMETYPE_TRANSFER_ENCODING;
 		} else if (0 == strcasecmp(key, "content-disposition")) {
 			mime_reset(&mime->disp, val);
+			type = MIMETYPE_DISPOSITION;
 		} else if (0 == strcasecmp(key, "content-type")) {
 			mime_reset(&mime->ctype, val);
+			type = MIMETYPE_TYPE;
 		} else
-			continue;
+			type = MIMETYPE_UNKNOWN;
 
-		/* Now process any familiar MIME components. */
+		/* 
+		 * Process subpart only for content-type and
+		 * content-disposition.
+		 * The rest have no information we want.
+		 */
+
+		if (MIMETYPE_TYPE != type &&
+		    MIMETYPE_DISPOSITION != type)
+			continue;
 
 		while (NULL != (key = line)) {
 			while (' ' == *key)
 				key++;
 			if ('\0' == *key)
 				break;
+
 			if (NULL == (val = strchr(key, '='))) {
-				XWARNX("MIME header without "
-					"subpart separator");
+				XWARNX("RFC violation: MIME header "
+					"without subpart separator");
 				return(0);
-			}
+			} else if (key != val) {
+				keyend = val - 1;
+				/*
+				 * It's not clear whether we're allowed
+				 * to have OWS before the separator, but
+				 * allow for it anyway.
+				 */
+
+				do {
+					if (' ' != *keyend) 
+						break;
+					*keyend = '\0';
+					keyend--;
+				} while (keyend >= key);
+			} else 
+				XWARNX("RFC warning: empty MIME "
+					"subpart name");
+
 			*val++ = '\0';
+
+			/* Quoted string. */
 
 			if ('"' == *val) {
 				val++;
 				if (NULL == (line = strchr(val, '"'))) {
-					XWARNX("MIME header quote "
-						"not terminated");
+					XWARNX("RFC violation: MIME header "
+						"subpart not terminated");
 					return(0);
 				}
 				*line++ = '\0';
+
+				/* 
+				 * It's unclear as to whether this is
+				 * allowed (white-space before the
+				 * semicolon separator), but let's
+				 * accommodate for it anyway.
+				 */
+
+				while (' ' == *line)
+					line++;
 				if (';' == *line)
 					line++;
 			} else if (NULL != (line = strchr(val, ';')))
 				*line++ = '\0';
 
 			/* White-listed sub-commands. */
-			if (0 == strcasecmp(key, "filename")) {
-				mime_reset(&mime->file, val);
-			} else if (0 == strcasecmp(key, "name")) {
-				mime_reset(&mime->name, val);
-			} else if (0 == strcasecmp(key, "boundary")) {
-				mime_reset(&mime->bound, val);
-			} else
-				continue;
+
+			switch (type) {
+			case (MIMETYPE_DISPOSITION):
+				if (0 == strcasecmp(key, "filename"))
+					mime_reset(&mime->file, val);
+				else if (0 == strcasecmp(key, "name"))
+					mime_reset(&mime->name, val);
+				break;
+			case (MIMETYPE_TYPE):
+				if (0 == strcasecmp(key, "boundary"))
+					mime_reset(&mime->bound, val);
+				break;
+			default:
+				break;
+			}
 		}
 	} 
 
