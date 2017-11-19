@@ -458,6 +458,7 @@ fullread(int fd, void *buf, size_t bufsz, int eofok, enum kcgi_err *er)
 			return(-1);
 		} else if ((ssz = read(fd, buf + sz, bufsz - sz)) < 0) {
 			XWARN("read: %d, %zu", fd, bufsz - sz);
+			*er = KCGI_SYSTEM;
 			return(-1);
 		} else if (0 == ssz && sz > 0) {
 			XWARN("read: short read");
