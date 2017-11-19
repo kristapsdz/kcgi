@@ -352,12 +352,13 @@ scanbuf(size_t len, size_t *szp)
  * Reset a particular mime component.
  * We can get duplicates, so reallocate.
  */
-static int
+static void
 mime_reset(char **dst, const char *src)
 {
 
 	free(*dst);
-	return(NULL != (*dst = XSTRDUP(src)));
+	if (NULL == (*dst = XSTRDUP(src)))
+		_exit(EXIT_FAILURE);
 }
 
 /*
@@ -460,14 +461,11 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		 */
 
 		if (0 == strcasecmp(key, "content-transfer-encoding")) {
-			if ( ! mime_reset(&mime->xcode, val))
-				return(0);
+			mime_reset(&mime->xcode, val);
 		} else if (0 == strcasecmp(key, "content-disposition")) {
-			if ( ! mime_reset(&mime->disp, val))
-				return(0);
+			mime_reset(&mime->disp, val);
 		} else if (0 == strcasecmp(key, "content-type")) {
-			if ( ! mime_reset(&mime->ctype, val))
-				return(0);
+			mime_reset(&mime->ctype, val);
 		} else
 			continue;
 
@@ -500,14 +498,11 @@ mime_parse(const struct parms *pp, struct mime *mime,
 
 			/* White-listed sub-commands. */
 			if (0 == strcasecmp(key, "filename")) {
-				if ( ! mime_reset(&mime->file, val))
-					return(0);
+				mime_reset(&mime->file, val);
 			} else if (0 == strcasecmp(key, "name")) {
-				if ( ! mime_reset(&mime->name, val))
-					return(0);
+				mime_reset(&mime->name, val);
 			} else if (0 == strcasecmp(key, "boundary")) {
-				if ( ! mime_reset(&mime->bound, val))
-					return(0);
+				mime_reset(&mime->bound, val);
 			} else
 				continue;
 		}
