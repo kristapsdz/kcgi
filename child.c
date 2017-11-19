@@ -571,7 +571,8 @@ mime_parse(const struct parms *pp, struct mime *mime,
 	mime->ctypepos = str2ctype(pp, mime->ctype);
 
 	if ( ! rc)
-		XWARNX("MIME header unexpected EOF");
+		XWARNX("RFC violation: unexpected EOF "
+			"while parsing MIME headers");
 
 	return(rc);
 }
@@ -824,7 +825,7 @@ parse_multiform(const struct parms *pp, char *name,
 
 		if (NULL == ln) {
 			XWARNX("RFC violation: unexpected "
-				"eof when scanning for boundary");
+				"EOF when scanning for boundary");
 			goto out;
 		}
 
