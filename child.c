@@ -300,6 +300,7 @@ output(const struct parms *pp, char *key,
  * Returns the pointer to the data.
  * NOTE: we can't use fullread() here because we may not get the total
  * number of bytes requested.
+ * NOTE: "szp" can legit be set to zero.
  */
 static char *
 scanbuf(size_t len, size_t *szp)
@@ -314,10 +315,15 @@ scanbuf(size_t len, size_t *szp)
 	pfd.events = POLLIN;
 
 	/* Allocate the entire buffer here. */
+
 	if (NULL == (p = XMALLOC(len + 1)))
 		_exit(EXIT_FAILURE);
 
-	/* Keep reading til we get all the data. */
+	/* 
+	 * Keep reading til we get all the data or the sender stops
+	 * giving us data---whichever comes first.
+	 */
+
 	for (sz = 0; sz < len; sz += (size_t)ssz) {
 		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: POLLIN");
@@ -341,6 +347,7 @@ scanbuf(size_t len, size_t *szp)
 			"%zu, wanted %zu\n", sz, len);
 
 	/* ALWAYS NUL-terminate. */
+
 	p[sz] = '\0';
 	if (NULL != szp)
 		*szp = sz;
@@ -736,16 +743,19 @@ parse_pairs(const struct parms *pp, char *p)
 static void
 parse_pairs_urlenc(const struct parms *pp, char *p)
 {
-	char            *key, *val;
-	size_t           sz;
+	char	*key, *val;
+	size_t	 sz;
 
-	while (NULL != p && '\0' != *p) {
+	assert(NULL != p);
+
+	while ('\0' != *p) {
 		/* Skip leading whitespace. */
 		while (' ' == *p)
 			p++;
 
 		key = p;
 		val = NULL;
+
 		if (NULL != (p = strchr(p, '='))) {
 			/* Key/value pair. */
 			*p++ = '\0';
@@ -1390,6 +1400,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * Note that LLONG_MAX < SIZE_MAX.
 	 * RFC 3875, 4.1.2.
 	 */
+
 	len = 0;
 	if (NULL != (cp = kworker_env(env, envsz, "CONTENT_LENGTH")))
 		len = strtonum(cp, 0, LLONG_MAX, NULL);
@@ -1401,6 +1412,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	}
 
 	/* Check FastCGI input lengths. */
+
 	if (NULL != bp && bsz != len)
 		XWARNX("real and reported content lengths differ");
 
@@ -1412,18 +1424,25 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * HTML5, 4.10.
 	 * We only support the main three content types.
 	 */
+
 	pp->type = IN_FORM;
 	cp = kworker_env(env, envsz, "CONTENT_TYPE");
 
-	/* If we're CGI, read the request now. */
+	/* 
+	 * If we're CGI, read the request now.
+	 * Note that the "bsz" can come out as zero.
+	 */
+
 	if (NULL == b)
 		b = scanbuf(len, &bsz);
 
-	/* If requested, print our MD5 value. */
 	assert(NULL != b);
+
+	/* If requested, print our MD5 value. */
+
 	kworker_child_bodymd5(env, fd, envsz, b, bsz, md5);
 
-	if (NULL != b && bsz && KREQ_DEBUG_READ_BODY & debugging) {
+	if (bsz && KREQ_DEBUG_READ_BODY & debugging) {
 		fprintf(stderr, "%u: ", getpid());
 		for (cur = i = 0; i < bsz; i++, cur++) {
 			/* Print at most BUFSIZ characters. */
@@ -1476,6 +1495,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 		parse_body(kmimetypes[KMIME_APP_OCTET_STREAM], pp, b, bsz);
 
 	/* Free CGI parsed buffer (FastCGI is done elsewhere). */
+
 	if (NULL == bp)
 		free(b);
 }
