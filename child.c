@@ -744,6 +744,7 @@ static void
 parse_pairs_urlenc(const struct parms *pp, char *p)
 {
 	char	*key, *val;
+	char	 empty = '\0';
 	size_t	 sz;
 
 	assert(NULL != p);
@@ -765,14 +766,19 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 			if ('\0' != *p)
 				*p++ = '\0';
 		} else {
-			/* No value--error. */
+			/* 
+			 * No value.
+			 * We let this through and just specify that it
+			 * has an empty value.
+			 * There is no standard that says what we do,
+			 * but the information should pass through.
+			 */
 			p = key;
 			sz = strcspn(p, ";&");
 			p += sz;
 			if ('\0' != *p)
 				p++;
-			XWARNX("url key: no value");
-			continue;
+			val = &empty;
 		}
 
 		/*
@@ -787,7 +793,7 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 			XWARNX("url key: zero length");
 		else if ( ! urldecode(key))
 			XWARNX("url key: key decode");
-		else if ( ! urldecode(val))
+		else if (NULL != val && ! urldecode(val))
 			XWARNX("url key: val decode");
 		else
 			output(pp, key, val, strlen(val), NULL);
