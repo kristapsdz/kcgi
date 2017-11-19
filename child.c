@@ -588,6 +588,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
  * Parse keys and values separated by newlines.
  * I'm not aware of any standard that defines this, but the W3
  * guidelines for HTML give a rough idea.
+ * FIXME: deprecate this.
  */
 static void
 parse_pairs_text(const struct parms *pp, char *p)
@@ -642,7 +643,9 @@ parse_body(const char *ct, const struct parms *pp, char *b, size_t bsz)
 	struct mime	 mime;
 
 	memset(&mime, 0, sizeof(struct mime));
-	mime.ctype = strdup(ct);
+
+	if (NULL == (mime.ctype = XSTRDUP(ct)))
+		_exit(EXIT_FAILURE);
 	mime.ctypepos = str2ctype(pp, mime.ctype);
 
 	name = '\0';
@@ -1621,7 +1624,8 @@ kworker_child(int wfd,
 
 		assert(i < envsz);
 
-		envs[i].key = XSTRDUP(*evp);
+		if (NULL == (envs[i].key = XSTRDUP(*evp)))
+			_exit(EXIT_FAILURE);
 		envs[i].val = strchr(envs[i].key, '=');
 		*envs[i].val++ = '\0';
 		envs[i].keysz = strlen(envs[i].key);
