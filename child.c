@@ -294,7 +294,7 @@ output(const struct parms *pp, char *key,
 
 /*
  * Read full stdin request into memory.
- * This reads at most "len" bytes and nil-terminates the results, the
+ * This reads at most "len" bytes and NUL-terminates the results, the
  * length of which may be less than "len" and is stored in *szp if not
  * NULL.
  * Returns the pointer to the data.
@@ -340,7 +340,7 @@ scanbuf(size_t len, size_t *szp)
 		XWARNX("content size mismatch: have "
 			"%zu, wanted %zu\n", sz, len);
 
-	/* ALWAYS nil-terminate. */
+	/* ALWAYS NUL-terminate. */
 	p[sz] = '\0';
 	if (NULL != szp)
 		*szp = sz;
@@ -385,7 +385,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 			XWARNX("MIME header without CRLF");
 			return(0);
 		}
-		/* Nil-terminate to make a nice line. */
+		/* NUL-terminate to make a nice line. */
 		*end = '\0';
 		/* Re-set our starting position. */
 		*pos += (end - start) + 2;
@@ -585,7 +585,7 @@ urldecode(char *p)
 				XWARNX("urldecode: bad hex");
 				return(0);
 			} else if ('\0' == c) {
-				XWARNX("urldecode: nil byte");
+				XWARNX("urldecode: NUL byte");
 				return(0);
 			}
 
@@ -647,7 +647,7 @@ parse_pairs(const struct parms *pp, char *p)
 /*
  * Parse out key-value pairs from an HTTP request variable.
  * This is either a POST or GET string.
- * This MUST be a non-binary (i.e., nil-terminated) string!
+ * This MUST be a non-binary (i.e., NUL-terminated) string!
  */
 static void
 parse_pairs_urlenc(const struct parms *pp, char *p)
@@ -1696,7 +1696,7 @@ kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
 		return(-1);
 	} 
 	
-	/* Always nil-terminate! */
+	/* Always NUL-terminate! */
 	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
 	if (NULL == ptr)
 		return(-1);
