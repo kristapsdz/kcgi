@@ -326,8 +326,10 @@ fullwrite(int fd, const void *buf, size_t bufsz)
 	int		 rc;
 
 	/* Make coverity be silent. */
-	if (NULL == buf || 0 == bufsz)
+	if (0 == bufsz)
 		return;
+
+	assert(NULL != buf);
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
