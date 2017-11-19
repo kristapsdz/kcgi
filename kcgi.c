@@ -921,7 +921,7 @@ khttp_body_compress(struct kreq *req, int comp)
 /*
  * Trim leading and trailing whitespace from a word.
  * Note that this returns a pointer within "val" and optionally sets the
- * nil-terminator, so don't free() the returned value.
+ * NUL-terminator, so don't free() the returned value.
  */
 static char *
 trim(char *val)
@@ -1021,7 +1021,7 @@ kvalid_stringne(struct kpair *p)
 
 	/*
 	 * To check if we're a valid string, simply make sure that the
-	 * nil pointer is where we expect it to be.
+	 * NUL-terminator is where we expect it to be.
 	 */
 	if (strlen(p->val) != p->valsz || 0 == p->valsz)
 		return(0);
@@ -1036,7 +1036,7 @@ kvalid_string(struct kpair *p)
 
 	/*
 	 * To check if we're a valid string, simply make sure that the
-	 * nil pointer is where we expect it to be.
+	 * NUL-terminator is where we expect it to be.
 	 */
 	if (strlen(p->val) != p->valsz)
 		return(0);

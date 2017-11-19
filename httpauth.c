@@ -215,7 +215,7 @@ kauth_count(uint32_t *count, const char **cp)
 	if (buf.sz != 8)
 		return;
 
-	/* Copy into a nil-terminated buffer. */
+	/* Copy into a NUL-terminated buffer. */
 
 	memcpy(numbuf, buf.pos, buf.sz);
 	numbuf[buf.sz] = '\0';
@@ -261,7 +261,7 @@ khttpbasic_input(int fd, const char *cp)
 }
 
 /*
- * Parse HTTP ``Digest'' authentication tokens from the nil-terminated
+ * Parse HTTP ``Digest'' authentication tokens from the NUL-terminated
  * string, which can be NULL or malformed.
  */
 static int
