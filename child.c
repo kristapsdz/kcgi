@@ -766,19 +766,18 @@ parse_multiform(const struct parms *pp, char *name,
 
 		/* 
 		 * Terminating boundary has an initial trailing "--".
-		 * It must be followed by a CRLF.
+		 * If not terminating, must be followed by a CRLF.
+		 * If terminating, RFC 1341 says we can ignore whatever
+		 * comes after the last boundary.
 		 */
 
 		if (memcmp(&buf[endpos], "--", 2)) {
 			while (endpos < len && ' ' == buf[endpos])
 				endpos++;
-			if (endpos > len - 2) {
-				XWARNX("RFC violation: final "
-					"multipart section writes "
-					"into trailing CRLF");
-				goto out;
-			} else if (memcmp(&buf[endpos], "\r\n", 2)) {
-				XWARNX("multiform: missing crlf");
+			if (endpos > len - 2 ||
+			    memcmp(&buf[endpos], "\r\n", 2)) {
+				XWARNX("RFC violation: multipart "
+					"boundary without CRLF");
 				goto out;
 			}
 			endpos += 2;
@@ -798,8 +797,8 @@ parse_multiform(const struct parms *pp, char *name,
 		 */
 
 		if (0 == (partsz = ln - &buf[*pos])) {
-			XWARNX("RFC indeterminate behaviour: "
-				"zero-length multipart section");
+			XWARNX("RFC violation: zero-length "
+				"multipart section");
 			continue;
 		}
 
@@ -808,7 +807,7 @@ parse_multiform(const struct parms *pp, char *name,
 		mime_free(&mime);
 
 		if ( ! mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
-			XWARNX("RFC violation: MIME headers");
+			XWARNX("nested error: MIME headers");
 			goto out;
 		}
 
@@ -843,14 +842,16 @@ parse_multiform(const struct parms *pp, char *name,
 
 		if (0 == strcasecmp(mime.ctype, "multipart/mixed")) {
 			if (NULL == mime.bound) {
-				XWARNX("multiform: missing boundary");
+				XWARNX("RFC violation: missing "
+					"mixed multipart boundary");
 				goto out;
 			}
 			if ( ! parse_multiform
 				(pp, NULL != name ? name :
 				 mime.name, mime.bound, buf, 
 				 *pos + partsz, pos)) {
-				XWARNX("multiform: mixed part error");
+				XWARNX("nested error: mixed "
+					"multipart section parse");
 				goto out;
 			}
 			continue;
