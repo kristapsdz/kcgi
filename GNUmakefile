@@ -139,6 +139,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header-bad \
 		   regress/test-httpdate \
 		   regress/test-nogzip \
+		   regress/test-nullqueryval \
 		   regress/test-path-check \
 		   regress/test-ping \
 		   regress/test-post \
