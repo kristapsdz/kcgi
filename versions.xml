@@ -817,4 +817,20 @@
 			</div>
 		</aside>
 	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.10</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-11-19">2017-11-19</time>
+		</header>
+		<aside>
+			<div>
+				Many internal small issues (allocation catches, better logging, simplifying logic) fixed as found by Ingo
+				Schwarze (<q>schwarze@</q>) in an extensive audit generously funded by CAPEM Solutions, Inc.  
+				None of these change application behaviour except that standalone query parts are let through.
+				For example, <code>localhost/foo?bar=baz&amp;xyzzy</code> now passes <code>xyzzy</code> as a key-pair with a
+				zero-length pair.
+			</div>
+		</aside>
+	</article>
 </articles>
