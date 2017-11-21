@@ -509,24 +509,21 @@ mime_parse(const struct parms *pp, struct mime *mime,
 					"without subpart separator");
 				return(0);
 			} else if (key != val) {
-				keyend = val - 1;
 				/*
 				 * It's not clear whether we're allowed
 				 * to have OWS before the separator, but
 				 * allow for it anyway.
 				 */
-
-				do {
-					if (' ' != *keyend) 
-						break;
-					*keyend = '\0';
-					keyend--;
-				} while (keyend >= key);
-			} else 
-				XWARNX("RFC warning: empty MIME "
-					"subpart name");
+				keyend = val - 1;
+				while (keyend >= key && ' ' == *keyend)
+					*keyend-- = '\0';
+			} 
 
 			*val++ = '\0';
+
+			if ('\0' == *key) 
+				XWARNX("RFC warning: empty "
+					"MIME subpart name");
 
 			/* Quoted string. */
 
