@@ -589,6 +589,8 @@ parse_pairs_text(const struct parms *pp, char *p)
 {
 	char            *key, *val;
 
+	XWARNX("text/plain enctype is deprecated");
+
 	while (NULL != p && '\0' != *p) {
 		/* Skip leading whitespace. */
 		while (' ' == *p)
