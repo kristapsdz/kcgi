@@ -791,15 +791,30 @@
 		</header>
 		<aside>
 			<div>
-				<strong>API changes</strong>: use the appropriate <code>uint32_t</code> size for the HTTP digest authorisation
-				nonce count.
-				This follows <a href="https://tools.ietf.org/html/rfc7616">RFC 7616</a>, sec. 3.4.
-				Also add the <a href="kutil_log.3.html">kutil_err(3)</a> family of functions, which report an error and exit.
-				Split that into <a href="kutil_openlog.3.html">kutil_openlog(3)</a> as well.
-				Lastly, commit considerable improvements to the <a href="khttp_parse.3.html">khttp_parse(3)</a> and other
-				manpages, as well as some extra warning messages due to RFC violations during HTTP parse.
-				Most of these were found and patched by Ingo Schwarze (<q>schwarze@</q>) in an extensive audit generously funded
-				by CAPEM Solutions, Inc.  
+				<strong>API changes</strong>: use the
+				appropriate <code>uint32_t</code> size
+				for the HTTP digest authorisation nonce
+				count.
+				This follows <a
+					href="https://tools.ietf.org/html/rfc7616">RFC
+					7616</a>, sec. 3.4.
+				Also add the <a
+					href="kutil_log.3.html">kutil_err(3)</a>
+				family of functions, which report an
+				error and exit.
+				Split that into <a
+					href="kutil_openlog.3.html">kutil_openlog(3)</a>
+				as well.
+				Lastly, commit considerable improvements
+				to the <a
+					href="khttp_parse.3.html">khttp_parse(3)</a>
+				and other manpages, as well as some
+				extra warning messages due to RFC
+				violations during HTTP parse.
+				Most of these were found and patched by
+				Ingo Schwarze (<q>schwarze@</q>) in an
+				extensive audit generously funded by
+				CAPEM Solutions, Inc.  
 				Thank you!
 			</div>
 		</aside>
@@ -812,8 +827,11 @@
 		</header>
 		<aside>
 			<div>
-				Switch to using <a href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
-				Add the <a href="kvalid_string.3.html">kvalid_bit(3)</a> function for bit fields.
+				Switch to using <a
+					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
+				Add the <a
+					href="kvalid_string.3.html">kvalid_bit(3)</a>
+				function for bit fields.
 			</div>
 		</aside>
 	</article>
@@ -821,15 +839,28 @@
 		<header>
 			<h1>0.9.10</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-11-19">2017-11-19</time>
+			<time datetime="2017-11-21">2017-11-21</time>
 		</header>
 		<aside>
 			<div>
-				Many internal small issues (allocation catches, better logging, simplifying logic) fixed as found by Ingo
-				Schwarze (<q>schwarze@</q>) in an extensive audit generously funded by CAPEM Solutions, Inc.  
-				None of these change application behaviour except that standalone query parts are let through.
-				For example, <code>localhost/foo?bar=baz&amp;xyzzy</code> now passes <code>xyzzy</code> as a key-pair with a
-				zero-length pair.
+				Many internal small issues (allocation
+				catches, better logging, simplifying
+				logic) fixed as found by Ingo Schwarze
+				(<q>schwarze@</q>) in an extensive audit
+				generously funded by CAPEM Solutions,
+				Inc.  
+				None of these change application
+				behaviour except that standalone query
+				parts are let through.  For example,
+				<code>localhost/foo?bar=baz&amp;xyzzy</code>
+				now passes <code>xyzzy</code> as a
+				key-pair with a zero-length pair.
+			</div>
+			<div>
+				Note that parsing
+				<code>text/plain</code> enctypes is
+				now deprecated, as I'm yet to see this
+				ever used.
 			</div>
 		</aside>
 	</article>
