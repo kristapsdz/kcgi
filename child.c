@@ -926,11 +926,17 @@ parse_multiform(const struct parms *pp, char *name,
 			continue;
 		}
 
-		/* As per RFC 2045, we default to text/plain. */
+		/* 
+		 * As per RFC 2045, we default to text/plain.
+		 * We then re-lookup the ctypepos after doing so.
+		 */
 
-		if (NULL == mime.ctype &&
-		    NULL == (mime.ctype = XSTRDUP("text/plain")))
-			_exit(EXIT_FAILURE);
+		if (NULL == mime.ctype) {
+			mime.ctype = XSTRDUP("text/plain");
+			if (NULL == mime.ctype)
+				_exit(EXIT_FAILURE);
+			mime.ctypepos = str2ctype(pp, mime.ctype);
+		}
 
 		partsz = ln - &buf[*pos];
 
