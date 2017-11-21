@@ -741,8 +741,6 @@ static void
 parse_pairs_urlenc(const struct parms *pp, char *p)
 {
 	char	*key, *val;
-	char	 empty = '\0';
-	size_t	 sz;
 
 	assert(NULL != p);
 
@@ -752,31 +750,25 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 			p++;
 
 		key = p;
-		val = NULL;
 
-		if (NULL != (p = strchr(p, '='))) {
-			/* Key/value pair. */
+		/* 
+		 * Look ahead to either '=' or one of the key-value
+		 * terminators (or the end of the string).
+		 * If we have the equal sign, then we're a key-value
+		 * pair; otherwise, we're a standalone key value.
+		 */
+
+		p += strcspn(p, "=;&");
+
+		if ('=' == *p) {
 			*p++ = '\0';
 			val = p;
-			sz = strcspn(p, ";&");
-			p += sz;
-			if ('\0' != *p)
-				*p++ = '\0';
-		} else {
-			/* 
-			 * No value.
-			 * We let this through and just specify that it
-			 * has an empty value.
-			 * There is no standard that says what we do,
-			 * but the information should pass through.
-			 */
-			p = key;
-			sz = strcspn(p, ";&");
-			p += sz;
-			if ('\0' != *p)
-				p++;
-			val = &empty;
-		}
+			p += strcspn(p, ";&");
+		} else
+			val = p;
+
+		if ('\0' != *p)
+			*p++ = '\0';
 
 		/*
 		 * Both the key and the value can be URL encoded, so
@@ -790,8 +782,6 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 			XWARNX("url key: zero length");
 		else if ( ! urldecode(key))
 			XWARNX("url key: key decode");
-		else if (NULL != val && ! urldecode(val))
-			XWARNX("url key: val decode");
 		else
 			output(pp, key, val, strlen(val), NULL);
 	}
