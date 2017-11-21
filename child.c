@@ -449,19 +449,16 @@ mime_parse(const struct parms *pp, struct mime *mime,
 			 * supported, we do so here.
 			 */
 			keyend = val - 1;
-			do {
-				if (' ' != *keyend) 
-					break;
-				*keyend = '\0';
-				keyend--;
-			} while (keyend >= key);
-		} else
-			XWARNX("RFC warning: empty MIME "
-				"header name");
+			while (keyend >= key && ' ' == *keyend)
+				*keyend-- = '\0';
+		}
 
 		*val++ = '\0';
 		while (' ' == *val)
 			val++;
+
+		if ('\0' == *key) 
+			XWARNX("RFC warning: empty MIME header name");
 
 		/* 
 		 * Set "line" to be at the MIME value subpart, for
@@ -494,7 +491,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		/* 
 		 * Process subpart only for content-type and
 		 * content-disposition.
-		 * The rest have no information we want.
+		 * The rest have no information we want: silently ignore them.
 		 */
 
 		if (MIMETYPE_TYPE != type &&
