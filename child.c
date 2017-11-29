@@ -780,10 +780,17 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 		 * failure.
 		 */
 
+		warnx("%s, %s", key, val);
+
 		if ('\0' == *key)
-			XWARNX("url key: zero length");
+			XWARNX("RFC undefined behaviour: zero-length "
+				"URL-encoded form key (ignoring)");
 		else if ( ! urldecode(key))
-			XWARNX("url key: key decode");
+			XWARNX("RFC violation: invalid URL-encoding "
+				"for form key (ignoring)");
+		else if ( ! urldecode(val))
+			XWARNX("RFC violation: invalid URL-encoding "
+				"for form value (ignoring)");
 		else
 			output(pp, key, val, strlen(val), NULL);
 	}
