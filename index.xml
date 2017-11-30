@@ -277,9 +277,8 @@ int main(void) {
 				header file and make sure it appears in the compiler inclusion path.
 				(You'll need to include <span class="file">stdint.h</span> before it for the
 				<code>int64_t</code> type,
-				<span class="file">sys/types.h</span> for <code>size_t</code> and <code>ssize_t</code>, 
-				<span class="file">stdarg.h</span> for the <code>va_list</code> type, and
-				<span class="file">stddef.h</span> for the <code>NULL</code> type).
+				<span class="file">sys/types.h</span> for <code>size_t</code> and <code>ssize_t</code>, and
+				<span class="file">stdarg.h</span> for the <code>va_list</code> type).
 				Linking is similarly normative: link to <span class="file">libkcgi</span> and, if your system has
 				compression support, <span class="file">libz</span>.
 			</p>
