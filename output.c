@@ -100,18 +100,20 @@ fcgi_header(uint8_t type, uint16_t requestId,
 static void
 fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 {
-	char	 padding[256];
-	size_t	 rsz, paddingLength;
+	const char	*padding = "\0\0\0\0\0\0\0\0";
+	size_t	 	 rsz, paddingLength;
 
 	/* Break up the data stream into FastCGI-capable chunks. */
+
 	do {
-		paddingLength = 0;
+		/* 
+		 * Pad to 8-byte boundary.
+		 * This pads all FastCGI frames appropriately.
+		 */
+
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
-		/* Pad to 8-byte boundary. */
-		while (0 != ((rsz + paddingLength) % 8)) {
-			assert(paddingLength < 256);
-			padding[paddingLength++] = '\0';
-		}
+		paddingLength = -rsz % 8;
+
 #if 0
 		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n", 
 			__func__, type);
