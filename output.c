@@ -70,28 +70,22 @@ struct	kdata {
 
 static char *
 fcgi_header(uint8_t type, uint16_t requestId, 
-	size_t contentLength, size_t paddingLength)
+	uint16_t contentLength, uint8_t paddingLength)
 {
-	static char	header[8];
-	uint8_t		byte;
+	static uint8_t	header[8];
 
-	byte = 1;
-	memcpy(header, &byte, sizeof(uint8_t));
-	memcpy(header + 1, &type, sizeof(uint8_t));
-	byte = (requestId >> 8) & 0xff;
-	memcpy(header + 2, &byte, sizeof(uint8_t));
-	byte = requestId & 0xff;
-	memcpy(header + 3, &byte, sizeof(uint8_t));
-	byte = (contentLength >> 8) & 0xff;
-	memcpy(header + 4, &byte, sizeof(uint8_t));
-	byte = contentLength & 0xff;
-	memcpy(header + 5, &byte, sizeof(uint8_t));
-	memcpy(header + 6, &paddingLength, sizeof(uint8_t));
-	byte = 0;
-	memcpy(header + 7, &byte, sizeof(uint8_t));
+	/* Masking probably not necessary: truncation. */
+
+	header[0] = 1;
+	header[1] = type;
+	header[2] = (requestId >> 8) & 0xff;
+	header[3] = requestId & 0xff;
+	header[4] = (contentLength >> 8) & 0xff;
+	header[5] = contentLength & 0xff;
+	header[6] = paddingLength;
+	header[7] = 0;
 	return(header);
 }
-
 
 /*
  * Write a `stdout' FastCGI packet.
