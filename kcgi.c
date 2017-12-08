@@ -1117,6 +1117,44 @@ kvalid_uint(struct kpair *p)
 }
 
 int
+khttp_buf_write(const char *s, size_t sz, void *arg)
+{
+	struct kbuf	*b = arg;
+	void		*pp;
+
+	if (NULL == s)
+		return(1);
+
+	if (b->sz + sz + 1 > b->maxsz) {
+		b->maxsz = b->sz + sz + 1 + 
+			(0 == b->growsz ? 1024 : b->growsz);
+		pp = realloc(b->buf, b->maxsz);
+		if (NULL == pp)
+			return(0);
+		b->buf = pp;
+	}
+
+	memcpy(&b->buf[b->sz], s, sz);
+	b->sz += sz;
+	b->buf[b->sz] = '\0';
+	return(1);
+}
+
+int
+khttp_buf_putc(struct kbuf *buf, char c)
+{
+
+	return(khttp_buf_write(&c, 1, buf));
+}
+
+int
+khttp_buf_puts(struct kbuf *buf, const char *cp)
+{
+
+	return(khttp_buf_write(cp, strlen(cp), buf));
+}
+
+int
 khttp_template_buf(struct kreq *req, 
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
