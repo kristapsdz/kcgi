@@ -431,6 +431,13 @@ struct	kopts {
 	ssize_t		  	  sndbufsz;
 };
 
+struct	kbuf {
+	char		*buf; /* buffer contents */
+	size_t		 maxsz; /* buffer size (allocated) */
+	size_t		 sz; /* buffer current length */
+	size_t		 growsz; /* amount to grow (0 == default) */
+};
+
 struct	ktemplate {
 	const char *const	 *key;
 	size_t		 	  keysz;
@@ -499,6 +506,10 @@ int		 khttp_templatex_fd(const struct ktemplate *,
 			const struct ktemplatex *, void *);
 
 void		 khttp_write(struct kreq *, const char *, size_t);
+
+int		 khttp_buf_write(const char *, size_t, void *);
+int		 khttp_buf_putc(struct kbuf *, char);
+int		 khttp_buf_puts(struct kbuf *, const char *);
 
 int		 khttpdigest_validate(const struct kreq *, 
 			const char *);
