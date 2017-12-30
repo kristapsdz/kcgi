@@ -46,21 +46,19 @@ functions terminate the zero or more
 .Xr khttp_head 3
 calls for a
 .Xr kcgi 3
-context.
+context
+.Fa req .
 After these functions, invoking
 .Xr khttp_head 3
-will result in undefined behaviour.
-.Pp
-.Fn khttp_body_compress
-takes an additional argument,
-.Fa compress ,
-that dictates whether compression should be enabled.
-If
+or invoking
 .Fn khttp_body
-is used, this argument is set as 1.
-The values for
+or
+.Fn khttp_body_compress
+again results in undefined behaviour.
+.Pp
+The
 .Fa compress
-are as follows:
+argument enables or disables compression as follows:
 .Bl -tag -width Ds
 .It >0
 Check whether the
@@ -71,18 +69,19 @@ with a non-zero or empty q-value.
 If so, emit the appropriate
 .Dq Content-Encoding
 header and try to enable write compression.
-This auto-compression setting is the default behaviour of
-.Fn khttp_body .
+Calling
+.Fn khttp_body
+also selects this auto-compression behaviour.
 .It 0
 Do not check for the request header and do not emit
 .Dq Content-Encoding ,
 but try to enable write compression anyway.
-This is useful for applications overriding the
+This is useful for applications that write the
 .Dq Content-Encoding
 header themselves and want to explicitly stipulate output compression.
 .It <0
 Simply open the document body: do not fiddle with compression at all.
-This is useful if the application will have complete control over the
+This is useful if the application requires complete control over the
 output stream.
 Calls to
 .Xr khttp_write 3
@@ -100,13 +99,9 @@ If
 fails when enabling compression, the error is reported and compression
 is disabled.
 .Sh RETURN VALUES
-Both functions will return zero if compression was not enabled and
-non-zero if it was.
-Enabling means only that subsequent calls to
+Both functions return non-zero if subsequent calls to
 .Xr khttp_write 3
-and family will be compressed, not whether the compression
-.Dq Content-Encoding
-header was emitted.
+and similar functions will use compression, or 0 otherwise.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_head 3 ,
