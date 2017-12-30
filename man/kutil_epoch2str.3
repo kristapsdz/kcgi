@@ -74,7 +74,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm kutil_epoch2str ,
+.Fn kutil_epoch2str
 function formats an
 .Fa epoch
 value
@@ -95,12 +95,12 @@ This function is useful for properly setting date-time header values:
 .Dv KRESP_DATE ,
 etc.
 The
-.Nm kutil_epoch2utcstr
-is similar, conforming to ISO 8601, e.g.,
+.Fn kutil_epoch2utcstr
+function is similar, conforming to ISO 8601, e.g.,
 .Li 2002-10-02T13:00:00Z .
 .Pp
 The form
-.Nm kutil_epoch2tmvals
+.Fn kutil_epoch2tmvals
 breaks down the epoch value as seconds 0\(en60
 .Pq Fa tm_sec ,
 minutes 0\(en59
@@ -134,15 +134,15 @@ The macro accepts an epoch and a
 which the caller must have zeroed beforehand.
 .Pp
 The
-.Nm kutil_date2epoch
+.Fn kutil_date2epoch
 function converts a day, month, and year into an epoch (at time 00:00:00).
 If the year is before 1970 or any values are negative, this returns zero.
 The behaviour for invalid dates (e.g., a
 .Fn mon
 value of 14) is undefined.
 The
-.Nm kutil_datetime2epoch
-is similar, but acts upon time values as well.
+.Fn kutil_datetime2epoch
+function is similar, but acts upon time values as well.
 The same rules regarding negative numbers and undefinedness apply.
 .Pp
 All of these date functions are designed to avoid how native
@@ -151,13 +151,13 @@ and time formatting functions access time-zone files, which may
 unwittingly crash given some operating system's sandbox mechanisms.
 .Sh AUTHORS
 The
-.Nm kutil_epoch2str ,
-.Nm kutil_epoch2utcstr ,
-.Nm KUTIL_EPOCH2TM ,
-.Nm kutil_epoch2tmvals ,
-.Nm kutil_date2epoch ,
+.Fn kutil_epoch2str ,
+.Fn kutil_epoch2utcstr ,
+.Fn KUTIL_EPOCH2TM ,
+.Fn kutil_epoch2tmvals ,
+.Fn kutil_date2epoch ,
 and
-.Nm kutil_datetime2epoch
+.Fn kutil_datetime2epoch
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS

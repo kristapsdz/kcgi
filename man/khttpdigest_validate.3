@@ -40,9 +40,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttpdigest_validate
+.Fn khttpdigest_validate
 and
-.Nm khttpdigest_validatehash
+.Fn khttpdigest_validatehash
 functions validate the given
 .Fa password
 (or a pre-combined
@@ -60,14 +60,14 @@ check that the URI component of the digest matches that of the request,
 as these values are known to be mutable.
 .Pp
 The
-.Nm khttpdigest_validate
-function will compute a hash from the request and password; the
-.Nm khttpdigest_validatehash
+.Fn khttpdigest_validate
+function will compute a hash from the request and password;
+.Fn khttpdigest_validatehash
 operates on a pre-computed hash value.
 .Sh RETURN VALUES
-.Nm khttpdigest_validate
+.Fn khttpdigest_validate
 and
-.Nm khttpdigest_validatehash
+.Fn khttpdigest_validatehash
 will return zero if validation failed, less than zero if the request was
 not properly set up for HTTP digest validation (no HTTP method, not a
 digest request, not already authenticated by the web server), or greater
@@ -79,8 +79,8 @@ than zero if the validation succeeded.
 .Xr khttpbasic_validate 3
 .Sh AUTHORS
 The
-.Nm khttpdigest_validate
+.Fn khttpdigest_validate
 and
-.Nm khttpdigest_validatehash
+.Fn khttpdigest_validatehash
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

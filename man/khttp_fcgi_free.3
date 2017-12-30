@@ -38,9 +38,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_fcgi_free
+.Fn khttp_fcgi_free
 and
-.Nm khttp_fcgi_child_free
+.Fn khttp_fcgi_child_free
 functions free the resources of
 .Fa fcgi
 allocated by
@@ -50,9 +50,9 @@ After calling this function,
 cannot be used.
 .Pp
 The
-.Nm khttp_fcgi_child_free
-performs the same operations as
-.Nm khttp_fcgi_free ,
+.Fn khttp_fcgi_child_free
+function performs the same operations as
+.Fn khttp_fcgi_free ,
 but is careful not to trample on any open streams.
 Thus, it may be used after invoking
 .Xr fork 2
@@ -62,8 +62,8 @@ without confusing the output buffer or other child processes.
 .Xr khttp_fcgi_init 3
 .Sh AUTHORS
 The
-.Nm khttp_fcgi_free
+.Fn khttp_fcgi_free
 and
-.Nm khttp_fcgi_child_free
+.Fn khttp_fcgi_child_free
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

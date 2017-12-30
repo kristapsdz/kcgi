@@ -39,9 +39,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_body
+.Fn khttp_body
 and
-.Nm khttp_body_compress
+.Fn khttp_body_compress
 functions terminate the zero or more
 .Xr khttp_head 3
 calls for a
@@ -51,12 +51,12 @@ After these functions, invoking
 .Xr khttp_head 3
 will result in undefined behaviour.
 .Pp
-.Nm khttp_body_compress
+.Fn khttp_body_compress
 takes an additional argument,
 .Fa compress ,
 that dictates whether compression should be enabled.
 If
-.Nm khttp_body
+.Fn khttp_body
 is used, this argument is set as 1.
 The values for
 .Fa compress
@@ -72,7 +72,7 @@ If so, emit the appropriate
 .Dq Content-Encoding
 header and try to enable write compression.
 This auto-compression setting is the default behaviour of
-.Nm khttp_body .
+.Fn khttp_body .
 .It 0
 Do not check for the request header and do not emit
 .Dq Content-Encoding ,
@@ -113,6 +113,6 @@ header was emitted.
 .Xr zlib 3
 .Sh AUTHORS
 The
-.Nm
+.Fn khttp_body
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

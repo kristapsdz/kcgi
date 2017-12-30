@@ -57,9 +57,9 @@
 .Fn kutil_urlencode "const char *cp"
 .Sh DESCRIPTION
 The
-.Nm kutil_urlpart ,
+.Fn kutil_urlpart
 and
-.Nm kutil_urlpartx
+.Fn kutil_urlpartx
 functions format a partial HTTP URL from the path, suffix, page, and
 variable-length query string keys and values.
 If the
@@ -68,22 +68,22 @@ part is
 .Dv NULL ,
 it is not formatted as part of the URL.
 The
-.Nm kutil_urlabs
-forms an absolute URL from a scheme, domain, and path component.
+.Fn kutil_urlabs
+function forms an absolute URL from a scheme, domain, and path component.
 The
-.Nm kutil_urlencode
+.Fn kutil_urlencode
 function encodes a string for embedding in a URL.
 All functions return newly-allocated string of the encoded contents.
 .Pp
-.Nm kutil_urlpart
+.Fn kutil_urlpart
 and
-.Nm kutil_urlpartx
+.Fn kutil_urlpartx
 accept variable-length arguments terminated with a
 .Dv NULL
 value.
-.Nm kutil_urlpart
+.Fn kutil_urlpart
 accepts key-value string pairs.
-.Nm kutil_urlpartx
+.Fn kutil_urlpartx
 accepts string keys, then a
 .Vt "enum kattrx"
 of the value type, then a pointer to the value corresponding to that
@@ -98,14 +98,14 @@ for
 for
 .Vt double
 double-precision floating-point numbers.
-.Nm kutil_urlpart ,
+.Fn kutil_urlpart ,
 thus, is as if
-.Nm kutil_urlpartx
+.Fn kutil_urlpartx
 were invoked with
 .Dv KATTRX_STRING
 for all values.
 .Pp
-.Nm kutil_urlabs
+.Fn kutil_urlabs
 formats schema, host, port, and path component into a URL.
 This is
 .Em not
@@ -116,14 +116,14 @@ or just
 .Fn kutil_urlencode
 for the sensitive parts.
 .Sh RETURN VALUES
-.Nm kutil_urlabs ,
-.Nm kutil_urlpart ,
-.Nm kutil_urlpartx ,
+.Fn kutil_urlabs ,
+.Fn kutil_urlpart ,
+.Fn kutil_urlpartx ,
 and
-.Nm kutil_urlencode
+.Fn kutil_urlencode
 return a newly-allocated string that must be freed with
 .Xr free 3 .
-.Nm kutil_urlencode
+.Fn kutil_urlencode
 will return
 .Dv NULL
 if its input argument is
@@ -131,23 +131,23 @@ if its input argument is
 or if allocation fails.
 .Sh AUTHORS
 The
-.Nm
+.Fn kutil_urlabs
 library was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The
-.Nm kutil_urlabs
+.Fn kutil_urlabs
 function accepts schemas via
 .Vt "enum kscheme"
 that aren't URLs.
 .Pp
 Also, the fact that
-.Nm kutil_urlencode
+.Fn kutil_urlencode
 will return
 .Dv NULL
 on allocation failure but
-.Nm kutil_urlabs ,
-.Nm kutil_urlpart ,
+.Fn kutil_urlabs ,
+.Fn kutil_urlpart ,
 and
-.Nm kutil_urlpartx
+.Fn kutil_urlpartx
 will abort is wrong.
