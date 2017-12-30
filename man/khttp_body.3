@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -102,6 +103,20 @@ is disabled.
 Both functions return non-zero if subsequent calls to
 .Xr khttp_write 3
 and similar functions will use compression, or 0 otherwise.
+.Sh EXAMPLES
+To write out an HTTP header sequence and text content.
+Assume that
+.Fa r
+is a context initialized by
+.Xr khttp_parse 3 .
+.Bd -literal
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+khttp_body(r);
+khttp_puts(r, "Hello, world!\en");
+.Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_head 3 ,
