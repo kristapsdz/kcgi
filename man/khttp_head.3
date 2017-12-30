@@ -63,9 +63,6 @@ global array, indexed with the
 symbolic constants defined in
 .In kcgi.h ,
 provides standard HTTP key names.
-Use it for the
-.Fa key
-argument to avoid typos!
 .Pp
 See
 .Xr khttp_body 3
@@ -73,7 +70,7 @@ for a discussion on the
 .Qq Content-Encoding
 header: do not specify this header before doing so!
 .Sh EXAMPLES
-To emit a session cookie (no expiration date) with key
+To emit a session cookie (one-year expiration date) with key
 .Ar ckey
 and value
 .Ar cval
@@ -83,13 +80,25 @@ Assume that
 is a context initialized by
 .Xr khttp_parse 3 .
 .Bd -literal
-const char *ckey, *cval;
-khttp_head(r, kresps[KRESP_SET_COOKIE], "%s=%s; path=/", ckey, cval);
+const char *ckey = "foo", *cval = "bar";
+char buf[64];
+
+kutil_epoch2str(time(NULL) + 31536000, buf, 64);
+
+khttp_head(r, kresps[KRESP_SET_COOKIE],
+  "%s=%s; path=/; expires=%s", ckey, cval, buf);
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_parse 3
+.Sh STANDARDS
+RFC 2616, section 14:
+.Dq Header Field Definitions .
+.Pp
+The example references
+RFC 6265, section 4.1:
+.Dq Set-Cookie .
 .Sh AUTHORS
 The
 .Nm
