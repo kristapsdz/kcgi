@@ -33,7 +33,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm
+.Fn kutil_openlog
 function configures output for the
 .Xr kutil_log 3
 family of functions.
@@ -46,7 +46,7 @@ If
 .Fa file
 is not
 .Dv NULL ,
-.Nm
+.Fn kutil_openlog
 first redirects
 .Vt stderr
 to
@@ -65,16 +65,16 @@ as the web server might wait for all file descriptors to close before
 closing the request connection.
 .Sh RETURN VALUES
 The
-.Nm
+.Fn kutil_openlog
 function returns zero on failure (system error) and non-zero on success.
 If
-.Nm
+.Fn kutil_openlog
 fails to re-open
 .Vt stderr ,
 the output stream may no longer be operable: the caller should exit.
 .Sh AUTHORS
 The
-.Nm
+.Fn kutil_openlog
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
@@ -86,5 +86,5 @@ Thus,
 .Fa file
 must be pre-created and be writable to the CGI process.
 Otherwise,
-.Nm
+.Fn kutil_openlog
 will fail to create the file and exit with failure.

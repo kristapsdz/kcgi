@@ -190,11 +190,11 @@ This formats the log message.
 .El
 .Pp
 The
-.Nm kutil_err ,
-.Nm kutil_errx ,
-.Nm kutil_verr ,
+.Fn kutil_err ,
+.Fn kutil_errx ,
+.Fn kutil_verr ,
 and
-.Nm kutil_verrx
+.Fn kutil_verrx
 functions exit with
 .Dv EXIT_FAILURE .
 They will never return.
@@ -208,13 +208,13 @@ and space characters
 are shown as literal escape characters.
 .Pp
 The
-.Nm kutil_err ,
-.Nm kutil_verr ,
-.Nm kutil_log ,
-.Nm kutil_vlog ,
-.Nm kutil_vwarn ,
+.Fn kutil_err ,
+.Fn kutil_verr ,
+.Fn kutil_log ,
+.Fn kutil_vlog ,
+.Fn kutil_vwarn ,
 and
-.Nm kutil_warn
+.Fn kutil_warn
 functions print out the current
 .Vt errno
 following the log message.

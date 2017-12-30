@@ -196,14 +196,14 @@ None of these functions may be called before
 All
 .Nm kcgijson
 sequences begin and end with
-.Nm kjson_open
+.Fn kjson_open
 and
-.Nm kjson_close ,
+.Fn kjson_close ,
 respectively.
 These enclose a standalone-type array or object context,
-.Nm kjson_array_open
+.Fn kjson_array_open
 or
-.Nm kjson_obj_open ,
+.Fn kjson_obj_open ,
 respectively, each with its own pair-type or standalone-type children.
 .Pp
 In general,

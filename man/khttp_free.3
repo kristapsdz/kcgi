@@ -38,9 +38,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_free
+.Fn khttp_free
 and
-.Nm khttp_child_free
+.Fn khttp_child_free
 functions free the resources of
 .Fa req
 allocated by
@@ -53,9 +53,9 @@ After calling this function, the members of
 should not be used and the function should not be called again.
 .Pp
 The
-.Nm khttp_child_free
-performs the same operations as
-.Nm khttp_free ,
+.Fn khttp_child_free
+function performs the same operations as
+.Fn khttp_free ,
 but does not flush the HTTP data stream.
 Thus, it may be used after invoking
 .Xr fork 2
@@ -76,8 +76,8 @@ file descriptors.
 .Xr khttp_parse 3
 .Sh AUTHORS
 The
-.Nm khttp_free
+.Fn khttp_free
 and
-.Nm khttp_child_free
+.Fn khttp_child_free
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

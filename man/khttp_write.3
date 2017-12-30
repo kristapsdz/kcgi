@@ -47,10 +47,10 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_putc ,
-.Nm khttp_puts ,
+.Fn khttp_putc ,
+.Fn khttp_puts ,
 and
-.Nm khttp_write
+.Fn khttp_write
 functions write HTTP content for a
 .Xr kcgi 3
 context allocated with
@@ -60,16 +60,16 @@ or
 These functions may only be invoked after
 .Xr khttp_body 3 ,
 else their behaviour is undefined.
-.Nm khttp_putc
+.Fn khttp_putc
 emits a single character;
-.Nm khttp_puts
+.Fn khttp_puts
 emits a NUL-terminated character string
 .Po
 note, this does not append a newline like
 .Xr puts 3
 .Pc ,
 and
-.Nm khttp_write
+.Fn khttp_write
 emits a binary buffer
 .Fa buf
 of size
@@ -79,7 +79,5 @@ of size
 .Xr khttp_body 3 ,
 .Xr khttp_parse 3
 .Sh AUTHORS
-The
-.Nm
-library was written by
+These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

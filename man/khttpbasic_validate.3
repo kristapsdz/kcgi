@@ -35,7 +35,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttpbasic_validate
+.Fn khttpbasic_validate
 function validates the given
 .Fa user
 and
@@ -47,7 +47,7 @@ as returned by
 or
 .Xr khttp_fcgi_parse 3 .
 .Sh RETURN VALUES
-.Nm
+.Fn khttpbasic_validate
 will return zero if validation failed, less than zero if the request was
 not properly set up for HTTP basic validation (no HTTP method, not a
 basic request, not already authenticated by the web server), or greater
@@ -59,6 +59,6 @@ than zero if the validation succeeded.
 .Xr khttpdigest_validate
 .Sh AUTHORS
 The
-.Nm
+.Fn khttpbasic_validate
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

@@ -58,16 +58,16 @@
 .Fn kvalid_uint "struct kpair *kp"
 .Sh DESCRIPTION
 The
-.Nm kvalid_bit ,
-.Nm kvalid_date ,
-.Nm kvalid_double ,
-.Nm kvalid_email ,
-.Nm kvalid_int ,
-.Nm kvalid_string ,
-.Nm kvalid_stringne ,
-.Nm kvalid_udouble
+.Fn kvalid_bit ,
+.Fn kvalid_date ,
+.Fn kvalid_double ,
+.Fn kvalid_email ,
+.Fn kvalid_int ,
+.Fn kvalid_string ,
+.Fn kvalid_stringne ,
+.Fn kvalid_udouble
 and
-.Nm kvalid_uint ,
+.Fn kvalid_uint
 functions are basic validators for
 .Xr kcgi 3
 and are passed into the
@@ -99,8 +99,8 @@ of
 after parse.
 .Pp
 The
-.Nm kutil_invalidate
-marks a validated input pair as invalid, moving it from the
+.Fn kutil_invalidate
+function marks a validated input pair as invalid, moving it from the
 .Va cookiemap
 or
 .Va fieldmap
@@ -171,16 +171,16 @@ A 64-bit integer via
 that's weakly greater than zero.
 .El
 .Sh RETURN VALUES
-.Nm kvalid_bit ,
-.Nm kvalid_date ,
-.Nm kvalid_double ,
-.Nm kvalid_email ,
-.Nm kvalid_int ,
-.Nm kvalid_string ,
-.Nm kvalid_stringne ,
-.Nm kvalid_udouble ,
+.Fn kvalid_bit ,
+.Fn kvalid_date ,
+.Fn kvalid_double ,
+.Fn kvalid_email ,
+.Fn kvalid_int ,
+.Fn kvalid_string ,
+.Fn kvalid_stringne ,
+.Fn kvalid_udouble ,
 and
-.Nm kvalid_uint
+.Fn kvalid_uint
 return 0 if validation fails.
 If validation succeeds, the pair's
 .Va parsed
@@ -189,16 +189,16 @@ and
 fields are set accordingly.
 .Sh AUTHORS
 The
-.Nm kutil_invalidate ,
-.Nm kvalid_bit ,
-.Nm kvalid_date ,
-.Nm kvalid_double ,
-.Nm kvalid_email ,
-.Nm kvalid_int ,
-.Nm kvalid_string ,
-.Nm kvalid_stringne ,
-.Nm kvalid_udouble
+.Fn kutil_invalidate ,
+.Fn kvalid_bit ,
+.Fn kvalid_date ,
+.Fn kvalid_double ,
+.Fn kvalid_email ,
+.Fn kvalid_int ,
+.Fn kvalid_string ,
+.Fn kvalid_stringne ,
+.Fn kvalid_udouble ,
 and
-.Nm kvalid_uint
+.Fn kvalid_uint
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

@@ -42,9 +42,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm kcgi_regress_cgi
+.Fn kcgi_regress_cgi
 and
-.Nm kcgi_regress_fcgi
+.Fn kcgi_regress_fcgi
 functions are used for automated testing of
 .Xr kcgi 3
 systems, both as CGI and FastCGI scripts.
@@ -74,9 +74,9 @@ The
 library is used for internal testing on the client side.
 .Pp
 In most applications, the main function invokes
-.Nm kcgi_regress_cgi
+.Fn kcgi_regress_cgi
 or
-.Nm kcgi_regress_fcgi ,
+.Fn kcgi_regress_fcgi ,
 prepares a libCURL request in the client callback, then runs the usual
 .Xr kcgi 3
 sequence in the server callback.

@@ -56,9 +56,9 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_fcgi_init
+.Fn khttp_fcgi_init
 and
-.Nm khttp_fcgi_initx
+.Fn khttp_fcgi_initx
 functions initialise a FastCGI context for
 .Xr kcgi 3 .
 These functions will only work if invoked as FastCGI servers, for
@@ -74,11 +74,11 @@ all pointers are passed by reference and used in later invocations of
 .Xr khttp_fcgi_parse 3 .
 .Pp
 The first form,
-.Nm khttp_fgci_init ,
+.Fn khttp_fgci_init ,
 is for applications using the system-recognised MIME types.
 This should work well enough for most applications.
 It is equivalent to invoking the second form,
-.Nm khttp_fcgi_initx ,
+.Fn khttp_fcgi_initx ,
 as follows:
 .Bd -literal -offset indent
 khttp_fcgi_initx(fcgi, kmimetypes, KMIME__MAX,
@@ -100,9 +100,9 @@ functions may be invoked.
 .Pp
 .Em Note :
 in accordance with the FastCGI specification,
-.Nm khttp_fcgi_init
+.Fn khttp_fcgi_init
 and
-.Nm khttp_fcgi_initx
+.Fn khttp_fcgi_initx
 will install signal handlers for
 .Dv SIGTERM .
 These should not be changed by the calling application, but are not
@@ -114,9 +114,9 @@ instead of the FastCGI-specified
 .Dv SIGTERM
 and suffer the consequences of not properly exiting the parse loop.
 .Sh RETURN VALUES
-.Nm khttp_fcgi_init
+.Fn khttp_fcgi_init
 and
-.Nm khttp_fcgi_initx
+.Fn khttp_fcgi_initx
 return an error code:
 .Bl -tag -width -Ds
 .It Dv KCGI_OK
@@ -144,8 +144,8 @@ possible.
 .Xr khttp_parse 3
 .Sh AUTHORS
 The
-.Nm khttp_fcgi_init
+.Fn khttp_fcgi_init
 and
-.Nm khttp_fcgi_initx
+.Fn khttp_fcgi_initx
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

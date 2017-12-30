@@ -34,7 +34,7 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm
+.Fn khttp_fcgi_parse
 function parses and validates a single FastCGI request.
 They may be invoked as many times as necessary, but must follow a call
 to
@@ -44,7 +44,7 @@ and be followed by
 The
 .Fa req
 object filled in by
-.Nm
+.Fn khttp_fcgi_parse
 must always be matched by
 .Xr khttp_free .
 .Sh RETURN VALUES
@@ -61,6 +61,6 @@ application should exit.
 .Xr khttp_parse 3
 .Sh AUTHORS
 The
-.Nm
+.Fn khttp_fcgi_parse
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

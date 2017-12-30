@@ -77,13 +77,13 @@
 .Fc
 .Sh DESCRIPTION
 The
-.Nm khttp_template ,
-.Nm khttp_templatex ,
-.Nm khttp_template_buf ,
-.Nm khttp_templatex_buf ,
-.Nm khttp_template_fd ,
+.Fn khttp_template ,
+.Fn khttp_templatex ,
+.Fn khttp_template_buf ,
+.Fn khttp_templatex_buf ,
+.Fn khttp_template_fd ,
 and
-.Nm khttp_templatex_fd
+.Fn khttp_templatex_fd
 functions comprise a template system for a
 .Xr kcgi 3
 context allocated with
@@ -122,10 +122,10 @@ field to the structure.
 .El
 .Pp
 The
-.Nm khttp_templatex ,
-.Nm khttp_templatex_buf ,
+.Fn khttp_templatex ,
+.Fn khttp_templatex_buf ,
 and
-.Nm khttp_templatex_fd
+.Fn khttp_templatex_fd
 functions accept
 .Vt struct ktemplatex ,
 which has the following fields:
@@ -174,7 +174,7 @@ the file that will be opened read-only and passed into the file
 descriptor version.
 .Pp
 When
-.Nm khttp_templatex_buf
+.Fn khttp_templatex_buf
 is invoked (it is internally used by all of the templating functions),
 the buffer is emitted until a
 .Li @@foo@@
@@ -196,17 +196,17 @@ is invoked with the key index and the optional
 argument
 .Va arg .
 If not found and one of
-.Nm khttp_templatex ,
-.Nm khttp_templatex_fd ,
+.Fn khttp_templatex ,
+.Fn khttp_templatex_fd ,
 or
-.Nm khttp_templatex_buf
+.Fn khttp_templatex_buf
 was used with a fallthrough callback function, the fallthrough callback
 function will be invoked.
 In either event, if the callback returns zero,
-.Nm khttp_templatex_buf
+.Fn khttp_templatex_buf
 fails.
 This will trigger the failure of any invoking function such as
-.Nm khttp_template .
+.Fn khttp_template .
 If the key is not found and there is no fallthrough callback, it is
 emitted as opaque text.
 .Pp
@@ -216,7 +216,7 @@ is
 .Dv NULL ,
 the buffer (or file) is emitted without any processing.
 .Sh RETURN VALUES
-.Nm khttp_template
+.Fn khttp_template
 returns 0 if the
 .Xr fstat 2 ,
 .Xr open 2 ,
@@ -225,16 +225,16 @@ or
 functions fail on the file, or the file is too large to map.
 .Pp
 The
-.Nm khttp_template ,
-.Nm khttp_template_buf ,
+.Fn khttp_template ,
+.Fn khttp_template_buf ,
 and
-.Nm khttp_template_fd
+.Fn khttp_template_fd
 functions fail if the callback function returns 0.
 The
-.Nm khttp_templatex ,
-.Nm khttp_atemplatex_buf ,
+.Fn khttp_templatex ,
+.Fn khttp_atemplatex_buf ,
 and
-.Nm khttp_atemplatex_fd
+.Fn khttp_atemplatex_fd
 functions may also return 0 if the write functions return 0.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
@@ -243,14 +243,14 @@ functions may also return 0 if the write functions return 0.
 .Xr khttp_write 3
 .Sh AUTHORS
 The
-.Nm
+.Fn khttp_template
 library was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The
-.Nm khttp_template
+.Fn khttp_template
 and
-.Nm khttp_templatex
+.Fn khttp_templatex
 functions need access to the file-system.
 So if you're sandboxing your application, you should read the files
 before the sandbox and use the buffer or file descriptor versions.

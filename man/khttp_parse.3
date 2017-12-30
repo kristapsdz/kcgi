@@ -63,9 +63,9 @@
 .Vt extern const char *const ksuffixes[KMIME__MAX];
 .Sh DESCRIPTION
 The
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex
+.Fn khttp_parsex
 functions parse and validate input and the HTTP environment
 (compression, paths, MIME types, and so on).
 They are the central functions in the
@@ -168,11 +168,11 @@ Define the MIME type (suffix) mapping.
 .El
 .Pp
 The first form,
-.Nm khttp_parse ,
+.Fn khttp_parse ,
 is for applications using the system-recognised MIME types.
 This should work well enough for most applications.
 It is equivalent to invoking the second form,
-.Nm khttp_parsex ,
+.Fn khttp_parsex ,
 as follows:
 .Bd -literal -offset indent
 khttp_parsex(req, ksuffixmap,
@@ -184,9 +184,9 @@ khttp_parsex(req, ksuffixmap,
 A
 .Vt "struct kreq"
 object is filled in by
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex .
+.Fn khttp_parsex .
 It consists of the following fields:
 .Bl -tag -width Ds
 .It Vt "void *" Ns Va arg
@@ -515,9 +515,9 @@ field for the MIME type parsed from the suffix.
 The application may optionally define
 .Vt keys
 provided to
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex
+.Fn khttp_parsex
 as an array of
 .Vt "struct kvalid" .
 This structure is central to the validation of input data.
@@ -585,9 +585,9 @@ structure presents the user with fields parsed from input and (possibly)
 matched to the
 .Fa keys
 variable passed to
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex .
+.Fn khttp_parsex .
 It is also passed to the validation function to be filled in.
 In this case, the MIME-related fields are already filled in and may be
 examined to determine the method of validation.
@@ -606,11 +606,11 @@ is not
 it is looked up in the
 .Fa mimes
 parameter passed to
-.Nm khttp_parsex
+.Fn khttp_parsex
 or
 .Va ksuffixmap
 if using
-.Nm khttp_parse .
+.Fn khttp_parse .
 If found, it is set to the appropriate index.
 Otherwise, it's
 .Fa mimesz .
@@ -629,7 +629,7 @@ non-ASCII bytes, control characters, and shell metacharacters.
 If found in the
 .Fa keys
 array passed to
-.Nm khttp_parse ,
+.Fn khttp_parse ,
 the index of the matching key.
 Otherwise
 .Fa keysz .
@@ -818,13 +818,13 @@ The opaque header value, which may be an empty string.
 A number of variables are defined
 .In kcgi.h
 to simplify invocations of the
-.Nm khttp_parse
+.Fn khttp_parse
 family.
 Applications are strongly suggested to use these variables (and
 associated enumerations) in
-.Nm khttp_parse
+.Fn khttp_parse
 instead of overriding them with hand-rolled sets in
-.Nm khttp_parsex .
+.Fn khttp_parsex .
 .Bl -tag -width Ds
 .It Va kmimetypes
 Indexed list of common MIME types, for example,
@@ -870,9 +870,9 @@ pointer for types that have no canonical suffix, for example.
 .Dq application/octet-stream .
 .El
 .Sh RETURN VALUES
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex
+.Fn khttp_parsex
 return an error code:
 .Bl -tag -width -Ds
 .It Dv KCGI_OK
@@ -902,8 +902,8 @@ handle the empty CGI response on its own.
 .Xr khttp_free 3
 .Sh AUTHORS
 The
-.Nm khttp_parse
+.Fn khttp_parse
 and
-.Nm khttp_parsex
+.Fn khttp_parsex
 functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
