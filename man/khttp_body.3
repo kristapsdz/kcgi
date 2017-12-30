@@ -104,7 +104,8 @@ Both functions return non-zero if subsequent calls to
 .Xr khttp_write 3
 and similar functions will use compression, or 0 otherwise.
 .Sh EXAMPLES
-To write out an HTTP header sequence and text content.
+Write out an HTTP header sequence and text content with automatic
+compression detection.
 Assume that
 .Fa r
 is a context initialized by
@@ -115,6 +116,16 @@ khttp_head(r, kresps[KRESP_STATUS],
 khttp_head(r, kresps[KRESP_CONTENT_TYPE],
   "%s", kmimetypes[KMIME_TEXT_PLAIN]);
 khttp_body(r);
+khttp_puts(r, "Hello, world!\en");
+.Ed
+.Pp
+To do the same, but explicitly disabling compression:
+.Bd -literal
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+khttp_body_compress(r, -1);
 khttp_puts(r, "Hello, world!\en");
 .Ed
 .Sh SEE ALSO
