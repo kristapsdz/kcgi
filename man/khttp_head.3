@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
 .\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +20,7 @@
 .Os
 .Sh NAME
 .Nm khttp_head
-.Nd emit HTTP headers for kcgi
+.Nd emit one HTTP header for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -34,50 +35,56 @@
 .Fa "const char *fmt"
 .Fa "..."
 .Fc
+.Vt extern const char *const kresps[KRESP__MAX];
 .Sh DESCRIPTION
 The
 .Nm
-function emits HTTP headers for a
+function takes a
 .Xr kcgi 3
-context allocated by
-.Xr khttp_parse 3 .
-This may only be invoked prior to
-.Xr khttp_body 3 ;
-if not, its behaviour is undefined.
-The
-.Fa key
-value should be an HTTP response pair key.
+context
+.Fa req
+that was previously initialized by
+.Xr khttp_parse 3
+and emits one HTTP header with the given HTTP response
+.Fa key .
 The
 .Fa fmt
 string and variable arguments, which follow
 .Xr printf 3
-syntax, should be the HTTP response pair value.
+syntax, form the corresponding value in the HTTP response.
+This function may only be invoked prior to
+.Xr khttp_body 3 ;
+otherwise, its behaviour is undefined.
 .Pp
 The
 .Va kresps
-global array, defined in
-.Xr khttp_parse 3 ,
-provides indexed HTTP response keys for the default
-.Vt enum kresp .
-Use it!
+global array, indexed with the
+.Dv KRESP_*
+symbolic constants defined in
+.In kcgi.h ,
+provides standard HTTP key names.
+Use it for the
+.Fa key
+argument to avoid typos!
 .Pp
 See
 .Xr khttp_body 3
 for a discussion on the
-.Dq Content-Encoding
+.Qq Content-Encoding
 header: do not specify this header before doing so!
 .Sh EXAMPLES
 To emit a session cookie (no expiration date) with key
-.Dq foo
+.Ar ckey
 and value
-.Dq bar
+.Ar cval
 for the global path, one may invoke the following.
 Assume that
 .Fa r
-is a context allocated by
+is a context initialized by
 .Xr khttp_parse 3 .
 .Bd -literal
-khttp_head(r, kresps[KRESP_SET_COOKIE], "%s", "foo=bar; path=/");
+const char *ckey, *cval;
+khttp_head(r, kresps[KRESP_SET_COOKIE], "%s=%s; path=/", ckey, cval);
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
@@ -88,5 +95,5 @@ The
 .Nm
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh CAVEATS
+.Sh BUGS
 Long header values (\(>= 1024 B) will be truncated.
