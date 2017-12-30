@@ -1,5 +1,186 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- vim: set tw=100: -->
 <articles>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.11</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-12-30">ongoing</time>
+		</header>
+		<aside>
+			<div>
+				Improve <a href="khttp_head.3.html">khttp_head(3)</a>,
+				<a href="khttp_body.3.html">khttp_body(3)</a>, and
+				<a href="kmalloc.3.html">kmalloc(3)</a> manpages.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.10</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-11-21">2017-11-21</time>
+		</header>
+		<aside>
+			<div>
+				Many internal small issues (allocation catches, better logging,
+				simplifying logic) fixed as found by Ingo Schwarze
+				(<q>schwarze@</q>) in an extensive audit generously funded by CAPEM
+				Solutions, Inc.  None of these change application behaviour except
+				that standalone query parts are let through.  For example,
+				<code>localhost/foo?bar=baz&amp;xyzzy</code> now passes
+				<code>xyzzy</code> as a key-pair with a zero-length pair.
+			</div>
+			<div>
+				Note that parsing <code>text/plain</code> enctypes is now
+				deprecated, as I'm yet to see this ever used.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.9</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-10-30">2017-10-30</time>
+		</header>
+		<aside>
+			<div>
+				Switch to using <a
+					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
+				Add the <a href="kvalid_string.3.html">kvalid_bit(3)</a> function
+				for bit fields.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.8</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-10-18">2017-10-18</time>
+		</header>
+		<aside>
+			<div>
+				<strong>API changes</strong>: use the appropriate
+				<code>uint32_t</code> size for the HTTP digest authorisation nonce
+				count.  This follows <a
+					href="https://tools.ietf.org/html/rfc7616">RFC 7616</a>,
+				sec. 3.4.  Also add the <a href="kutil_log.3.html">kutil_err(3)</a>
+				family of functions, which report an error and exit.  Split that
+				into <a href="kutil_openlog.3.html">kutil_openlog(3)</a> as well.
+				Lastly, commit considerable improvements to the <a
+					href="khttp_parse.3.html">khttp_parse(3)</a> and other
+				manpages, as well as some extra warning messages due to RFC
+				violations during HTTP parse.  Most of these were found and patched
+				by Ingo Schwarze (<q>schwarze@</q>) in an extensive audit generously
+				funded by CAPEM Solutions, Inc.  Thank you!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.7</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-09-23">2017-09-23</time>
+		</header>
+		<aside>
+			<div>
+				Fix C headers in the documentation to be more minimal and
+				standards-compliant.
+			</div>
+			<div>
+				Add Ross Richardson's <a href="tutorial4.html">Using Pages</a>
+				tutorial.  Ross developed the new <a
+					href="https://undeadly.org">Undeadly Journal</a>!
+			</div>
+			<div>
+				Bug fixes&#8230; Clarify some function elements in <a
+					href="khttp_parse.3.html">khttp_parse(3)</a>.  Fixed
+				undefined behaviour caused when <a
+					href="khttp_template.3.html">khttp_templatex_buf(3)</a> is
+				passed a fallback function and mis-reports the input key length.
+				(If you use templating with a fallback function, you <strong>must
+					update</strong>.) Fix all instances of zero-length
+				allocations.  These are non-portable and might cause erroneous
+				failure on some systems.  Fix an error where using digest
+				authentication via <a
+					href="khttpdigest_validate.3.html">khttpdigest_validate(3)</a>
+				might crash with an unknown HTTP method.  Most of these were found
+				by Ingo Schwarze (<q>schwarze@</q>) in an extensive audit generously
+				funded by CAPEM Solutions, Inc.  Thank you!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-08-31">2017-08-31</time>
+		</header>
+		<aside>
+			<div>
+				Add the <a href="khttp_template.3.html">khttp_template_fd(3)</a>
+				functions for passing a file descriptor into the template utility
+				instead of an open file or buffer.  (Also clean up that
+				documentation.)
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-05-31">2017-05-31</time>
+		</header>
+		<aside>
+			<div>
+				Clarify documentation for <a href="kcgijson.3.html">kcgijson(3)</a>
+				and add an <code>uninstall</code> rule to the GNUmakefile for those
+				not using a package-managed version of the library.  No code
+				changes.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-03-12">2017-03-12</time>
+		</header>
+		<aside>
+			<div>
+				Add a feature inspired by Ross Richardson: a fallback function for
+				templates.  As described for the <a
+					href="khttp_template.3.html">khttp_template(3)</a> family of
+				functions, a fallback function is invoked if none of the fixed keys
+				are found.  This is handy because you can provide parsed template
+				keys, e.g., <code>foo[bar]</code> and <code>foo[baz]</code>, which
+				would be parsed for a type <code>foo</code> that's passed a dynamic
+				value <code>bar</code> or <code>baz</code>.
+			</div>
+			<div>
+				<strong>Nota bene</strong>: this required the <a
+					href="khttp_template.3.html">khttp_templatex(3)</a> and <a
+					href="khttp_template.3.html">khttp_templatex_buf(3)</a>
+				functions to have an argument change.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.9.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2017-01-25">2017-01-25</time>
+		</header>
+		<aside>
+			<div>
+				Numerous spelling errors fixed (no functional change) and added <a
+					href="kutil_epoch2str.3.html">kutil_epoch2utcstr(3)</a> for
+				formatting ISO 8601 dates.  Also fixed <a
+					href="kutil_epoch2str.3.html">KUTIL_EPOCH2TM(3)</a> macro to
+				set correct fields.
+			</div>
+		</aside>
+	</article>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
 			<h1>0.5.9</h1>
@@ -8,27 +189,35 @@
 		</header>
 		<aside>
 			<div>
-				Add ability to retrieve HTTP headers from the request.
-				This adds several fields to the structure filled in by <a href="khttp_parse.3.html">khttp_parse(3)</a> that allow for mapped
-				(indexed by known header) and listed header fields.
-				The HTTP headers are reconstituted from the CGI environmental variables according to the RFC.
-				These fields existed in earlier releases, but were not documented and, moreover, did not reconstitute the HTTP header name from
-				the CGI environment variable name.
-				A regression test has been added to test this behaviour.
-				While adding this documentation, clean up the type list in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+				Add ability to retrieve HTTP headers from the request.  This adds
+				several fields to the structure filled in by <a
+					href="khttp_parse.3.html">khttp_parse(3)</a> that allow for
+				mapped (indexed by known header) and listed header fields.  The HTTP
+				headers are reconstituted from the CGI environmental variables
+				according to the RFC.  These fields existed in earlier releases, but
+				were not documented and, moreover, did not reconstitute the HTTP
+				header name from the CGI environment variable name.  A regression
+				test has been added to test this behaviour.  While adding this
+				documentation, clean up the type list in <a
+					href="khttp_parse.3.html">khttp_parse(3)</a>.
 			</div>
 			<div>
-				Add <a href="khttp_body.3.html">khttp_body_compress(3)</a>, which allows for stipulating auto-compression (the default for
-				<a href="khttp_body.3.html">khttp_body(3)</a>), compression without emitting the appropriate header (for applications
-				providing the <q>Content-Encoding</q> parameter themselves), and no compression (for applications taking full control of
-				output themselves).
-				While there, make the test for requested compression be sensitive to the <a
-					href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC 2616</a> <q>qvalue</q>.
-				Both functions now return whether compression has been enabled.
-				This functionality augments existing behaviour: it does not change it.
+				Add <a href="khttp_body.3.html">khttp_body_compress(3)</a>, which
+				allows for stipulating auto-compression (the default for <a
+					href="khttp_body.3.html">khttp_body(3)</a>), compression
+				without emitting the appropriate header (for applications providing
+				the <q>Content-Encoding</q> parameter themselves), and no
+				compression (for applications taking full control of output
+				themselves).  While there, make the test for requested compression
+				be sensitive to the <a
+					href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC
+					2616</a> <q>qvalue</q>.  Both functions now return whether
+				compression has been enabled.  This functionality augments existing
+				behaviour: it does not change it.
 			</div>
 			<div>
-				Add HTTP error codes described by <a href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
+				Add HTTP error codes described by <a
+					href="https://tools.ietf.org/html/rfc6585">RFC 6585</a>.
 			</div>
 		</aside>
 	</article>
@@ -40,9 +229,11 @@
 		</header>
 		<aside>
 			<div>
-				Implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for convenient JSON functions, remove function prototype names
-				as per OpenBSD's <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>, polish
-				documentation.
+				Implement the <a href="kcgijson.3.html">kcgijson(3)</a> library for
+				convenient JSON functions, remove function prototype names as per
+				OpenBSD's <a
+					href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man9/style.9?query=style">style(9)</a>,
+				polish documentation.
 			</div>
 		</aside>
 	</article>
@@ -54,9 +245,12 @@
 		</header>
 		<aside>
 			<div>
-				Make sure that <a href="khttp_parse.3.html">khttp_parse(3)</a> returns an error code indicating what actually went wrong.
-				This is a minor API change because the function no longer returns 0, but an enumeration (where 0, incidentally, means success).
-				Also audit the parsing trailer to make sure that the parent doesn't exit in the event of memory exhaustion.
+				Make sure that <a href="khttp_parse.3.html">khttp_parse(3)</a>
+				returns an error code indicating what actually went wrong.  This is
+				a minor API change because the function no longer returns 0, but an
+				enumeration (where 0, incidentally, means success).  Also audit the
+				parsing trailer to make sure that the parent doesn't exit in the
+				event of memory exhaustion.
 			</div>
 		</aside>
 	</article>
@@ -68,8 +262,9 @@
 		</header>
 		<aside>
 			<div>
-				Add the Boolean and NULL types to <a href="kcgijson.3.html">kcgijson(3)</a>.
-				Fix control code serialisation in the same.
+				Add the Boolean and NULL types to <a
+					href="kcgijson.3.html">kcgijson(3)</a>.  Fix control code
+				serialisation in the same.
 			</div>
 		</aside>
 	</article>
@@ -81,15 +276,22 @@
 		</header>
 		<aside>
 			<div>
-				Expand the functionality of the template system with <a href="khttp_template.3.html">khttp_templatex(3)</a> and <a
-					href="khttp_template.3.html">khttp_templatex_buf(3)</a>, which allow the writing function to be overriden.
-				This allows templates to play nicely with other systems such as <a href="kcgijson.3.html">kcgijson(3)</a> and general dynamic
-				buffer creation.
-				I use this for creating mails for sending with <a href="http://curl.haxx.se/libcurl/">libcurl</a>.
-				Also create an automated test harness <a href="kcgi_regress.3.html">kcgi_regress(3)</a> that, for internal automated regression
-				testing, uses <a href="http://curl.haxx.se/libcurl/">libcurl</a> to create and parse HTTP messages over a local socket and a
-				small server to translate the requests into CGI variables for <span class="nm">kcgi</span>.
-				The internal tests can be run with <code>make regress</code>.
+				Expand the functionality of the template system with <a
+					href="khttp_template.3.html">khttp_templatex(3)</a> and <a
+					href="khttp_template.3.html">khttp_templatex_buf(3)</a>,
+				which allow the writing function to be overriden.  This allows
+				templates to play nicely with other systems such as <a
+					href="kcgijson.3.html">kcgijson(3)</a> and general dynamic
+				buffer creation.  I use this for creating mails for sending with <a
+					href="http://curl.haxx.se/libcurl/">libcurl</a>.  Also
+				create an automated test harness <a
+					href="kcgi_regress.3.html">kcgi_regress(3)</a> that, for
+				internal automated regression testing, uses <a
+					href="http://curl.haxx.se/libcurl/">libcurl</a> to create
+				and parse HTTP messages over a local socket and a small server to
+				translate the requests into CGI variables for <span
+					class="nm">kcgi</span>.  The internal tests can be run with
+				<code>make regress</code>.
 			</div>
 		</aside>
 	</article>
@@ -101,10 +303,12 @@
 		</header>
 		<aside>
 			<div>
-				Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle query strings and forms for validation testing.
-				Pick out one assertion failure in the parser by using the <a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
-				Add an a test harness for AFL as well.
-				Recognise CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
+				Allow <a href="kcgi_regress.3.html">kcgi_regress(3)</a> to handle
+				query strings and forms for validation testing.  Pick out one
+				assertion failure in the parser by using the <a
+					href="http://lcamtuf.coredump.cx/afl/">American fuzzy
+					lop</a>.  Add an a test harness for AFL as well.  Recognise
+				CONNECT, DELETE, HEAD, TRACE, PUT, and OPTIONS methods.
 			</div>
 		</aside>
 	</article>
@@ -116,20 +320,29 @@
 		</header>
 		<aside>
 			<div>
-				Allow for opaque HTTP message bodies: if our content type isn't <code>application/x-www-form-urlencoded</code>,
-				<code>multipart/form-data</code>, or <code>text/plain</code> (during a POST only), then accept the HTTP body as a single object
-				and validate it against the empty-key validator.
-				Add HTTP methods and headers stipulated by <a href="http://tools.ietf.org/html/rfc4918">HTTP Extensions for Web Distributed
-					Authoring and Versioning (WebDAV)</a> and <a href="http://tools.ietf.org/html/rfc4791">Calendaring Extensions to WebDAV
-					(CalDAV)</a>.
-				Allow for the HTTP request headers to be exported to the <code>struct kreq</code> object as both a list and, for common
-				HTTP headers, an indexed map.
-				Added <a href="kcgixml.3.html">kcgixml(3)</a> bits for some simple XML support and added <code>khtml_putc()</code> and
-				<code>khtml_puts()</code> to <a href="kcgihtml.3.html">kcgihtml(3)</a> for consistency.
-				Specify that a <code>NULL</code> template passed to the <a href="khttp_template.3.html">khttp_template(3)</a> functions simply
-				causes the named file or buffer to be outputted without any processing.
-				Lastly, recognise <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/getentropy.2">getentropy(2)</a> as a
-				white-listed system call in the <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
+				Allow for opaque HTTP message bodies: if our content type isn't
+				<code>application/x-www-form-urlencoded</code>,
+				<code>multipart/form-data</code>, or <code>text/plain</code> (during
+				a POST only), then accept the HTTP body as a single object and
+				validate it against the empty-key validator.  Add HTTP methods and
+				headers stipulated by <a
+					href="http://tools.ietf.org/html/rfc4918">HTTP Extensions
+					for Web Distributed Authoring and Versioning (WebDAV)</a>
+				and <a href="http://tools.ietf.org/html/rfc4791">Calendaring
+					Extensions to WebDAV (CalDAV)</a>.  Allow for the HTTP
+				request headers to be exported to the <code>struct kreq</code>
+				object as both a list and, for common HTTP headers, an indexed map.
+				Added <a href="kcgixml.3.html">kcgixml(3)</a> bits for some simple
+				XML support and added <code>khtml_putc()</code> and
+				<code>khtml_puts()</code> to <a
+					href="kcgihtml.3.html">kcgihtml(3)</a> for consistency.
+				Specify that a <code>NULL</code> template passed to the <a
+					href="khttp_template.3.html">khttp_template(3)</a> functions
+				simply causes the named file or buffer to be outputted without any
+				processing.  Lastly, recognise <a
+					href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man2/getentropy.2">getentropy(2)</a>
+				as a white-listed system call in the <a
+					href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man4/systrace.4">systrace(4)</a>
 				sandbox.
 			</div>
 		</aside>
@@ -142,10 +355,13 @@
 		</header>
 		<aside>
 			<div>
-				Fully process the <code>Authentication</code> header, implementing <a href="https://tools.ietf.org/html/rfc2617">RFC 2617</a>.
-				This was originally developed in <a href="http://kristaps.bsd.lv/kcaldav">kcaldav</a>, but makes more sense to be run here
-				inside of the untrusted child.
-				Values are stored in the <code>struct khttpauth</code> field documented in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+				Fully process the <code>Authentication</code> header, implementing
+				<a href="https://tools.ietf.org/html/rfc2617">RFC 2617</a>.  This
+				was originally developed in <a
+					href="http://kristaps.bsd.lv/kcaldav">kcaldav</a>, but makes
+				more sense to be run here inside of the untrusted child.  Values are
+				stored in the <code>struct khttpauth</code> field documented in <a
+					href="khttp_parse.3.html">khttp_parse(3)</a>.
 			</div>
 		</aside>
 	</article>
@@ -157,7 +373,8 @@
 		</header>
 		<aside>
 			<div>
-				Single bug-fix: the nonce count parsed from an HTTP digest was not being correctly recorded.
+				Single bug-fix: the nonce count parsed from an HTTP digest was not
+				being correctly recorded.
 			</div>
 		</aside>
 	</article>
@@ -171,8 +388,10 @@
 			<div>
 				Bug-fix when linking to <a href="kcgihtml.3.html">kcgihtml(3)</a>.
 				Added the access scheme (HTTP or HTTPS) to <code>struct kreq</code>.
-				Have validation for document body correctly set the <code>ctypepos</code> prior to validation.
-				While there, properly decode the content-type field (i.e., discarding parameters) when looking up the type in the known types.
+				Have validation for document body correctly set the
+				<code>ctypepos</code> prior to validation.  While there, properly
+				decode the content-type field (i.e., discarding parameters) when
+				looking up the type in the known types.
 			</div>
 		</aside>
 	</article>
@@ -686,181 +905,6 @@
 				Now they're correctly handled as opaque values; and moreover, they use a stricter check against <a
 					href="https://tools.ietf.org/html/rfc6265">RFC 6265</a>.
 				While there, update some spelling and typos (thanks Svyatoslav!).
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.3</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-01-25">2017-01-25</time>
-		</header>
-		<aside>
-			<div>
-				Numerous spelling errors fixed (no functional change) and added <a
-					href="kutil_epoch2str.3.html">kutil_epoch2utcstr(3)</a> for formatting ISO 8601 dates.
-				Also fixed <a href="kutil_epoch2str.3.html">KUTIL_EPOCH2TM(3)</a> macro to set correct fields.
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.4</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-03-12">2017-03-12</time>
-		</header>
-		<aside>
-			<div>
-				Add a feature inspired by Ross Richardson: a fallback function for templates.
-				As described for the <a href="khttp_template.3.html">khttp_template(3)</a> family of functions, 
-				a fallback function is invoked if none of the fixed keys are found.
-				This is handy because you can provide parsed template keys, e.g., <code>foo[bar]</code> and
-				<code>foo[baz]</code>, which would be parsed for a type <code>foo</code> that's passed a dynamic value
-				<code>bar</code> or <code>baz</code>.
-			</div>
-			<div>
-				<strong>Nota bene</strong>: this required the <a href="khttp_template.3.html">khttp_templatex(3)</a> and <a
-					href="khttp_template.3.html">khttp_templatex_buf(3)</a> functions to have an argument change.
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.5</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-05-31">2017-05-31</time>
-		</header>
-		<aside>
-			<div>
-				Clarify documentation for <a href="kcgijson.3.html">kcgijson(3)</a> and add an <code>uninstall</code> rule to
-				the GNUmakefile for those not using a package-managed version of the library.
-				No code changes.
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.6</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-08-31">2017-08-31</time>
-		</header>
-		<aside>
-			<div>
-				Add the <a href="khttp_template.3.html">khttp_template_fd(3)</a> functions for passing a file descriptor into
-				the template utility instead of an open file or buffer.
-				(Also clean up that documentation.)
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.7</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-09-23">2017-09-23</time>
-		</header>
-		<aside>
-			<div>
-				Fix C headers in the documentation to be more minimal and standards-compliant.
-			</div>
-			<div>
-				Add Ross Richardson's <a href="tutorial4.html">Using Pages</a> tutorial.
-				Ross developed the new <a href="https://undeadly.org">Undeadly Journal</a>!
-			</div>
-			<div>
-				Bug fixes&#8230;
-				Clarify some function elements in <a href="khttp_parse.3.html">khttp_parse(3)</a>.
-				Fixed undefined behaviour caused when <a href="khttp_template.3.html">khttp_templatex_buf(3)</a> is passed a
-				fallback function and mis-reports the input key length.
-				(If you use templating with a fallback function, you <strong>must update</strong>.)
-				Fix all instances of zero-length allocations.
-				These are non-portable and might cause erroneous failure on some systems.
-				Fix an error where using digest authentication via <a
-					href="khttpdigest_validate.3.html">khttpdigest_validate(3)</a> 
-				might crash with an unknown HTTP method.
-				Most of these were found by Ingo Schwarze (<q>schwarze@</q>) in an extensive audit generously funded by CAPEM
-				Solutions, Inc.  
-				Thank you!
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.8</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-10-18">2017-10-18</time>
-		</header>
-		<aside>
-			<div>
-				<strong>API changes</strong>: use the
-				appropriate <code>uint32_t</code> size
-				for the HTTP digest authorisation nonce
-				count.
-				This follows <a
-					href="https://tools.ietf.org/html/rfc7616">RFC
-					7616</a>, sec. 3.4.
-				Also add the <a
-					href="kutil_log.3.html">kutil_err(3)</a>
-				family of functions, which report an
-				error and exit.
-				Split that into <a
-					href="kutil_openlog.3.html">kutil_openlog(3)</a>
-				as well.
-				Lastly, commit considerable improvements
-				to the <a
-					href="khttp_parse.3.html">khttp_parse(3)</a>
-				and other manpages, as well as some
-				extra warning messages due to RFC
-				violations during HTTP parse.
-				Most of these were found and patched by
-				Ingo Schwarze (<q>schwarze@</q>) in an
-				extensive audit generously funded by
-				CAPEM Solutions, Inc.  
-				Thank you!
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.9</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-10-30">2017-10-30</time>
-		</header>
-		<aside>
-			<div>
-				Switch to using <a
-					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
-				Add the <a
-					href="kvalid_string.3.html">kvalid_bit(3)</a>
-				function for bit fields.
-			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.9.10</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-11-21">2017-11-21</time>
-		</header>
-		<aside>
-			<div>
-				Many internal small issues (allocation
-				catches, better logging, simplifying
-				logic) fixed as found by Ingo Schwarze
-				(<q>schwarze@</q>) in an extensive audit
-				generously funded by CAPEM Solutions,
-				Inc.  
-				None of these change application
-				behaviour except that standalone query
-				parts are let through.  For example,
-				<code>localhost/foo?bar=baz&amp;xyzzy</code>
-				now passes <code>xyzzy</code> as a
-				key-pair with a zero-length pair.
-			</div>
-			<div>
-				Note that parsing
-				<code>text/plain</code> enctypes is
-				now deprecated, as I'm yet to see this
-				ever used.
 			</div>
 		</aside>
 	</article>
