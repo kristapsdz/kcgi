@@ -58,7 +58,6 @@
 .Vt extern const char *const kmimetypes[KMIME__MAX];
 .Vt extern const char *const khttps[KHTTP__MAX];
 .Vt extern const char *const kschemes[KSCHEME__MAX];
-.Vt extern const char *const kresps[KRESP__MAX];
 .Vt extern const char *const kmethods[KMETHOD__MAX];
 .Vt extern const struct kmimemap ksuffixmap[];
 .Vt extern const char *const ksuffixes[KMIME__MAX];
@@ -847,13 +846,6 @@ or
 .Dq ftp .
 Corresponds to
 .Vt enum kscheme .
-.It Va kresps
-Indexed list of header response names, for example,
-.Dq Cache-Control
-or
-.Dq Content-Length .
-Corresponds to
-.Vt enum kresp .
 .It Va kmethods
 Indexed list of HTTP methods, for example,
 .Dq GET
