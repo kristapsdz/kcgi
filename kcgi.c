@@ -312,7 +312,6 @@ krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
-	assert(sz > 0);
 	if (NULL != (p = XREALLOC(pp, sz)))
 		return(p);
 
