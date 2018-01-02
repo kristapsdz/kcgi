@@ -184,24 +184,17 @@ static size_t
 str2ctype(const struct parms *pp, const char *ctype)
 {
 	size_t		 i, sz;
-	const char	*end;
-	
 
 	if (NULL == ctype) 
 		return(pp->mimesz);
 
 	/* Stop at the content-type parameters. */
-	if (NULL == (end = strchr(ctype, ';'))) 
-		sz = strlen(ctype);
-	else
-		sz = end - ctype;
+	sz = strcspn(ctype, ";");
 
-	for (i = 0; i < pp->mimesz; i++) {
-		if (sz != strlen(pp->mimes[i]))
-			continue;
-		if (0 == strncasecmp(pp->mimes[i], ctype, sz))
-			return(i);
-	}
+	for (i = 0; i < pp->mimesz; i++)
+		if (sz == strlen(pp->mimes[i]) &&
+		    0 == strncasecmp(pp->mimes[i], ctype, sz))
+			break;
 
 	return(i);
 }
