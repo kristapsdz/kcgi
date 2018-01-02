@@ -343,7 +343,7 @@ kasprintf(char **p, const char *fmt, ...)
 	len = XVASPRINTF(p, fmt, ap);
 	va_end(ap);
 
-	if (-1 != len)
+	if (len >= 0)
 		return(len);
 
 	exit(EXIT_FAILURE);
