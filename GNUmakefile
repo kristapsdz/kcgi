@@ -52,6 +52,7 @@ LIBOBJS 	 = auth.o \
 		   sandbox-pledge.o \
 		   sandbox-seccomp-filter.o \
 		   sandbox-systrace.o \
+		   template.o \
 		   wrappers.o
 HTMLS	 	 = $(addsuffix .html, $(MANS)) \
 		   functions.html
@@ -111,6 +112,7 @@ SRCS 		 = auth.c \
      		   sandbox-pledge.c \
      		   sandbox-seccomp-filter.c \
      		   sandbox-systrace.c \
+		   template.c \
 		   tests.c \
      		   wrappers.c \
      		   $(MANS)
