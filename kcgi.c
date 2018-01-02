@@ -860,63 +860,6 @@ khttp_free(struct kreq *req)
 	kreq_free(req);
 }
 
-int
-khttp_body(struct kreq *req)
-{
-
-	return(khttp_body_compress(req, 1));
-}
-
-int
-khttp_body_compress(struct kreq *req, int comp)
-{
-	int	 	 didcomp, hasreq;
-	const char	*cp;
-
-	didcomp = 0;
-	/*
-	 * First determine if the request wants HTTP compression.
-	 * Use RFC 2616 14.3 as a guide for checking this.
-	 */
-	hasreq = 0;
-	if (NULL != req->reqmap[KREQU_ACCEPT_ENCODING]) {
-		cp = req->reqmap[KREQU_ACCEPT_ENCODING]->val;
-		if (NULL != (cp = strstr(cp, "gzip"))) {
-			hasreq = 1;
-			/* 
-			 * We have the "gzip" line, so assume that we're
-			 * going to use gzip compression.
-			 * However, unset this if we have q=0.
-			 * FIXME: we should actually check the number,
-			 * not look at the first digit (q=0.0, etc.).
-			 */
-			cp += 4;
-			if (0 == strncmp(cp, ";q=0", 4)) 
-				hasreq = '.' == cp[4];
-		}
-	}
-
-	/* Only work with compression if we support it... */
-#if HAVE_ZLIB
-	/* 
-	 * Enable compression if the function argument is zero or if
-	 * it's >0 and the request headers have been set for it.
-	 */
-	if (0 == comp || (comp > 0 && hasreq))
-		didcomp = kdata_compress(req->kdata);
-	/* 
-	 * Only set the header if we're autocompressing and opening of
-	 * the compression stream did not fail.
-	 */
-	if (comp > 0 && didcomp)
-		khttp_head(req, 
-			kresps[KRESP_CONTENT_ENCODING], 
-			"%s", "gzip");
-#endif
-	kdata_body(req->kdata);
-	return(didcomp);
-}
-
 /*
  * Trim leading and trailing whitespace from a word.
  * Note that this returns a pointer within "val" and optionally sets the
