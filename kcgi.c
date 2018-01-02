@@ -895,18 +895,14 @@ trim(char *val)
 {
 	char		*cp;
 
-	if ('\0' == *val)
-		return(val);
+	while (isspace((unsigned char)*val))
+		val++;
 
-	cp = val + strlen(val) - 1;
+	cp = strchr(val, '\0') - 1;
 	while (cp > val && isspace((unsigned char)*cp))
 		*cp-- = '\0';
 
-	cp = val;
-	while (isspace((unsigned char)*cp))
-		cp++;
-
-	return(cp);
+	return(val);
 }
 
 /*
