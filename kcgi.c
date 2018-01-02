@@ -288,6 +288,9 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"xml", /* KMIME_TEXT_XML */
 };
 
+/*
+ * Safe strdup(): don't return on exhaustion.
+ */
 char *
 kstrdup(const char *cp)
 {
@@ -299,6 +302,9 @@ kstrdup(const char *cp)
 	exit(EXIT_FAILURE);
 }
 
+/*
+ * Safe realloc(): don't return on exhaustion.
+ */
 void *
 krealloc(void *pp, size_t sz)
 {
@@ -310,6 +316,9 @@ krealloc(void *pp, size_t sz)
 	exit(EXIT_FAILURE);
 }
 
+/*
+ * Safe reallocarray(): don't return on exhaustion.
+ */
 void *
 kreallocarray(void *pp, size_t nm, size_t sz)
 {
@@ -321,6 +330,9 @@ kreallocarray(void *pp, size_t nm, size_t sz)
 	exit(EXIT_FAILURE);
 }
 
+/*
+ * Safe asprintf(): don't return on exhaustion.
+ */
 int
 kasprintf(char **p, const char *fmt, ...)
 {
@@ -413,8 +425,15 @@ kutil_urlabs(enum kscheme scheme,
 {
 	char	*p;
 
-	(void)kasprintf(&p, "%s://%s:%" PRIu16 "%s", 
-		kschemes[scheme], host, port, path);
+	/* 
+	 * The value of "p" is not determined by the standard.
+	 * On OpenBSD, it is set to NULL on failure; that is not always
+	 * the case, so do so here.
+	 */
+
+	if (XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
+	    kschemes[scheme], host, port, path) < 0)
+		p = NULL;
 
 	return(p);
 }
@@ -424,31 +443,42 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	const char *mime, const char *page, ...)
 {
 	va_list		 ap;
-	char		*p, *pp, *keyp, *valp;
+	int		 rc;
+	char		*p, *pp, *keyp, *valp, *valpp;
 	size_t		 total, count;
 	char	 	 buf[256]; /* max double/int64_t */
 
 	if (NULL == (pp = kutil_urlencode(page)))
-		exit(EXIT_FAILURE);
+		return(NULL);
 
-	if (NULL != mime)
-		(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
-	else
-		(void)kasprintf(&p, "%s/%s", path, pp);
+	/* If we have a MIME type, append it. */
+
+	rc = NULL != mime ?
+		XASPRINTF(&p, "%s/%s.%s", path, pp, mime) :
+		XASPRINTF(&p, "%s/%s", path, pp);
 
 	free(pp);
+
+	if (rc < 0)
+		return(NULL);
+
 	total = strlen(p) + 1;
 	va_start(ap, page);
 	count = 0;
+
 	while (NULL != (pp = va_arg(ap, char *))) {
 		keyp = kutil_urlencode(pp);
-		if (NULL == keyp)
-			exit(EXIT_FAILURE);
+		if (NULL == keyp) {
+			free(p);
+			return(NULL);
+		}
 
-		valp = NULL;
+		valp = valpp = NULL;
+
 		switch (va_arg(ap, enum kattrx)) {
 		case (KATTRX_STRING):
 			valp = kutil_urlencode(va_arg(ap, char *));
+			valpp = valp;
 			break;
 		case (KATTRX_INT):
 			(void)snprintf(buf, sizeof(buf),
@@ -462,13 +492,24 @@ kutil_urlpartx(struct kreq *req, const char *path,
 			break;
 		}
 
-		if (NULL == valp) 
-			exit(EXIT_FAILURE);
+		if (NULL == valp) {
+			free(p);
+			free(keyp);
+			return(NULL);
+		}
 
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
+
 		total += strlen(keyp) + strlen(valp) + 2;
-		p = krealloc(p, total);
+
+		if (NULL == (pp = XREALLOC(p, total))) {
+			free(p);
+			free(keyp);
+			free(valpp);
+			return(NULL);
+		}
+		p = pp;
 
 		if (count > 0)
 			(void)strlcat(p, "&", total);
@@ -480,10 +521,10 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		(void)strlcat(p, valp, total);
 
 		free(keyp);
-		if (valp != buf)
-			free(valp);
+		free(valpp);
 		count++;
 	}
+
 	va_end(ap);
 	return(p);
 }

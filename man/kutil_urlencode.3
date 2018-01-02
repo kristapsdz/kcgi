@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -116,23 +116,19 @@ or just
 .Fn kutil_urlencode
 for the sensitive parts.
 .Sh RETURN VALUES
-.Fn kutil_urlabs ,
-.Fn kutil_urlpart ,
-.Fn kutil_urlpartx ,
-and
-.Fn kutil_urlencode
-return a newly-allocated string that must be freed with
+These functions return a newly-allocated string that must be freed with
 .Xr free 3 .
-.Fn kutil_urlencode
-will return
+They will return
 .Dv NULL
-if its input argument is
-.Dv NULL
-or if allocation fails.
-.Sh AUTHORS
+if allocation fails.
 The
-.Fn kutil_urlabs
-library was written by
+.Fn kutil_urlencode
+function will also return
+.Dv NULL
+if the input is
+.Dv NULL .
+.Sh AUTHORS
+These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The
@@ -141,13 +137,10 @@ function accepts schemas via
 .Vt "enum kscheme"
 that aren't URLs.
 .Pp
-Also, the fact that
-.Fn kutil_urlencode
-will return
-.Dv NULL
-on allocation failure but
-.Fn kutil_urlabs ,
-.Fn kutil_urlpart ,
-and
+The
 .Fn kutil_urlpartx
-will abort is wrong.
+and
+.Fn kutil_urlpart
+accept
+.Fa req ,
+which is not used and should be removed.
