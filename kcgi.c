@@ -425,16 +425,8 @@ kutil_urlabs(enum kscheme scheme,
 {
 	char	*p;
 
-	/* 
-	 * The value of "p" is not determined by the standard.
-	 * On OpenBSD, it is set to NULL on failure; that is not always
-	 * the case, so do so here.
-	 */
-
-	if (XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
-	    kschemes[scheme], host, port, path) < 0)
-		p = NULL;
-
+	XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
+	    kschemes[scheme], host, port, path);
 	return(p);
 }
 
