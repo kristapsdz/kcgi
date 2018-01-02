@@ -41,27 +41,24 @@ kxvasprintf(const char *file, int line,
 {
 	int	 len;
 
-	if (-1 != (len = vasprintf(p, fmt, ap)))
+	if ((len = vasprintf(p, fmt, ap)) >= 0)
 		return(len);
 
 	kxwarn(file, line, "vasprintf");
-	return(-1);
+	*p = NULL;
+	return(len);
 }
 
 int
 kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
 {
 	va_list	 ap;
-	int	 len;
+	int	 ret;
 
 	va_start(ap, fmt);
-	len = vasprintf(p, fmt, ap);
+	ret = kxvasprintf(file, line, p, fmt, ap);
 	va_end(ap);
-	if (len != -1)
-		return(len);
-
-	kxwarn(file, line, "vasprintf");
-	return(-1);
+	return(ret);
 }
 
 void *
