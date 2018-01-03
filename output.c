@@ -89,42 +89,41 @@ fcgi_header(uint8_t type, uint16_t requestId,
 
 /*
  * Write a `stdout' FastCGI packet.
- * This involves writing the header, then the data itself.
+ * This involves writing the header, then the data itself, then padding.
+ * Returns zero on failure (system error writing to channel), non-zero
+ * for success.
  */
-static void
+static int
 fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 {
-	const char	*padding = "\0\0\0\0\0\0\0\0";
-	size_t	 	 rsz, paddingLength;
+	const char	*pad = "\0\0\0\0\0\0\0\0";
+	char		*head;
+	size_t	 	 rsz, padlen;
 
-	/* Break up the data stream into FastCGI-capable chunks. */
+	/* 
+	 * Break up the data stream into FastCGI-capable chunks of at
+	 * most UINT16_MAX bytes.
+	 * Send each of these in its own FastCGI frame.
+	 */
 
 	do {
-		/* 
-		 * Pad to 8-byte boundary.
-		 * This pads all FastCGI frames appropriately.
-		 */
+		/* Pad to 8-byte boundary. */
 
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
-		paddingLength = -rsz % 8;
+		padlen = -rsz % 8;
+		head = fcgi_header(type, p->requestId, rsz, padlen);
 
-#if 0
-		fprintf(stderr, "%s: DEBUG send type: %" PRIu8 "\n", 
-			__func__, type);
-		fprintf(stderr, "%s: DEBUG send requestId: %" PRIu16 "\n", 
-			__func__, p->requestId);
-		fprintf(stderr, "%s: DEBUG send contentLength: %zu\n", 
-			__func__, rsz);
-		fprintf(stderr, "%s: DEBUG send paddingLength: %zu\n", 
-			__func__, paddingLength);
-#endif
-		fullwritenoerr(p->fcgi, fcgi_header
-			(type, p->requestId, rsz, paddingLength), 8);
-		fullwritenoerr(p->fcgi, buf, rsz);
-		fullwritenoerr(p->fcgi, padding, paddingLength);
+		if (fullwritenoerr(p->fcgi, head, 8) <= 0)
+			return(0);
+		if (fullwritenoerr(p->fcgi, buf, rsz) <= 0)
+			return(0);
+		if (fullwritenoerr(p->fcgi, pad, padlen) <= 0)
+			return(0);
 		sz -= rsz;
 		buf += rsz;
 	} while (sz > 0);
+
+	return(1);
 }
 
 /*
