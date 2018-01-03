@@ -127,27 +127,48 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 	} while (sz > 0);
 }
 
-static void
+/*
+ * Initialise the buffer holding our debugging lines of output.
+ * This returns zero on failure (memory failure) or non-zero on success.
+ * It does nothing if the line buffer is already initialised.
+ */
+static int
 linebuf_init(struct kdata *p)
 {
 
-	if (NULL != p->linebuf) 
-		return;
-	p->linebufsz = BUFSIZ;
-	p->linebuf = kmalloc(p->linebufsz);
-	p->linebuf[0] = '\0';
-	p->linebufpos = 0;
+	if (NULL == p->linebuf) {
+		p->linebufsz = BUFSIZ;
+		p->linebuf = XMALLOC(p->linebufsz);
+		if (NULL == p->linebuf)
+			return(0);
+		p->linebuf[0] = '\0';
+		p->linebufpos = 0;
+	}
+	return(1);
 }
 
-static void
+/*
+ * Flush the debugging line to our output channel.
+ * Returns zero on failure (system error), non-zero on success.
+ * Does nothing (success) if there are no bytes in the line buffer.
+ */
+static int
 linebuf_flush(struct kdata *p, int newln)
 {
+	int	 rc;
 
-	fprintf(stderr, "%u: %s%s", getpid(), 
-		p->linebuf, newln ? "\n" : "");
-	fflush(stderr);
+	if (0 == p->linebufpos)
+		return(1);
+
+	rc = fprintf(stderr, "%u: %s%s", 
+		getpid(), p->linebuf, newln ? "\n" : "");
+	if (rc < 0)
+		return(0);
+	if (0 != fflush(stderr))
+		return(0);
 	p->linebufpos = 0;
 	p->linebuf[0] = '\0';
+	return(1);
 }
 
 /*
@@ -202,8 +223,11 @@ kdata_drain(struct kdata *p)
  * buffer that we fill and drain as needed.
  * This will end up calling kdata_flush(), directly or indirectly.
  * This will also handle debugging.
+ * Returns KCGI_ENOMEM if any allocation failures occur during the
+ * sequence, KCGI_SYSTEM if any errors occur writing to the output
+ * channel, or KCGI_OK on success.
  */
-static void
+static enum kcgi_err
 kdata_write(struct kdata *p, const char *buf, size_t sz)
 {
 	size_t	 	 i;
@@ -211,7 +235,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	assert(NULL != p);
 
 	if (0 == sz || NULL == buf)
-		return;
+		return(KCGI_OK);
 
 	/*
 	 * We want to debug writes.
@@ -221,10 +245,12 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 */
 
 	if (KREQ_DEBUG_WRITE & p->debugging) {
-		linebuf_init(p);
+		if ( ! linebuf_init(p))
+			return(KCGI_ENOMEM);
 		for (i = 0; i < sz; i++, p->bytes++) {
 			if (p->linebufpos + 4 >= p->linebufsz)
-				linebuf_flush(p, 1);
+				if ( ! linebuf_flush(p, 1))
+					return(KCGI_SYSTEM);
 			if (isprint((unsigned char)buf[i]) || '\n' == buf[i]) {
 				p->linebuf[p->linebufpos++] = buf[i];
 			} else if ('\t' == buf[i]) {
@@ -244,7 +270,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 
 			p->linebuf[p->linebufpos] = '\0';
 			if ('\n' == buf[i])
-				linebuf_flush(p, 0);
+				if ( ! linebuf_flush(p, 0))
+					return(KCGI_SYSTEM);
 		}
 	}
 
@@ -255,7 +282,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 
 	if (0 == p->outbufsz) {
 		kdata_flush(p, buf, sz);
-		return;
+		return(KCGI_OK);
 	}
 
 	/*
@@ -272,7 +299,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 		kdata_drain(p);
 		if (sz > p->outbufsz) {
 			kdata_flush(p, buf, sz);
-			return;
+			return(KCGI_OK);
 		}
 	}
 
@@ -280,6 +307,7 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	assert(NULL != p->outbuf);
 	memcpy(p->outbuf + p->outbufpos, buf, sz);
 	p->outbufpos += sz;
+	return(KCGI_OK);
 }
 
 /*
@@ -378,8 +406,7 @@ kdata_free(struct kdata *p, int flush)
 
 	/* Debugging messages. */
 	if (flush && KREQ_DEBUG_WRITE & p->debugging) {
-		if (p->linebufpos > 0)
-			linebuf_flush(p, 1);
+		(void)linebuf_flush(p, 1);
 		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
 			getpid(), p->bytes);
 		fflush(stderr);
