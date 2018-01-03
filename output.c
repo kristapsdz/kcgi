@@ -327,29 +327,29 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 /*
  * Just like khttp_head() except with a KSTATE_BODY.
  */
-void
+enum kcgi_err
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
 	struct kdata	*p = req->kdata;
 
 	assert(NULL != p);
 	assert(KSTATE_BODY == p->state);
-	kdata_write(req->kdata, buf, sz);
+	return(kdata_write(req->kdata, buf, sz));
 }
 
-void
+enum kcgi_err
 khttp_puts(struct kreq *req, const char *cp)
 {
 
-	khttp_write(req, cp, strlen(cp));
+	return(khttp_write(req, cp, strlen(cp)));
 }
 
-void
+enum kcgi_err
 khttp_putc(struct kreq *req, int c)
 {
 	char		cc = c;
 
-	khttp_write(req, &cc, 1);
+	return(khttp_write(req, &cc, 1));
 }
 
 /*

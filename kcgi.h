@@ -486,8 +486,8 @@ enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *,
 			const char *const *, size_t,
 			size_t, size_t, void *, void (*)(void *),
 			unsigned int, const struct kopts *);
-void		 khttp_putc(struct kreq *, int);
-void		 khttp_puts(struct kreq *, const char *);
+enum kcgi_err	 khttp_putc(struct kreq *, int);
+enum kcgi_err	 khttp_puts(struct kreq *, const char *);
 int		 khttp_template(struct kreq *, 
 			const struct ktemplate *, const char *);
 int		 khttp_template_fd(struct kreq *, 
@@ -505,7 +505,7 @@ int		 khttp_templatex_fd(const struct ktemplate *,
 			int, const char *,
 			const struct ktemplatex *, void *);
 
-void		 khttp_write(struct kreq *, const char *, size_t);
+enum kcgi_err	 khttp_write(struct kreq *, const char *, size_t);
 
 int		 khttp_buf_write(const char *, size_t, void *);
 int		 khttp_buf_putc(struct kbuf *, char);
