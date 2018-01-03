@@ -951,7 +951,7 @@ valid_email(char *p)
 int
 kvalid_date(struct kpair *kp)
 {
-	int		 mday, mon, year;
+	int		 mday, mon, year, leap = 0;
 
 	if (kp->valsz != 10 || '\0' != kp->val[10] ||
 	    ! isdigit((unsigned char)kp->val[0]) ||
@@ -969,6 +969,28 @@ kvalid_date(struct kpair *kp)
 	year = atoi(&kp->val[0]);
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
+
+	/* Basic boundary checks. */
+
+	if (year < 1970 || mon < 0 || mday < 0 ||
+	    mon > 12 || mday > 31)
+		return(0);
+
+	/* Check for 30 days. */
+
+	if ((4 == mon || 6 == mon || 9 == mon || 11 == mon) &&
+	    mday > 30)
+		return(0);
+
+	/* Check for leap year. */
+
+	if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+		leap = 1;
+
+	if (leap && 2 == mon && mday > 29)
+		return(0);
+	if ( ! leap && 2 == mon && mday > 28)
+		return(0);
 
 	kp->parsed.i = kutil_date2epoch(mday, mon, year);
 	kp->type = KPAIR_INTEGER;
