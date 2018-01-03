@@ -29,17 +29,17 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft void
+.Ft enum kcgi_err
 .Fo khttp_putc
 .Fa "struct kreq *req"
 .Fa "int c"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khttp_puts
 .Fa "struct kreq *req"
 .Fa "const char *cp"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khttp_write
 .Fa "struct kreq *req"
 .Fa "const char *buf"
@@ -74,6 +74,16 @@ emits a binary buffer
 .Fa buf
 of size
 .Fa sz .
+.Sh RETURN VALUES
+These functions return an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
