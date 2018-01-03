@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -130,6 +130,9 @@ date.
 Set as a
 .Dv KPAIR_INTEGER
 in the number of seconds since the UNIX epoch.
+Dates before the epoch (1970-01-01) are not accepted.
+Beyond syntax, dates are checked for correctness (days in month, leap
+years, etc.), but the correctness is not guaranteed.
 .It Fn kvalid_double
 A signed double-precision floating-point number.
 See
@@ -171,34 +174,12 @@ A 64-bit integer via
 that's weakly greater than zero.
 .El
 .Sh RETURN VALUES
-.Fn kvalid_bit ,
-.Fn kvalid_date ,
-.Fn kvalid_double ,
-.Fn kvalid_email ,
-.Fn kvalid_int ,
-.Fn kvalid_string ,
-.Fn kvalid_stringne ,
-.Fn kvalid_udouble ,
-and
-.Fn kvalid_uint
-return 0 if validation fails.
+These functions return 0 if validation fails.
 If validation succeeds, the pair's
 .Va parsed
 and
 .Va type
 fields are set accordingly.
 .Sh AUTHORS
-The
-.Fn kutil_invalidate ,
-.Fn kvalid_bit ,
-.Fn kvalid_date ,
-.Fn kvalid_double ,
-.Fn kvalid_email ,
-.Fn kvalid_int ,
-.Fn kvalid_string ,
-.Fn kvalid_stringne ,
-.Fn kvalid_udouble ,
-and
-.Fn kvalid_uint
-functions were written by
+These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
