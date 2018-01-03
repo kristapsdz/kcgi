@@ -257,7 +257,8 @@ fullwriteword(int fd, const char *buf)
  * This is like fullwrite() but it does not bail out on errors.
  * We need this for writing our response to a socket that may be closed
  * at any time, like the FastCGI one.
- * It is exactly the same as fullwrite() except for that.
+ * Returns -1 on system error (poll or write), 0 if the output channel
+ * closes during write, 1 on success.
  */
 int
 fullwritenoerr(int fd, const void *buf, size_t bufsz)
