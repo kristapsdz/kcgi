@@ -211,15 +211,19 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 
 /*
  * Drain the output buffer.
+ * This does nothing if there's no output buffer.
+ * Returns zero on failure (system error), non-zero on success.
  */
-static void
+static int
 kdata_drain(struct kdata *p)
 {
 
 	if (0 == p->outbufpos)
-		return;
-	kdata_flush(p, p->outbuf, p->outbufpos);
+		return(1);
+	if ( ! kdata_flush(p, p->outbuf, p->outbufpos))
+		return(0);
 	p->outbufpos = 0;
+	return(1);
 }
 
 /*
@@ -304,7 +308,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 */
 
 	if (p->outbufpos + sz > p->outbufsz) {
-		kdata_drain(p);
+		if ( ! kdata_drain(p))
+			return(KCGI_SYSTEM);
 		if (sz > p->outbufsz) {
 			if ( ! kdata_flush(p, buf, sz))
 				return(KCGI_SYSTEM);
