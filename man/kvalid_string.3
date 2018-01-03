@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
 .\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -28,7 +29,7 @@
 .Nm kvalid_stringne ,
 .Nm kvalid_udouble ,
 .Nm kvalid_uint
-.Nd basic validation functions for kcgi
+.Nd predefined validation functions for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -57,129 +58,118 @@
 .Ft int
 .Fn kvalid_uint "struct kpair *kp"
 .Sh DESCRIPTION
-The
-.Fn kvalid_bit ,
-.Fn kvalid_date ,
-.Fn kvalid_double ,
-.Fn kvalid_email ,
-.Fn kvalid_int ,
-.Fn kvalid_string ,
-.Fn kvalid_stringne ,
-.Fn kvalid_udouble
-and
-.Fn kvalid_uint
-functions are basic validators for
+The predefined
 .Xr kcgi 3
-and are passed into the
-.Xr khttp_parse 3 or
-.Xr khttp_fcgi_init 3
-functions to validate input data.
-If a field is checked for validation during parse, it will first be
-noted in
-.Va fields
-of
-.Vt "struct kreq" .
-If validated, the pair will be bucketed into the field-corresponding
-index of
-.Va cookiemap
-or
-.Va fieldmap ,
-depending on the input source.
-If not, it will be bucketed into
-.Va cookienmap
-or
-.Va fieldnmap .
-Thus, a (e.g., cookie) field that appears in the input stream will
-appear in either
-.Va cookiemap
-or
-.Va cookienmap
-of
-.Vt "struct kreq"
-after parse.
-.Pp
-The
-.Fn kutil_invalidate
-function marks a validated input pair as invalid, moving it from the
-.Va cookiemap
-or
-.Va fieldmap
-bucket into the appropriate
-.Va cookienmap
-or
-.Va fieldnmap
-bucket of
-.Vt "struct kreq" .
-If the field is not valid to begin with, this fuction does nothing.
+validation functions accept as input
+.Fa kp
+and validate its
+.Fa kp->val
+and
+.Fa kp->valsz .
+On successful validation, the appropriate
+.Fa kp->parsed
+field is set with the validated field and its type set in
+.Fa kp->type .
+These functions are designed for use in the
+.Fa valid
+field of
+.Vt struct kvalid ,
+documented in
+.Xr khttp_parse 3 .
 .Pp
 The validators perform the following validations:
 .Bl -tag -width Ds
 .It Fn kvalid_bit
-A bit mask.
-Sets a
-.Dv KPAIR_INTEGER
-to be the single bit mask within a 64-bit integer from 0\(en64.
-So 0 means no bit, 1 means the first
-.Pq Li 1U << 0 ,
-and so on until 64, the 64th bit
-.Pq Li 1U << 63 .
+A bit number in the range from 1 to 64 (first bit, second bit, and so
+on) or 0 to indicate no bit.
+Sets
+.Dv KPAIR_INTEGER .
 .It Fn kvalid_date
-An ISO 8601
-.Li YYYY-MM-DD
-date.
-Set as a
-.Dv KPAIR_INTEGER
-in the number of seconds since the UNIX epoch.
-Dates before the epoch (1970-01-01) are not accepted.
+Converts an ISO 8601
+.Ar YYYY Ns \- Ns Ar MM Ns \- Ns Ar DD
+date to the number of seconds since the UNIX Epoch, 1970-01-01.
+Dates before the Epoch are not accepted.
 Beyond syntax, dates are checked for correctness (days in month, leap
 years, etc.), but the correctness is not guaranteed.
+Sets
+.Dv KPAIR_INTEGER .
 .It Fn kvalid_double
-A signed double-precision floating-point number.
-See
-.Xr strtod 3 .
-.Em Note :
-this might use the locale and should be re-written.
-It sets as
+A signed double-precision floating-point number in
+.Xr strtod 3
+format.
+Sets
 .Dv KPAIR_DOUBLE .
 .It Fn kvalid_email
 A loosely-validated e-mail address consisting of at most 254 characters,
-with a user part (at least one character) and domain part (at least 4
+with a user part (at least one character) and a domain part (at least 4
 characters).
 The validated string is trimmed for white-space and lowercased.
-It sets as
+Sets
 .Dv KPAIR_STRING .
 .It Fn kvalid_int
 A 64-bit signed integer.
 Sets
 .Dv KPAIR_INTEGER .
 .It Fn kvalid_string
-A NUL-terminated (possibly-empty) string.
-.Po
-Since all field entries are binary, this checks whether the binary
-length is the same as the NUL-terminated string, so no truncation
-occurs.
-.Pc
-This sets
+A NUL-terminated string that is allowed to be empty.
+The validation fails if
+.Fa kp->valsz
+does not match
+.Fn strlen kp->val .
+Sets
 .Dv KPAIR_STRING .
 .It Fn kvalid_stringne
-A non-empty string via
-.Fn kvalid_string .
+The same as
+.Fn kvalid_stringne
+except that validation fails if the string is empty.
 .It Fn kvalid_udouble
-A double-precision floating-point number via
+The same as
 .Fn kvalid_double
-that's strictly greater than zero.
+except that validation fails if the number is zero or negative.
 .It Fn kvalid_uint
-A 64-bit integer via
+The same as
 .Fn kvalid_int
-that's weakly greater than zero.
+except that validations fails if the number is negative.
+The range does not extend to
+.Dv UINT64_MAX ,
+but is limited to
+.Dv INT64_MAX .
 .El
+.Pp
+The
+.Fn kutil_invalidate
+function marks the validated input pair
+.Fa kp
+as invalid, moving it from a
+.Fa req->cookiemap
+or
+.Va req->fieldmap
+bucket into the corresponding
+.Va req->cookienmap
+or
+.Va req->fieldnmap
+bucket.
+It also resets
+.Fa kp->type
+to
+.Dv KPAIR__MAX .
+If
+.Fa kp
+is not valid to begin with, this function does nothing.
 .Sh RETURN VALUES
-These functions return 0 if validation fails.
-If validation succeeds, the pair's
-.Va parsed
-and
-.Va type
-fields are set accordingly.
+All validation functions return 1 if validation succeeds or 0 if it
+fails.
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_fcgi_init 3 ,
+.Xr khttp_parse 3
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh BUGS
+The functions
+.Fn kvalid_double
+and
+.Fn kvalid_udouble
+might attempt to access locale information, which might fail in a
+sandbox.
