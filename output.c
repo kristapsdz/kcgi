@@ -175,13 +175,15 @@ linebuf_flush(struct kdata *p, int newln)
  * of CGI, the socket for FastCGI, and a gz stream for compression IFF
  * in body parts).
  * If sz is zero or buf is NULL, this is a no-op.
+ * Return zero on failure (system error writing to output) or non-zero
+ * on success.
  */
-static void
+static int
 kdata_flush(struct kdata *p, const char *buf, size_t sz)
 {
 
 	if (0 == sz || NULL == buf)
-		return;
+		return(1);
 #if HAVE_ZLIB
 	if (NULL != p->gz && KSTATE_HEAD != p->state) {
 		/*
@@ -190,15 +192,21 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 		 * break the uncompressed buffer into chunks that will
 		 * not cause EAGAIN to be raised.
 		 */
-		if (0 == gzwrite(p->gz, buf, sz))
+		if (0 == gzwrite(p->gz, buf, sz)) {
 			XWARNX("gzwrite");
-		return;
+			return(0);
+		}
+		return(1);
 	}
 #endif
-	if (-1 == p->fcgi) 
-		fullwritenoerr(STDOUT_FILENO, buf, sz);
-	else
-		fcgi_write(6, p, buf, sz);
+	if (-1 == p->fcgi) {
+		if (fullwritenoerr(STDOUT_FILENO, buf, sz) <= 0)
+			return(0);
+	} else 
+		if ( ! fcgi_write(6, p, buf, sz))
+			return(0);
+
+	return(1);
 }
 
 /*
@@ -280,7 +288,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 */
 
 	if (0 == p->outbufsz) {
-		kdata_flush(p, buf, sz);
+		if ( ! kdata_flush(p, buf, sz))
+			return(KCGI_SYSTEM);
 		return(KCGI_OK);
 	}
 
@@ -297,7 +306,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	if (p->outbufpos + sz > p->outbufsz) {
 		kdata_drain(p);
 		if (sz > p->outbufsz) {
-			kdata_flush(p, buf, sz);
+			if ( ! kdata_flush(p, buf, sz))
+				return(KCGI_SYSTEM);
 			return(KCGI_OK);
 		}
 	}
