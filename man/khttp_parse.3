@@ -673,6 +673,9 @@ metacharacters.
 The byte following the end of the array,
 .Va val Ns Va [ valsz ] ,
 is always guaranteed to be NUL.
+The validation function may modify the contents.
+For example, for integer numbers and e-mail adresses, trailing
+whitespace may be replaced with NUL bytes.
 .It Vt "size_t" Va valsz
 The length of the
 .Va val
