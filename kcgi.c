@@ -953,20 +953,17 @@ kvalid_date(struct kpair *kp)
 {
 	int		 mday, mon, year;
 
-	if ( ! kvalid_stringne(kp))
-		return(0);
-	else if (kp->valsz != 10)
-		return(0);
-	else if ( ! isdigit((unsigned char)kp->val[0]) ||
-		! isdigit((unsigned char)kp->val[1]) ||
-		! isdigit((unsigned char)kp->val[2]) ||
-		! isdigit((unsigned char)kp->val[3]) ||
-		'-' != kp->val[4] || 
-		! isdigit((unsigned char)kp->val[5]) ||
-		! isdigit((unsigned char)kp->val[6]) ||
-		'-' != kp->val[7] || 
-		! isdigit((unsigned char)kp->val[8]) ||
-		! isdigit((unsigned char)kp->val[9]))
+	if (kp->valsz != 10 || '\0' != kp->val[10] ||
+	    ! isdigit((unsigned char)kp->val[0]) ||
+	    ! isdigit((unsigned char)kp->val[1]) ||
+	    ! isdigit((unsigned char)kp->val[2]) ||
+	    ! isdigit((unsigned char)kp->val[3]) ||
+	    '-' != kp->val[4] || 
+	    ! isdigit((unsigned char)kp->val[5]) ||
+	    ! isdigit((unsigned char)kp->val[6]) ||
+	    '-' != kp->val[7] || 
+	    ! isdigit((unsigned char)kp->val[8]) ||
+	    ! isdigit((unsigned char)kp->val[9]))
 		return(0);
 
 	year = atoi(&kp->val[0]);
