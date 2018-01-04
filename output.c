@@ -496,24 +496,29 @@ kdata_free(struct kdata *p, int flush)
  * We disallow compression on FastCGI streams because I don't yet have
  * the structure in place to copy the compressed data into a buffer then
  * write that out.
- * Return whether we enabled compression.
+ * Set "ret" to zero if compression is not enabled, non-zero if enabled.
+ * Returns zero if allocation errors occured (via gzdopen(3)), non-zero
+ * otherwise.
+ * On failure, "ret" is always zero.
  */
 static int
-kdata_compress(struct kdata *p)
+kdata_compress(struct kdata *p, int *ret)
 {
 
+	*ret = 0;
 	assert(KSTATE_HEAD == p->state);
 #if HAVE_ZLIB
 	if (-1 != p->fcgi)
-		return(0);
+		return(1);
 	assert(NULL == p->gz);
 	p->gz = gzdopen(STDOUT_FILENO, "w");
-	if (NULL == p->gz)
+	if (NULL == p->gz) {
 		XWARN("gzdopen");
-	return(NULL != p->gz);
-#else
-	return(0);
+		return(0);
+	}
+	*ret = 1;
 #endif
+	return(1);
 }
 
 /*
@@ -553,11 +558,44 @@ kdata_body(struct kdata *p)
 	return(KCGI_OK);
 }
 
-int
+enum kcgi_err
 khttp_body(struct kreq *req)
 {
+	int	 	 hasreq = 0;
+	enum kcgi_err	 er;
+	const char	*cp;
 
-	return(khttp_body_compress(req, 1));
+	/*
+	 * First determine if the request wants HTTP compression.
+	 * Use RFC 2616 14.3 as a guide for checking this: if we have
+	 * the "gzip" accept encoding and a non-zero quality, then use
+	 * compression.
+	 */
+
+	if (NULL != req->reqmap[KREQU_ACCEPT_ENCODING]) {
+		cp = req->reqmap[KREQU_ACCEPT_ENCODING]->val;
+		if (NULL != (cp = strstr(cp, "gzip"))) {
+			hasreq = 1;
+			cp += 4;
+			if (0 == strncmp(cp, ";q=0", 4)) 
+				hasreq = '.' == cp[4];
+		}
+	}
+
+#if HAVE_ZLIB
+	if (hasreq) {
+		if ( ! kdata_compress(req->kdata, &hasreq))
+			return(KCGI_ENOMEM);
+		if (hasreq) {
+			er = khttp_head(req, 
+				kresps[KRESP_CONTENT_ENCODING], "gzip");
+			if (KCGI_OK != er)
+				return(er);
+		}
+	}
+#endif
+
+	return(kdata_body(req->kdata));
 }
 
 int
@@ -596,7 +634,7 @@ khttp_body_compress(struct kreq *req, int comp)
 	 * it's >0 and the request headers have been set for it.
 	 */
 	if (0 == comp || (comp > 0 && hasreq))
-		didcomp = kdata_compress(req->kdata);
+		kdata_compress(req->kdata, &didcomp);
 	/* 
 	 * Only set the header if we're autocompressing and opening of
 	 * the compression stream did not fail.
