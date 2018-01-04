@@ -60,15 +60,13 @@
 .Sh DESCRIPTION
 The predefined
 .Xr kcgi 3
-validation functions accept as input
-.Fa kp
-and validate its
+validation functions check
 .Fa kp->val
 and
 .Fa kp->valsz .
 On successful validation, the appropriate
 .Fa kp->parsed
-field is set with the validated field and its type set in
+field is set to the validated value and its type stored in
 .Fa kp->type .
 These functions are designed for use in the
 .Fa valid
@@ -77,7 +75,7 @@ field of
 documented in
 .Xr khttp_parse 3 .
 .Pp
-The validators perform the following validations:
+The validation functions perform the following validations:
 .Bl -tag -width Ds
 .It Fn kvalid_bit
 A bit number in the range from 1 to 64 (first bit, second bit, and so
@@ -120,7 +118,7 @@ Sets
 .Dv KPAIR_STRING .
 .It Fn kvalid_stringne
 The same as
-.Fn kvalid_stringne
+.Fn kvalid_string
 except that validation fails if the string is empty.
 .It Fn kvalid_udouble
 The same as
@@ -129,7 +127,7 @@ except that validation fails if the number is zero or negative.
 .It Fn kvalid_uint
 The same as
 .Fn kvalid_int
-except that validations fails if the number is negative.
+except that validation fails if the number is negative.
 The range does not extend to
 .Dv UINT64_MAX ,
 but is limited to
