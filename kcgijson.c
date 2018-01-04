@@ -65,42 +65,48 @@ kjson_close(struct kjsonreq *r)
 /*
  * Put a quoted JSON string into the output stream.
  */
-static void
+static enum kcgi_err
 kjson_puts(struct kjsonreq *r, const char *cp)
 {
-	int	 c;
+	int	 	c;
+	enum kcgi_err	e;
 
-	khttp_putc(r->req, '"');
+	if (KCGI_OK != (e = khttp_putc(r->req, '"')))
+		return(e);
 
-	while ('\0' != (c = *cp++))
+	while ('\0' != (c = *cp++)) {
 		switch (c) {
 		case ('"'):
 		case ('\\'):
 		case ('/'):
-			khttp_putc(r->req, '\\');
-			khttp_putc(r->req, c);
+			if (KCGI_OK != (e = khttp_putc(r->req, '\\')))
+				return(e);
+			e = khttp_putc(r->req, c);
 			break;
 		case ('\b'):
-			khttp_puts(r->req, "\\b");
+			e = khttp_puts(r->req, "\\b");
 			break;
 		case ('\f'):
-			khttp_puts(r->req, "\\f");
+			e = khttp_puts(r->req, "\\f");
 			break;
 		case ('\n'):
-			khttp_puts(r->req, "\\n");
+			e = khttp_puts(r->req, "\\n");
 			break;
 		case ('\r'):
-			khttp_puts(r->req, "\\r");
+			e = khttp_puts(r->req, "\\r");
 			break;
 		case ('\t'):
-			khttp_puts(r->req, "\\t");
+			e = khttp_puts(r->req, "\\t");
 			break;
 		default:
-			khttp_putc(r->req, c);
+			e = khttp_putc(r->req, c);
 			break;
 		}
+		if (KCGI_OK != e)
+			return(e);
+	}
 
-	khttp_putc(r->req, '"');
+	return(khttp_putc(r->req, '"'));
 }
 
 static int
