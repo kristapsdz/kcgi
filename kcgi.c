@@ -1021,27 +1021,47 @@ int
 kvalid_udouble(struct kpair *p)
 {
 
-	if ( ! kvalid_double(p))
-		return(0);
-	p->type = KPAIR_DOUBLE;
-	return(p->parsed.d > 0.0);
+	return(kvalid_double(p) && p->parsed.d > 0.0);
 }
 
 int
 kvalid_double(struct kpair *p)
 {
 	char		*ep;
+	const char	*nval;
 	double		 lval;
+	int		 er;
 
 	if ( ! kvalid_stringne(p))
 		return(0);
 
+	/* 
+	 * We might get an empty string from trim, which constitutes a
+	 * valid double (!?), so double check that the string is
+	 * non-empty after trimming whitespace.
+	 * We trim white-space because strtod(3) accepts white-space
+	 * before but not after the string.
+	 */
+
+	nval = trim(p->val);
+	if ('\0' == nval[0])
+		return(0);
+
+	/* Save errno so we can restore it later. */
+
+	er = errno;
 	errno = 0;
-	lval = strtod(p->val, &ep);
-	if (p->val[0] == '\0' || *ep != '\0')
+	lval = strtod(nval, &ep);
+	if (errno == ERANGE)
 		return(0);
-	if (errno == ERANGE && (lval == HUGE_VAL || lval == -HUGE_VAL))
+
+	/* Restore errno. */
+
+	errno = er;
+
+	if (*ep != '\0')
 		return(0);
+
 	p->parsed.d = lval;
 	p->type = KPAIR_DOUBLE;
 	return(1);
