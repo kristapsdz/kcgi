@@ -163,8 +163,10 @@ linebuf_flush(struct kdata *p, int newln)
 		getpid(), p->linebuf, newln ? "\n" : "");
 	if (rc < 0)
 		return(0);
-	if (0 != fflush(stderr))
+	if (0 != fflush(stderr)) {
+		XWARN("flush");
 		return(0);
+	}
 	p->linebufpos = 0;
 	p->linebuf[0] = '\0';
 	return(1);
@@ -432,7 +434,8 @@ kdata_free(struct kdata *p, int flush)
 		(void)linebuf_flush(p, 1);
 		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
 			getpid(), p->bytes);
-		fflush(stderr);
+		if (0 != fflush(stderr))
+			XWARN("flush");
 	}
 
 	/* Remaining buffered data. */
@@ -514,15 +517,21 @@ kdata_compress(struct kdata *p)
 }
 
 /*
- * Begin the body sequence.
+ * Begin the body sequence by draining the headers to the wire and
+ * marking that the body has begun.
+ * Returns KCGI_OK on success, KCGI_ENOMEM on memory exhaustion, and
+ * KCGI_SYSTEM on wire-writing failure.
  */
-static void
+static enum kcgi_err
 kdata_body(struct kdata *p)
 {
+	enum kcgi_err	 er;
 
 	assert(p->state == KSTATE_HEAD);
 
-	kdata_write(p, "\r\n", 2);
+	if (KCGI_OK != (er = kdata_write(p, "\r\n", 2)))
+		return(er);
+
 	/*
 	 * XXX: we always drain our buffer after the headers have been
 	 * written.
@@ -530,11 +539,18 @@ kdata_body(struct kdata *p)
 	 * response gets to the server as quickly as possible.
 	 * Should an option be added to disable this?
 	 */
-	kdata_drain(p);
+
+	if ( ! kdata_drain(p))
+		return(KCGI_SYSTEM);
+
 	if (-1 == p->fcgi)
-		fflush(stdout);
+		if (0 != fflush(stdout)) {
+			XWARN("flush");
+			return(KCGI_SYSTEM);
+		}
 
 	p->state = KSTATE_BODY;
+	return(KCGI_OK);
 }
 
 int
