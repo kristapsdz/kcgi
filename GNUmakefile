@@ -148,7 +148,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-returncode \
 		   regress/test-template \
 		   regress/test-upload \
-		   regress/test-valid-date
+		   regress/test-valid-date \
+		   regress/test-valid-double
 REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
 		   regress/regress.o
 AFL_SRCS	 = $(addsuffix .c, $(AFL)) 
