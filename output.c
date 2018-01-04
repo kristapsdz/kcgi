@@ -591,6 +591,13 @@ khttp_body(struct kreq *req)
 
 #if HAVE_ZLIB
 	if (hasreq) {
+		/*
+		 * We could just ignore this error, which means gzdopen
+		 * failed, and just continue with hasreq=0.
+		 * However, if gzdopen fails (memory allocation), it
+		 * probably means other things are going to fail, so we
+		 * might as well just die now.
+		 */
 		if ( ! kdata_compress(req->kdata, &hasreq))
 			return(KCGI_ENOMEM);
 		if (hasreq) {
