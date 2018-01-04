@@ -85,10 +85,11 @@ Sets
 .It Fn kvalid_date
 Converts an ISO 8601
 .Ar YYYY Ns \- Ns Ar MM Ns \- Ns Ar DD
-date to the number of seconds since the UNIX Epoch, 1970-01-01.
-Dates before the Epoch are not accepted.
+date to the number of seconds since or before the UNIX Epoch,
+1970-01-01.
+Dates before 1582 are not accepted.
 Beyond syntax, dates are checked for correctness (days in month, leap
-years, etc.), but the correctness is not guaranteed.
+years, etc.).
 Sets
 .Dv KPAIR_INTEGER .
 .It Fn kvalid_double
