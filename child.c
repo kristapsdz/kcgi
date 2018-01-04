@@ -224,11 +224,13 @@ output(const struct parms *pp, char *key,
 	pair.ctype = NULL == mime ? NULL : mime->ctype;
 	pair.xcode = NULL == mime ? NULL : mime->xcode;
 	pair.ctypepos = NULL == mime ? pp->mimesz : mime->ctypepos;
+	pair.type = KPAIR__MAX;
 
 	/*
 	 * Look up the key name in our key table.
 	 * If we find it and it has a validator, then run the validator
 	 * and record the output.
+	 * If we fail, reset the type and clear the results.
 	 * Either way, the keypos parameter is going to be the key
 	 * identifier or keysz if none is found.
 	 */
@@ -236,9 +238,14 @@ output(const struct parms *pp, char *key,
 	for (i = 0; i < pp->keysz; i++) {
 		if (strcmp(pp->keys[i].name, pair.key)) 
 			continue;
-		if (NULL != pp->keys[i].valid)
-			pair.state = pp->keys[i].valid(&pair) ?
-				KPAIR_VALID : KPAIR_INVALID;
+		if (NULL == pp->keys[i].valid) 
+			break;
+		if ( ! pp->keys[i].valid(&pair)) {
+			pair.state = KPAIR_INVALID;
+			pair.type = KPAIR__MAX;
+			memset(&pair.parsed, 0, sizeof(union parsed));
+		} else
+			pair.state = KPAIR_VALID;
 		break;
 	}
 	pair.keypos = i;
