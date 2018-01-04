@@ -970,10 +970,17 @@ kvalid_date(struct kpair *kp)
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
-	/* Basic boundary checks. */
+	/* 
+	 * Basic boundary checks.
+	 * The 1582 check is for the simple Gregorian calendar rules of
+	 * leap date calculation.
+	 * This can be lifted to account for even more times, but it
+	 * seems unlikely that pre-1582 date input will be required.
+	 */
 
-	if (year < 1970 || mon < 0 || mday < 0 ||
-	    mon > 12 || mday > 31)
+	if (year < 1582 || /* year > 9999 || */
+	    mon < 1 || mon > 12 || 
+	    mday < 1 || mday > 31)
 		return(0);
 
 	/* Check for 30 days. */
