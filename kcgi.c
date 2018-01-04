@@ -951,7 +951,7 @@ valid_email(char *p)
 int
 kvalid_date(struct kpair *kp)
 {
-	int		 mday, mon, year, leap = 0;
+	int		 mday, mon, year;
 
 	if (kp->valsz != 10 || '\0' != kp->val[10] ||
 	    ! isdigit((unsigned char)kp->val[0]) ||
@@ -970,33 +970,7 @@ kvalid_date(struct kpair *kp)
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
-	/* 
-	 * Basic boundary checks.
-	 * The 1582 check is for the simple Gregorian calendar rules of
-	 * leap date calculation.
-	 * This can be lifted to account for even more times, but it
-	 * seems unlikely that pre-1582 date input will be required.
-	 */
-
-	if (year < 1582 || /* year > 9999 || */
-	    mon < 1 || mon > 12 || 
-	    mday < 1 || mday > 31)
-		return(0);
-
-	/* Check for 30 days. */
-
-	if ((4 == mon || 6 == mon || 9 == mon || 11 == mon) &&
-	    mday > 30)
-		return(0);
-
-	/* Check for leap year. */
-
-	if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
-		leap = 1;
-
-	if (leap && 2 == mon && mday > 29)
-		return(0);
-	if ( ! leap && 2 == mon && mday > 28)
+	if ( ! kutil_date_check(mday, mon, year))
 		return(0);
 
 	kp->parsed.i = kutil_date2epoch(mday, mon, year);
