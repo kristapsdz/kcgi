@@ -28,7 +28,7 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft void
+.Ft enum kcgi_err
 .Fo khttp_head
 .Fa "struct kreq *req"
 .Fa "const char *key"
@@ -69,6 +69,18 @@ See
 for a discussion on the
 .Qq Content-Encoding
 header: do not specify this header before doing so!
+.Sh RETURN VALUES
+The
+.Fn khttp_head
+function returns an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream.
 .Sh EXAMPLES
 To emit a session cookie (one-year expiration date) with key
 .Ar ckey
@@ -104,5 +116,3 @@ The
 .Fn khttp_head
 function was written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh BUGS
-Long header values (\(>= 1024 B) will be truncated.

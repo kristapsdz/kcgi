@@ -352,27 +352,36 @@ khttp_putc(struct kreq *req, int c)
 	return(khttp_write(req, &cc, 1));
 }
 
-/*
- * Fill a static buffer with the header.
- * FIXME: THIS IS NOT THE CORRECT WAY OF DOING THINGS.
- */
-void
+enum kcgi_err
 khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 {
-	va_list	 ap;
-	char	 buf[BUFSIZ];
+	va_list		 ap;
+	char		*buf;
+	size_t		 ksz;
+	int		 len;
+	enum kcgi_err	 er;
 
 	assert(NULL != req->kdata);
 	assert(KSTATE_HEAD == req->kdata->state);
 
-	/* FIXME: this does *not* work with long headers. */
 	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
+	len = XVASPRINTF(&buf, fmt, ap);
 	va_end(ap);
-	kdata_write(req->kdata, key, strlen(key));
-	kdata_write(req->kdata, ": ", 2);
-	kdata_write(req->kdata, buf, strlen(buf));
-	kdata_write(req->kdata, "\r\n", 2);
+	if (len < 0) 
+		return(KCGI_ENOMEM);
+
+	ksz = strlen(key);
+	if (KCGI_OK != (er = kdata_write(req->kdata, key, ksz)))
+		goto out;
+	if (KCGI_OK != (er = kdata_write(req->kdata, ": ", 2)))
+		goto out;
+	if (KCGI_OK != (er = kdata_write(req->kdata, buf, len)))
+		goto out;
+	if (KCGI_OK != (er = kdata_write(req->kdata, "\r\n", 2)))
+		goto out;
+out:
+	free(buf);
+	return(er);
 }
 
 /*
