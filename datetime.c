@@ -178,14 +178,61 @@ mkdate(int64_t d, int64_t m, int64_t y)
 	return(v * 86400);
 }
 
+int
+kutil_date_check(int64_t mday, int64_t mon, int64_t year)
+{
+	int	 leap = 0;
+
+	/* 
+	 * Basic boundary checks.
+	 * The 1582 check is for the simple Gregorian calendar rules of
+	 * leap date calculation.
+	 * This can be lifted to account for even more times, but it
+	 * seems unlikely that pre-1582 date input will be required.
+	 */
+
+	if (year < 1582 || year > 9999 || 
+	    mon < 1 || mon > 12 || 
+	    mday < 1 || mday > 31)
+		return(0);
+
+	/* Check for 30 days. */
+
+	if ((4 == mon || 6 == mon || 9 == mon || 11 == mon) &&
+	    mday > 30)
+		return(0);
+
+	/* Check for leap year. */
+
+	if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+		leap = 1;
+
+	if (leap && 2 == mon && mday > 29)
+		return(0);
+	if ( ! leap && 2 == mon && mday > 28)
+		return(0);
+
+	return(1);
+}
+
 int64_t
 kutil_date2epoch(int64_t day, int64_t mon, int64_t year)
 {
 
-	if (year < 1970 || mon < 0 || year < 0)
-		return(0);
 	return(mkdate(day, mon, year) -
 	       mkdate(1, 1, 1970));
+}
+
+int
+kutil_datetime_check(int64_t mday, int64_t mon, int64_t year,
+	int64_t hour, int64_t minute, int64_t sec)
+{
+
+	if ( ! kutil_date_check(mday, mon, year))
+		return(0);
+	return(hour >= 0 && hour < 24 &&
+		minute >= 0 && minute < 60 &&
+		sec >= 0 && sec < 60);
 }
 
 int64_t
@@ -193,9 +240,6 @@ kutil_datetime2epoch(int64_t day, int64_t mon, int64_t year,
 	int64_t hour, int64_t minute, int64_t sec)
 {
 
-	if (year < 1970 || mon < 0 || year < 0 ||
-	    hour < 0 || minute < 0 || sec < 0)
-		return(0);
 	return(kutil_date2epoch(day, mon, year) +
 		hour * (60 * 60) + minute * 60 + sec);
 }

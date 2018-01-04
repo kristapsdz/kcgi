@@ -474,7 +474,7 @@ int		 khttp_body(struct kreq *);
 int		 khttp_body_compress(struct kreq *, int);
 void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
-void		 khttp_head(struct kreq *, const char *, 
+enum kcgi_err	 khttp_head(struct kreq *, const char *, 
 			const char *, ...) 
 			__attribute__((format(printf, 3, 4)));
 enum kcgi_err	 khttp_parse(struct kreq *, 
@@ -558,7 +558,10 @@ void		 kutil_epoch2tmvals(int64_t, int *, int *, int *,
 char		*kutil_epoch2str(int64_t, char *, size_t);
 char		*kutil_epoch2utcstr(int64_t, char *, size_t);
 int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t);
+int	 	 kutil_date_check(int64_t, int64_t, int64_t);
 int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
+			int64_t, int64_t, int64_t);
+int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
 			int64_t, int64_t, int64_t);
 
 char		*kutil_urlabs(enum kscheme, const char *, 
