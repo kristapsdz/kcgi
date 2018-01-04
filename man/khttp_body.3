@@ -29,7 +29,7 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_body
 .Fa "struct kreq *req"
 .Fc
@@ -100,7 +100,21 @@ If
 fails when enabling compression, the error is reported and compression
 is disabled.
 .Sh RETURN VALUES
-Both functions return non-zero if subsequent calls to
+The
+.Fn khttp_body
+function returns an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream.
+.Pp
+The
+.Fn khttp_body_compress
+function returns non-zero if subsequent calls to
 .Xr khttp_write 3
 and similar functions will use compression, or 0 otherwise.
 .Sh EXAMPLES
