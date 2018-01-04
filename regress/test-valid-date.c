@@ -36,13 +36,13 @@ parent(CURL *curl)
 		"ok1=2017-01-01&"
 		"ok2=1970-01-01&"
 		"ok3=2016-02-29&"
+		"ok4=1969-12-31&"
 		"fail1=017-01-01&"
 		"fail2=2017-1-01&"
 		"fail3=2017-01-1&"
 		"fail4=2017-13-01&"
 		"fail5=2017-12-32&"
-		"fail6=2018-02-29&"
-		"fail7=1969-12-31");
+		"fail6=2018-02-29");
 	return(CURLE_OK == curl_easy_perform(curl));
 }
 
@@ -54,13 +54,13 @@ child(void)
 		{ kvalid_date, "ok1" },
 		{ kvalid_date, "ok2" },
 		{ kvalid_date, "ok3" },
+		{ kvalid_date, "ok4" },
 		{ kvalid_date, "fail1" },
 		{ kvalid_date, "fail2" },
 		{ kvalid_date, "fail3" },
 		{ kvalid_date, "fail4" },
 		{ kvalid_date, "fail5" },
-		{ kvalid_date, "fail6" },
-		{ kvalid_date, "fail7" }};
+		{ kvalid_date, "fail6" }};
 	const char 	*page[] = { "index" };
 
 	if (KCGI_OK != khttp_parse(&r, key, sizeof(key), page, 1, 0))
@@ -68,11 +68,11 @@ child(void)
 
 	if (NULL == r.fieldmap[0] ||
 	    NULL == r.fieldmap[1] ||
-	    NULL == r.fieldmap[2])
+	    NULL == r.fieldmap[2] ||
+	    NULL == r.fieldmap[3])
 		return(0);
 
-	if (NULL != r.fieldmap[3] ||
-	    NULL != r.fieldmap[4] ||
+	if (NULL != r.fieldmap[4] ||
 	    NULL != r.fieldmap[5] ||
 	    NULL != r.fieldmap[6] ||
 	    NULL != r.fieldmap[7] ||
