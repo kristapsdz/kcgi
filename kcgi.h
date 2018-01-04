@@ -471,7 +471,7 @@ enum	kcgi_err {
 __BEGIN_DECLS
 
 enum kcgi_err	 khttp_body(struct kreq *);
-int		 khttp_body_compress(struct kreq *, int);
+enum kcgi_err	 khttp_body_compress(struct kreq *, int);
 void		 khttp_free(struct kreq *);
 void		 khttp_child_free(struct kreq *);
 enum kcgi_err	 khttp_head(struct kreq *, const char *, 

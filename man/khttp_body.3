@@ -33,7 +33,7 @@
 .Fo khttp_body
 .Fa "struct kreq *req"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_body_compress
 .Fa "struct kreq *req"
 .Fa "int compress"
@@ -58,51 +58,31 @@ or
 again results in undefined behaviour.
 .Pp
 The
-.Fa compress
-argument enables or disables compression as follows:
-.Bl -tag -width Ds
-.It >0
-Check whether the
-.Dq Accept-Encoding
-request header specified
-.Dq gzip
-with a non-zero or empty q-value.
-If so, emit the appropriate
-.Dq Content-Encoding
-header and try to enable write compression.
-Calling
 .Fn khttp_body
-also selects this auto-compression behaviour.
-.It 0
-Do not check for the request header and do not emit
-.Dq Content-Encoding ,
-but try to enable write compression anyway.
-This is useful for applications that write the
-.Dq Content-Encoding
-header themselves and want to explicitly stipulate output compression.
-.It <0
-Simply open the document body: do not fiddle with compression at all.
-This is useful if the application requires complete control over the
-output stream.
-Calls to
+function checks whether compression should be enabled by examining
+request headers.
+If applicable, it emits the appropriate content encoding header and
+enables compressed output for subsequent
 .Xr khttp_write 3
-will be uncompressed.
-.El
+calls.
 .Pp
-If
-.Xr kcgi 3
-is not built with
-.Xr zlib 3
-support, compression is never enabled regardless the argument to
-.Fn khttp_body_compress .
-If
-.Xr zlib 3
-fails when enabling compression, the error is reported and compression
-is disabled.
+The
+.Fn khttp_body_compress
+function accepts the
+.Fa compress
+argument which, if zero, disables compressed output for subsequent
+.Xr khttp_write 3
+calls.
+This is appropriate for caller-managed compression, such as when sending
+pre-compressed files.
+If non-zero, compressed output is enabled.
+In either case, content encoding headers must be managed by the caller.
 .Sh RETURN VALUES
 The
 .Fn khttp_body
-function returns an
+and
+.Fn khttp_body_compress
+functions return an
 .Ft enum kcgi_err
 indicating the error state:
 .Dv KCGI_OK
@@ -111,12 +91,12 @@ for no error,
 for an internal memory allocation failure, and
 .Dv KCGI_SYSTEM
 for an internal system error writing to the output stream.
-.Pp
 The
 .Fn khttp_body_compress
-function returns non-zero if subsequent calls to
-.Xr khttp_write 3
-and similar functions will use compression, or 0 otherwise.
+function also returns
+.Dv KCGI_FORM
+if compression was requested but is not provided by the operating
+system.
 .Sh EXAMPLES
 Write out an HTTP header sequence and text content with automatic
 compression detection.
@@ -133,14 +113,26 @@ khttp_body(r);
 khttp_puts(r, "Hello, world!\en");
 .Ed
 .Pp
-To do the same, but explicitly disabling compression:
+To explicitly disable compression:
 .Bd -literal
 khttp_head(r, kresps[KRESP_STATUS],
   "%s", khttps[KHTTP_200]);
 khttp_head(r, kresps[KRESP_CONTENT_TYPE],
   "%s", kmimetypes[KMIME_TEXT_PLAIN]);
-khttp_body_compress(r, -1);
+khttp_body_compress(r, 0);
 khttp_puts(r, "Hello, world!\en");
+.Ed
+.Pp
+To disable compression, but emit a compressed file:
+.Bd -literal
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+khttp_head(r, kresps[KRESP_CONTENT_ENCODING],
+  "%s", "gzip");
+khttp_body_compress(r, 0);
+khttp_template(r, NULL, "compressed.txt.gz");
 .Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
