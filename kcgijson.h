@@ -73,17 +73,17 @@ enum kcgi_err	kjson_objp_open(struct kjsonreq *, const char *);
 enum kcgi_err	kjson_obj_open(struct kjsonreq *);
 enum kcgi_err	kjson_obj_close(struct kjsonreq *);
 
-int	kjson_arrayp_open(struct kjsonreq *, const char *);
-int	kjson_array_open(struct kjsonreq *);
-int	kjson_array_close(struct kjsonreq *);
+enum kcgi_err	kjson_arrayp_open(struct kjsonreq *, const char *);
+enum kcgi_err	kjson_array_open(struct kjsonreq *);
+enum kcgi_err	kjson_array_close(struct kjsonreq *);
 
-int	kjson_stringp_open(struct kjsonreq *, const char *);
-int	kjson_string_open(struct kjsonreq *);
-int	kjson_string_close(struct kjsonreq *);
-int	kjson_string_write(const char *, size_t, void *);
-int	kjson_string_putdouble(struct kjsonreq *, double);
-int	kjson_string_putint(struct kjsonreq *, int64_t);
-int	kjson_string_puts(struct kjsonreq *, const char *);
+enum kcgi_err	kjson_stringp_open(struct kjsonreq *, const char *);
+enum kcgi_err	kjson_string_open(struct kjsonreq *);
+enum kcgi_err	kjson_string_close(struct kjsonreq *);
+enum kcgi_err	kjson_string_write(const char *, size_t, void *);
+enum kcgi_err	kjson_string_putdouble(struct kjsonreq *, double);
+enum kcgi_err	kjson_string_putint(struct kjsonreq *, int64_t);
+enum kcgi_err	kjson_string_puts(struct kjsonreq *, const char *);
 
 __END_DECLS
 
