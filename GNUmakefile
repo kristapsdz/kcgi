@@ -277,11 +277,11 @@ sample-fcgi: sample-fcgi.o libkcgi.a
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(STATIC) sample-cgi.o 
 
-www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html
+www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extending01.html atom.xml
 
 installwww: www
 	mkdir -p $(WWWDIR)/snapshots
-	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) $(WWWDIR)
+	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) atom.xml $(WWWDIR)
 	install -m 0444 sample.c $(WWWDIR)/sample.c.txt
 	install -m 0444 sample-fcgi.c $(WWWDIR)/sample-fcgi.c.txt
 	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(WWWDIR)/snapshots/
@@ -337,9 +337,12 @@ kcgi.tgz:
 functions.html: functions.xml genindex.sh
 	sh ./genindex.sh functions.xml | sed "s!@VERSION@!$(VERSION)!g" >$@
 
+atom.xml: versions.xml
+	sblg -s date -a versions.xml >$@
+
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
-	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html
+	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html atom.xml
 	rm -f libconfig.a
 	rm -f $(LIBOBJS) compats.o
 	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o

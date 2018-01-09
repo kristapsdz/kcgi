@@ -4,10 +4,11 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset="utf-8" /> 
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
-		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
 		<link rel="stylesheet" href="index.css" />
+		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
 	</head>
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
@@ -29,6 +30,7 @@
 					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 					<a title="Source repository" href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
+					<a title="Version feed" href="atom.xml"><i class="fa fa-fw fa-rss"></i></a>
 				</nav>
 			</section>
 		</header>
