@@ -136,23 +136,25 @@ kjson_check(struct kjsonreq *r, const char *key)
 	return(KCGI_FORM);
 out:
 	if (r->stack[r->stackpos].elements++ > 0) 
-		khttp_puts(r->req, ", ");
+		if (KCGI_OK != (er = khttp_puts(r->req, ", ")))
+			return(er);
 
 	if (NULL != key) {
-		kjson_puts(r, key);
-		khttp_puts(r->req, ": ");
+		if (KCGI_OK != (er = kjson_puts(r, key)))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(r->req, ": ")))
+			return(er);
 	}
-	return(1);
+	return(KCGI_OK);
 }
 
-static int
+static enum kcgi_err
 kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
 {
 
 	if ( ! kjson_check(r, key))
-		return(0);
-	khttp_puts(r->req, val);
-	return(1);
+		return(KCGI_FORM);
+	return(khttp_puts(r->req, val));
 }
 
 int
@@ -172,14 +174,14 @@ kjson_putstringp(struct kjsonreq *r, const char *key, const char *val)
 	return(1);
 }
 
-int
+enum kcgi_err
 kjson_putdouble(struct kjsonreq *r, double val)
 {
 
 	return(kjson_putdoublep(r, NULL, val));
 }
 
-int
+enum kcgi_err
 kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 {
 	char	buf[256];
