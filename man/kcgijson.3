@@ -128,16 +128,16 @@
 .Fa "const char *key"
 .Fa "const char *val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_obj_open
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_objp_open
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_obj_close
 .Fa "struct kjsonreq *r"
 .Fc
