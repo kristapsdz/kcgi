@@ -55,14 +55,14 @@ __BEGIN_DECLS
 void	kjson_open(struct kjsonreq *, struct kreq *);
 int	kjson_close(struct kjsonreq *);
 
-int	kjson_putdoublep(struct kjsonreq *, const char *, double);
+enum kcgi_err	kjson_putdoublep(struct kjsonreq *, const char *, double);
 int	kjson_putintp(struct kjsonreq *, const char *, int64_t);
 int	kjson_putintstrp(struct kjsonreq *, const char *, int64_t);
 int	kjson_putstringp(struct kjsonreq *, const char *, const char *);
 int	kjson_putboolp(struct kjsonreq *, const char *, int);
 int	kjson_putnullp(struct kjsonreq *, const char *);
 
-int	kjson_putdouble(struct kjsonreq *, double);
+enum kcgi_err	kjson_putdouble(struct kjsonreq *, double);
 int	kjson_putint(struct kjsonreq *, int64_t);
 int	kjson_putintstr(struct kjsonreq *, int64_t);
 int	kjson_putstring(struct kjsonreq *, const char *);
