@@ -190,7 +190,7 @@ kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 	return(kjson_putnumberp(r, key, buf));
 }
 
-int
+enum kcgi_err
 kjson_putint(struct kjsonreq *r, int64_t val)
 {
 
@@ -214,14 +214,13 @@ kjson_putnullp(struct kjsonreq *r, const char *key)
 	return(1);
 }
 
-int
+enum kcgi_err
 kjson_putboolp(struct kjsonreq *r, const char *key, int val)
 {
 
 	if ( ! kjson_check(r, key))
-		return(0);
-	khttp_puts(r->req, val ? "true" : "false");
-	return(1);
+		return(KCGI_FORM);
+	return(khttp_puts(r->req, val ? "true" : "false"));
 }
 
 int
@@ -231,7 +230,7 @@ kjson_putnull(struct kjsonreq *r)
 	return(kjson_putnullp(r, NULL));
 }
 
-int
+enum kcgi_err
 kjson_putbool(struct kjsonreq *r, int val)
 {
 
@@ -248,7 +247,7 @@ kjson_putintstrp(struct kjsonreq *r, const char *key, int64_t val)
 }
 
 
-int
+enum kcgi_err
 kjson_putintp(struct kjsonreq *r, const char *key, int64_t val)
 {
 	char	buf[22];
