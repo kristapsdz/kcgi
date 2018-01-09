@@ -69,9 +69,9 @@ int	kjson_putstring(struct kjsonreq *, const char *);
 int	kjson_putbool(struct kjsonreq *, int);
 int	kjson_putnull(struct kjsonreq *);
 
-int	kjson_objp_open(struct kjsonreq *, const char *);
-int	kjson_obj_open(struct kjsonreq *);
-int	kjson_obj_close(struct kjsonreq *);
+enum kcgi_err	kjson_objp_open(struct kjsonreq *, const char *);
+enum kcgi_err	kjson_obj_open(struct kjsonreq *);
+enum kcgi_err	kjson_obj_close(struct kjsonreq *);
 
 int	kjson_arrayp_open(struct kjsonreq *, const char *);
 int	kjson_array_open(struct kjsonreq *);

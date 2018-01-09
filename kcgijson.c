@@ -109,11 +109,13 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 	return(khttp_putc(r->req, '"'));
 }
 
-static int
+static enum kcgi_err
 kjson_check(struct kjsonreq *r, const char *key)
 {
+	enum kcgi_err	 er;
 
 	/* We should never be in a string context. */
+
 	if (KJSON_STRING == r->stack[r->stackpos].type)
 		goto out;
 
@@ -123,6 +125,7 @@ kjson_check(struct kjsonreq *r, const char *key)
 	 * (KJSON_ROOT) or an array (KJSON_ARRAY), both of which accept
 	 * only values.
 	 */
+
 	if (NULL != key && KJSON_OBJECT == r->stack[r->stackpos].type)
 		goto out;
 	if (NULL == key && KJSON_ARRAY == r->stack[r->stackpos].type)
@@ -130,7 +133,7 @@ kjson_check(struct kjsonreq *r, const char *key)
 	if (NULL == key && KJSON_ROOT == r->stack[r->stackpos].type)
 		goto out;
 
-	return(0);
+	return(KCGI_FORM);
 out:
 	if (r->stack[r->stackpos].elements++ > 0) 
 		khttp_puts(r->req, ", ");
@@ -387,37 +390,38 @@ kjson_string_close(struct kjsonreq *r)
 	return(1);
 }
 
-int
+enum kcgi_err
 kjson_obj_open(struct kjsonreq *r)
 {
 
 	return(kjson_objp_open(r, NULL));
 }
 
-int
+enum kcgi_err
 kjson_objp_open(struct kjsonreq *r, const char *key)
 {
 
 	if ( ! kjson_check(r, key))
-		return(0);
+		return(KCGI_FORM);
 
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_OBJECT;
 	assert(r->stackpos < 128);
-	khttp_putc(r->req, '{');
-	return(1);
+	return(khttp_putc(r->req, '{'));
 }
 
-int
+enum kcgi_err
 kjson_obj_close(struct kjsonreq *r)
 {
+	enum kcgi_err	 er;
 
 	if (0 == r->stackpos)
-		return(0);
+		return(KCGI_FORM);
 	if (KJSON_OBJECT != r->stack[r->stackpos].type)
-		return(0);
-	khttp_putc(r->req, '}');
+		return(KCGI_FORM);
+	if (KCGI_OK != (er = khttp_putc(r->req, '}')))
+		return(er);
 	r->stackpos--;
-	return(1);
+	return(KCGI_OK);
 }
