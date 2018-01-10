@@ -195,16 +195,15 @@ None of these functions may be called before
 .Pp
 All
 .Nm kcgijson
-sequences begin and end with
-.Fn kjson_open
-and
-.Fn kjson_close ,
-respectively.
-These enclose a standalone-type array or object context,
+sequences begin with
+.Fn kjson_open ,
+which prepares for output.
+Well-formed JSON documents will then create the root document context as
+either an array or object,
 .Fn kjson_array_open
 or
 .Fn kjson_obj_open ,
-respectively, each with its own pair-type or standalone-type children.
+respectively.
 .Pp
 In general,
 .Nm kcgijson
@@ -231,10 +230,8 @@ for example,
 .It Fn kjson_open
 Initialise a JSON context.
 .It Fn kjson_close
-Close a JSON context as opened with
-.Fn kjson_open .
+Convenience function to close out all open scopes.
 This will also close any open arrays, strings, or objects.
-You should not use the object after invoking this function.
 .It Fn kjson_arrayp_open
 This and
 .Fn kjson_array_open
