@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,22 +36,27 @@ kjson_open(struct kjsonreq *r, struct kreq *req)
 	r->stack[0].type = KJSON_ROOT;
 }
 
-int
+enum kcgi_err
 kjson_close(struct kjsonreq *r)
 {
-	int	 i;
+	int		 i;
+	enum kcgi_err	 er;
 
 	i = r->stackpos > 0;
+
 	while (r->stackpos) {
 		switch (r->stack[r->stackpos].type) {
 		case (KJSON_ARRAY):
-			khttp_putc(r->req, ']');
+			if (KCGI_OK != (er = khttp_putc(r->req, ']')))
+				return(er);
 			break;
 		case (KJSON_STRING):
-			khttp_putc(r->req, '"');
+			if (KCGI_OK != (er = khttp_putc(r->req, '"')))
+				return(er);
 			break;
 		case (KJSON_OBJECT):
-			khttp_putc(r->req, '}');
+			if (KCGI_OK != (er = khttp_putc(r->req, '}')))
+				return(er);
 			break;
 		default:
 			abort();
@@ -59,7 +64,7 @@ kjson_close(struct kjsonreq *r)
 		r->stackpos--;
 	}
 
-	return(i);
+	return(i ? KCGI_FORM : KCGI_OK);
 }
 
 /*

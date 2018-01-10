@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,7 +53,7 @@ struct	kjsonreq {
 __BEGIN_DECLS
 
 void	kjson_open(struct kjsonreq *, struct kreq *);
-int	kjson_close(struct kjsonreq *);
+enum kcgi_err	kjson_close(struct kjsonreq *);
 
 enum kcgi_err	kjson_putdoublep(struct kjsonreq *, const char *, double);
 enum kcgi_err	kjson_putintp(struct kjsonreq *, const char *, int64_t);
