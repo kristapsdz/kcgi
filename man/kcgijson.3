@@ -253,6 +253,9 @@ The
 and
 .Fn kjson_string_write
 functions may be used for serialising value data.
+See the documentation for
+.Fn kjson_putdoublep
+for caveats on floating-point classes.
 .It Fn kjson_string_close
 Close a string context with or without a name.
 .It Fn kjson_obj_open
@@ -302,6 +305,10 @@ This is formatted as with the
 .Li %g
 argument to
 .Xr printf 3 .
+Only normal or zero-classified numbers are allowed (see
+.Xr fpclassify 3 ) ,
+otherwise this will return
+.Dv KCGI_FORM .
 .El
 .Sh RETURN VALUES
 All functions return a
