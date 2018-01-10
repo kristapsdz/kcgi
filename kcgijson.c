@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -157,6 +158,26 @@ kjson_check(struct kjsonreq *r, const char *key)
 	return(KCGI_OK);
 }
 
+/* 
+ * Only allow normal or zero numbers.
+ * The rest don't have a consistent JSON encoding.
+ */
+static int
+kjson_check_fp(double val)
+{
+
+	switch (fpclassify(val)) {
+	case (FP_ZERO):
+		/* FALLTHROUGH */
+	case (FP_NORMAL):
+		break;
+	default:
+		return(0);
+	}
+
+	return(1);
+}
+
 static enum kcgi_err
 kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
 {
@@ -194,6 +215,8 @@ kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 {
 	char	buf[256];
 
+	if ( ! kjson_check_fp(val))
+		return(KCGI_FORM);
 	(void)snprintf(buf, sizeof(buf), "%g", val);
 	return(kjson_putnumberp(r, key, buf));
 }
@@ -354,6 +377,8 @@ kjson_string_putdouble(struct kjsonreq *r, double val)
 {
 	char	buf[256];
 
+	if ( ! kjson_check_fp(val))
+		return(KCGI_FORM);
 	(void)snprintf(buf, sizeof(buf), "%g", val);
 	return(kjson_string_write(buf, strlen(buf), r));
 }
