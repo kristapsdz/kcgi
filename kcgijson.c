@@ -300,10 +300,10 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
 
+	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_ARRAY;
-	assert(r->stackpos < 128);
 	return(khttp_putc(r->req, '['));
 }
 
@@ -406,10 +406,10 @@ kjson_stringp_open(struct kjsonreq *r, const char *key)
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
 
+	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_STRING;
-	assert(r->stackpos < 128);
 	return(khttp_putc(r->req, '"'));
 }
 
@@ -439,10 +439,10 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
 
+	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_OBJECT;
-	assert(r->stackpos < 128);
 	return(khttp_putc(r->req, '{'));
 }
 
