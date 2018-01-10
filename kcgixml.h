@@ -32,11 +32,13 @@
 #  endif
 #endif
 
+#define	KXML_STACK_MAX	128
+
 struct	kxmlreq {
 	struct kreq	  *req;
 	const char *const *elems;
 	size_t		   elemsz;
-	size_t	 	   stack[128];
+	size_t	 	   stack[KXML_STACK_MAX];
 	size_t		   stackpos;
 };
 
