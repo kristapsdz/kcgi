@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -42,17 +42,17 @@ struct	kxmlreq {
 
 __BEGIN_DECLS
 
-int	kxml_close(struct kxmlreq *);
-void	kxml_open(struct kxmlreq *, struct kreq *, const char *const *, size_t);
-int	kxml_push(struct kxmlreq *, size_t);
-int	kxml_pushattrs(struct kxmlreq *, size_t, ...);
-void	kxml_pushnull(struct kxmlreq *, size_t);
-void	kxml_pushnullattrs(struct kxmlreq *, size_t, ...);
-int	kxml_pop(struct kxmlreq *);
-void	kxml_popall(struct kxmlreq *);
-void	kxml_putc(struct kxmlreq *, char);
-void	kxml_puts(struct kxmlreq *, const char *);
-int	kxml_write(const char *, size_t, void *);
+enum kcgi_err	 kxml_close(struct kxmlreq *);
+enum kcgi_err	 kxml_open(struct kxmlreq *, struct kreq *, const char *const *, size_t);
+enum kcgi_err	 kxml_push(struct kxmlreq *, size_t);
+enum kcgi_err	 kxml_pushattrs(struct kxmlreq *, size_t, ...);
+enum kcgi_err	 kxml_pushnull(struct kxmlreq *, size_t);
+enum kcgi_err	 kxml_pushnullattrs(struct kxmlreq *, size_t, ...);
+enum kcgi_err	 kxml_pop(struct kxmlreq *);
+enum kcgi_err	 kxml_popall(struct kxmlreq *);
+enum kcgi_err	 kxml_putc(struct kxmlreq *, char);
+enum kcgi_err	 kxml_puts(struct kxmlreq *, const char *);
+enum kcgi_err	 kxml_write(const char *, size_t, void *);
 
 __END_DECLS
 
