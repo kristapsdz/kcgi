@@ -60,69 +60,69 @@
 .Fa "struct kjsonreq *r"
 .Fa "struct kreq *req"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_close
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putbool
 .Fa "struct kjsonreq *r"
 .Fa "int val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putboolp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "int val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putdouble
 .Fa "struct kjsonreq *r"
 .Fa "double val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putdoublep
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "double val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putint
 .Fa "struct kjsonreq *r"
 .Fa "int64_t val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putintp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "int64_t val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putintstr
 .Fa "struct kjsonreq *r"
 .Fa "int64_t val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putintstrp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fa "int64_t val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putnull
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putnullp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putstring
 .Fa "struct kjsonreq *r"
 .Fa "const char *val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_putstringp
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
@@ -141,43 +141,43 @@
 .Fo kjson_obj_close
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_array_open
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_arrayp_open
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_array_close
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_string_open
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_stringp_open
 .Fa "struct kjsonreq *r"
 .Fa "const char *key"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_string_close
 .Fa "struct kjsonreq *r"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_string_putint
 .Fa "struct kjsonreq *r"
 .Fa "int64_t val"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_string_puts
 .Fa "struct kjsonreq *r"
 .Fa "const char *cp"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo kjson_string_write
 .Fa "const char *cp"
 .Fa "size_t sz"
@@ -307,31 +307,27 @@ argument to
 .Xr printf 3 .
 .El
 .Sh RETURN VALUES
+All functions return a
 Functions returning an
-.Vt int
-indicate zero on failure and non-zero on success.
-.Pp
-Failure for
-.Dq open ,
-.Dq write
-and
-.Dq put
-functions occurs if the request occurs out of context, for example,
-emitting a key-value pair in an array context (or the root context), or
-emitting a standalone value in an object.
-.Pp
-For
-.Dq close
-functions, failure occurs when trying to close a different type, for
-example, closing an array when an object is open.
-Failure also occurs if there is nothing open to close.
-For either of these, failure means that the requested operation was
-ignored.
-.Pp
-For
-.Fn kcgijson_close ,
-failure only means that there are open scopes when the function was
-invoked: all scopes are still closed.
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream.
+Some functions return the
+.Dv KCGI_FORM
+code to indicate that the given operation is not allowed in the current
+context, such as invoking
+.Fn kjson_obj_close
+with a previous invocation of
+.Fn kjson_array_open .
+The return of any error code except
+.Dv KCGI_OK
+may leave the output state inconsistent, and should result in program
+termination.
 .Sh STANDARDS
 The
 .Nm kcgijson
