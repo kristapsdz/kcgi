@@ -53,7 +53,7 @@ kxml_push(struct kxmlreq *r, size_t elem)
 {
 	enum kcgi_err	 er;
 
-	if (r->stackpos >= 128) 
+	if (r->stackpos >= KXML_STACK_MAX) 
 		return(KCGI_FORM);
 
 	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
@@ -132,7 +132,7 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 	const char	*key, *val;
 	enum kcgi_err	 er;
 
-	if (r->stackpos >= 128) 
+	if (r->stackpos >= KXML_STACK_MAX) 
 		return(KCGI_FORM);
 
 	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
