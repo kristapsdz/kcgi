@@ -111,32 +111,39 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 	return(khttp_putc(r->req, '"'));
 }
 
+/*
+ * Check the parent of a new JSON element, which may or may not have a
+ * key, which implies key-value instead of a value-only element.
+ * An example of a key-value would be the inside of {foo: "bar"}, while
+ * the value-only would be the surrounding object.
+ * In short, we cannot have a key if our parent is the root
+ * (KJSON_ROOT) or an array (KJSON_ARRAY), both of which accept
+ * only values, e.g., [1, 2, 3] but not [a: b, c: d].
+ * We must have a key, however, if our parent is an object, that is,
+ * don't accept {4} and so on.
+ * Moreover, we should never be in a string context.
+ * Returns the value of khttp_puts() or KCGI_FORM on check violation.
+ */
 static enum kcgi_err
 kjson_check(struct kjsonreq *r, const char *key)
 {
 	enum kcgi_err	 er;
 
-	/* We should never be in a string context. */
+	switch (r->stack[r->stackpos].type) {
+	case (KJSON_STRING):
+		return(KCGI_FORM);
+	case (KJSON_OBJECT):
+		if (NULL == key)
+			return(KCGI_FORM);
+		break;
+	case (KJSON_ROOT):
+		/* FALLTHROUGH */
+	case (KJSON_ARRAY):
+		if (NULL != key)
+			return(KCGI_FORM);
+		break;
+	}
 
-	if (KJSON_STRING == r->stack[r->stackpos].type)
-		goto out;
-
-	/*
-	 * Check the parent of a new JSON value.
-	 * In short, we cannot have a key if our parent is the root
-	 * (KJSON_ROOT) or an array (KJSON_ARRAY), both of which accept
-	 * only values.
-	 */
-
-	if (NULL != key && KJSON_OBJECT == r->stack[r->stackpos].type)
-		goto out;
-	if (NULL == key && KJSON_ARRAY == r->stack[r->stackpos].type)
-		goto out;
-	if (NULL == key && KJSON_ROOT == r->stack[r->stackpos].type)
-		goto out;
-
-	return(KCGI_FORM);
-out:
 	if (r->stack[r->stackpos].elements++ > 0) 
 		if (KCGI_OK != (er = khttp_puts(r->req, ", ")))
 			return(er);
