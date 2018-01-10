@@ -39,6 +39,8 @@ enum	kjsontype {
 	KJSON_STRING
 };
 
+#define	KJSON_STACK_MAX	128
+
 struct	kjsonscope {
 	size_t		  elements;
 	enum kjsontype	  type;
@@ -47,7 +49,7 @@ struct	kjsonscope {
 struct	kjsonreq {
 	struct kreq	 *req;
 	size_t		  stackpos;
-	struct kjsonscope stack[128];
+	struct kjsonscope stack[KJSON_STACK_MAX];
 };
 
 __BEGIN_DECLS
