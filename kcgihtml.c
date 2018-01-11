@@ -777,20 +777,6 @@ khtml_puts(struct khtmlreq *req, const char *cp)
 }
 
 
-/*
- * Emit text in an HTML document.
- * This means, minimally, that we need to escape the open and close
- * delimiters for HTML tags.
- */
-void
-khtml_text(struct khtmlreq *req, const char *cp)
-{
-
-	req->newln = 0;
-	while ('\0' != *cp)
-		khtml_putc(req, *cp++);
-}
-
 void
 khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 {

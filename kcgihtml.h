@@ -478,8 +478,6 @@ enum kcgi_err	 khtml_ncr(struct khtmlreq *, uint16_t);
 void	 	 khtml_open(struct khtmlreq *, struct kreq *, int);
 enum kcgi_err	 khtml_putc(struct khtmlreq *, char);
 enum kcgi_err	 khtml_puts(struct khtmlreq *, const char *);
-void		 khtml_text(struct khtmlreq *, const char *)
-			__attribute__ ((deprecated));
 enum kcgi_err	 khtml_write(const char *, size_t, void *);
 
 __END_DECLS
