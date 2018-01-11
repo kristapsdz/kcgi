@@ -196,9 +196,12 @@ None of these functions may be called before
 All
 .Nm kcgijson
 sequences begin with
+.Fn kjson_open
+and ends with
+.Fn kjson_close .
+Following
 .Fn kjson_open ,
-which prepares for output.
-Well-formed JSON documents will then create the root document context as
+well-formed JSON documents will then create the root document context as
 either an array or object,
 .Fn kjson_array_open
 or
@@ -229,9 +232,15 @@ for example,
 .Bl -tag -width Ds
 .It Fn kjson_open
 Initialise a JSON context.
+The context is closed by
+.Fn kjson_close .
 .It Fn kjson_close
-Convenience function to close out all open scopes.
-This will also close any open arrays, strings, or objects.
+Closes the context opened by
+.Fn kxml_open ,
+closing out any open arrays, strings, and objects.
+After being called, the
+.Ft struct kcgijson
+may no longer be used.
 .It Fn kjson_arrayp_open
 This and
 .Fn kjson_array_open
@@ -311,8 +320,7 @@ otherwise this will return
 .Dv KCGI_FORM .
 .El
 .Sh RETURN VALUES
-All functions return a
-Functions returning an
+All functions return an
 .Ft enum kcgi_err
 indicating the error state:
 .Dv KCGI_OK

@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -43,57 +43,57 @@
 .In stdint.h
 .In kcgi.h
 .In kcgihtml.h
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_attr
 .Fa "struct khtmlreq *req"
 .Fa "enum kelem elem"
 .Fa "..."
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_attrx
 .Fa "struct khtmlreq *req"
 .Fa "enum kelem elem"
 .Fa "..."
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khtml_close
 .Fa "struct khtmlreq *req"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khtml_closeelem
 .Fa "struct khtmlreq *req"
 .Fa "size_t count"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khtml_closeto
 .Fa "struct khtmlreq *req"
 .Fa "size_t pos"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_double
 .Fa "struct khtmlreq *req"
 .Fa "double val"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_elem
 .Fa "struct khtmlreq *req"
 .Fa "enum kelem elem"
 .Fc
-.Ft size_t
+.Ft enum kcgi_err
 .Fo khtml_elemat
 .Fa "struct khtmlreq *req"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_entity
 .Fa "struct khtmlreq *req"
 .Fa "enum entity entity"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_int
 .Fa "struct khtmlreq *req"
 .Fa "int64_t val"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_ncr
 .Fa "struct khtmlreq *req"
 .Fa "uint16_t ncr"
@@ -104,17 +104,17 @@
 .Fa "struct kreq *r"
 .Fa "int opts"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_putc
 .Fa "struct khtmlreq *req"
 .Fa "char c"
 .Fc
-.Ft void
+.Ft enum kcgi_err
 .Fo khtml_puts
 .Fa "struct khtmlreq *req"
 .Fa "const char *cp"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khtml_write
 .Fa "const char *cp"
 .Fa "size_t sz"
@@ -270,13 +270,24 @@ This is generally for use with
 .Xr khttp_template 3 .
 .El
 .Sh RETURN VALUES
+All functions return an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream.
 The
-.Fn khtml_close ,
-.Fn khtml_closeelem ,
-and
-.Fn khtml_closeat
-return zero if the requested statement overruns (or underruns) the stack
-of open elements.
+.Fn kkhtml_closeto
+function returns
+.Dv KCGI_FORM
+if the requested number of scopes exceeds available scopes.
+The return of any error code except
+.Dv KCGI_OK
+may leave the output state inconsistent, and should result in program
+termination.
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.
 .Sh AUTHORS
