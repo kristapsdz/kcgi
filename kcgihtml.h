@@ -464,23 +464,23 @@ struct	khtmlreq {
 
 __BEGIN_DECLS
 
-void		 khtml_attr(struct khtmlreq *, enum kelem, ...);
-void		 khtml_attrx(struct khtmlreq *, enum kelem, ...);
-int		 khtml_close(struct khtmlreq *);
-int		 khtml_closeelem(struct khtmlreq *, size_t);
-int		 khtml_closeto(struct khtmlreq *, size_t);
-void		 khtml_double(struct khtmlreq *, double);
-void		 khtml_elem(struct khtmlreq *, enum kelem);
+enum kcgi_err	 khtml_attr(struct khtmlreq *, enum kelem, ...);
+enum kcgi_err	 khtml_attrx(struct khtmlreq *, enum kelem, ...);
+enum kcgi_err	 khtml_close(struct khtmlreq *);
+enum kcgi_err	 khtml_closeelem(struct khtmlreq *, size_t);
+enum kcgi_err	 khtml_closeto(struct khtmlreq *, size_t);
+enum kcgi_err	 khtml_double(struct khtmlreq *, double);
+enum kcgi_err	 khtml_elem(struct khtmlreq *, enum kelem);
 size_t		 khtml_elemat(struct khtmlreq *);
-void		 khtml_entity(struct khtmlreq *, enum kentity);
-void		 khtml_int(struct khtmlreq *, int64_t);
-void		 khtml_ncr(struct khtmlreq *, uint16_t);
-void		 khtml_open(struct khtmlreq *, struct kreq *, int);
-void		 khtml_putc(struct khtmlreq *, char);
-void		 khtml_puts(struct khtmlreq *, const char *);
+enum kcgi_err	 khtml_entity(struct khtmlreq *, enum kentity);
+enum kcgi_err	 khtml_int(struct khtmlreq *, int64_t);
+enum kcgi_err	 khtml_ncr(struct khtmlreq *, uint16_t);
+void	 	 khtml_open(struct khtmlreq *, struct kreq *, int);
+enum kcgi_err	 khtml_putc(struct khtmlreq *, char);
+enum kcgi_err	 khtml_puts(struct khtmlreq *, const char *);
 void		 khtml_text(struct khtmlreq *, const char *)
 			__attribute__ ((deprecated));
-int		 khtml_write(const char *, size_t, void *);
+enum kcgi_err	 khtml_write(const char *, size_t, void *);
 
 __END_DECLS
 

@@ -476,253 +476,304 @@ khtml_elemat(struct khtmlreq *req)
 	return(req->elemsz);
 }
 
-void
+enum kcgi_err
 khtml_elem(struct khtmlreq *req, enum kelem elem)
 {
 
-	khtml_attr(req, elem, KATTR__MAX);
+	return(khtml_attr(req, elem, KATTR__MAX));
 }
 
 /*
- * Open a tag.
+ * Open a tag---only used when pretty-printing and a noop otherwise.
  * If we're a flow tag, emit a newline (unless already omitted). 
  * Then if we're at a newline regardless of tag type, indent properly to
  * the point where we'll omit the tag name.
  */
-static void
+static enum kcgi_err
 khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 {
 	size_t		 i;
+	enum kcgi_err	 er;
 
 	if ( ! (KHTML_PRETTY & req->opts))
-		return;
+		return(KCGI_OK);
 
-	if (TAG_FLOW == tags[elem].flags)
-		if ( ! req->newln) {
-			khttp_putc(req->req, '\n');
-			req->newln = 1;
-		}
+	if (TAG_FLOW == tags[elem].flags && ! req->newln) {
+		if (KCGI_OK != (er = khttp_putc(req->req, '\n')))
+			return(er);
+		req->newln = 1;
+	}
 
 	if (req->newln)
 		for (i = 0; i < req->elemsz; i++) 
-			khttp_puts(req->req, "  ");
+			if (KCGI_OK != (er = 
+			    khttp_puts(req->req, "  ")))
+				return(er);
 
 	req->newln = 0;
+	return(KCGI_OK);
 }
 
 /*
- * If we're closing a flow or instruction tag, emit a newline.
+ * If we're pretty-printing and closing a flow or instruction tag, emit
+ * a newline.
  * Otherwise do nothing.
+ * Returns the usual write error code.
  */
-static void
+static enum kcgi_err
 khtml_flow_close(struct khtmlreq *req, enum kelem elem)
 {
+	enum kcgi_err	 er;
 
 	if ( ! (KHTML_PRETTY & req->opts))
-		return;
+		return(KCGI_OK);
 
 	if (TAG_FLOW == tags[elem].flags ||
-		TAG_INSTRUCTION == tags[elem].flags) {
-		khttp_putc(req->req, '\n');
+	    TAG_INSTRUCTION == tags[elem].flags) {
+		if (KCGI_OK != (er = khttp_putc(req->req, '\n')))
+			return(er);
 		req->newln = 1;
 	} else
 		req->newln = 0;
+
+	return(KCGI_OK);
 }
 
-void
+enum kcgi_err
 khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
 	enum kattr	 at;
+	enum kcgi_err	 er;
 
-	khtml_flow_open(req, elem);
-	khttp_putc(req->req, '<');
-	khttp_puts(req->req, tags[elem].name);
+	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
+		return(er);
+	if (KCGI_OK != (er = khttp_putc(req->req, '<')))
+		return(er);
+	if (KCGI_OK != (er = khttp_puts(req->req, tags[elem].name)))
+		return(er);
 
 	va_start(ap, elem);
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
-		khttp_putc(req->req, ' ');
-		khttp_puts(req->req, attrs[at]);
-		khttp_putc(req->req, '=');
-		khttp_putc(req->req, '"');
+		if (KCGI_OK != (er = khttp_putc(req->req, ' ')))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(req->req, attrs[at])))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(req->req, "=\"")))
+			return(er);
+
 		switch (va_arg(ap, enum kattrx)) {
 		case (KATTRX_STRING):
-			khtml_puts(req, va_arg(ap, char *));
+			er = khtml_puts(req, va_arg(ap, char *));
 			break;
 		case (KATTRX_INT):
-			khtml_int(req, va_arg(ap, int64_t));
+			er = khtml_int(req, va_arg(ap, int64_t));
 			break;
 		case (KATTRX_DOUBLE):
-			khtml_double(req, va_arg(ap, double));
+			er = khtml_double(req, va_arg(ap, double));
+			break;
 		}
-		khttp_putc(req->req, '"');
+		if (KCGI_OK != er)
+			return(er);
+		if (KCGI_OK != (er = khttp_putc(req->req, '"')))
+			return(er);
 	}
 	va_end(ap);
 
 	if (TAG_VOID == tags[elem].flags)
-		khttp_putc(req->req, '/');
-	khttp_putc(req->req, '>');
-	khtml_flow_close(req, elem);
+		if (KCGI_OK != (er = khttp_putc(req->req, '/')))
+			return(er);
+	if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+		return(er);
+	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
+		return(er);
 
 	if (TAG_VOID != tags[elem].flags &&
-		TAG_INSTRUCTION != tags[elem].flags)
+	    TAG_INSTRUCTION != tags[elem].flags)
 		req->elems[req->elemsz++] = elem;
 	assert(req->elemsz < KDATA_MAXELEMSZ);
+
+	return(KCGI_OK);
 }
 
-void
+enum kcgi_err
 khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
 	enum kattr	 at;
 	const char	*cp;
+	enum kcgi_err	 er;
 
-	khtml_flow_open(req, elem);
-	khttp_putc(req->req, '<');
-	khttp_puts(req->req, tags[elem].name);
+	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
+		return(er);
+	if (KCGI_OK != (er = khttp_putc(req->req, '<')))
+		return(er);
+	if (KCGI_OK != (er = khttp_puts(req->req, tags[elem].name)))
+		return(er);
 
 	va_start(ap, elem);
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
 		cp = va_arg(ap, char *);
 		assert(NULL != cp);
-		khttp_putc(req->req, ' ');
-		khttp_puts(req->req, attrs[at]);
-		khttp_putc(req->req, '=');
-		khttp_putc(req->req, '"');
-		khtml_puts(req, cp);
-		khttp_putc(req->req, '"');
+		if (KCGI_OK != (er = khttp_putc(req->req, ' ')))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(req->req, attrs[at])))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(req->req, "=\"")))
+			return(er);
+		if (KCGI_OK != (er = khtml_puts(req, cp)))
+			return(er);
+		if (KCGI_OK != (er = khttp_putc(req->req, '"')))
+			return(er);
 
 	}
 	va_end(ap);
 
 	if (TAG_VOID == tags[elem].flags)
-		khttp_putc(req->req, '/');
-	khttp_putc(req->req, '>');
-	khtml_flow_close(req, elem);
+		if (KCGI_OK != (er = khttp_putc(req->req, '/')))
+			return(er);
+	if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+		return(er);
+	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
+		return(er);
 
 	if (TAG_VOID != tags[elem].flags &&
-		TAG_INSTRUCTION != tags[elem].flags)
+	    TAG_INSTRUCTION != tags[elem].flags)
 		req->elems[req->elemsz++] = elem;
 	assert(req->elemsz < KDATA_MAXELEMSZ);
+
+	return(KCGI_OK);
 }
 
-int
+enum kcgi_err
 khtml_closeelem(struct khtmlreq *req, size_t sz)
 {
 	size_t		 i;
+	enum kcgi_err	 er;
 
 	if (0 == sz)
 		sz = req->elemsz;
+	if (sz > req->elemsz)
+		sz = req->elemsz;
 
 	for (i = 0; i < sz; i++) {
-		if (0 == req->elemsz) 
-			return(0);
+		assert(req->elemsz);
 		req->elemsz--;
-		khtml_flow_open(req, req->elems[req->elemsz]);
-		khttp_puts(req->req, "</");
-		khttp_puts(req->req, tags[req->elems[req->elemsz]].name);
-		khttp_putc(req->req, '>');
-		khtml_flow_close(req, req->elems[req->elemsz]);
+		if (KCGI_OK != (er = khtml_flow_open
+		    (req, req->elems[req->elemsz])))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts(req->req, "</")))
+			return(er);
+		if (KCGI_OK != (er = khttp_puts
+		    (req->req, tags[req->elems[req->elemsz]].name)))
+			return(er);
+		if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+			return(er);
+		if (KCGI_OK != (er = khtml_flow_close
+	    	    (req, req->elems[req->elemsz])))
+			return(er);
 	}
-	return(1);
+
+	return(KCGI_OK);
 }
 
-int
+enum kcgi_err
 khtml_closeto(struct khtmlreq *req, size_t pos)
 {
 
 	if (pos > req->elemsz)
-		return(0);
+		return(KCGI_FORM);
 	return(khtml_closeelem(req, req->elemsz - pos));
 }
 
-void
+enum kcgi_err
 khtml_entity(struct khtmlreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
-	khtml_ncr(req, entities[entity]);
+	return(khtml_ncr(req, entities[entity]));
 }
 
-void
+enum kcgi_err
 khtml_ncr(struct khtmlreq *req, uint16_t ncr)
 {
-	char	 buf[INT_MAXSZ];
+	char	 	 buf[INT_MAXSZ];
+	enum kcgi_err	 er;
 
 	(void)snprintf(buf, sizeof(buf), "%" PRIx16, ncr);
-	khttp_puts(req->req, "&#x");
-	khttp_puts(req->req, buf);
-	khttp_putc(req->req, ';');
+	if (KCGI_OK != (er = khttp_puts(req->req, "&#x")))
+		return(er);
+	if (KCGI_OK != (er = khttp_puts(req->req, buf)))
+		return(er);
+	return(khttp_putc(req->req, ';'));
 }
 
-void
+enum kcgi_err
 khtml_double(struct khtmlreq *req, double val)
 {
 	char	 buf[256];
 
 	(void)snprintf(buf, sizeof(buf), "%g", val);
-	khtml_puts(req, buf);
+	return(khtml_puts(req, buf));
 }
 
-void
+enum kcgi_err
 khtml_int(struct khtmlreq *req, int64_t val)
 {
 	char	 buf[INT_MAXSZ];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	khtml_puts(req, buf);
+	return(khtml_puts(req, buf));
 }
 
-void
+enum kcgi_err
 khtml_putc(struct khtmlreq *r, char c)
 {
+	enum kcgi_err	 er;
 
 	switch (c) {
 	case ('>'):
-		khtml_entity(r, KENTITY_gt);
+		er = khtml_entity(r, KENTITY_gt);
 		break;
 	case ('&'):
-		khtml_entity(r, KENTITY_amp);
+		er = khtml_entity(r, KENTITY_amp);
 		break;
 	case ('<'):
-		khtml_entity(r, KENTITY_lt);
+		er = khtml_entity(r, KENTITY_lt);
 		break;
 	case ('"'):
-		khtml_entity(r, KENTITY_quot);
+		er = khtml_entity(r, KENTITY_quot);
 		break;
 	case ('\''):
-		khtml_ncr(r, 39);
+		er = khtml_ncr(r, 39);
 		break;
 	default:
-		khttp_putc(r->req, c);
+		er = khttp_putc(r->req, c);
 		break;
 	}
+
+	return(er);
 }
 
-int
+enum kcgi_err
 khtml_write(const char *cp, size_t sz, void *arg)
 {
 	struct khtmlreq	*r = arg;
 	size_t		 i;
+	enum kcgi_err	 er;
 
 	for (i = 0; i < sz; i++) 
-		khtml_putc(r, cp[i]);
+		if (KCGI_OK != (er = khtml_putc(r, cp[i])))
+			return(er);
 
-	return(1);
+	return(KCGI_OK);
 }
 
-/*
- * Emit text in an HTML document.
- * This means, minimally, that we need to escape the open and close
- * delimiters for HTML tags.
- */
-void
+enum kcgi_err
 khtml_puts(struct khtmlreq *req, const char *cp)
 {
 
-	req->newln = 0;
-	while ('\0' != *cp)
-		khtml_putc(req, *cp++);
+	return(khtml_write(cp, strlen(cp), req));
 }
 
 
@@ -749,12 +800,9 @@ khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 	r->opts = opts;
 }
 
-int
+enum kcgi_err
 khtml_close(struct khtmlreq *r)
 {
-	int	 i;
 
-	i = r->elemsz;
-	khtml_closeelem(r, 0);
-	return(i);
+	return(khtml_closeelem(r, 0));
 }
