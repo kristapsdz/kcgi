@@ -107,8 +107,10 @@ None of these functions may be called before
 .Pp
 All
 .Nm kcgixml
-sequences begins with
-.Fn kxml_open .
+sequences begin with
+.Fn kxml_open
+and end with
+.Fn kxml_close .
 An array of possible elements is passed as
 .Fa elems
 to
@@ -135,8 +137,12 @@ for example,
 .Ed
 .Bl -tag -width Ds
 .It Fn kxml_close
-Alias for
-.Fn kxml_popall .
+Closes the context opened by
+.Fn kxml_open ,
+popping all open tags in doing so.
+After being called, the
+.Ft struct kcgixml
+may no longer be used.
 .It Fn kxml_open
 Open an XML context, binding it to
 .Fa elems ,
@@ -152,6 +158,8 @@ request object
 .Fa req ,
 and an output object
 .Fa xml .
+The context is closed by
+.Fn kxml_close .
 .It Fn kxml_push
 Push the element-open tag indexed by
 .Fn elem
@@ -192,7 +200,7 @@ Invokes
 for all elements in the bounded buffer.
 .El
 .Sh RETURN VALUES
-All functions return a
+All functions return an
 .Ft enum kcgi_err
 indicating the error state:
 .Dv KCGI_OK
