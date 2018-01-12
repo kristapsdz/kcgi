@@ -26,6 +26,7 @@
 
 #include "kcgi.h"
 #include "kcgixml.h"
+#include "extern.h"
 
 enum kcgi_err
 kxml_open(struct kxmlreq *r, struct kreq *req,
@@ -33,10 +34,18 @@ kxml_open(struct kxmlreq *r, struct kreq *req,
 {
 
 	memset(r, 0, sizeof(struct kxmlreq));
-	r->req = req;
+	if (NULL == (r->arg = kcgi_writer_get(req, 0)))
+		return(KCGI_ENOMEM);
 	r->elems = elems;
 	r->elemsz = elemsz;
-	return(khttp_puts(r->req, 
+	return(KCGI_OK);
+}
+
+enum kcgi_err
+kxml_prologue(struct kxmlreq *r)
+{
+
+	return(kcgi_writer_puts(r->arg, 
 		"<?xml version=\"1.0\" "
 		"encoding=\"utf-8\" ?>"));
 }
@@ -56,11 +65,11 @@ kxml_push(struct kxmlreq *r, size_t elem)
 	if (r->stackpos >= KXML_STACK_MAX) 
 		return(KCGI_FORM);
 
-	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(r->req, r->elems[elem])))
+	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
 		return(er);
-	if (KCGI_OK != (er = khttp_putc(r->req, '>')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '>')))
 		return(er);
 	r->stack[r->stackpos++] = elem;
 	return(KCGI_OK);
@@ -71,11 +80,11 @@ kxml_pushnull(struct kxmlreq *r, size_t elem)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(r->req, r->elems[elem])))
+	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
 		return(er);
-	return(khttp_puts(r->req, " />"));
+	return(kcgi_writer_puts(r->arg, " />"));
 }
 
 enum kcgi_err
@@ -85,19 +94,19 @@ kxml_putc(struct kxmlreq *r, char c)
 
 	switch (c) {
 	case ('<'):
-		er = khttp_puts(r->req, "&lt;");
+		er = kcgi_writer_puts(r->arg, "&lt;");
 		break;
 	case ('>'):
-		er = khttp_puts(r->req, "&gt;");
+		er = kcgi_writer_puts(r->arg, "&gt;");
 		break;
 	case ('"'):
-		er = khttp_puts(r->req, "&quot;");
+		er = kcgi_writer_puts(r->arg, "&quot;");
 		break;
 	case ('&'):
-		er = khttp_puts(r->req, "&amp;");
+		er = kcgi_writer_puts(r->arg, "&amp;");
 		break;
 	default:
-		er = khttp_putc(r->req, c);
+		er = kcgi_writer_putc(r->arg, c);
 		break;
 	}
 
@@ -135,29 +144,29 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 	if (r->stackpos >= KXML_STACK_MAX) 
 		return(KCGI_FORM);
 
-	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(r->req, r->elems[elem])))
+	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
 		return(er);
 	va_start(ap, elem);
 	for (;;) {
 		if (NULL == (key = va_arg(ap, char *)))
 			break;
 		val = va_arg(ap, char *);
-		if (KCGI_OK != (er = khttp_putc(r->req, ' ')))
+		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, ' ')))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(r->req, key)))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, key)))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(r->req, "=\"")))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "=\"")))
 			return(er);
 		if (KCGI_OK != (er = kxml_puts(r, val)))
 			return(er);
-		if (KCGI_OK != (er = khttp_putc(r->req, '"')))
+		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
 			return(er);
 	}
 	va_end(ap);
 	r->stack[r->stackpos++] = elem;
-	return(khttp_putc(r->req, '>'));
+	return(kcgi_writer_putc(r->arg, '>'));
 }
 
 enum kcgi_err
@@ -167,9 +176,9 @@ kxml_pushnullattrs(struct kxmlreq *r, size_t elem, ...)
 	const char	*key, *val;
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = khttp_putc(r->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(r->req, r->elems[elem])))
+	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
 		return(er);
 
 	va_start(ap, elem);
@@ -177,19 +186,19 @@ kxml_pushnullattrs(struct kxmlreq *r, size_t elem, ...)
 		if (NULL == (key = va_arg(ap, char *)))
 			break;
 		val = va_arg(ap, char *);
-		if (KCGI_OK != (er = khttp_putc(r->req, ' ')))
+		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, ' ')))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(r->req, key)))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, key)))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(r->req, "=\"")))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "=\"")))
 			return(er);
 		if (KCGI_OK != (er = kxml_puts(r, val)))
 			return(er);
-		if (KCGI_OK != (er = khttp_putc(r->req, '"')))
+		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
 			return(er);
 	}
 	va_end(ap);
-	return(khttp_puts(r->req, " />"));
+	return(kcgi_writer_puts(r->arg, " />"));
 }
 
 enum kcgi_err
@@ -210,10 +219,10 @@ kxml_pop(struct kxmlreq *r)
 	if (0 == r->stackpos)
 		return(KCGI_FORM);
 
-	if (KCGI_OK != (er = khttp_puts(r->req, "</")))
+	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "</")))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts
-	    (r->req, r->elems[r->stack[--r->stackpos]])))
+	if (KCGI_OK != (er = kcgi_writer_puts
+	    (r->arg, r->elems[r->stack[--r->stackpos]])))
 		return(er);
-	return(khttp_putc(r->req, '>'));
+	return(kcgi_writer_putc(r->arg, '>'));
 }

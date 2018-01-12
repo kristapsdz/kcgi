@@ -35,7 +35,7 @@
 #define	KXML_STACK_MAX	128
 
 struct	kxmlreq {
-	struct kreq	  *req;
+	void		  *arg;
 	const char *const *elems;
 	size_t		   elemsz;
 	size_t	 	   stack[KXML_STACK_MAX];
@@ -44,6 +44,7 @@ struct	kxmlreq {
 
 __BEGIN_DECLS
 
+enum kcgi_err	 kxml_prologue(struct kxmlreq *);
 enum kcgi_err	 kxml_close(struct kxmlreq *);
 enum kcgi_err	 kxml_open(struct kxmlreq *, struct kreq *, const char *const *, size_t);
 enum kcgi_err	 kxml_push(struct kxmlreq *, size_t);
