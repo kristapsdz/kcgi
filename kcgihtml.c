@@ -26,6 +26,7 @@
 
 #include "kcgi.h"
 #include "kcgihtml.h"
+#include "extern.h"
 
 /*
  * Maximum size of printing a signed 64-bit integer.
@@ -499,7 +500,7 @@ khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 		return(KCGI_OK);
 
 	if (TAG_FLOW == tags[elem].flags && ! req->newln) {
-		if (KCGI_OK != (er = khttp_putc(req->req, '\n')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '\n')))
 			return(er);
 		req->newln = 1;
 	}
@@ -507,7 +508,7 @@ khtml_flow_open(struct khtmlreq *req, enum kelem elem)
 	if (req->newln)
 		for (i = 0; i < req->elemsz; i++) 
 			if (KCGI_OK != (er = 
-			    khttp_puts(req->req, "  ")))
+			    kcgi_writer_puts(req->arg, "  ")))
 				return(er);
 
 	req->newln = 0;
@@ -530,7 +531,7 @@ khtml_flow_close(struct khtmlreq *req, enum kelem elem)
 
 	if (TAG_FLOW == tags[elem].flags ||
 	    TAG_INSTRUCTION == tags[elem].flags) {
-		if (KCGI_OK != (er = khttp_putc(req->req, '\n')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '\n')))
 			return(er);
 		req->newln = 1;
 	} else
@@ -548,18 +549,18 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 
 	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
 		return(er);
-	if (KCGI_OK != (er = khttp_putc(req->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(req->req, tags[elem].name)))
+	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, tags[elem].name)))
 		return(er);
 
 	va_start(ap, elem);
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
-		if (KCGI_OK != (er = khttp_putc(req->req, ' ')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, ' ')))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(req->req, attrs[at])))
+		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, attrs[at])))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(req->req, "=\"")))
+		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "=\"")))
 			return(er);
 
 		switch (va_arg(ap, enum kattrx)) {
@@ -575,15 +576,15 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 		}
 		if (KCGI_OK != er)
 			return(er);
-		if (KCGI_OK != (er = khttp_putc(req->req, '"')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '"')))
 			return(er);
 	}
 	va_end(ap);
 
 	if (TAG_VOID == tags[elem].flags)
-		if (KCGI_OK != (er = khttp_putc(req->req, '/')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '/')))
 			return(er);
-	if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
 		return(er);
 	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
 		return(er);
@@ -606,33 +607,33 @@ khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 
 	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
 		return(er);
-	if (KCGI_OK != (er = khttp_putc(req->req, '<')))
+	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '<')))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(req->req, tags[elem].name)))
+	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, tags[elem].name)))
 		return(er);
 
 	va_start(ap, elem);
 	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
 		cp = va_arg(ap, char *);
 		assert(NULL != cp);
-		if (KCGI_OK != (er = khttp_putc(req->req, ' ')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, ' ')))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(req->req, attrs[at])))
+		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, attrs[at])))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(req->req, "=\"")))
+		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "=\"")))
 			return(er);
 		if (KCGI_OK != (er = khtml_puts(req, cp)))
 			return(er);
-		if (KCGI_OK != (er = khttp_putc(req->req, '"')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '"')))
 			return(er);
 
 	}
 	va_end(ap);
 
 	if (TAG_VOID == tags[elem].flags)
-		if (KCGI_OK != (er = khttp_putc(req->req, '/')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '/')))
 			return(er);
-	if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
 		return(er);
 	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
 		return(er);
@@ -662,12 +663,12 @@ khtml_closeelem(struct khtmlreq *req, size_t sz)
 		if (KCGI_OK != (er = khtml_flow_open
 		    (req, req->elems[req->elemsz])))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(req->req, "</")))
+		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "</")))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts
-		    (req->req, tags[req->elems[req->elemsz]].name)))
+		if (KCGI_OK != (er = kcgi_writer_puts
+		    (req->arg, tags[req->elems[req->elemsz]].name)))
 			return(er);
-		if (KCGI_OK != (er = khttp_putc(req->req, '>')))
+		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
 			return(er);
 		if (KCGI_OK != (er = khtml_flow_close
 	    	    (req, req->elems[req->elemsz])))
@@ -701,11 +702,11 @@ khtml_ncr(struct khtmlreq *req, uint16_t ncr)
 	enum kcgi_err	 er;
 
 	(void)snprintf(buf, sizeof(buf), "%" PRIx16, ncr);
-	if (KCGI_OK != (er = khttp_puts(req->req, "&#x")))
+	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "&#x")))
 		return(er);
-	if (KCGI_OK != (er = khttp_puts(req->req, buf)))
+	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, buf)))
 		return(er);
-	return(khttp_putc(req->req, ';'));
+	return(kcgi_writer_putc(req->arg, ';'));
 }
 
 enum kcgi_err
@@ -748,7 +749,7 @@ khtml_putc(struct khtmlreq *r, char c)
 		er = khtml_ncr(r, 39);
 		break;
 	default:
-		er = khttp_putc(r->req, c);
+		er = kcgi_writer_putc(r->arg, c);
 		break;
 	}
 
@@ -777,13 +778,15 @@ khtml_puts(struct khtmlreq *req, const char *cp)
 }
 
 
-void
+enum kcgi_err
 khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 {
 
 	memset(r, 0, sizeof(struct khtmlreq));
-	r->req = req;
+	if (NULL == (r->arg = kcgi_writer_get(req, 0)))
+		return(KCGI_ENOMEM);
 	r->opts = opts;
+	return(KCGI_OK);
 }
 
 enum kcgi_err
