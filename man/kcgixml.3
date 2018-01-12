@@ -27,6 +27,7 @@
 .Nm kxml_pushnullattrs ,
 .Nm kxml_pop ,
 .Nm kxml_popall ,
+.Nm kxml_prologue ,
 .Nm kxml_putc ,
 .Nm kxml_puts ,
 .Nm kxml_write
@@ -81,6 +82,10 @@
 .Fa "struct kxmlreq *xml"
 .Fc
 .Ft enum kcgi_xml
+.Fo kxml_prologue
+.Fa "struct kxmlreq *xml"
+.Fc
+.Ft enum kcgi_xml
 .Fo kxml_putc
 .Fa "struct kxmlreq *xml"
 .Fa "char c"
@@ -125,6 +130,9 @@ to open elements.
 The
 .Fn kxml_pop
 family closes out opened elements.
+The
+.Fn kxml_prologue
+function is used before any data output.
 .Pp
 To use these functions, you must include the
 .In kcgixml.h
@@ -190,6 +198,9 @@ Pop all open tags.
 .It Fn kxml_putc
 Write a single character within the currently-open tag, escaping it
 properly as opaque text.
+.It Fn kxml_prologue
+Emit the XML document prologue.
+This should only be called once.
 .It Fn kxml_puts
 Invokes
 .Fn kxml_putc
