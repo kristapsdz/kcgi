@@ -47,14 +47,14 @@ struct	kjsonscope {
 };
 
 struct	kjsonreq {
-	struct kreq	 *req;
+	void		 *arg;
 	size_t		  stackpos;
 	struct kjsonscope stack[KJSON_STACK_MAX];
 };
 
 __BEGIN_DECLS
 
-void	kjson_open(struct kjsonreq *, struct kreq *);
+enum kcgi_err	kjson_open(struct kjsonreq *, struct kreq *);
 enum kcgi_err	kjson_close(struct kjsonreq *);
 
 enum kcgi_err	kjson_putdoublep(struct kjsonreq *, const char *, double);
