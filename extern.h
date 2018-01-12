@@ -38,8 +38,17 @@ enum	sandtype {
 #define KWORKER_PARENT  1
 #define KWORKER_CHILD	0
 
+struct 	kcgi_writer;
 
 __BEGIN_DECLS
+
+void		 kcgi_writer_disable(struct kreq *);
+void		 kcgi_writer_free(struct kcgi_writer *);
+struct kcgi_writer *kcgi_writer_get(struct kreq *, int);
+enum kcgi_err	 kcgi_writer_putc(struct kcgi_writer *, char);
+enum kcgi_err	 kcgi_writer_puts(struct kcgi_writer *, const char *);
+enum kcgi_err	 kcgi_writer_write(struct kcgi_writer *, 
+			const void *, size_t);
 
 struct kdata	*kdata_alloc(int, int, uint16_t, 
 			unsigned int, const struct kopts *);

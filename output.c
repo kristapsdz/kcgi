@@ -66,6 +66,17 @@ struct	kdata {
 	char		*outbuf;
 	size_t		 outbufpos;
 	size_t		 outbufsz;
+	int		 disabled;
+};
+
+/*
+ * A writer is allocated for use by a front-end formatter.
+ * It is basically the bridge between the back-end writer (currently
+ * operated by kdata_write) and the front-ends like kcgijson.
+ */
+struct	kcgi_writer {
+	struct kdata	*kdata; /* the back-end writer context */
+	int		 type; /* currently unused */
 };
 
 static char *
@@ -326,16 +337,13 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	return(KCGI_OK);
 }
 
-/*
- * Just like khttp_head() except with a KSTATE_BODY.
- */
 enum kcgi_err
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
-	struct kdata	*p = req->kdata;
 
-	assert(NULL != p);
-	assert(KSTATE_BODY == p->state);
+	assert(NULL != req->kdata);
+	assert(KSTATE_BODY == req->kdata->state);
+	assert( ! req->kdata->disabled);
 	return(kdata_write(req->kdata, buf, sz));
 }
 
@@ -630,3 +638,79 @@ khttp_body_compress(struct kreq *req, int comp)
 #endif
 }
 
+/*
+ * Allocate a writer.
+ * This only works if we haven't disabled allocation of writers yet via
+ * kcgi_writer_disable(), otherwise we abort().
+ * Returns the writer or NULL on allocation (memory) failure.
+ */
+struct kcgi_writer *
+kcgi_writer_get(struct kreq *r, int type)
+{
+	struct kcgi_writer	*p;
+
+	assert( ! r->kdata->disabled);
+
+	p = XMALLOC(sizeof(struct kcgi_writer));
+	if (NULL != p)
+		p->kdata = r->kdata;
+	return(p);
+}
+
+/*
+ * Disable further allocation of writers with kcgi_writer_get().
+ * Following this, kcgi_writer_get() will abort.
+ * This may be called as many times as desired: only the first time
+ * makes a difference.
+ */
+void
+kcgi_writer_disable(struct kreq *r)
+{
+
+	r->kdata->disabled = 1;
+}
+
+/*
+ * Release an allocation by kcgi_writer_get().
+ * May be called with a NULL-valued "p".
+ */
+void
+kcgi_writer_free(struct kcgi_writer *p)
+{
+
+	free(p);
+}
+
+/*
+ * Write "sz" bytes of "buf" into the output.
+ * This doesn't necessarily mean that the output has been written: it
+ * may be further buffered.
+ * Returns KCGI_OK, KCGI_ENOMEM, or KCGI_SYSTEM.
+ */
+enum kcgi_err
+kcgi_writer_write(struct kcgi_writer *p, const void *buf, size_t sz)
+{
+
+	assert(KSTATE_BODY == p->kdata->state);
+	return(kdata_write(p->kdata, buf, sz));
+}
+
+/*
+ * Like kcgi_writer_write but for the NUL-terminated string.
+ */
+enum kcgi_err
+kcgi_writer_puts(struct kcgi_writer *p, const char *cp)
+{
+
+	return(kcgi_writer_write(p, cp, strlen(cp)));
+}
+
+/*
+ * Like kcgi_writer_write but for a single character.
+ */
+enum kcgi_err
+kcgi_writer_putc(struct kcgi_writer *p, char c)
+{
+
+	return(kcgi_writer_write(p, &c, 1));
+}
