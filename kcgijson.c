@@ -27,14 +27,17 @@
 
 #include "kcgi.h"
 #include "kcgijson.h"
+#include "extern.h"
 
-void
+enum kcgi_err
 kjson_open(struct kjsonreq *r, struct kreq *req)
 {
 
 	memset(r, 0, sizeof(struct kjsonreq));
-	r->req = req;
+	if (NULL == (r->arg = kcgi_writer_get(req, 0)))
+		return(KCGI_ENOMEM);
 	r->stack[0].type = KJSON_ROOT;
+	return(KCGI_OK);
 }
 
 enum kcgi_err
@@ -45,20 +48,19 @@ kjson_close(struct kjsonreq *r)
 	while (r->stackpos) {
 		switch (r->stack[r->stackpos].type) {
 		case (KJSON_ARRAY):
-			if (KCGI_OK != (er = khttp_putc(r->req, ']')))
-				return(er);
+			er = kcgi_writer_putc(r->arg, ']');
 			break;
 		case (KJSON_STRING):
-			if (KCGI_OK != (er = khttp_putc(r->req, '"')))
-				return(er);
+			er = kcgi_writer_putc(r->arg, '"');
 			break;
 		case (KJSON_OBJECT):
-			if (KCGI_OK != (er = khttp_putc(r->req, '}')))
-				return(er);
+			er = kcgi_writer_putc(r->arg, '}');
 			break;
 		default:
 			abort();
 		}
+		if (KCGI_OK != er)
+			return(er);
 		r->stackpos--;
 	}
 
@@ -71,10 +73,10 @@ kjson_close(struct kjsonreq *r)
 static enum kcgi_err
 kjson_puts(struct kjsonreq *r, const char *cp)
 {
-	int	 	c;
+	char	 	c;
 	enum kcgi_err	e;
 
-	if (KCGI_OK != (e = khttp_putc(r->req, '"')))
+	if (KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
 		return(e);
 
 	while ('\0' != (c = *cp++)) {
@@ -82,34 +84,35 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 		case ('"'):
 		case ('\\'):
 		case ('/'):
-			if (KCGI_OK != (e = khttp_putc(r->req, '\\')))
+			e = kcgi_writer_putc(r->arg, '\\');
+			if (KCGI_OK != e)
 				return(e);
-			e = khttp_putc(r->req, c);
+			e = kcgi_writer_putc(r->arg, c);
 			break;
 		case ('\b'):
-			e = khttp_puts(r->req, "\\b");
+			e = kcgi_writer_puts(r->arg, "\\b");
 			break;
 		case ('\f'):
-			e = khttp_puts(r->req, "\\f");
+			e = kcgi_writer_puts(r->arg, "\\f");
 			break;
 		case ('\n'):
-			e = khttp_puts(r->req, "\\n");
+			e = kcgi_writer_puts(r->arg, "\\n");
 			break;
 		case ('\r'):
-			e = khttp_puts(r->req, "\\r");
+			e = kcgi_writer_puts(r->arg, "\\r");
 			break;
 		case ('\t'):
-			e = khttp_puts(r->req, "\\t");
+			e = kcgi_writer_puts(r->arg, "\\t");
 			break;
 		default:
-			e = khttp_putc(r->req, c);
+			e = kcgi_writer_putc(r->arg, c);
 			break;
 		}
 		if (KCGI_OK != e)
 			return(e);
 	}
 
-	return(khttp_putc(r->req, '"'));
+	return(kcgi_writer_putc(r->arg, '"'));
 }
 
 /*
@@ -123,7 +126,7 @@ kjson_puts(struct kjsonreq *r, const char *cp)
  * We must have a key, however, if our parent is an object, that is,
  * don't accept {4} and so on.
  * Moreover, we should never be in a string context.
- * Returns the value of khttp_puts() or KCGI_FORM on check violation.
+ * Returns the value of kcgi_writer_puts() or KCGI_FORM on check violation.
  */
 static enum kcgi_err
 kjson_check(struct kjsonreq *r, const char *key)
@@ -146,13 +149,13 @@ kjson_check(struct kjsonreq *r, const char *key)
 	}
 
 	if (r->stack[r->stackpos].elements++ > 0) 
-		if (KCGI_OK != (er = khttp_puts(r->req, ", ")))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, ", ")))
 			return(er);
 
 	if (NULL != key) {
 		if (KCGI_OK != (er = kjson_puts(r, key)))
 			return(er);
-		if (KCGI_OK != (er = khttp_puts(r->req, ": ")))
+		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, ": ")))
 			return(er);
 	}
 	return(KCGI_OK);
@@ -184,7 +187,7 @@ kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
 
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
-	return(khttp_puts(r->req, val));
+	return(kcgi_writer_puts(r->arg, val));
 }
 
 enum kcgi_err
@@ -241,7 +244,7 @@ kjson_putnullp(struct kjsonreq *r, const char *key)
 
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
-	return(khttp_puts(r->req, "null"));
+	return(kcgi_writer_puts(r->arg, "null"));
 }
 
 enum kcgi_err
@@ -250,7 +253,7 @@ kjson_putboolp(struct kjsonreq *r, const char *key, int val)
 
 	if ( ! kjson_check(r, key))
 		return(KCGI_FORM);
-	return(khttp_puts(r->req, val ? "true" : "false"));
+	return(kcgi_writer_puts(r->arg, val ? "true" : "false"));
 }
 
 enum kcgi_err
@@ -304,7 +307,7 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_ARRAY;
-	return(khttp_putc(r->req, '['));
+	return(kcgi_writer_putc(r->arg, '['));
 }
 
 enum kcgi_err
@@ -316,7 +319,7 @@ kjson_array_close(struct kjsonreq *r)
 	if (KJSON_ARRAY != r->stack[r->stackpos].type)
 		return(KCGI_FORM);
 	r->stackpos--;
-	return(khttp_putc(r->req, ']'));
+	return(kcgi_writer_putc(r->arg, ']'));
 }
 
 enum kcgi_err
@@ -334,28 +337,28 @@ kjson_string_write(const char *p, size_t sz, void *arg)
 		case ('"'):
 		case ('\\'):
 		case ('/'):
-			er = khttp_putc(r->req, '\\');
+			er = kcgi_writer_putc(r->arg, '\\');
 			if (KCGI_OK != er)
 				return(er);
-			er = khttp_putc(r->req, p[i]);
+			er = kcgi_writer_putc(r->arg, p[i]);
 			break;
 		case ('\b'):
-			er = khttp_puts(r->req, "\\b");
+			er = kcgi_writer_puts(r->arg, "\\b");
 			break;
 		case ('\f'):
-			er = khttp_puts(r->req, "\\f");
+			er = kcgi_writer_puts(r->arg, "\\f");
 			break;
 		case ('\n'):
-			er = khttp_puts(r->req, "\\n");
+			er = kcgi_writer_puts(r->arg, "\\n");
 			break;
 		case ('\r'):
-			er = khttp_puts(r->req, "\\r");
+			er = kcgi_writer_puts(r->arg, "\\r");
 			break;
 		case ('\t'):
-			er = khttp_puts(r->req, "\\t");
+			er = kcgi_writer_puts(r->arg, "\\t");
 			break;
 		default:
-			er = khttp_putc(r->req, p[i]);
+			er = kcgi_writer_putc(r->arg, p[i]);
 			break;
 		}
 		if (KCGI_OK != er)
@@ -410,7 +413,7 @@ kjson_stringp_open(struct kjsonreq *r, const char *key)
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_STRING;
-	return(khttp_putc(r->req, '"'));
+	return(kcgi_writer_putc(r->arg, '"'));
 }
 
 enum kcgi_err
@@ -422,7 +425,7 @@ kjson_string_close(struct kjsonreq *r)
 	if (KJSON_STRING != r->stack[r->stackpos].type)
 		return(KCGI_FORM);
 	r->stackpos--;
-	return(khttp_putc(r->req, '"'));
+	return(kcgi_writer_putc(r->arg, '"'));
 }
 
 enum kcgi_err
@@ -443,7 +446,7 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_OBJECT;
-	return(khttp_putc(r->req, '{'));
+	return(kcgi_writer_putc(r->arg, '{'));
 }
 
 enum kcgi_err
@@ -455,7 +458,7 @@ kjson_obj_close(struct kjsonreq *r)
 		return(KCGI_FORM);
 	if (KJSON_OBJECT != r->stack[r->stackpos].type)
 		return(KCGI_FORM);
-	if (KCGI_OK != (er = khttp_putc(r->req, '}')))
+	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '}')))
 		return(er);
 	r->stackpos--;
 	return(KCGI_OK);
