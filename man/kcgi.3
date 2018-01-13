@@ -178,7 +178,7 @@ int main(void) {
   if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, &page, 1, 0))
       return(EXIT_FAILURE);
 
-  while (KCGI_OK == khttp_fcgi_parse(fcgi, &req)) {
+  while (KCGI_OK == khttp_fcgi_parse(fcgi, &r)) {
     khttp_head(&r, kresps[KRESP_STATUS],
         "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
