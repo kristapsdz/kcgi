@@ -59,11 +59,16 @@ kjson_close(struct kjsonreq *r)
 		default:
 			abort();
 		}
-		if (KCGI_OK != er)
+		if (KCGI_OK != er) {
+			kcgi_writer_free(r->arg);
+			r->arg = NULL;
 			return(er);
+		}
 		r->stackpos--;
 	}
 
+	kcgi_writer_free(r->arg);
+	r->arg = NULL;
 	return(KCGI_OK);
 }
 

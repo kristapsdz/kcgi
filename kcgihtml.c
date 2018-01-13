@@ -792,6 +792,10 @@ khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 enum kcgi_err
 khtml_close(struct khtmlreq *r)
 {
+	enum kcgi_err	 er;
 
-	return(khtml_closeelem(r, 0));
+	er = khtml_closeelem(r, 0);
+	kcgi_writer_free(r->arg);
+	r->arg = NULL;
+	return(er);
 }
