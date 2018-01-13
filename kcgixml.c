@@ -53,8 +53,12 @@ kxml_prologue(struct kxmlreq *r)
 enum kcgi_err
 kxml_close(struct kxmlreq *r)
 {
+	enum kcgi_err	 er;
 
-	return(kxml_popall(r));
+	er = kxml_popall(r);
+	kcgi_writer_free(r->arg);
+	r->arg = NULL;
+	return(er);
 }
 
 enum kcgi_err
