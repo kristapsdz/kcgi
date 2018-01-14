@@ -1,0 +1,58 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGI_WRITER_DISABLE 3
+.Os
+.Sh NAME
+.Nm kcgi_writer_disable
+.Nd disable further writer allocations
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft void
+.Fo kcgi_writer_disable
+.Fa "struct kreq *req"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn kcgi_writer_disable
+function disables subsequent calls to
+.Xr kjson_open 3 ,
+.Xr kxml_open 3 ,
+.Xr khtml_open 3 ,
+and the
+.Xr khttp_write 3
+family of writing functions.
+It may be invoked multiple times.
+The purpose of
+.Fn kcgi_writer_disable
+is to lock down writes to a given format and guarantee conformant output.
+.Pp
+After invocation, calling any of the above functions will
+.Xr abort 3
+the program.
+.Sh SEE ALSO
+.Xr kcgijson 3 ,
+.Xr kcgixml 3 ,
+.Xr kcgihtml 3
+.Sh AUTHORS
+This function was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
