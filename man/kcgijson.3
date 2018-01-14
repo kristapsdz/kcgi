@@ -190,7 +190,11 @@ functions extend
 .Xr kcgi 3
 output with JSON objects and arrays for contexts allocated with
 .Xr khttp_parse 3 .
-None of these functions may be called before
+Only
+.Fn kjson_open
+and
+.Fn kjson_close
+may be called before
 .Xr khttp_body 3 .
 .Pp
 All
@@ -340,6 +344,34 @@ The return of any error code except
 .Dv KCGI_OK
 may leave the output state inconsistent, and should result in program
 termination.
+.Sh EXAMPLES
+Let
+.Vt struct kreq *r
+already be initialised, and the request be for
+.Dv KMIME_APP_JSON .
+The following fragment prints out a simple JSON object.
+Error checking is omitted for brevity.
+.Bd -literal
+kjson_open(&req, r);
+kcgi_writer_disable(r);
+khttp_head(r, kresps[KRESP_STATUS], 
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE], 
+  "%s", kmimetypes[r->mime]);
+khttp_body(r);
+kjson_objp_open(&req, "foo");
+kjson_putstringp(&req, "bar", "baz");
+kjson_obj_close(&req);
+kjson_close(&req);
+.Ed
+.Pp
+Following the
+.Xr kcgi_writer_disable 3
+call, no further writers may be allocated.
+.Sh SEE ALSO
+.Xr kcgi_writer_disable 3 ,
+.Xr khttp_body 3 ,
+.Xr khttp_head 3
 .Sh STANDARDS
 The
 .Nm kcgijson
