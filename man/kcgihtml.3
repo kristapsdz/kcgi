@@ -34,7 +34,7 @@
 .Nm khtml_putc ,
 .Nm khtml_puts ,
 .Nm khtml_write
-.Nd HTML handling functions for kcgi
+.Nd HTML output for kcgi
 .Sh LIBRARY
 .Lb libkcgihtml
 .Sh SYNOPSIS
@@ -123,11 +123,16 @@
 .Sh DESCRIPTION
 The
 .Nm kcgihtml
-functions extend
+functions support output of HTML5 nodes in a
 .Xr kcgi 3
-output with HTML elements, attributes, and text for contexts allocated with
+.Fa req
+allocated with
 .Xr khttp_parse 3 .
-None of these functions may be called before
+Onl
+.Fn khtml_open
+and
+.Fn khtml_close
+may be called before
 .Xr khttp_body 3 .
 .Pp
 To use these functions, you must include the
@@ -276,7 +281,7 @@ indicating the error state:
 .Dv KCGI_OK
 for no error,
 .Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
+for an internal memory allocation failure, or
 .Dv KCGI_SYSTEM
 for an internal system error writing to the output stream.
 The

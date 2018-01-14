@@ -31,7 +31,7 @@
 .Nm kxml_putc ,
 .Nm kxml_puts ,
 .Nm kxml_write
-.Nd XML handling functions for kcgi
+.Nd XML output for kcgi
 .Sh LIBRARY
 .Lb libkcgixml
 .Sh SYNOPSIS
@@ -104,21 +104,29 @@
 .Sh DESCRIPTION
 The
 .Nm kcgixml
-functions extend
+functions support output of XML nodes in a
 .Xr kcgi 3
-output with very simple XML-specific output.
-None of these functions may be called before
+.Fa req
+allocated with
+.Xr khttp_parse 3 .
+Only
+.Fn kxml_open
+and
+.Fn kxml_close
+may be called before
 .Xr khttp_body 3 .
 .Pp
 All
 .Nm kcgixml
 sequences begin with
-.Fn kxml_open
-and end with
+.Fn kxml_open ,
+emit the standard XML prologue with
+.Fn kxml_prologue ,
+create XML nodes, and end with
 .Fn kxml_close .
-An array of possible elements is passed as
+An array of possible elements
 .Fa elems
-to
+is passed to
 .Fn kxml_open .
 This is later indexed into with
 .Fn kxml_push ,
@@ -130,9 +138,6 @@ to open elements.
 The
 .Fn kxml_pop
 family closes out opened elements.
-The
-.Fn kxml_prologue
-function is used before any data output.
 .Pp
 To use these functions, you must include the
 .In kcgixml.h
@@ -217,7 +222,7 @@ indicating the error state:
 .Dv KCGI_OK
 for no error,
 .Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
+for an internal memory allocation failure, or
 .Dv KCGI_SYSTEM
 for an internal system error writing to the output stream.
 Some functions return the
