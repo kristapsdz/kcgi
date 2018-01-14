@@ -46,7 +46,7 @@
 .Nm kjson_string_putint ,
 .Nm kjson_string_puts ,
 .Nm kjson_string_write
-.Nd JSON handling functions for kcgi
+.Nd JSON output for kcgi
 .Sh LIBRARY
 .Lb libkcgijson
 .Sh SYNOPSIS
@@ -186,9 +186,11 @@
 .Sh DESCRIPTION
 The
 .Nm kcgijson
-functions extend
+functions support output of JSON objects and arrays in a
 .Xr kcgi 3
-output with JSON objects and arrays for contexts allocated with
+context
+.Fa req
+allocated with
 .Xr khttp_parse 3 .
 Only
 .Fn kjson_open
@@ -200,17 +202,13 @@ may be called before
 All
 .Nm kcgijson
 sequences begin with
-.Fn kjson_open
-and ends with
-.Fn kjson_close .
-Following
 .Fn kjson_open ,
-well-formed JSON documents will then create the root document context as
-either an array or object,
+create the root document context as either an array or object with
 .Fn kjson_array_open
 or
 .Fn kjson_obj_open ,
-respectively.
+and end with
+.Fn kjson_close .
 .Pp
 In general,
 .Nm kcgijson
@@ -235,15 +233,14 @@ for example,
 .Ed
 .Bl -tag -width Ds
 .It Fn kjson_open
-Initialise a JSON context.
-The context is closed by
-.Fn kjson_close .
+Initialise the JSON context
+.Fa r .
 .It Fn kjson_close
-Closes the context opened by
+Close the context opened by
 .Fn kxml_open ,
 closing out any open arrays, strings, and objects.
-After being called, the
-.Ft struct kcgijson
+After this,
+.Fa r
 may no longer be used.
 .It Fn kjson_arrayp_open
 This and
@@ -330,7 +327,7 @@ indicating the error state:
 .Dv KCGI_OK
 for no error,
 .Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
+for an internal memory allocation failure, or
 .Dv KCGI_SYSTEM
 for an internal system error writing to the output stream.
 Some functions return the
