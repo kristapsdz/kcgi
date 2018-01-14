@@ -265,7 +265,9 @@ and
 functions may be used for serialising value data.
 See the documentation for
 .Fn kjson_putdoublep
-for caveats on floating-point classes.
+for caveats on floating-point classes and
+.Fn kjson_putstringp
+for character encoding.
 .It Fn kjson_string_close
 Close a string context with or without a name.
 .It Fn kjson_obj_open
@@ -280,7 +282,9 @@ This and
 emit a string value with or without a name.
 Note that it is
 .Em not
-checked for character encoding, only character legality.
+checked for character encoding (assumed to be UTF-8, UTF-8, UTF-16, or
+UTF-32), but control characters, the solidus and reverse solidus, and
+quotes are escaped.
 .It Fn kjson_putboolp
 This and
 .Fn kjson_putbool
