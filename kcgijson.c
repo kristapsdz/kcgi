@@ -167,7 +167,7 @@ kjson_check(struct kjsonreq *r, const char *key)
 }
 
 /* 
- * Only allow normal or zero numbers.
+ * Only allow normal, subnormal (real small), or zero numbers.
  * The rest don't have a consistent JSON encoding.
  */
 static int
@@ -176,6 +176,8 @@ kjson_check_fp(double val)
 
 	switch (fpclassify(val)) {
 	case (FP_ZERO):
+		/* FALLTHROUGH */
+	case (FP_SUBNORMAL):
 		/* FALLTHROUGH */
 	case (FP_NORMAL):
 		break;
