@@ -42,7 +42,6 @@ struct 	kcgi_writer;
 
 __BEGIN_DECLS
 
-void		 kcgi_writer_disable(struct kreq *);
 void		 kcgi_writer_free(struct kcgi_writer *);
 struct kcgi_writer *kcgi_writer_get(struct kreq *, int);
 enum kcgi_err	 kcgi_writer_putc(struct kcgi_writer *, char);
