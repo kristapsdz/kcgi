@@ -315,7 +315,7 @@ This is formatted as with the
 .Li %g
 argument to
 .Xr printf 3 .
-Only normal or zero-classified numbers are allowed (see
+Only normal, subnormal, or zero-classified numbers are allowed (see
 .Xr fpclassify 3 ) ,
 otherwise this will return
 .Dv KCGI_FORM .
@@ -372,7 +372,8 @@ call, no further writers may be allocated.
 .Sh STANDARDS
 The
 .Nm kcgijson
-functions conform to the ECMA-404 JSON Data Interchange Standard.
+functions conform to the ECMA-404 JSON Data Interchange Standard, also
+documented as RFC 7159.
 Parts of this document reference ECMAScript 5, commonly known as
 JavaScript.
 .Sh AUTHORS
