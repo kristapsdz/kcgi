@@ -74,43 +74,40 @@ kjson_close(struct kjsonreq *r)
 
 /*
  * Put a quoted JSON string into the output stream.
+ * See RFC 7159, sec 7.
  */
 static enum kcgi_err
-kjson_puts(struct kjsonreq *r, const char *cp)
+kjson_write(struct kjsonreq *r, const char *cp, size_t sz)
 {
-	char	 	c;
 	enum kcgi_err	e;
+	char		enc[7];
+	size_t		 i;
 
 	if (KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
 		return(e);
 
-	while ('\0' != (c = *cp++)) {
-		switch (c) {
+	for (i = 0; i < sz; i++) {
+		/* Encode control characters. */
+		if (*cp <= 0x1f) {
+			snprintf(enc, sizeof(enc),
+				"\\u%.4X", *cp);
+			e = kcgi_writer_puts(r->arg, enc);
+			if (KCGI_OK != e)
+				return(e);
+			continue;
+		}
+		/* Quote, solidus, reverse solidus. */
+		switch (*cp) {
 		case ('"'):
 		case ('\\'):
 		case ('/'):
 			e = kcgi_writer_putc(r->arg, '\\');
 			if (KCGI_OK != e)
 				return(e);
-			e = kcgi_writer_putc(r->arg, c);
-			break;
-		case ('\b'):
-			e = kcgi_writer_puts(r->arg, "\\b");
-			break;
-		case ('\f'):
-			e = kcgi_writer_puts(r->arg, "\\f");
-			break;
-		case ('\n'):
-			e = kcgi_writer_puts(r->arg, "\\n");
-			break;
-		case ('\r'):
-			e = kcgi_writer_puts(r->arg, "\\r");
-			break;
-		case ('\t'):
-			e = kcgi_writer_puts(r->arg, "\\t");
+			e = kcgi_writer_putc(r->arg, *cp);
 			break;
 		default:
-			e = kcgi_writer_putc(r->arg, c);
+			e = kcgi_writer_putc(r->arg, *cp);
 			break;
 		}
 		if (KCGI_OK != e)
@@ -118,6 +115,13 @@ kjson_puts(struct kjsonreq *r, const char *cp)
 	}
 
 	return(kcgi_writer_putc(r->arg, '"'));
+}
+
+static enum kcgi_err
+kjson_puts(struct kjsonreq *r, const char *cp)
+{
+
+	return(kjson_write(r, cp, strlen(cp)));
 }
 
 /*
@@ -333,46 +337,11 @@ enum kcgi_err
 kjson_string_write(const char *p, size_t sz, void *arg)
 {
 	struct kjsonreq	*r = arg;
-	enum kcgi_err	 er;
-	size_t		 i;
 
 	if (KJSON_STRING != r->stack[r->stackpos].type)
 		return(KCGI_FORM);
 
-	for (i = 0; i < sz; i++) {
-		switch (p[i]) {
-		case ('"'):
-		case ('\\'):
-		case ('/'):
-			er = kcgi_writer_putc(r->arg, '\\');
-			if (KCGI_OK != er)
-				return(er);
-			er = kcgi_writer_putc(r->arg, p[i]);
-			break;
-		case ('\b'):
-			er = kcgi_writer_puts(r->arg, "\\b");
-			break;
-		case ('\f'):
-			er = kcgi_writer_puts(r->arg, "\\f");
-			break;
-		case ('\n'):
-			er = kcgi_writer_puts(r->arg, "\\n");
-			break;
-		case ('\r'):
-			er = kcgi_writer_puts(r->arg, "\\r");
-			break;
-		case ('\t'):
-			er = kcgi_writer_puts(r->arg, "\\t");
-			break;
-		default:
-			er = kcgi_writer_putc(r->arg, p[i]);
-			break;
-		}
-		if (KCGI_OK != er)
-			return(er);
-	}
-
-	return(KCGI_OK);
+	return(kjson_write(r, p, sz));
 }
 
 enum kcgi_err
