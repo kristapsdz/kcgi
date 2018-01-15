@@ -195,9 +195,10 @@ kjson_check_fp(double val)
 static enum kcgi_err
 kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 	return(kcgi_writer_puts(r->arg, val));
 }
 
@@ -211,9 +212,10 @@ kjson_putstring(struct kjsonreq *r, const char *val)
 enum kcgi_err
 kjson_putstringp(struct kjsonreq *r, const char *key, const char *val)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 	return(kjson_puts(r, val));
 }
 
@@ -227,7 +229,7 @@ kjson_putdouble(struct kjsonreq *r, double val)
 enum kcgi_err
 kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 {
-	char	buf[256];
+	char		 buf[256];
 
 	if ( ! kjson_check_fp(val))
 		return(KCGI_FORM);
@@ -252,18 +254,20 @@ kjson_putintstr(struct kjsonreq *r, int64_t val)
 enum kcgi_err
 kjson_putnullp(struct kjsonreq *r, const char *key)
 {
+	enum kcgi_err 	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 	return(kcgi_writer_puts(r->arg, "null"));
 }
 
 enum kcgi_err
 kjson_putboolp(struct kjsonreq *r, const char *key, int val)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 	return(kcgi_writer_puts(r->arg, val ? "true" : "false"));
 }
 
@@ -310,9 +314,10 @@ kjson_array_open(struct kjsonreq *r)
 enum kcgi_err
 kjson_arrayp_open(struct kjsonreq *r, const char *key)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
@@ -381,9 +386,10 @@ kjson_string_open(struct kjsonreq *r)
 enum kcgi_err
 kjson_stringp_open(struct kjsonreq *r, const char *key)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
@@ -414,9 +420,10 @@ kjson_obj_open(struct kjsonreq *r)
 enum kcgi_err
 kjson_objp_open(struct kjsonreq *r, const char *key)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kjson_check(r, key))
-		return(KCGI_FORM);
+	if (KCGI_OK != (er = kjson_check(r, key)))
+		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[r->stackpos].elements++;
