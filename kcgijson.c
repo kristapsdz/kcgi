@@ -88,26 +88,26 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz)
 
 	for (i = 0; i < sz; i++) {
 		/* Encode control characters. */
-		if (*cp <= 0x1f) {
+		if (cp[i] <= 0x1f) {
 			snprintf(enc, sizeof(enc),
-				"\\u%.4X", *cp);
+				"\\u%.4X", cp[i]);
 			e = kcgi_writer_puts(r->arg, enc);
 			if (KCGI_OK != e)
 				return(e);
 			continue;
 		}
 		/* Quote, solidus, reverse solidus. */
-		switch (*cp) {
+		switch (cp[i]) {
 		case ('"'):
 		case ('\\'):
 		case ('/'):
 			e = kcgi_writer_putc(r->arg, '\\');
 			if (KCGI_OK != e)
 				return(e);
-			e = kcgi_writer_putc(r->arg, *cp);
+			e = kcgi_writer_putc(r->arg, cp[i]);
 			break;
 		default:
-			e = kcgi_writer_putc(r->arg, *cp);
+			e = kcgi_writer_putc(r->arg, cp[i]);
 			break;
 		}
 		if (KCGI_OK != e)
