@@ -382,8 +382,7 @@ kutil_urlencode(const char *cp)
 {
 	char	*p;
 	char	 ch;
-	size_t	 sz;
-	char	 buf[4];
+	size_t	 sz, cur;
 
 	if (NULL == cp)
 		return(NULL);
@@ -394,6 +393,7 @@ kutil_urlencode(const char *cp)
 	 * First check whether our size overflows. 
 	 * We do this here because we need our size!
 	 */
+
 	sz = strlen(cp) + 1;
 	if (SIZE_MAX / 3 < sz) {
 		XWARNX("multiplicative overflow: %zu", sz);
@@ -403,17 +403,16 @@ kutil_urlencode(const char *cp)
 		return(NULL);
 	sz *= 3;
 
-	for ( ; '\0' != (ch = *cp); cp++) {
-		/* Put in a temporary buffer then concatenate. */
-		memset(buf, 0, sizeof(buf));
-		if (' ' == ch) 
-			buf[0] = '+';
-		else if (isalnum((unsigned char)ch) || ch == '-' || 
-			ch == '_' || ch == '.' || ch == '~') 
-			buf[0] = ch;
-		else
-			(void)snprintf(buf, sizeof(buf), "%%%.2x", ch);
-		(void)strlcat(p, buf, sz);
+	for (cur = 0; '\0' != (ch = *cp); cp++) {
+		if (isalnum((unsigned char)ch) || ch == '-' || 
+		    ch == '_' || ch == '.' || ch == '~') {
+			p[cur++] = ch;
+			continue;
+		} else if (' ' == ch) {
+			p[cur++] = '+';
+			continue;
+		}
+		cur += snprintf(p + cur, 4, "%%%.2x", ch);
 	}
 
 	return(p);
