@@ -1,7 +1,5 @@
 #! /bin/sh
 #
-# $Id$
-#
 # Copyright (c) 2014, 2015, 2016 Ingo Schwarze <schwarze@openbsd.org>
 # Copyright (c) 2017 Kristaps Dzonsons <kristaps@bsd.lv>
 #
@@ -17,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# 
+#
 # This script outputs two files: config.h and Makefile.configure.
 # It tries to read from configure.local, which contains predefined
 # values we won't autoconfigure.
@@ -66,6 +64,7 @@ CFLAGS="${CFLAGS} -Wwrite-strings -Wno-unused-parameter"
 LDADD=
 CPPFLAGS=
 LDFLAGS=
+DESTDIR=
 PREFIX="/usr/local"
 BINDIR=
 SBINDIR=
@@ -83,7 +82,7 @@ INSTALL_DATA=
 # Allow certain variables to be overriden on the command line.
 #----------------------------------------------------------------------
 
-for keyvals in $@ 
+for keyvals in $@
 do
 	key=`echo $keyvals | cut -s -d '=' -f 1`
 	if [ -z "$key" ]
@@ -97,6 +96,8 @@ do
 		LDFLAGS="$val" ;;
 	CPPFLAGS)
 		CPPFLAGS="$val" ;;
+	DESTDIR)
+		DESTDIR="$val" ;;
 	PREFIX)
 		PREFIX="$val" ;;
 	MANDIR)
@@ -151,7 +152,7 @@ HAVE_SYSTRACE=
 HAVE___PROGNAME=
 
 #----------------------------------------------------------------------
-# Allow configure.local to override all variables, default settings, 
+# Allow configure.local to override all variables, default settings,
 # command-line arguments, and tested features, above.
 # You PROBABLY DO NOT want to change this.
 #----------------------------------------------------------------------

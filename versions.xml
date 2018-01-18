@@ -93,6 +93,8 @@
 				addition of <a href="kutil_epoch2str.3.html">kutil_date_valid(3)</a>
 				and <a href="kutil_epoch2str.3.html">kutil_datetime_valid(3)</a>
 				functions to validate broken-down dates.
+				And bring up to date with latest <a
+					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
 			</div>
 		</aside>
 	</article>
