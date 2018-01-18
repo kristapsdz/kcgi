@@ -43,7 +43,7 @@ kjson_open(struct kjsonreq *r, struct kreq *req)
 enum kcgi_err
 kjson_close(struct kjsonreq *r)
 {
-	enum kcgi_err	 er;
+	enum kcgi_err	 er = KCGI_OK;
 
 	while (r->stackpos) {
 		switch (r->stack[r->stackpos].type) {
@@ -59,17 +59,14 @@ kjson_close(struct kjsonreq *r)
 		default:
 			abort();
 		}
-		if (KCGI_OK != er) {
-			kcgi_writer_free(r->arg);
-			r->arg = NULL;
-			return(er);
-		}
+		if (KCGI_OK != er)
+			break;
 		r->stackpos--;
 	}
 
 	kcgi_writer_free(r->arg);
 	r->arg = NULL;
-	return(KCGI_OK);
+	return(er);
 }
 
 /*
