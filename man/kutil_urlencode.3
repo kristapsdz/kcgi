@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
 .\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +23,7 @@
 .Nm kutil_urlpart ,
 .Nm kutil_urlpartx ,
 .Nm kutil_urlencode
-.Nd URL functions for kcgi
+.Nd URL formatting for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -56,91 +57,104 @@
 .Ft "char *"
 .Fn kutil_urlencode "const char *cp"
 .Sh DESCRIPTION
+These functions format various parts of a URL.
+.Pp
 The
 .Fn kutil_urlpart
 and
 .Fn kutil_urlpartx
-functions format a partial HTTP URL from the path, suffix, page, and
-variable-length query string keys and values.
+functions format the
+.Fa path Ns / Ns Fa page . Ns Fa suffix
+part of an HTTP URL,
+appending a variable number of query string key-value pairs.
+The last argument must be
+.Dv NULL .
 If the
 .Fa suffix
-part is
+is
 .Dv NULL ,
-it is not formatted as part of the URL.
+it is omitted from the URL.
 The
-.Fn kutil_urlabs
-function forms an absolute URL from a scheme, domain, and path component.
+.Fa page ,
+the keys, and the values are URL-encoded, but the
+.Fa path
+and the
+.Fa suffix
+are not.
+.Pp
+.Fn kutil_urlpart
+accepts a variable number of pairs of
+.Vt char *
+arguments.
+In each pair, the first argument is the key and the second one the
+corresponding value.
+.Pp
+.Fn kutil_urlpartx
+accepts a variable number of groups of three arguments each.
+In each group, the first argument is a
+.Vt char *
+giving the key.
+The second argument is an
+.Vt enum kattrx
+specifying the type of the third argument:
+.Dv KATTRX_STRING
+followed by a
+.Vt char *
+string,
+.Dv KATTRX_INT
+followed by an
+.Vt int64_t
+signed integer, or
+.Dv KATTRX_DOUBLE
+followed by a
+.Vt double
+floating-point number.
+If all types are
+.Dv KATTRX_STRING ,
+the invocation can be shortened to
+.Fn kutil_urlpart .
+.Pp
 The
 .Fn kutil_urlencode
 function encodes a string for embedding in a URL.
-All functions return newly-allocated string of the encoded contents.
 .Pp
-.Fn kutil_urlpart
-and
-.Fn kutil_urlpartx
-accept variable-length arguments terminated with a
-.Dv NULL
-value.
-.Fn kutil_urlpart
-accepts key-value string pairs.
-.Fn kutil_urlpartx
-accepts string keys, then a
-.Vt "enum kattrx"
-of the value type, then a pointer to the value corresponding to that
-type:
-.Dv KATTRX_STRING
-for strings,
-.Dv KATTRX_INT
-for
-.Vt int64_t
-64-bit signed integers, and
-.Dv KATTRX_DOUBLE
-for
-.Vt double
-double-precision floating-point numbers.
-.Fn kutil_urlpart ,
-thus, is as if
-.Fn kutil_urlpartx
-were invoked with
-.Dv KATTRX_STRING
-for all values.
-.Pp
+The
 .Fn kutil_urlabs
-formats schema, host, port, and path component into a URL.
-This is
-.Em not
-URL-encoded in any way, so make sure to use
+function assembles the URL
+.Fa schema Ns :// Ns Fa host : Ns Fa port Ns Fa path .
+Unless the
+.Fa path
+is an empty string, it needs to begin with a slash.
+None of this is URL-encoded, so make sure to use
 .Fn kutil_urlpart ,
 .Fn kutil_urlpartx ,
 or just
 .Fn kutil_urlencode
 for the sensitive parts.
 .Sh RETURN VALUES
-These functions return a newly-allocated string that must be freed with
+These functions return newly-allocated strings that must be freed with
 .Xr free 3 .
-They will return
+They return
 .Dv NULL
 if allocation fails.
 The
 .Fn kutil_urlencode
-function will also return
+function also returns
 .Dv NULL
-if the input is
+if
+.Fa cp
+is
 .Dv NULL .
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh CAVEATS
+.Sh BUGS
 The
 .Fn kutil_urlabs
-function accepts schemas via
-.Vt "enum kscheme"
-that aren't URLs.
+function accepts
+.Fa scheme
+arguments that aren't valid in URLs.
 .Pp
 The
-.Fn kutil_urlpartx
-and
-.Fn kutil_urlpart
-accept
-.Fa req ,
-which is not used and should be removed.
+.Fa req
+argument is not used and should be removed.
