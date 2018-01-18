@@ -150,6 +150,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-template \
 		   regress/test-upload \
 		   regress/test-urlencode \
+		   regress/test-urlpart \
 		   regress/test-valid-date \
 		   regress/test-valid-double
 REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
