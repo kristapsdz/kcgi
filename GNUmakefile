@@ -36,7 +36,7 @@ SBLGS		 = archive.html \
 		   sample.c.html
 MAN3DIR	 	 = $(MANDIR)/man3
 MAN8DIR	 	 = $(MANDIR)/man8
-VERSION 	 = 0.9.8
+VERSION 	 = 0.10.0
 LIBOBJS 	 = auth.o \
 		   child.o \
 		   datetime.o \
