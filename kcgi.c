@@ -531,31 +531,52 @@ kutil_urlpart(struct kreq *req, const char *path,
 	va_list		 ap;
 	char		*p, *pp, *keyp, *valp;
 	size_t		 total, count;
+	int		 len;
 
 	if (NULL == (pp = kutil_urlencode(page)))
-		exit(EXIT_FAILURE);
+		return(NULL);
 
-	if (NULL != mime)
-		(void)kasprintf(&p, "%s/%s.%s", path, pp, mime);
-	else
-		(void)kasprintf(&p, "%s/%s", path, pp);
+	/* If we have a MIME type, append it. */
+
+	len = NULL != mime ? 
+		XASPRINTF(&p, "%s/%s.%s", path, pp, mime) :
+		XASPRINTF(&p, "%s/%s", path, pp);
 
 	free(pp);
+
+	if (len < 0)
+		return(NULL);
+
 	total = strlen(p) + 1;
 	va_start(ap, page);
 	count = 0;
+
 	while (NULL != (pp = va_arg(ap, char *))) {
 		keyp = kutil_urlencode(pp);
-		if (NULL == keyp)
-			exit(EXIT_FAILURE);
+		if (NULL == keyp) {
+			free(p);
+			return(NULL);
+		}
+
 		valp = kutil_urlencode(va_arg(ap, char *));
-		if (NULL == valp) 
-			exit(EXIT_FAILURE);
+		if (NULL == valp) {
+			free(p);
+			free(keyp);
+			return(NULL);
+		}
 
 		/* Size for key, value, ? or &, and =. */
 		/* FIXME: check for overflow! */
+
 		total += strlen(keyp) + strlen(valp) + 2;
-		p = krealloc(p, total);
+
+		if (NULL == (pp = XREALLOC(p, total))) {
+			free(p);
+			free(keyp);
+			free(valp);
+			return(NULL);
+		}
+		p = pp;
 
 		if (count > 0)
 			(void)strlcat(p, "&", total);
@@ -570,6 +591,7 @@ kutil_urlpart(struct kreq *req, const char *path,
 		free(valp);
 		count++;
 	}
+
 	va_end(ap);
 	return(p);
 }
