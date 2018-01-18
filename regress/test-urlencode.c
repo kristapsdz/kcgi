@@ -51,6 +51,7 @@ static	const struct test tests[] = {
 	{ "\t-_foo\tbar.-\t", "%09-_foo%09bar.-%09" },
 	{ "\t-_foo%\tbar.-\t", "%09-_foo%25%09bar.-%09" },
 	{ "-_foo%09}bar.-", "-_foo%2509%7dbar.-" },
+	{ "\t\t\t\t", "%09%09%09%09" },
 	{ NULL, NULL }
 };
 
@@ -66,6 +67,7 @@ main(int argc, char *argv[])
 		if (strcmp(url, t->output))
 			errx(EXIT_FAILURE, "%s: fail (have %s, "
 				"want %s)", t->input, url, t->output);
+		warnx("%s", url);
 		free(url);
 	}
 
