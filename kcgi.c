@@ -481,6 +481,10 @@ kutil_urlpartx(struct kreq *req, const char *path,
 				"%g", va_arg(ap, double));
 			valp = buf;
 			break;
+		default:
+			free(p);
+			free(keyp);
+			return(NULL);
 		}
 
 		if (NULL == valp) {
