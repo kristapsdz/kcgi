@@ -401,7 +401,6 @@ kutil_urlencode(const char *cp)
 	}
 	if (NULL == (p = XCALLOC(sz, 3)))
 		return(NULL);
-	sz *= 3;
 
 	for (cur = 0; '\0' != (ch = *cp); cp++) {
 		if (isalnum((unsigned char)ch) || ch == '-' || 
