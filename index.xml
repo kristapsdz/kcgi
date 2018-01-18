@@ -264,8 +264,8 @@ int main(void) {
 			</p>
 			<ul>
 				<li>
-					Dzonsons, Kristaps.  <a href="https://kristaps.bsd.lv/kcgi/extending01.html">FastCGI Extensions
-						for Management Control</a>.  March 2016.
+					Dzonsons, Kristaps.  <a href="extending01.html">FastCGI Extensions for Management Control</a>.  March
+					2016.
 				</li>
 			</ul>
 		</section>
