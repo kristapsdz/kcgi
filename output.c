@@ -147,12 +147,12 @@ linebuf_init(struct kdata *p)
 {
 
 	if (NULL == p->linebuf) {
-		p->linebufsz = BUFSIZ;
-		p->linebuf = XMALLOC(p->linebufsz);
-		if (NULL == p->linebuf)
+		p->linebufsz = 0;
+		p->linebufpos = 0;
+		if (NULL == (p->linebuf = XMALLOC(BUFSIZ)))
 			return(0);
 		p->linebuf[0] = '\0';
-		p->linebufpos = 0;
+		p->linebufsz = BUFSIZ;
 	}
 	return(1);
 }
