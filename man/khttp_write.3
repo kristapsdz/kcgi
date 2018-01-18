@@ -74,6 +74,12 @@ emits a binary buffer
 .Fa buf
 of size
 .Fa sz .
+.Pp
+Once
+.Xr kcgi_writer_disable 3
+has been invoked, these functions will
+.Xr abort 3
+if called.
 .Sh RETURN VALUES
 These functions return an
 .Ft enum kcgi_err
@@ -86,6 +92,7 @@ for an internal memory allocation failure, and
 for an internal system error writing to the output stream.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
+.Xr kcgi_writer_disable 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_parse 3
 .Sh AUTHORS
