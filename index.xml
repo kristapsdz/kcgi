@@ -176,19 +176,19 @@ int main(void) {
 			</h2>
 			<p>
 				First, check if <span class="nm">kcgi</span> isn't already a third-part port for your system, such as
-				for <a href="http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
+				for <a href="https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
 					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>.
 				If so, install using that system.
 			</p>
 			<p>
 				If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
-				To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="http://www.linux.org"
+				To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="https://www.linux.org"
 					itemprop="operatingSystem">Linux</a> machines, BSD (<a href="https://www.openbsd.org"
 					itemprop="operatingSystem">OpenBSD</a>, <a href="https://www.freebsd.org"
-					itemprop="operatingSystem">FreeBSD</a>), and <a href="http://www.apple.com/osx"
+					itemprop="operatingSystem">FreeBSD</a>), and <a href="https://www.apple.com/osx"
 					itemprop="operatingSystem">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
 				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
-					href="http://nginx.org">nginx</a>, and OpenBSD's <a
+					href="https://nginx.org">nginx</a>, and OpenBSD's <a
 					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
 				(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
 				The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
@@ -413,7 +413,7 @@ int main(void) {
 				This framework acts as a mini-webserver, listening on a local port, translating an HTTP document into a
 				minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
 				For internal tests, test requests are constructed with <a
-					href="http://curl.haxx.se/libcurl/">libcurl</a>.
+					href="https://curl.haxx.se/libcurl/">libcurl</a>.
 				The binding local port is fixed: if you plan on running the regression suite, you may need to
 				tweak its access port.
 			</p>
@@ -426,7 +426,7 @@ int main(void) {
 				<code>afl-urlencoded</code> binaries using the test cases (and dictionaries, for the first) provided.
 			</p>
 			<p>
-				The system has also been passed through a <a href="http://coverity.com">Coverity</a> scan, with the
+				The system has also been passed through a <a href="https://scan.coverity.com/">Coverity</a> scan, with the
 				results available at <a href="https://scan.coverity.com/projects/kcgi">projects/kcgi</a>.
 				<em>Coverity has been discontinued as an ongoing mechanism due to the lack of an OpenBSD client.</em>
 			</p>
