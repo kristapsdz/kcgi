@@ -67,6 +67,21 @@ functions format the
 .Fa path Ns / Ns Fa page . Ns Fa suffix
 part of an HTTP URL,
 appending a variable number of query string key-value pairs.
+If
+.Pa page
+is
+.Dv NULL ,
+these return
+.Dv NULL .
+If
+.Fa path
+is
+.Dv NULL ,
+the URL will be relative to
+.Fa page ;
+otherwise,
+.Fa path
+will be followed by a path separator.
 The last argument must be
 .Dv NULL .
 If the
