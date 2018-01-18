@@ -223,16 +223,13 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 }
 
 /*
- * Drain the output buffer.
- * This does nothing if there's no output buffer.
+ * Drain the output buffer with kdata_flush().
  * Returns zero on failure (system error), non-zero on success.
  */
 static int
 kdata_drain(struct kdata *p)
 {
 
-	if (0 == p->outbufpos)
-		return(1);
 	if ( ! kdata_flush(p, p->outbuf, p->outbufpos))
 		return(0);
 	p->outbufpos = 0;
