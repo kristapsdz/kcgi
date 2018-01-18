@@ -67,7 +67,6 @@ main(int argc, char *argv[])
 		if (strcmp(url, t->output))
 			errx(EXIT_FAILURE, "%s: fail (have %s, "
 				"want %s)", t->input, url, t->output);
-		warnx("%s", url);
 		free(url);
 	}
 
