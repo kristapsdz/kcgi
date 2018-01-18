@@ -445,8 +445,12 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	/* If we have a MIME type, append it. */
 
 	rc = NULL != mime ?
-		XASPRINTF(&p, "%s/%s.%s", path, pp, mime) :
-		XASPRINTF(&p, "%s/%s", path, pp);
+		XASPRINTF(&p, "%s%s%s.%s", 
+			NULL != path ? path : "",
+			NULL != path ? "/" : "", pp, mime) :
+		XASPRINTF(&p, "%s%s%s", 
+			NULL != path ? path : "",
+			NULL != path ? "/" : "", pp);
 
 	free(pp);
 
@@ -538,9 +542,13 @@ kutil_urlpart(struct kreq *req, const char *path,
 
 	/* If we have a MIME type, append it. */
 
-	len = NULL != mime ? 
-		XASPRINTF(&p, "%s/%s.%s", path, pp, mime) :
-		XASPRINTF(&p, "%s/%s", path, pp);
+	len = NULL != mime ?
+		XASPRINTF(&p, "%s%s%s.%s", 
+			NULL != path ? path : "",
+			NULL != path ? "/" : "", pp, mime) :
+		XASPRINTF(&p, "%s%s%s", 
+			NULL != path ? path : "",
+			NULL != path ? "/" : "", pp);
 
 	free(pp);
 
