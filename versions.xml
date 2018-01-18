@@ -3,15 +3,96 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
-			<h1>0.9.11</h1>
+			<h1>0.10.0</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2017-12-30">ongoing</time>
+			<time datetime="2018-01-18">2018-01-18</time>
 		</header>
 		<aside>
 			<div>
-				Improve <a href="khttp_head.3.html">khttp_head(3)</a>,
-				<a href="khttp_body.3.html">khttp_body(3)</a>, and
+				A minor bump here due to API changes, along with a plethora of
+				improvements: date handling, simplification of general code, and
+				getting error codes exported in the write sequence.
+				Many of the improvements and fixes in this release were implemented or
+				suggested by Ingo Schwarze (<q>schwarze@</q>) in an audit generously
+				funded by CAPEM Solutions, Inc.  
+				Thank you so much!
+			</div>
+			<div>
+				<strong>Memory leak fix</strong>: fix <a
+					href="khttp_free.3.html">khttp_free(3)</a> to free a
+				forgotten allocation.
+				Probably only affects FastCGI processes at 16 bytes lost per request
+				parsed.
+			</div>
+			<div>
+				<strong>Feature</strong>: add the <a
+					href="kcgi_writer_disable.3.html">kcgi_writer_disable(3)</a>
+				function, which allows callers to
+				determine which front-end writers (e.g.,
+				<a href="kcgixml.3.html">kcgixml(3)</a>)
+				are allowed to exist.
+				This locks down the output formatting mechanism.
+			</div>
+			<div>
+				<strong>API change</strong>: the <a
+					href="kcgixml.3.html">kcgixml(3)</a> library now no longer
+				prints the XML prologue with <code>kxml_open()</code>.
+				This must be manually printed with <code>kxml_prologue()</code>.
+			</div>
+			<div>
+				<strong>API change</strong>: the 
+				<a href="kcgijson.3.html">kcgijson(3)</a>,
+				<a href="kcgihtml.3.html">kcgihtml(3)</a>, and
+				<a href="kcgixml.3.html">kcgixml(3)</a> now return a consistent
+				error code for all operations.
+				The <code>khtml_text</code> function has been removed (it was deprecated).
+			</div>
+			<div>
+				<strong>API change</strong>: the 
+				<a href="kutil_urlencode.3.html">kutil_urlencode(3)</a> family of
+				functions now all return <code>NULL</code> on memory failure.
+				Earlier, this was inconsistent.
+			</div>
+			<div>
+				<strong>API change</strong>: the
+				<a href="khttp_write.3.html">khttp_write(3)</a> family of
+				functions now all return <code>enum kcgi_err</code> to indicate a
+				failure condition.
+			</div>
+			<div>
+				<strong>API change</strong>: the <a
+					href="khttp_body.3.html">khttp_body(3)</a> function now
+				returns <code>enum kcgi_err</code> to indicate a failure condition
+				<strong>instead of</strong> whether compression was enabled.
+			</div>
+			<div>
+				<strong>API change</strong>: the <a
+					href="khttp_body.3.html">khttp_body_compress(3)</a> function
+				now returns <code>enum kcgi_err</code> to indicate a failure
+				condition <strong>instead of</strong> whether compression was
+				enabled.
+				Furthermore, the <code>comp</code> argument simply dictates whether
+				compression should be enabled or not, preventing confusion.
+			</div>
+			<div>
+				<strong>API change</strong>: the <a
+					href="khttp_head.3.html">khttp_head(3)</a> function now
+				returns <code>enum kcgi_err</code> to indicate a failure condition.
+				Furthermore, this function now dynamically allocates header lengths,
+				removing prior bounds on header length.
+			</div>
+			<div>
+				While here, improve <a href="khttp_head.3.html">khttp_head(3)</a>,
+				<a href="khttp_body.3.html">khttp_body(3)</a>,
+				<a href="kvalid_string.3.html">kvalid_string(3)</a>, and
 				<a href="kmalloc.3.html">kmalloc(3)</a> manpages.
+			</div>
+			<div>
+				Lastly, the <a href="kvalid_string.3.html">kvalid_date(3)</a>
+				function has been generalised for arbitrary dates, prompting the
+				addition of <a href="kutil_epoch2str.3.html">kutil_date_valid(3)</a>
+				and <a href="kutil_epoch2str.3.html">kutil_datetime_valid(3)</a>
+				functions to validate broken-down dates.
 			</div>
 		</aside>
 	</article>
