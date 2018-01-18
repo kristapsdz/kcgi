@@ -222,8 +222,8 @@ const char *const pages[PAGE__MAX] = {
 	</h3>
 	<p>
 		Installation steps depends on your operating system, web server, and a thousand other factors.
-		I'll stick with the simplest installation using the defaults of <a href="http://www.openbsd.org">OpenBSD</a> with the default
-		web server <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
+		I'll stick with the simplest installation using the defaults of <a href="https://www.openbsd.org">OpenBSD</a> with the default
+		web server <a href="https://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a>.
 		To begin with, configure <span class="file">/etc/httpd.conf</span> with your server's root being in <span
 			class="file">/var/www</span> and FastCGI being in <span class="file">/var/www/cgi-bin</span>.
 		If you've already done this, or have a configuration file in place, you won't need to do this.
@@ -239,10 +239,10 @@ const char *const pages[PAGE__MAX] = {
 }</pre>
 	</figure>
 	<p>
-		Next, we use the <a href="http://man.openbsd.org/rcctl.8">rcctl(8)</a> tool to enable and
-		start the <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> webserver and
-		<a href="http://man.openbsd.org/slowcgi.8">slowcgi(8)</a> wrapper.
-		(The latter is necessary because <a href="http://man.openbsd.org/httpd.8">httpd(8)</a> only
+		Next, we use the <a href="https://man.openbsd.org/rcctl.8">rcctl(8)</a> tool to enable and
+		start the <a href="https://man.openbsd.org/httpd.8">httpd(8)</a> webserver and
+		<a href="https://man.openbsd.org/slowcgi.8">slowcgi(8)</a> wrapper.
+		(The latter is necessary because <a href="https://man.openbsd.org/httpd.8">httpd(8)</a> only
 		directly supports FastCGI, so a proxy is necessary.)
 		Again, you may not need to do this part.
 		We also make sure the instructions on the main page are followed regarding OpenBSD sandboxing in the file-system jail.

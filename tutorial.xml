@@ -40,7 +40,7 @@
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
 				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="http://www.openbsd.org">OpenBSD</a></span>
+				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="https://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
 	</body>

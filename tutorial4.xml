@@ -122,7 +122,7 @@
 		We use year zero to indicate an invalid specification, and month/day zero to indicate that a month/day value was not specified.)
 	</p>
 	<p>
-		<strong>Editor's note</strong>: remember that <a href="http://man.openbsd.org/strptime">strptime(3)</a> and friends may not be
+		<strong>Editor's note</strong>: remember that <a href="https://man.openbsd.org/strptime">strptime(3)</a> and friends may not be
 		available within a file-system sandbox due to time-zone access, so we need to find another way.
 	</p>
 	<figure class="sample">

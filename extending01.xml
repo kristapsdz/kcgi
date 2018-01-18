@@ -43,7 +43,7 @@
 	<p>
 		The usual solution for this is to pre-allocate workers and simply fail on resource exhaustion: when the web server tries
 		connecting to a saturated transport socket, it fails and the request is rejected by the web server.
-		This is the method used by <a href="http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man8/httpd.8">httpd(8)</a> and other
+		This is the method used by <a href="https://man.openbsd.org/httpd.8">httpd(8)</a> and other
 		servers when using the <q>external process</q> mode.
 		Obviously, this is sub-optimal.
 		Many web servers address this by acting themselves as managers.
