@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -32,27 +32,27 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_template
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *fname"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_templatex
 .Fa "const struct ktemplate *t"
 .Fa "const char *fname"
 .Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_template_buf
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
 .Fa "size_t sz"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_templatex_buf
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
@@ -60,14 +60,14 @@
 .Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_template_fd
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
 .Fa "int fd"
 .Fa "const char *filename"
 .Fc
-.Ft int
+.Ft enum kcgi_err
 .Fo khttp_templatex_fd
 .Fa "const struct ktemplate *t"
 .Fa "int fd"
@@ -76,15 +76,7 @@
 .Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
-The
-.Fn khttp_template ,
-.Fn khttp_templatex ,
-.Fn khttp_template_buf ,
-.Fn khttp_templatex_buf ,
-.Fn khttp_template_fd ,
-and
-.Fn khttp_templatex_fd
-functions comprise a template system for a
+These functions comprise a template system for a
 .Xr kcgi 3
 context allocated with
 .Xr khttp_parse 3 .
@@ -130,7 +122,7 @@ functions accept
 .Vt struct ktemplatex ,
 which has the following fields:
 .Bl -tag -width Ds
-.It Va "int (*writer)(const char *b, size_t sz, void *arg)"
+.It Va "enum kcgi_err (*writer)(const char *b, size_t sz, void *arg)"
 The function that writes data in
 .Fa b
 of size
@@ -140,6 +132,9 @@ with private argument
 that's passed to the functions.
 This may not be
 .Dv NULL .
+Any return value but
+.Dv KCGI_OK
+is considered an error.
 .It Va "int (*fbk)(const char *k, size_t sz, void *arg)"
 If the given key
 .Fa k
@@ -216,26 +211,20 @@ is
 .Dv NULL ,
 the buffer (or file) is emitted without any processing.
 .Sh RETURN VALUES
-.Fn khttp_template
-returns 0 if the
-.Xr fstat 2 ,
-.Xr open 2 ,
-or
-.Xr mmap 2
-functions fail on the file, or the file is too large to map.
-.Pp
+These functions return an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure, and
+.Dv KCGI_SYSTEM
+for an internal system error writing to the output stream or when
+failing to invoke system calls.
 The
-.Fn khttp_template ,
-.Fn khttp_template_buf ,
-and
-.Fn khttp_template_fd
-functions fail if the callback function returns 0.
-The
-.Fn khttp_templatex ,
-.Fn khttp_atemplatex_buf ,
-and
-.Fn khttp_atemplatex_fd
-functions may also return 0 if the write functions return 0.
+.Dv KCGI_FORM
+error code indicates that a template callback function returned with
+failure.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
