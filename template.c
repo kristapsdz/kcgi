@@ -30,15 +30,14 @@
 #include "kcgi.h"
 #include "extern.h"
 
-static int
+static enum kcgi_err
 khttp_templatex_write(const char *dat, size_t sz, void *arg)
 {
 
-	khttp_write(arg, dat, sz);
-	return(1);
+	return(khttp_write(arg, dat, sz));
 }
 
-int
+enum kcgi_err
 khttp_template_buf(struct kreq *req, 
 	const struct ktemplate *t, const char *buf, size_t sz)
 {
@@ -59,22 +58,18 @@ khttp_template_buf(struct kreq *req,
  * Look for the matching key within these pairs.
  * If found, invoke the callback function with the given key.
  */
-int
+enum kcgi_err
 khttp_templatex_buf(const struct ktemplate *t, 
 	const char *buf, size_t sz, 
 	const struct ktemplatex *opt, void *arg)
 {
 	size_t		 i, j, len, start, end;
 	ktemplate_writef fp;
+	enum kcgi_err	 er;
 
 	if (0 == sz)
-		return(1);
+		return(KCGI_OK);
 
-	/* Require a writer. */
-
-	if (NULL == opt || NULL == opt->writer)
-		return(0);
-	
 	fp = opt->writer;
 
 	/*
@@ -90,8 +85,8 @@ khttp_templatex_buf(const struct ktemplate *t,
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
 		if ('@' != buf[i] || '@' != buf[i + 1]) {
-			if ( ! fp(&buf[i], 1, arg))
-				return(0);
+			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+				return(er);
 			continue;
 		} 
 
@@ -105,8 +100,8 @@ khttp_templatex_buf(const struct ktemplate *t,
 		/* Continue printing if not found of 0-length. */
 
 		if (end == sz - 1 || end == start) {
-			if ( ! fp(&buf[i], 1, arg))
-				return(0);
+			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+				return(er);
 			continue;
 		}
 
@@ -125,7 +120,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 				continue;
 			if ( ! (*t->cb)(j, t->arg)) {
 				XWARNX("template error");
-				return(0);
+				return(KCGI_FORM);
 			}
 			break;
 		}
@@ -134,22 +129,22 @@ khttp_templatex_buf(const struct ktemplate *t,
 			len = end - start;
 			if ( ! (*opt->fbk)(&buf[start], len, t->arg)) {
 				XWARNX("template error");
-				return(0);
+				return(KCGI_FORM);
 			}
 		} else if (j == t->keysz) {
-			if ( ! fp(&buf[i], 1, arg))
-				return(0);
+			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+				return(er);
 		} else
 			i = end + 1;
 	}
 
-	if (i < sz && ! fp(&buf[i], 1, arg))
-		return(0);
+	if (i < sz && KCGI_OK != (er = fp(&buf[i], 1, arg)))
+		return(er);
 
-	return(1);
+	return(KCGI_OK);
 }
 
-int
+enum kcgi_err
 khttp_template(struct kreq *req, 
 	const struct ktemplate *t, const char *fname)
 {
@@ -160,15 +155,16 @@ khttp_template(struct kreq *req,
 	return(khttp_templatex(t, fname, &x, req));
 }
 
-int
+enum kcgi_err
 khttp_templatex(const struct ktemplate *t, 
 	const char *fname, const struct ktemplatex *opt, void *arg)
 {
-	int		 fd, rc;
+	int		 fd;
+	enum kcgi_err	 rc;
 
 	if (-1 == (fd = open(fname, O_RDONLY, 0))) {
 		XWARN("open: %s", fname);
-		return(0);
+		return(KCGI_SYSTEM);
 	}
 
 	rc = khttp_templatex_fd(t, fd, fname, opt, arg);
@@ -176,7 +172,7 @@ khttp_templatex(const struct ktemplate *t,
 	return(rc);
 }
 
-int
+enum kcgi_err
 khttp_template_fd(struct kreq *req, 
 	const struct ktemplate *t, int fd, const char *fname)
 {
@@ -187,7 +183,7 @@ khttp_template_fd(struct kreq *req,
 	return(khttp_templatex_fd(t, fd, fname, &x, req));
 }
 
-int
+enum kcgi_err
 khttp_templatex_fd(const struct ktemplate *t, 
 	int fd, const char *fname,
 	const struct ktemplatex *opt, void *arg)
@@ -195,20 +191,20 @@ khttp_templatex_fd(const struct ktemplate *t,
 	struct stat 	 st;
 	char		*buf;
 	size_t		 sz;
-	int		 rc;
+	enum kcgi_err	 rc;
 
 	if (NULL == fname)
 		fname = "<unknown descriptor>";
 
 	if (-1 == fstat(fd, &st)) {
 		XWARN("fstat: %s", fname);
-		return(0);
+		return(KCGI_SYSTEM);
 	} else if (st.st_size > SSIZE_MAX) {
 		XWARNX("size overflow: %s", fname);
-		return(0);
+		return(KCGI_SYSTEM);
 	} else if (st.st_size <= 0) {
 		XWARNX("zero-length: %s", fname);
-		return(1);
+		return(KCGI_OK);
 	}
 
 	sz = (size_t)st.st_size;
@@ -216,7 +212,7 @@ khttp_templatex_fd(const struct ktemplate *t,
 
 	if (MAP_FAILED == buf) {
 		XWARN("mmap: %s", fname);
-		return(0);
+		return(KCGI_SYSTEM);
 	}
 
 	rc = khttp_templatex_buf(t, buf, sz, opt, arg);
