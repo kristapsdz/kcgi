@@ -445,7 +445,7 @@ struct	ktemplate {
 	int		 	(*cb)(size_t, void *);
 };
 
-typedef int (*ktemplate_writef)(const char *, size_t, void *);
+typedef enum kcgi_err (*ktemplate_writef)(const char *, size_t, void *);
 
 struct	ktemplatex {
 	ktemplate_writef	 writer;
@@ -488,20 +488,20 @@ enum kcgi_err	 khttp_parsex(struct kreq *, const struct kmimemap *,
 			unsigned int, const struct kopts *);
 enum kcgi_err	 khttp_putc(struct kreq *, int);
 enum kcgi_err	 khttp_puts(struct kreq *, const char *);
-int		 khttp_template(struct kreq *, 
+enum kcgi_err	 khttp_template(struct kreq *, 
 			const struct ktemplate *, const char *);
-int		 khttp_template_fd(struct kreq *, 
+enum kcgi_err	 khttp_template_fd(struct kreq *, 
 			const struct ktemplate *, int, const char *);
-int		 khttp_template_buf(struct kreq *, 
+enum kcgi_err	 khttp_template_buf(struct kreq *, 
 			const struct ktemplate *, const char *, 
 			size_t);
-int		 khttp_templatex(const struct ktemplate *, 
+enum kcgi_err	 khttp_templatex(const struct ktemplate *, 
 			const char *, const struct ktemplatex *, 
 			void *);
-int		 khttp_templatex_buf(const struct ktemplate *, 
+enum kcgi_err	 khttp_templatex_buf(const struct ktemplate *, 
 			const char *, size_t, 
 			const struct ktemplatex *, void *);
-int		 khttp_templatex_fd(const struct ktemplate *, 
+enum kcgi_err	 khttp_templatex_fd(const struct ktemplate *, 
 			int, const char *,
 			const struct ktemplatex *, void *);
 
