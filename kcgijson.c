@@ -74,13 +74,13 @@ kjson_close(struct kjsonreq *r)
  * See RFC 7159, sec 7.
  */
 static enum kcgi_err
-kjson_write(struct kjsonreq *r, const char *cp, size_t sz)
+kjson_write(struct kjsonreq *r, const char *cp, size_t sz, int quot)
 {
 	enum kcgi_err	e;
 	char		enc[7];
 	size_t		 i;
 
-	if (KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
+	if (quot && KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
 		return(e);
 
 	for (i = 0; i < sz; i++) {
@@ -111,14 +111,17 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz)
 			return(e);
 	}
 
-	return(kcgi_writer_putc(r->arg, '"'));
+	if (quot && KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
+		return(e);
+
+	return(KCGI_OK);
 }
 
 static enum kcgi_err
 kjson_puts(struct kjsonreq *r, const char *cp)
 {
 
-	return(kjson_write(r, cp, strlen(cp)));
+	return(kjson_write(r, cp, strlen(cp), 1));
 }
 
 /*
@@ -343,7 +346,7 @@ kjson_string_write(const char *p, size_t sz, void *arg)
 	if (KJSON_STRING != r->stack[r->stackpos].type)
 		return(KCGI_FORM);
 
-	return(kjson_write(r, p, sz));
+	return(kjson_write(r, p, sz, 0));
 }
 
 enum kcgi_err
