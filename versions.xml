@@ -3,6 +3,26 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-01-23">ongoing</time>
+		</header>
+		<aside>
+			<div>
+				Fix <a href="kcgijson.3.html">kcgijson_string_write(3)</a> and
+				friends to not emit a superfluous quote before each invocation.
+			<div>
+			<div>
+				<strong>API change</strong>: complete the change-over to writing
+				functions returning values by modifying <a
+					href="khttp_template.3.html">khttp_template(3)</a> and
+				friends to return a proper error code.
+				While here, significantly improve the manpage.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-01-18">2018-01-18</time>
