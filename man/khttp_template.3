@@ -1,6 +1,7 @@
 .\"	$Id$
 .\"
 .\" Copyright (c) 2014, 2017, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2018 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -36,12 +37,12 @@
 .Fo khttp_template
 .Fa "struct kreq *req"
 .Fa "const struct ktemplate *t"
-.Fa "const char *fname"
+.Fa "const char *filename"
 .Fc
 .Ft enum kcgi_err
 .Fo khttp_templatex
 .Fa "const struct ktemplate *t"
-.Fa "const char *fname"
+.Fa "const char *filename"
 .Fa "const struct ktemplatex *tx"
 .Fa "void *arg"
 .Fc
@@ -76,140 +77,160 @@
 .Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
-These functions comprise a template system for a
+These template functions write a block of HTTP output,
+replacing certain substrings with variable content.
+They operate in a
 .Xr kcgi 3
-context allocated with
-.Xr khttp_parse 3 .
-They may only be called after
-.Xr khttp_body 3 ,
-else behaviour is undefined.
+context
+.Fa req
+allocated with
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3
+and may only be called after
+.Xr khttp_body 3 .
 .Pp
-These functions all accept
-.Vt "struct ktemplate" ,
-which consists of the following fields:
+All template functions accept a
+.Fa "const struct ktemplate *t"
+argument consisting of the following fields:
 .Bl -tag -width Ds
 .It Va "const char *const *key"
-An array of keys.
-When the template is parsed and encounters a key, it is looked up in
-this array.
+An array of keys to be replaced in the template.
 .It Va "size_t keysz"
 The number of keys in
-.Va key .
-.It Va "void *arg"
-The optional argument passed to
-.Va cb .
-.It Va "int (*cb)(size_t index, void *arg)"
-The callback function called when a key in
-.Va key
-is found.
-The
-.Va index
-is the position in
-.Va key ,
+.Fa t->key .
+.It Fa "void *arg"
+An optional argument passed to
+.Fa t->cb .
+.It Fa "int (*cb)(size_t index, void *arg)"
+The callback function invoked when a key at position
+.Fa index ,
 which is always less than
-.Va keysz .
-The argument is given by the
-.Va arg
-field to the structure.
+.Fa t->keysz ,
+is found in
+.Fa t->key .
+The optional
+.Fa arg
+is passed to the current writing function.
 .El
+.Pp
+The
+.Fn khttp_template ,
+.Fn khttp_template_fd ,
+and
+.Fn khttp_template_buf
+functions use
+.Xr khttp_write 3
+as the current writing function.
 .Pp
 The
 .Fn khttp_templatex ,
 .Fn khttp_templatex_buf ,
 and
 .Fn khttp_templatex_fd
-functions accept
-.Vt struct ktemplatex ,
-which has the following fields:
+extend this behaviour with an additional
+.Fa "const struct ktemplatex *tx" ,
+having the following fields:
 .Bl -tag -width Ds
 .It Va "enum kcgi_err (*writer)(const char *b, size_t sz, void *arg)"
-The function that writes data in
-.Fa b
-of size
+Sets the current writing function that writes
 .Fa sz
-with private argument
+bytes pointed to be
+.Fa b .
+The
 .Fa arg
-that's passed to the functions.
-This may not be
-.Dv NULL .
+argument is as passed to the function.
 Any return value but
 .Dv KCGI_OK
 is considered an error.
 .It Va "int (*fbk)(const char *k, size_t sz, void *arg)"
-If the given key
+If an encountered key
 .Fa k
 of length
 .Fa sz
-is not found in the template array, this function is invoked.
-The
-.Fa arg
-is given within each function's
-.Vt "struct ktemplate" .
-This will usually use
-.Fa writer
-to write any data.
+is not found in
+.Fa t->key ,
+thi sfunction is invoked.
+The field
+.Fa t->arg
+is passed as the
+.Fa arg .
+This function normally uses the writing function in
+.Fa tx->writer
+to write data.
 .El
 .Pp
-The buffer version of this set accept a buffer
+The
+.Fa tx->writer
+callback may not be
+.Dv NULL .
+.Pp
+The functions
+.Fn khttp_template
+and
+.Fn khttp_templatex
+accepts
+.Fa filename ,
+the file that will be opened read-only and passed into the file
+descriptor functions.
+.Pp
+The descriptor functions
+.Fn khttp_template_fd
+and
+.Fn khttp_templatex_fd
+read the template from the open file descriptor
+.Fa fd
+using
+.Xr mmap 2
+and pass to the buffer functions.
+They only use the
+.Fa filename
+for error reporting.
+If
+.Dv NULL ,
+.Qq <unknown descriptor>
+is used.
+.Pp
+The buffer functions
+.Fn khttp_template_buf
+and
+.Fn khttp_templatex_buf
+read the template from the buffer
 .Fa buf
 of length
 .Fa sz .
-The file descriptor version accepts
-.Fa fd ,
-an open file descriptor that will be passed to
-.Xr mmap 2
-and on to the buffer version; and the associated
-.Fa filename ,
-which is used for error reporting and may be
-.Dv NULL
-.Pq in which case <unknown descriptor> is used .
-The file version accepts
-.Fa fname ,
-the file that will be opened read-only and passed into the file
-descriptor version.
+If
+.Fa sz
+is 0, the template is considered empty and
+.Fa buf
+is ignored.
 .Pp
-When
-.Fn khttp_templatex_buf
-is invoked (it is internally used by all of the templating functions),
-the buffer is emitted until a
-.Li @@foo@@
-sequence (two
-.Qq at
-signs followed by a key, followed by a trailing pair of
-.Qq at
-signs) is encountered.
-.Pp
-The key is first looked up in the
-.Fa t
-argument's
-.Va key
-array of size
-.Va keysz .
-If found, the callback
-.Va cb
-is invoked with the key index and the optional
-argument
-.Va arg .
-If not found and one of
-.Fn khttp_templatex ,
-.Fn khttp_templatex_fd ,
-or
-.Fn khttp_templatex_buf
-was used with a fallthrough callback function, the fallthrough callback
-function will be invoked.
-In either event, if the callback returns zero,
-.Fn khttp_templatex_buf
-fails.
-This will trigger the failure of any invoking function such as
-.Fn khttp_template .
-If the key is not found and there is no fallthrough callback, it is
-emitted as opaque text.
+Each substring of the template buffer beginning and ending with a pair
+of
+.Dq at
+signs,
+.Cm @@ Ns Ar key Ns Cm @@ ,
+is called a
+.Dq key sequence .
+If the
+.Ar key
+is found in
+.Fa t->key ,
+the callback
+.Fa t->cb
+is invoked.
+Otherwise, the fallthrough callback
+.Fa tx->fbk
+is invoked if it is not
+.Dv NULL .
+Otherwise, the key sequence is passed unchanged to the current writing
+function.
 .Pp
 If
 .Fa t
 is
 .Dv NULL ,
-the buffer (or file) is emitted without any processing.
+the whole template is passed through without any processing.
 .Sh RETURN VALUES
 These functions return an
 .Ft enum kcgi_err
@@ -223,23 +244,24 @@ for an internal system error writing to the output stream or when
 failing to invoke system calls.
 The
 .Dv KCGI_FORM
-error code indicates that a template callback function returned with
-failure.
+error code indicates that
+.Fa t->cb
+or
+.Fa tx->fbk
+returned 0.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_parse 3 ,
 .Xr khttp_write 3
 .Sh AUTHORS
-The
-.Fn khttp_template
-library was written by
+These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The
 .Fn khttp_template
 and
 .Fn khttp_templatex
-functions need access to the file-system.
-So if you're sandboxing your application, you should read the files
-before the sandbox and use the buffer or file descriptor versions.
+functions need access to the file system.
+Read the files before entering a sandbox and use the buffer or file
+descriptor versions instead.
