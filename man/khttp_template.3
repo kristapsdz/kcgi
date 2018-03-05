@@ -94,9 +94,9 @@ All template functions accept a
 .Fa "const struct ktemplate *t"
 argument consisting of the following fields:
 .Bl -tag -width Ds
-.It Va "const char *const *key"
+.It Fa "const char *const *key"
 An array of keys to be replaced in the template.
-.It Va "size_t keysz"
+.It Fa "size_t keysz"
 The number of keys in
 .Fa t->key .
 .It Fa "void *arg"
@@ -112,6 +112,11 @@ is found in
 The optional
 .Fa arg
 is passed to the current writing function.
+This callback function normally uses
+.Xr khttp_write 3
+or
+.Fa tx->writer
+to write data.
 .El
 .Pp
 The
@@ -128,29 +133,30 @@ The
 .Fn khttp_templatex_buf ,
 and
 .Fn khttp_templatex_fd
-extend this behaviour with an additional
-.Fa "const struct ktemplatex *tx" ,
-having the following fields:
+functions extend this behaviour with an additional
+.Fa "const struct ktemplatex *tx"
+argument having the following fields:
 .Bl -tag -width Ds
-.It Va "enum kcgi_err (*writer)(const char *b, size_t sz, void *arg)"
+.It Fa "enum kcgi_err (*writer)(const char *b, size_t sz, void *arg)"
 Sets the current writing function that writes
 .Fa sz
-bytes pointed to be
+bytes pointed to by
 .Fa b .
 The
 .Fa arg
-argument is as passed to the function.
+argument is as passed to the function; it may be
+.Dv NULL .
 Any return value but
 .Dv KCGI_OK
 is considered an error.
-.It Va "int (*fbk)(const char *k, size_t sz, void *arg)"
+.It Fa "int (*fbk)(const char *k, size_t sz, void *arg)"
 If an encountered key
 .Fa k
 of length
 .Fa sz
 is not found in
 .Fa t->key ,
-thi sfunction is invoked.
+this function is invoked.
 The field
 .Fa t->arg
 is passed as the
@@ -169,10 +175,9 @@ The functions
 .Fn khttp_template
 and
 .Fn khttp_templatex
-accepts
-.Fa filename ,
-the file that will be opened read-only and passed into the file
-descriptor functions.
+open
+.Fa filename
+in read-only mode and call the descriptor functions.
 .Pp
 The descriptor functions
 .Fn khttp_template_fd
@@ -182,11 +187,11 @@ read the template from the open file descriptor
 .Fa fd
 using
 .Xr mmap 2
-and pass to the buffer functions.
+and call the buffer functions.
 They only use the
 .Fa filename
 for error reporting.
-If
+If it is
 .Dv NULL ,
 .Qq <unknown descriptor>
 is used.
@@ -235,20 +240,30 @@ the whole template is passed through without any processing.
 These functions return an
 .Ft enum kcgi_err
 indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream or when
-failing to invoke system calls.
-The
-.Dv KCGI_FORM
-error code indicates that
+.Bl -tag -width KCGI_SYSTEM
+.It Dv KCGI_OK
+No error occurred.
+.It Dv KCGI_ENOMEM
+Memory allocation failed.
+.It Dv KCGI_SYSTEM
+A system call failed.
+For example, writing to the output stream failed, or
+.Fn khttp_template
+or
+.Fn khttp_templatex
+failed to
+.Xr open 2
+.Fa filename .
+.It Dv KCGI_FORM
 .Fa t->cb
 or
 .Fa tx->fbk
 returned 0.
+.El
+.Pp
+An empty template produces no output, and
+.Dv KCGI_OK
+is returned.
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
