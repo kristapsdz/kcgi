@@ -431,7 +431,7 @@ struct	kopts {
 	ssize_t		  	  sndbufsz;
 };
 
-struct	kbuf {
+struct	kcgi_buf {
 	char		*buf; /* buffer contents */
 	size_t		 maxsz; /* buffer size (allocated) */
 	size_t		 sz; /* buffer current length */
@@ -507,9 +507,9 @@ enum kcgi_err	 khttp_templatex_fd(const struct ktemplate *,
 
 enum kcgi_err	 khttp_write(struct kreq *, const char *, size_t);
 
-int		 khttp_buf_write(const char *, size_t, void *);
-int		 khttp_buf_putc(struct kbuf *, char);
-int		 khttp_buf_puts(struct kbuf *, const char *);
+enum kcgi_err	 kcgi_buf_write(const char *, size_t, void *);
+enum kcgi_err	 kcgi_buf_putc(struct kcgi_buf *, char);
+enum kcgi_err	 kcgi_buf_puts(struct kcgi_buf *, const char *);
 
 int		 khttpdigest_validate(const struct kreq *, 
 			const char *);

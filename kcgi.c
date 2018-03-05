@@ -1132,40 +1132,40 @@ kvalid_uint(struct kpair *p)
 	return(NULL == ep);
 }
 
-int
-khttp_buf_write(const char *s, size_t sz, void *arg)
+enum kcgi_err
+kcgi_buf_write(const char *s, size_t sz, void *arg)
 {
-	struct kbuf	*b = arg;
+	struct kcgi_buf	*b = arg;
 	void		*pp;
 
 	if (NULL == s)
-		return(1);
+		return(KCGI_OK);
 
 	if (b->sz + sz + 1 > b->maxsz) {
 		b->maxsz = b->sz + sz + 1 + 
 			(0 == b->growsz ? 1024 : b->growsz);
 		pp = realloc(b->buf, b->maxsz);
 		if (NULL == pp)
-			return(0);
+			return(KCGI_ENOMEM);
 		b->buf = pp;
 	}
 
 	memcpy(&b->buf[b->sz], s, sz);
 	b->sz += sz;
 	b->buf[b->sz] = '\0';
-	return(1);
+	return(KCGI_OK);
 }
 
-int
-khttp_buf_putc(struct kbuf *buf, char c)
+enum kcgi_err
+kcgi_buf_putc(struct kcgi_buf *buf, char c)
 {
 
-	return(khttp_buf_write(&c, 1, buf));
+	return(kcgi_buf_write(&c, 1, buf));
 }
 
-int
-khttp_buf_puts(struct kbuf *buf, const char *cp)
+enum kcgi_err
+kcgi_buf_puts(struct kcgi_buf *buf, const char *cp)
 {
 
-	return(khttp_buf_write(cp, strlen(cp), buf));
+	return(kcgi_buf_write(cp, strlen(cp), buf));
 }
