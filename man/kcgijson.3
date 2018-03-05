@@ -279,9 +279,9 @@ Close an object context with or without a name.
 Emit a string value with or without a name.
 Note that it is
 .Em not
-checked for character encoding (assumed to be UTF-8, UTF-16, or
-UTF-32), but control characters, the solidus and reverse solidus, and
-quotes are escaped.
+checked for character encoding (assumed to be ASCII or UTF-8), but
+control characters, the solidus and reverse solidus, and quotes are
+escaped.
 .It Fn kjson_putboolp , Fn kjson_putbool
 Emit a Boolean value with or without a name.
 In the usual way, 0 evalutes to FALSE, non-zero to TRUE.
