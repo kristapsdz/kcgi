@@ -711,6 +711,24 @@ or
 .Dv KAUTH_DIGEST
 authorisation, this field indicates whether all required values were
 specified.
+.It Vt "char *" Ns Va digest
+An MD5 digest of
+.Ev REQUEST_METHOD ,
+.Ev SCRIPT_NAME ,
+.Ev PATH_INFO ,
+header variables and the request body.
+It is not a NUL-terminated string, but an array of exactly
+.Dv MD5_DIGEST_LENGTH
+bytes.
+Only filled in when
+.Ev HTTP_AUTHORIZATION
+is
+.Qq digest
+and
+.Va authorised
+is non-zero.
+Otherwise, it remains
+.Dv NULL .
 .It Va d
 An anonymous union containing parsed fields per type:
 .Vt "struct khttpbasic" Va basic
@@ -720,17 +738,6 @@ or
 .Vt "struct khttpdigest" Va digest
 for
 .Dv KAUTH_DIGEST .
-.It Vt "char *" Ns Va digest
-For
-.Dv KAUTH_DIGEST
-authentication, this contains the request message body MD5 hash required
-for the authentication of integrity
-.Pq Dq auth-int
-form of quality of protection.
-See
-.Vt "enum khttpqop" .
-Otherwise it is
-.Dv NULL .
 .El
 .Pp
 If the field for an HTTP authorisation request is
