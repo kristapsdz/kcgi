@@ -1,0 +1,129 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGI_BUF_WRITE 3
+.Os
+.Sh NAME
+.Nm kcgi_buf_putc ,
+.Nm kcgi_buf_puts ,
+.Nm kcgi_buf_write
+.Nd buffer functions for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft enum kcgi_err
+.Fo kcgi_buf_putc
+.Fa "struct kcgi_buf *buf"
+.Fa "char c"
+.Fc
+.Ft enum kcgi_err
+.Fo kcgi_buf_puts
+.Fa "struct kcgi_buf *buf"
+.Fa "const char *cp"
+.Fc
+.Ft enum kcgi_err
+.Fo kcgi_buf_write
+.Fa "const char *cp"
+.Fa "size_t sz"
+.Fa "void *arg"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn kcgi_buf_putc ,
+.Fn kcgi_buf_puts ,
+and
+.Fn kcgi_buf_write
+functions append to a buffer object
+.Fa buf ,
+whose data buffer
+.Fa buf->buf
+is guaranteed to be NUL terminated if
+.Fa buf->sz
+is greater than zero.
+.Pp
+The
+.Fn kcgi_buf_putc
+function appends a single character;
+.Fn kcgi_buf_puts
+appends a NUL-terminated character string
+.Pq not including the NUL terminator ;
+and
+.Fn kcgi_buf_write
+appends a binary buffer
+.Fa buf
+of size
+.Fa sz ,
+where
+.Fa arg
+is cast to a
+.Va "struct kcgi_buf" .
+The latter is often used in the
+.Xr khttp_templatex 3
+family of functions.
+.Pp
+The
+.Fa "struct kcgi_buf"
+structure has the following fields:
+.Bl -tag -width Ds
+.It Fa "char *buf"
+Buffer contents.
+This is always NUL-terminated, but may contain NUL characters prior to
+the stated length.
+.It Fa "size_t maxsz"
+Allocated buffer size.
+.It Fa "size_t sz"
+Buffer current length not including the NUL terminator.
+.It Fa "size_t growsz"
+Amount to grow the buffer when appending.
+If set to zero, defaults to 1 KB.
+.El
+.Pp
+The
+.Va "struct kcgi_buf"
+must be zeroed prior to usage, and the contained buffer passed to
+.Xr free 3
+when no longer used.
+.Sh EXAMPLES
+The following creates a simple NUL-terminated buffer.
+It does not perform any error checking.
+.Bd -literal -offset indent
+struct kcgi_buf buf;
+
+memset(&buf, 0, sizeof(struct kcgi_buf));
+kcgi_buf_puts(&buf, "Hello,");
+kcgi_buf_putc(&buf, ' ');
+kcgi_buf_puts(&buf, "world!");
+puts(buf.buf); /* Emits "Hello, world!" */
+free(buf.buf);
+.Ed
+.Sh RETURN VALUES
+These functions return an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure.
+.Sh SEE ALSO
+.Xr khttp_templatex 3
+.Sh AUTHORS
+These functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
