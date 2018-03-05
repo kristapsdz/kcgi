@@ -61,6 +61,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/kcgijson.3 \
 		   man/kcgiregress.3 \
 		   man/kcgixml.3 \
+		   man/kcgi_buf_write.3 \
 		   man/kcgi_writer_disable.3 \
 		   man/khttp_body.3 \
 		   man/khttp_fcgi_free.3 \
@@ -142,6 +143,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header \
 		   regress/test-header-bad \
 		   regress/test-httpdate \
+		   regress/test-json-simple \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
 		   regress/test-path-check \
