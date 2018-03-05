@@ -320,7 +320,6 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
-	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_ARRAY;
 	return(kcgi_writer_putc(r->arg, '['));
@@ -392,7 +391,6 @@ kjson_stringp_open(struct kjsonreq *r, const char *key)
 		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
-	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_STRING;
 	return(kcgi_writer_putc(r->arg, '"'));
@@ -426,7 +424,6 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 		return(er);
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
-	r->stack[r->stackpos].elements++;
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_OBJECT;
 	return(kcgi_writer_putc(r->arg, '{'));
