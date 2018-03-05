@@ -101,13 +101,11 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz, int quot)
 			e = kcgi_writer_putc(r->arg, '\\');
 			if (KCGI_OK != e)
 				return(e);
-			e = kcgi_writer_putc(r->arg, cp[i]);
 			break;
 		default:
-			e = kcgi_writer_putc(r->arg, cp[i]);
 			break;
 		}
-		if (KCGI_OK != e)
+		if (KCGI_OK != (e = kcgi_writer_putc(r->arg, cp[i])))
 			return(e);
 	}
 
