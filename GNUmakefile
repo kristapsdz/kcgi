@@ -124,6 +124,7 @@ AFL		 = afl/afl-multipart \
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-bigfile \
+		   regress/test-buf \
 		   regress/test-datetime \
 		   regress/test-digest \
 		   regress/test-fcgi-abort-validator \
@@ -206,7 +207,7 @@ kfcgi.o: config.h
 regress/%.o: regress/%.c config.h regress/regress.h
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c $<
 
-regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgi.a
+regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgijson.a libkcgi.a
 	$(CC) -o $@ $^ `curl-config --libs` -lz $(LIBADD)
 
 afl/%: afl/%.c libkcgi.a
