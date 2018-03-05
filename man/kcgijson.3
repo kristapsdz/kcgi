@@ -168,6 +168,11 @@
 .Fa "struct kjsonreq *r"
 .Fc
 .Ft enum kcgi_err
+.Fo kjson_string_putdouble
+.Fa "struct kjsonreq *r"
+.Fa "double val"
+.Fc
+.Ft enum kcgi_err
 .Fo kjson_string_putint
 .Fa "struct kjsonreq *r"
 .Fa "int64_t val"
@@ -222,7 +227,7 @@ Passing a
 value as the key for any key-value pair function is the same as calling
 the standalone version.
 .Pp
-To use these functions, you must include the
+To use these functions, include the
 .In kcgijson.h
 header and compile with
 .Lb kcgijson ,
@@ -242,17 +247,13 @@ closing out any open arrays, strings, and objects.
 After this,
 .Fa r
 may no longer be used.
-.It Fn kjson_arrayp_open
-This and
-.Fn kjson_array_open
-start an array context with or without a name.
+.It Fn kjson_arrayp_open , Fn kjson_array_open
+Start an array context with or without a name.
 .It Fn kjson_array_close
 Close an array context with or without a name.
-.It Fn kjson_string_open
-This and
-.Fn kjson_stringp_open
-start a string context with or without a name.
-This is usually used for complex values, or those create dynamically
+.It Fn kjson_string_open , Fn kjson_stringp_open
+Start a string context with or without a name.
+This is usually used for complex values, or those created dynamically
 with
 .Xr khttp_template 3 .
 The
@@ -270,34 +271,24 @@ for caveats on floating-point classes and
 for character encoding.
 .It Fn kjson_string_close
 Close a string context with or without a name.
-.It Fn kjson_obj_open
-This and
-.Fn kjson_objp_open
-start an object context with or without a name.
+.It Fn kjson_obj_open , Fn kjson_objp_open
+Start an object context with or without a name.
 .It Fn kjson_obj_close
 Close an object context with or without a name.
-.It Fn kjson_putstringp
-This and
-.Fn kjson_putstring
-emit a string value with or without a name.
+.It Fn kjson_putstringp , Fn kjson_putstring
+Emit a string value with or without a name.
 Note that it is
 .Em not
-checked for character encoding (assumed to be UTF-8, UTF-8, UTF-16, or
+checked for character encoding (assumed to be UTF-8, UTF-16, or
 UTF-32), but control characters, the solidus and reverse solidus, and
 quotes are escaped.
-.It Fn kjson_putboolp
-This and
-.Fn kjson_putbool
-emit a Boolean value with or without a name.
+.It Fn kjson_putboolp , Fn kjson_putbool
+Emit a Boolean value with or without a name.
 In the usual way, 0 evalutes to FALSE, non-zero to TRUE.
-.It Fn kjson_putnullp
-This and
-.Fn kjson_putnull
-emit a null value with or without a name.
-.It Fn kjson_putintp
-This and
-.Fn kjson_putint
-emit a 64-bit signed integer value with or without a name.
+.It Fn kjson_putnullp , Fn kjson_putnull
+Emit a null value with or without a name.
+.It Fn kjson_putintp , Fn kjson_putint
+Emit a 64-bit signed integer value with or without a name.
 .Em Important note :
 while JSON supports arbitrary number lengths, JavaScript is limited to
 53 bits of integer precision.
@@ -305,23 +296,21 @@ Thus, use of this function should be avoided for JavaScript
 applications.
 Use
 .Fn kjson_putintstr
-instead.
-.Fn kjson_putintstr
-emit a 64-bit signed integer value in a string context, with or without
-a name.
+or
+.Fn kjson_putintstrp
+instead, which emit a 64-bit signed integer value in a string
+context, with or without a name.
 This function is generally used for passing integers to JavaScript
 applications, which are limited in integer precision.
-.It Fn kjson_putdoublep
-This and
-.Fn kjson_putdouble
-emit a double-precision floating point value with or without a name.
+.It Fn kjson_putdoublep , Fn kjson_putdouble
+Emit a double-precision floating point value with or without a name.
 This is formatted as with the
 .Li %g
 argument to
 .Xr printf 3 .
 Only normal, subnormal, or zero-classified numbers are allowed (see
-.Xr fpclassify 3 ) ,
-otherwise this will return
+.Xr fpclassify 3 ) ;
+otherwise this returns
 .Dv KCGI_FORM .
 .El
 .Sh RETURN VALUES
@@ -355,9 +344,9 @@ Error checking is omitted for brevity.
 .Bd -literal
 kjson_open(&req, r);
 kcgi_writer_disable(r);
-khttp_head(r, kresps[KRESP_STATUS], 
+khttp_head(r, kresps[KRESP_STATUS],
   "%s", khttps[KHTTP_200]);
-khttp_head(r, kresps[KRESP_CONTENT_TYPE], 
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
   "%s", kmimetypes[r->mime]);
 khttp_body(r);
 kjson_objp_open(&req, "foo");
