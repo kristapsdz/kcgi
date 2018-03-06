@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014--2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,6 +31,44 @@
 #  define       __END_DECLS
 #  endif
 #endif
+
+/*
+ * Stringification of version major, minor, and build.
+ */
+#define NAME(s) NAME0(s)
+#define NAME0(s) #s
+#define NAME2(x,y,z) x ## . ## y ## . ## z
+#define NAME1(x,y,z) NAME2(x,y,z)
+
+/*
+ * Major version.
+ */
+#define	KCGI_VMAJOR	0
+
+/*
+ * Minor version.
+ */
+#define	KCGI_VMINOR	10
+
+/*
+ * Build version.
+ */
+#define	KCGI_VBUILD	1
+
+/*
+ * Version string of major.minor.build (as a literal string).
+ */
+#define	KCGI_VERSION	NAME(NAME1(KCGI_VMAJOR,KCGI_VMINOR,KCGI_VBUILD))
+
+/*
+ * Integral stamp of version.
+ * Guaranteed to be increasing with build, minor, and major.
+ * (Assumes build and minor never go over 100.)
+ */
+#define	KCGI_VSTAMP \
+	((KCGI_VBUILD+1) + \
+	 (KCGI_VMINOR+1)*100 + \
+	 (KCGI_VMAJOR+1)*10000)
 
 /*
  * All of the public functions, variables, and structures in this header
