@@ -190,8 +190,15 @@ kjson_check_fp(double val)
 	return(1);
 }
 
+/*
+ * Emit a key-pair "key" with an unquoted value "val".
+ * This should only be used for trusted values: numbers, boolean, null,
+ * and the like.
+ * It should never be passed anything untrusted.
+ * Returns from kcgi_writer_puts and kjson_check.
+ */
 static enum kcgi_err
-kjson_putnumberp(struct kjsonreq *r, const char *key, const char *val)
+kjson_puttrustedp(struct kjsonreq *r, const char *key, const char *val)
 {
 	enum kcgi_err	 er;
 
@@ -232,7 +239,7 @@ kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 	if ( ! kjson_check_fp(val))
 		return(KCGI_FORM);
 	(void)snprintf(buf, sizeof(buf), "%g", val);
-	return(kjson_putnumberp(r, key, buf));
+	return(kjson_puttrustedp(r, key, buf));
 }
 
 enum kcgi_err
@@ -252,21 +259,15 @@ kjson_putintstr(struct kjsonreq *r, int64_t val)
 enum kcgi_err
 kjson_putnullp(struct kjsonreq *r, const char *key)
 {
-	enum kcgi_err 	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	return(kcgi_writer_puts(r->arg, "null"));
+	return(kjson_puttrustedp(r, key, "null"));
 }
 
 enum kcgi_err
 kjson_putboolp(struct kjsonreq *r, const char *key, int val)
 {
-	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	return(kcgi_writer_puts(r->arg, val ? "true" : "false"));
+	return(kjson_puttrustedp(r, key, val ? "true" : "false"));
 }
 
 enum kcgi_err
@@ -299,7 +300,7 @@ kjson_putintp(struct kjsonreq *r, const char *key, int64_t val)
 	char	buf[22];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	return(kjson_putnumberp(r, key, buf));
+	return(kjson_puttrustedp(r, key, buf));
 }
 
 enum kcgi_err
