@@ -5,13 +5,31 @@
 		<header>
 			<h1>0.10.1</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2018-01-23">ongoing</time>
+			<time datetime="2018-03-06">2018-03-06</time>
 		</header>
 		<aside>
 			<div>
+				Many of the improvements and fixes in this release were implemented or
+				suggested by Ingo Schwarze (<q>schwarze@</q>) in an audit generously
+				funded by CAPEM Solutions, Inc.  
+				Thank you so much!
+			</div>
+			<div>
+				Proper versioning in the header file as documented in <a
+					href="kcgi.3.html">kcgi(3)</a>.
+			</div>
+			<div>
 				Fix <a href="kcgijson.3.html">kcgijson_string_write(3)</a> and
 				friends to not emit a superfluous quote before each invocation.
+			</div>
 			<div>
+				Add <a href="kcgi_buf_write.3.html">kcgi_buf_write(3)</a> and
+				friends to make working with
+				<a href="khttp_template.3.html">khttp_templatex(3)</a> easier.
+				(I also use it for <a
+					href="https://curl.haxx.se/libcurl">libcurl(3)</a> in-memory
+				buffers.)
+			</div>
 			<div>
 				<strong>API change</strong>: complete the change-over to writing
 				functions returning values by modifying <a
