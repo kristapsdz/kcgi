@@ -36,7 +36,10 @@ SBLGS		 = archive.html \
 		   sample.c.html
 MAN3DIR	 	 = $(MANDIR)/man3
 MAN8DIR	 	 = $(MANDIR)/man8
-VERSION 	 = 0.10.0
+VMAJOR		 = $(shell grep 'define	KCGI_VMAJOR' kcgi.h | cut -f3)
+VMINOR		 = $(shell grep 'define	KCGI_VMINOR' kcgi.h | cut -f3)
+VBUILD		 = $(shell grep 'define	KCGI_VBUILD' kcgi.h | cut -f3)
+VERSION		:= $(VMAJOR).$(VMINOR).$(VBUILD)
 LIBOBJS 	 = auth.o \
 		   child.o \
 		   datetime.o \
@@ -352,7 +355,7 @@ clean:
 	rm -f libconfig.a
 	rm -f $(LIBOBJS) compats.o
 	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o
-	rm -f test-abort-valid.core core
+	rm -f test-abort-valid.core test-fcgi-abort-.core core
 	rm -f $(REGRESS) $(AFL) $(REGRESS_OBJS)
 	rm -rf *.dSYM regress/*.dSYM afl/*.dSYM
 

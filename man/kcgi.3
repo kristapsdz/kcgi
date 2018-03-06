@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,16 @@
 .Nd minimal CGI and FastCGI library in C
 .Sh LIBRARY
 .Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Fd #define KCGI_VMAJOR x
+.Fd #define KCGI_VMINOR y
+.Fd #define KCGI_VBUILD z
+.Fd #define KCGI_VERSION "x.y.z"
+.Fd #define KCGI_VSTAMP xxxyyyzzz
 .Sh DESCRIPTION
 The
 .Nm kcgi
@@ -125,6 +135,19 @@ library, link as follows:
 .Bd -literal
 % cc -o sample -static sample.o -lkcgihtml -lkcgi -lz
 .Ed
+.Pp
+The current version of the library is defined in
+.Dv KCGI_VERSION
+as a string of major number, minor number, and build.
+These values are available seperately as
+.Dv KCGI_VMAJOR ,
+.Dv KCGI_VMINOR ,
+and
+.Dv KCGI_VBUILD ,
+respectively.
+A numeric concatenation of the version is defined as
+.Dv KCGI_VSTAMP ,
+which may be used to test for version number applicability.
 .Sh EXAMPLES
 The following simple example assumes that
 .Pa kcgi.h
