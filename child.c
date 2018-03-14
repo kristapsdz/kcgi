@@ -1182,7 +1182,7 @@ kworker_child_auth(struct env *env, int fd, size_t envsz)
  * parent.
  * Most web servers will `handle this for us'.  Ugh.
  */
-static int
+static char*
 kworker_child_rawauth(struct env *env, int fd, size_t envsz)
 {
 
@@ -1348,37 +1348,38 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
  */
 static void
 kworker_child_bodymd5(struct env *env, int fd, 
-	size_t envsz, const char *b, size_t bsz, int md5)
+	size_t envsz, const char *b, size_t bsz, char *digesturi)
 {
 	MD5_CTX		 ctx;
-	unsigned char 	 ha2[MD5_DIGEST_LENGTH];
-	const char 	*uri, *script, *method;
-	size_t		 sz;
+	unsigned char 	 ha2[MD5_DIGEST_LENGTH],
+	                 hb[MD5_DIGEST_LENGTH];
+	char             skeyb[MD5_DIGEST_LENGTH * 2 + 1];
+	const char 	*method;
+	size_t		 i, sz;
 
-	if ( ! md5) {
+	if (NULL == digesturi) {
 		sz = 0;
 		fullwrite(fd, &sz, sizeof(size_t));
 		return;
 	}
 
-	uri = kworker_env(env, envsz, "PATH_INFO");
-	script = kworker_env(env, envsz, "SCRIPT_NAME");
+	MD5Init(&ctx);
+	MD5Updatec(&ctx, b, bsz);
+	MD5Final(hb, &ctx);
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++)
+		snprintf(&skeyb[i * 2], 3, "%02x", hb[i]);
+
 	method = kworker_env(env, envsz, "REQUEST_METHOD");
 
-	if (NULL == uri)
-		uri = "";
-	if (NULL == script)
-		script = "";
 	if (NULL == method)
 		method = "";
 
 	MD5Init(&ctx);
 	MD5Updatec(&ctx, method, strlen(method));
 	MD5Updatec(&ctx, ":", 1);
-	MD5Updatec(&ctx, script, strlen(script));
-	MD5Updatec(&ctx, uri, strlen(uri));
+	MD5Updatec(&ctx, digesturi, strlen(digesturi));
 	MD5Updatec(&ctx, ":", 1);
-	MD5Updatec(&ctx, b, bsz);
+	MD5Updatec(&ctx, skeyb, MD5_DIGEST_LENGTH * 2);
 	MD5Final(ha2, &ctx);
 
 	/* This is a binary write! */
@@ -1394,7 +1395,7 @@ kworker_child_bodymd5(struct env *env, int fd,
 static void
 kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth, char *b, 
-	size_t bsz, unsigned int debugging, int md5)
+	size_t bsz, unsigned int debugging, char* digesturi)
 {
 	size_t 	 i, len, cur;
 	char	*cp, *bp = b;
@@ -1413,7 +1414,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	if (0 == len) {
 		/* Remember to print our MD5 value. */
-		kworker_child_bodymd5(env, fd, envsz, "", 0, md5);
+		kworker_child_bodymd5(env, fd, envsz, "", 0, digesturi);
 		return;
 	}
 
@@ -1446,7 +1447,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	/* If requested, print our MD5 value. */
 
-	kworker_child_bodymd5(env, fd, envsz, b, bsz, md5);
+	kworker_child_bodymd5(env, fd, envsz, b, bsz, digesturi);
 
 	if (bsz && KREQ_DEBUG_READ_BODY & debugging) {
 		fprintf(stderr, "%u: ", getpid());
@@ -1567,7 +1568,7 @@ kworker_child(int wfd,
 	char		 *cp;
 	const char	 *start;
 	char		**evp;
-	int		  md5;
+	char		 *digesturi;
 	enum kmethod	  meth;
 	size_t	 	  i;
 	extern char	**environ;
@@ -1642,7 +1643,7 @@ kworker_child(int wfd,
 	kworker_child_env(envs, wfd, envsz);
 	meth = kworker_child_method(envs, wfd, envsz);
 	kworker_child_auth(envs, wfd, envsz);
-	md5 = kworker_child_rawauth(envs, wfd, envsz);
+	digesturi = kworker_child_rawauth(envs, wfd, envsz);
 	kworker_child_scheme(envs, wfd, envsz);
 	kworker_child_remote(envs, wfd, envsz);
 	kworker_child_path(envs, wfd, envsz);
@@ -1653,7 +1654,7 @@ kworker_child(int wfd,
 	/* And now the message body itself. */
 
 	kworker_child_body(envs, wfd, envsz, 
-		&pp, meth, NULL, 0, debugging, md5);
+		&pp, meth, NULL, 0, debugging, digesturi);
 	kworker_child_query(envs, wfd, envsz, &pp);
 	kworker_child_cookies(envs, wfd, envsz, &pp);
 	kworker_child_last(wfd);
@@ -1663,6 +1664,7 @@ kworker_child(int wfd,
 	for (i = 0; i < envsz; i++) 
 		free(envs[i].key);
 	free(envs);
+	free(digesturi);
 	return(KCGI_OK);
 }
 
@@ -1994,11 +1996,12 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	struct fcgi_bgn	*bgn, realbgn;
 	enum kcgi_err	 er;
 	unsigned char	*buf, *sbuf;
+	char            *digesturi;
 	struct env	*envs;
 	uint16_t	 rid;
 	uint32_t	 cookie;
 	size_t		 i, bsz, ssz, envsz;
-	int		 rc, md5;
+	int		 rc;
 	enum kmethod	 meth;
 
 	sbuf = NULL;
@@ -2138,7 +2141,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		kworker_child_env(envs, wfd, envsz);
 		meth = kworker_child_method(envs, wfd, envsz);
 		kworker_child_auth(envs, wfd, envsz);
-		md5 = kworker_child_rawauth(envs, wfd, envsz);
+		digesturi = kworker_child_rawauth(envs, wfd, envsz);
 		kworker_child_scheme(envs, wfd, envsz);
 		kworker_child_remote(envs, wfd, envsz);
 		kworker_child_path(envs, wfd, envsz);
@@ -2150,7 +2153,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 
 		assert(NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
-			meth, (char *)sbuf, ssz, debugging, md5);
+			meth, (char *)sbuf, ssz, debugging, digesturi);
 		kworker_child_query(envs, wfd, envsz, &pp);
 		kworker_child_cookies(envs, wfd, envsz, &pp);
 		kworker_child_last(wfd);
@@ -2163,4 +2166,5 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	free(sbuf);
 	free(buf);
 	free(envs);
+	free(digesturi);
 }

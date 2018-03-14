@@ -264,7 +264,7 @@ khttpbasic_input(int fd, const char *cp)
  * Parse HTTP ``Digest'' authentication tokens from the NUL-terminated
  * string, which can be NULL or malformed.
  */
-static int
+static char*
 khttpdigest_input(int fd, const char *cp)
 {
 	enum kauth	 auth;
@@ -272,6 +272,7 @@ khttpdigest_input(int fd, const char *cp)
 	int		 rc, authorised;
 	size_t		 sz;
 	struct pdigest	 d;
+	char            *uri;
 
 	auth = KAUTH_DIGEST;
 	fullwrite(fd, &auth, sizeof(enum kauth));
@@ -326,7 +327,7 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, &authorised, sizeof(int));
 
 	if ( ! authorised)
-		return(0);
+		return(NULL);
 
 	fullwrite(fd, &d.alg, sizeof(enum khttpalg));
 	fullwrite(fd, &d.qop, sizeof(enum khttpqop));
@@ -347,7 +348,13 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, d.opaque.pos, d.opaque.sz);
 
 	/* Do we need to MD5-hash our contents? */
-	return(KHTTPQOP_AUTH_INT == d.qop);
+	if (KHTTPQOP_AUTH_INT == d.qop) {
+		uri = XMALLOC(d.uri.sz + 1);
+		strlcpy(uri, d.uri.pos, d.uri.sz + 1);
+		return uri;
+	} else {
+		return(NULL);
+	}
 }
 
 enum kcgi_err
@@ -402,10 +409,11 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 
 /*
  * Parse the "basic" or "digest" authorisation from the request.
- * We return non-zero if the body of the request needs to be MD5-hashed,
- * i.e., if we have auth-int digest QOP.
+ * If the body of the request needs to be MD5-hashed, i.e. if we have auth-int
+ * digest QOP, we return the uri param needed for the hash.
+ * Otherwise, we return NULL.
  */
-int
+char*
 kworker_auth_child(int fd, const char *cp)
 {
 	const char	*start;
