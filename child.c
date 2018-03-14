@@ -1342,17 +1342,14 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
 }
 
 /*
- * Construct the "HA2" component of an HTTP digest hash.
- * See RFC 2617.
+ * Hash the request body.
  * We only do this if our authorisation requires it!
  */
 static void
-kworker_child_bodymd5(struct env *env, int fd, 
-	size_t envsz, const char *b, size_t bsz, int md5)
+kworker_child_bodymd5(int fd, const char *b, size_t bsz, int md5)
 {
 	MD5_CTX		 ctx;
-	unsigned char 	 ha2[MD5_DIGEST_LENGTH];
-	const char 	*uri, *script, *method;
+	unsigned char 	 hb[MD5_DIGEST_LENGTH];
 	size_t		 sz;
 
 	if ( ! md5) {
@@ -1361,30 +1358,14 @@ kworker_child_bodymd5(struct env *env, int fd,
 		return;
 	}
 
-	uri = kworker_env(env, envsz, "PATH_INFO");
-	script = kworker_env(env, envsz, "SCRIPT_NAME");
-	method = kworker_env(env, envsz, "REQUEST_METHOD");
-
-	if (NULL == uri)
-		uri = "";
-	if (NULL == script)
-		script = "";
-	if (NULL == method)
-		method = "";
-
 	MD5Init(&ctx);
-	MD5Updatec(&ctx, method, strlen(method));
-	MD5Updatec(&ctx, ":", 1);
-	MD5Updatec(&ctx, script, strlen(script));
-	MD5Updatec(&ctx, uri, strlen(uri));
-	MD5Updatec(&ctx, ":", 1);
 	MD5Updatec(&ctx, b, bsz);
-	MD5Final(ha2, &ctx);
+	MD5Final(hb, &ctx);
 
 	/* This is a binary write! */
 	sz = MD5_DIGEST_LENGTH;
 	fullwrite(fd, &sz, sizeof(size_t));
-	fullwrite(fd, ha2, sz);
+	fullwrite(fd, hb, sz);
 }
 
 /*
@@ -1413,7 +1394,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	if (0 == len) {
 		/* Remember to print our MD5 value. */
-		kworker_child_bodymd5(env, fd, envsz, "", 0, md5);
+		kworker_child_bodymd5(fd, "", 0, md5);
 		return;
 	}
 
@@ -1446,7 +1427,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	/* If requested, print our MD5 value. */
 
-	kworker_child_bodymd5(env, fd, envsz, b, bsz, md5);
+	kworker_child_bodymd5(fd, b, bsz, md5);
 
 	if (bsz && KREQ_DEBUG_READ_BODY & debugging) {
 		fprintf(stderr, "%u: ", getpid());
