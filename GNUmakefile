@@ -131,6 +131,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-buf \
 		   regress/test-datetime \
 		   regress/test-digest \
+		   regress/test-digest-auth-int \
 		   regress/test-fcgi-abort-validator \
 		   regress/test-fcgi-bigfile \
 		   regress/test-fcgi-file-get \

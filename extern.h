@@ -53,7 +53,7 @@ struct kdata	*kdata_alloc(int, int, uint16_t,
 			unsigned int, const struct kopts *);
 void		 kdata_free(struct kdata *, int);
 
-int		 kworker_auth_child(int, const char *);
+char*		 kworker_auth_child(int, const char *);
 enum kcgi_err	 kworker_auth_parent(int, struct khttpauth *);
 enum kcgi_err	 kworker_child(int,
 			const struct kvalid *, size_t, 
