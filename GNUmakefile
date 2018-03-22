@@ -127,6 +127,7 @@ AFL		 = afl/afl-multipart \
 		   afl/afl-urlencoded
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
+		   regress/test-basic-curl \
 		   regress/test-bigfile \
 		   regress/test-buf \
 		   regress/test-datetime \
