@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2016, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -52,6 +52,32 @@ will return zero if validation failed, less than zero if the request was
 not properly set up for HTTP basic validation (no HTTP method, not a
 basic request, not already authenticated by the web server), or greater
 than zero if the validation succeeded.
+.Sh EXAMPLES
+The following parses a request
+.Fa r
+with a single page
+.Dq page
+and no form inputs.
+If validation is not provided, it raises an HTTP 401.
+The expected principle is
+.Qq james ,
+password
+.Qq bond .
+.Bd -literal
+if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
+  return 0;
+
+if (khttpbasic_validate(&r, "james", "bond") <= 0) {
+  khttp_head(&r, kresps[KRESP_STATUS],
+    "%s", khttps[KHTTP_401]);
+  khttp_head(&r, kresps[KRESP_WWW_AUTHENTICATE],
+    "basic realm=\e"%s\e"", "some realm");
+} else
+  khttp_head(&r, kresps[KRESP_STATUS],
+    "%s", khttps[KHTTP_200]);
+
+khttp_body(&r);
+.Ed
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr khttp_fcgi_parse 3 ,
