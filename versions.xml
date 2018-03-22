@@ -3,6 +3,25 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-03-22">2018-03-22</time>
+		</header>
+		<aside>
+			<div>
+				Merge a set of patches from <a href="https://github.com/kristapsdz/kcgi/pull/26">pull/26</a>.
+				These fix the digest authorisation in <q>auth-int</q> mode, most often used by CalDAV systems.
+				Thanks to Charles Collicutt for the contribution!
+			</div>
+			<div>
+				While raising <a href="https://kristaps.bsd.lv/kcaldav">kcaldav</a>
+				from the dead, fix where the XML writer wasn't returning the correct
+				error code and causing strange errors.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.1</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-03-06">2018-03-06</time>
