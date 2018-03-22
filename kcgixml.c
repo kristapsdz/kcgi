@@ -128,7 +128,7 @@ kxml_write(const char *p, size_t sz, void *arg)
 		if (KCGI_OK != (er = kxml_putc(r, p[i])))
 			return(er);
 
-	return(1);
+	return(KCGI_OK);
 }
 
 enum kcgi_err
