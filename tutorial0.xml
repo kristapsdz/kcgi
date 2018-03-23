@@ -100,7 +100,7 @@
 		<pre class="prettyprint linenums">static void process_safe(struct kreq *r) {
   struct kpair *p;
   struct khtmlreq req;
-  khtml_open(&amp;req, r);
+  khtml_open(&amp;req, r, 0);
   khtml_elem(&amp;req, KELEM_P);
   khtml_puts(&amp;req, "The string value is ");
   if ((p = r->fieldmap[KEY_STRING])) {
@@ -209,13 +209,13 @@ const char *const pages[PAGE__MAX] = {
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint lang-sh linenums">% cc -I/usr/local/include -c -o tutorial0.o tutorial0.c
-% cc -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgi -lz</pre>
+% cc -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgihtml -lkcgi -lz</pre>
 	</figure>
 	<p>
 		For static linking, which is the norm in more sophisticated systems like OpenBSD:
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% cc -static -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% cc -static -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgihtml -lkcgi -lz</pre>
 	</figure>
 	<h3>
 		Install
