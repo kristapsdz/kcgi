@@ -76,6 +76,15 @@ enum	templ {
 };
 
 /*
+ * We need a structure because we can't get the "r" from the request.
+ * This is used by our template callback.
+ */
+struct	tstrct {
+	struct khtmlreq	 req;
+	struct kreq	*r;
+};
+
+/*
  * We'll use this to route pages by creating an array indexed by our
  * page.
  * Then when the page is parsed, we'll route directly into it.
@@ -151,17 +160,17 @@ resp_open(struct kreq *req, enum khttp http)
 static int
 template(size_t key, void *arg)
 {
-	struct khtmlreq	*req = arg;
+	struct tstrct	*p = arg;
 
 	switch (key) {
 	case (TEMPL_TITLE):
-		khtml_puts(req, "title");
+		khtml_puts(&p->req, "title");
 		break;
 	case (TEMPL_NAME):
-		khtml_puts(req, "name");
+		khtml_puts(&p->req, "name");
 		break;
 	case (TEMPL_REMOTE_ADDR):
-		khtml_puts(req, req->req->remote);
+		khtml_puts(&p->req, p->r->remote);
 		break;
 	default:
 		return(0);
@@ -178,19 +187,21 @@ static void
 sendtemplate(struct kreq *req)
 {
 	struct ktemplate t;
-	struct khtmlreq	 r;
+	struct tstrct	 p;
 
 	memset(&t, 0, sizeof(struct ktemplate));
-	memset(&r, 0, sizeof(struct khtmlreq));
+	memset(&p, 0, sizeof(struct tstrct));
 
-	r.req = req;
+	p.r = req;
 	t.key = templs;
 	t.keysz = TEMPL__MAX;
-	t.arg = &r;
+	t.arg = &p;
 	t.cb = template;
 
 	resp_open(req, KHTTP_200);
+	khtml_open(&p.req, req, 0);
 	khttp_template(req, &t, "template.xml");
+	khtml_close(&p.req);
 }
 
 /*
