@@ -483,13 +483,6 @@ struct	ktemplate {
 	int		 	(*cb)(size_t, void *);
 };
 
-typedef enum kcgi_err (*ktemplate_writef)(const char *, size_t, void *);
-
-struct	ktemplatex {
-	ktemplate_writef	 writer;
-	int			(*fbk)(const char *, size_t, void *);
-};
-
 enum	kcgi_err {
 	KCGI_OK = 0,
 	/* ENOMEM (fork, malloc, etc.). */
@@ -504,6 +497,13 @@ enum	kcgi_err {
 	KCGI_FORM,
 	/* Opaque operating-system error. */
 	KCGI_SYSTEM
+};
+
+typedef enum kcgi_err (*ktemplate_writef)(const char *, size_t, void *);
+
+struct	ktemplatex {
+	ktemplate_writef	 writer;
+	int			(*fbk)(const char *, size_t, void *);
 };
 
 __BEGIN_DECLS
