@@ -23,6 +23,7 @@
 			<div>
 				Lastly, fix the Linux sandbox when running on ARM machines, enable
 				building for C++ applications, and add a tutorial and sample file.
+				Pull in most recent <a href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
 			</div>
 		</aside>
 	</article>

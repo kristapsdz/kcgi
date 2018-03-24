@@ -15,6 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+OCONFIGURE_VERSION="0.1.2"
+
 #
 # This script outputs two files: config.h and Makefile.configure.
 # It tries to read from configure.local, which contains predefined
@@ -82,7 +84,7 @@ INSTALL_DATA=
 # Allow certain variables to be overriden on the command line.
 #----------------------------------------------------------------------
 
-for keyvals in $@
+for keyvals in "$@"
 do
 	key=`echo $keyvals | cut -s -d '=' -f 1`
 	if [ -z "$key" ]
@@ -92,6 +94,8 @@ do
 	fi
 	val=`echo $keyvals | cut -d '=' -f 2-`
 	case "$key" in
+	LDADD)
+		LDADD="$val" ;;
 	LDFLAGS)
 		LDFLAGS="$val" ;;
 	CPPFLAGS)
