@@ -1,6 +1,6 @@
 ## Synopsis
 
-kcgi is an open source CGI and FastCGI library for C web applications.
+kcgi is an open source CGI and FastCGI library for C/C++ web applications.
 It is minimal, secure, and auditable; and fits within your
 [BCHS](https://learnbchs.org) software stack.
 
@@ -14,7 +14,7 @@ This page describes using the bleeding-edge version of the system.
 ## Example
 
 Implementing a CGI or FastCGI application with kcgi is easy (for values
-of easy strictly greater than "knows C").
+of easy strictly greater than "knows C/C++").
 Specify the pages recognised by the application and the known HTML form
 inputs.
 kcgi parses the request and can manage output.
@@ -44,7 +44,9 @@ int main(void) {
 ```
 
 For a fuller example reflecting the repository sources, see
-[sample.c](https://github.com/kristapsdz/kcgi/blob/master/sample.c).
+[sample.c](https://github.com/kristapsdz/kcgi/blob/master/sample.c)
+or, for C++,
+[samplepp.cc](https://github.com/kristapsdz/kcgi/blob/master/samplepp.cc).
 
 ## Installation
 
@@ -55,8 +57,8 @@ releases.
 Begin by cloning or downloading.  Then configure with `./configure`,
 compile with `make` (GNU make, so it may be `gmake` on your system),
 then `sudo make install` (or using `doas`).  To install in an
-alternative directory to `/usr/local`, set the `PREFIX` variable in the
-`configure.local` file prior to configuration.  (See the
+alternative directory to `/usr/local`, set the `PREFIX` variable when
+you run `configure`.  (See the
 [configure](https://github.com/kristapsdz/kcgi/blob/master/configure)
 script for details.)
 
@@ -82,9 +84,8 @@ apropos kcgi
 
 This assumes that kcgi has been installed in a path recognised by your
 manpage reader.
-On most systems, `/opt` (as in the above example) is not recognised, so
-you may need to edit `/etc/man.conf` or other configuration file
-appropriate to your system.
+If you're using an alternative installation path, you may need to edit
+`/etc/man.conf` or other configuration file appropriate to your system.
 
 ## Tests
 
