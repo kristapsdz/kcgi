@@ -1,0 +1,102 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			CGI for C++ applications
+		</h2>
+		<address itemprop="author"><a href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2018-03-24">24 May, 2018</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			<span class="nm">kcgi</span> supports C++ callers just as easily as C.
+			In this brief tutorial I'll take you through compiling a C++ application that uses the <span class="nm">kcgi</span>
+			library.
+		</aside>
+	</p>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		The hard part about this example is doing anything demonstrable with C++.
+		So we'll do something very silly in just printing our HTTP output into the log file.
+		For the <span class="nm">kcgi</span> inclusion, we'll need all the usual header files.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
+#include &lt;kcgi.h&gt;</pre>
+	</figure>
+	<p>
+		Next, we'll need our C++ bits.
+		This is make-work, but serves to illustrate&#8230;
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;iostream&gt;</pre>
+	</figure>
+	<p>
+		Now let's just jump directly into our main function.
+		It will do nothing more than print <q>Hello, world!</q> to the browser.
+		But it will also emit <q>Said hello!</q> into the error log.
+		See your web server configuration for where this will appear.
+		It's usually in the <span class="file">error.log</span> file.
+		On OpenBSD's default server, it's often in 
+		<span class="file">/var/www/logs/error.log</span>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">int 
+main(int argc, char *argv[]) 
+{
+	enum kcgi_err	  er;
+	struct kreq	  r;
+	const char *const pages[1] = { "index" };
+
+	/* Set up our main HTTP context. */
+
+	er = khttp_parse(&amp;r, NULL, 0, pages, 1, 0);
+	if (KCGI_OK != er)
+		return 0;
+
+	khttp_head(&amp;r, kresps[KRESP_STATUS], 
+	  "%s", khttps[KHTTP_200]);
+	khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+	  "%s", kmimetypes[r.mime]);
+	khttp_body(&amp;r);
+	khttp_puts(&amp;r, "Hello, world!\n");
+
+	std::cerr &lt;&lt; "Said hello!";
+
+	khttp_free(&amp;r);
+	return 0;
+}</pre>
+	</figure>
+	<p>
+		Nothing to it&#8212;looks like any of our C examples.
+		The difference is that we've used some C++ code to emit <q>Said hello!</q> to the error log.
+		The next part is how we can compile this code.
+		For that, we'll need to use a C++ compiler instead of the C compiler we've been using to date.
+		For the sake of argument, let's assume that the <span class="nm">kcgi</span> headers are libraries are installed in the system directories.
+		However, mostly they'll need <code>-L/usr/local/lib</code> and <code>-I/usr/local/include</code>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% c++ -W -Wall -Wextra -c -o tutorial5.o tutorial5.cc
+% c++ -static -W -Wall -Wextra -o tutorial5 tutorial5.cc -lkcgi -lz</pre>
+	</figure>
+	<p>
+		Or just&#8230;
+		(and noting again the <code>-static</code>, which we need by being in our file-system jail)
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% c++ -static -W -Wall -Wextra -o tutorial5 tutorial5.cc -lkcgi -lz</pre>
+	</figure>
+	<p>
+		Now you can install your compiled CGI script just like any CGI script.
+		See <a href="tutorial0.html">Getting Started with CGI in C</a> for these steps in detail.
+		All of these steps work for FastCGI, of course.
+		Enjoy!
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint lang-sh linenums">% sudo install -m 0555 tutorial5 /var/www/cgi-bin</pre>
+	</figure>
+</article>

@@ -37,7 +37,7 @@
 		<section>
 			<p id="intro">
 				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
-					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C web
+					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
 					applications</span>.
 				It is minimal, secure, and auditable&#8212;a useful addition to your <a
 					href="https://www.learnbchs.org">BCHS</a> application stack.
@@ -144,6 +144,7 @@ int main(void) {
 			</figure>
 			<p>
 				For a fuller example, see <a href="sample.c.html">sample.c</a>, or jump to the <a href="#usage">Usage</a> section.
+				(Want a C++ version?  See <a href="samplepp.cc.html">samplepp.cc</a>.)
 			</p>
 			<p>
 				<i>kcgi</i> supports many features: auto-compression, handling of all HTTP input operations (query strings,
