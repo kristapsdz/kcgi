@@ -29,11 +29,13 @@ TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial1.xml \
 		   tutorial2.xml \
 		   tutorial3.xml \
-		   tutorial4.xml
+		   tutorial4.xml \
+		   tutorial5.xml
 TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $(xml) .xml)))
 SBLGS		 = archive.html \
 		   index.html \
-		   sample.c.html
+		   sample.c.html \
+		   samplepp.cc.html
 MAN3DIR	 	 = $(MANDIR)/man3
 MAN8DIR	 	 = $(MANDIR)/man8
 VMAJOR		 = $(shell grep 'define	KCGI_VMAJOR' kcgi.h | cut -f3)
@@ -188,7 +190,7 @@ all: kfcgi $(LIBS)
 
 afl: $(AFL)
 
-samples: all sample sample-fcgi sample-cgi
+samples: all sample samplepp sample-fcgi sample-cgi
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -245,14 +247,15 @@ libkcgixml.a: kcgixml.o
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
 
-$(LIBOBJS) sample.o sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
+$(LIBOBJS) sample.o samplepp sample-fcgi.o kcgihtml.o kcgijson.o kcgixml.o: kcgi.h
 
 $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 
 compats.o: config.h
 
-installcgi: sample  sample-fcgi sample-cgi
+installcgi: sample samplepp sample-fcgi sample-cgi
 	install -m 0755 sample $(PREFIX)/sample.cgi
+	install -m 0755 samplepp $(PREFIX)/samplepp.cgi
 	install -m 0755 sample-cgi $(PREFIX)/sample-simple.cgi
 	install -m 0755 sample-fcgi $(PREFIX)/sample-fcgi.cgi
 	install -m 0444 template.xml $(PREFIX)
@@ -269,7 +272,7 @@ install: all
 	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
 	install -m 0555 kfcgi $(DESTDIR)$(SBINDIR)
-	install -m 0444 template.xml sample.c sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
+	install -m 0444 template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
 
 uninstall:
 	$(foreach $@_LIB, $(LIBS), rm -f $(DESTDIR)$(LIBDIR)/$($@_LIB);)
@@ -277,7 +280,10 @@ uninstall:
 	$(foreach $@_MAN, $(MAN3S), rm -f $(DESTDIR)$(MAN3DIR)/$(notdir $($@_MAN));)
 	$(foreach $@_MAN, $(MAN8S), rm -f $(DESTDIR)$(MAN8DIR)/$(notdir $($@_MAN));)
 	rm -f $(DESTDIR)$(SBINDIR)/kfcgi
-	$(foreach $@_TMP, template.xml sample.c sample-fcgi.c sample-cgi.c, rm -f $(DESTDIR)$(DATADIR)/$($@_TMP);)
+	$(foreach $@_TMP, template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c, rm -f $(DESTDIR)$(DATADIR)/$($@_TMP);)
+
+samplepp: samplepp.cc libkcgi.a libkcgihtml.a
+	c++ $(CFLAGS) -static -o $@ $(STATIC) samplepp.cc -L. libkcgi.a -lz
 
 sample: sample.o libkcgi.a libkcgihtml.a
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
@@ -304,6 +310,9 @@ index.html: index.xml versions.xml $(TUTORIALHTMLS)
 
 sample.c.html: sample.c
 	highlight -o $@ --inline-css --doc sample.c
+
+samplepp.cc.html: samplepp.cc
+	highlight -o $@ --inline-css --doc samplepp.cc
 
 archive.html: archive.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t archive.xml -s date -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
@@ -352,7 +361,8 @@ atom.xml: versions.xml
 	sblg -s date -a versions.xml >$@
 
 clean:
-	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) sample sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
+	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) 
+	rm -f sample samplepp sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f $(SBLGS) $(TUTORIALHTMLS) extending01.html atom.xml
 	rm -f libconfig.a
 	rm -f $(LIBOBJS) compats.o
