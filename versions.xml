@@ -18,6 +18,9 @@
 				from the dead, fix where the XML writer wasn't returning the correct
 				error code and causing strange errors.
 			</div>
+			<div>
+				Make library build for C++ applications and add a tutorial and sample file.
+			</div>
 		</aside>
 	</article>
 	<article data-sblg-article="1" data-sblg-tags="version">
