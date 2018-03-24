@@ -244,6 +244,13 @@ int main(void) {
 			</p>
 			<ul>
 				<li> 
+					Dzonsons, Kristaps. <i>Role-based Access Control in BCHS Web Applications</i>. 
+					Proceedings of <a href="https://2018.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2018.
+					(<a href="https://kristaps.bsd.lv/absdcon2018">Slides</a>,
+					<a href="https://www.youtube.com/watch?v=FzF9e4jrnJ4">video</a>.)
+					<a href="https://kristaps.bsd.lv/absdcon2018/paper.pdf">paper</a>.)
+				</li>
+				<li> 
 					Dzonsons, Kristaps. <i>Secure BSD Web Applications in C: Practical Strategies</i>. 
 					Proceedings of <a href="https://2017.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2017.
 					(<a href="https://kristaps.bsd.lv/absdcon2017">Slides</a>.)
