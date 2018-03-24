@@ -113,6 +113,7 @@ SRCS 		 = auth.c \
      		   sample.c \
      		   sample-cgi.c \
      		   sample-fcgi.c \
+		   samplepp.cc \
      		   sandbox.c \
      		   sandbox-capsicum.c \
      		   sandbox-darwin.c \
@@ -344,7 +345,7 @@ kcgi.tgz:
 	cp $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
 	cp GNUmakefile template.xml .dist/kcgi-$(VERSION)
 	cp $(MANS) .dist/kcgi-$(VERSION)/man
-	cp configure .dist/kcgi-$(VERSION)
+	$(INSTALL_PROGRAM) configure .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
