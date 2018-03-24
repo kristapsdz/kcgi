@@ -96,6 +96,9 @@ static const struct sock_filter preauth_ctrl[] = {
 	SC_ALLOW(accept),
 #endif
 	SC_ALLOW(fcntl),
+#ifdef __NR_fcntl64 /* only noted on arm */
+	SC_ALLOW(fcntl64),
+#endif
 #ifdef __NR_sendmsg /* not defined for __i386__ (linux) */
 	SC_ALLOW(sendmsg),
 #endif
@@ -152,6 +155,9 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(read),
 	SC_ALLOW(write),
 	SC_ALLOW(close),
+#ifdef __NR_fcntl64 /* only noted on arm */
+	SC_ALLOW(fcntl64),
+#endif
 #ifdef __NR_shutdown /* not defined on archs that go via socketcall(2) */
 	SC_ALLOW(shutdown),
 #endif
