@@ -5,12 +5,14 @@
 		<header>
 			<h1>0.10.2</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2018-03-22">2018-03-22</time>
+			<time datetime="2018-03-24">2018-03-24</time>
 		</header>
 		<aside>
 			<div>
-				Merge a set of patches from <a href="https://github.com/kristapsdz/kcgi/pull/26">pull/26</a>.
-				These fix the digest authorisation in <q>auth-int</q> mode, most often used by CalDAV systems.
+				Merge a set of patches from <a
+					href="https://github.com/kristapsdz/kcgi/pull/26">pull/26</a>.
+				These fix the digest authorisation in <q>auth-int</q> mode, most
+				often used by CalDAV systems.
 				Thanks to Charles Collicutt for the contribution!
 			</div>
 			<div>
@@ -19,7 +21,8 @@
 				error code and causing strange errors.
 			</div>
 			<div>
-				Make library build for C++ applications and add a tutorial and sample file.
+				Lastly, fix the Linux sandbox when running on ARM machines, enable
+				building for C++ applications, and add a tutorial and sample file.
 			</div>
 		</aside>
 	</article>
