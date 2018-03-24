@@ -3,7 +3,7 @@
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset="utf-8" /> 
-		<title>kcgi | minimal CGI and FastCGI library for C</title>
+		<title>kcgi | minimal CGI and FastCGI library for C/C++</title>
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
@@ -22,7 +22,7 @@
 				<h1>
 					<a href="index.html" itemprop="name" class="nm">kcgi</a> 
 					&#8211; 
-					<span itemprop="description" class="nd">minimal CGI and FastCGI library in C</span>
+					<span itemprop="description" class="nd">minimal CGI and FastCGI library for C/C++</span>
 				</h1>
 				<nav>
 					<span class="version">Version @VERSION@</span>
