@@ -257,10 +257,9 @@ fullwriteword(int fd, const char *buf)
  * This is like fullwrite() but it does not bail out on errors.
  * We need this for writing our response to a socket that may be closed
  * at any time, like the FastCGI one.
- * Returns -1 on system error (poll or write), 0 if the output channel
- * closes during write, 1 on success.
+ * Returns KCGI_SYSTEM, KCGI_HUP, or KCGI_OK.
  */
-int
+enum kcgi_err
 fullwritenoerr(int fd, const void *buf, size_t bufsz)
 {
 	ssize_t	 	 ssz;
@@ -274,39 +273,39 @@ fullwritenoerr(int fd, const void *buf, size_t bufsz)
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: %d, POLLOUT", fd);
-			return(-1);
+			return(KCGI_SYSTEM);
 		} else if (0 == rc) {
 			XWARNX("poll: timeout!?");
 			ssz = 0;
 			continue;
 		} else if (POLLHUP & pfd.revents) {
 			XWARNX("poll: POLLHUP");
-			return(0);
+			return(KCGI_HUP);
 		} else if (POLLERR & pfd.revents) {
 			XWARNX("poll: POLLER");
-			return(-1);
+			return(KCGI_SYSTEM);
 #ifdef __APPLE__
 		} else if ( ! (POLLOUT & pfd.revents) && 
 			    ! (POLLNVAL & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
-			return(-1);
+			return(KCGI_SYSTEM);
 #else
 		} else if ( ! (POLLOUT & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
-			return(-1);
+			return(KCGI_SYSTEM);
 #endif
 		} 
 		
 		if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0) {
 			XWARN("write: %d, %zu", fd, bufsz - sz);
-			return(-1);
+			return(KCGI_SYSTEM);
 		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
-			return(-1);
+			return(KCGI_SYSTEM);
 		} 
 	}
 
-	return(1);
+	return(KCGI_OK);
 }
 
 /*
