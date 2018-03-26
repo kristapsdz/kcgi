@@ -95,21 +95,21 @@ fcgi_header(uint8_t type, uint16_t requestId,
 	header[5] = contentLength & 0xff;
 	header[6] = paddingLength;
 	header[7] = 0;
-	return(header);
+	return((char *)header);
 }
 
 /*
  * Write a `stdout' FastCGI packet.
  * This involves writing the header, then the data itself, then padding.
- * Returns zero on failure (system error writing to channel), non-zero
- * for success.
+ * Returns KCGI_OK, KCGI_SYSTEM, or KCGI_HUP.
  */
-static int
+static enum kcgi_err
 fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 {
 	const char	*pad = "\0\0\0\0\0\0\0\0";
 	char		*head;
 	size_t	 	 rsz, padlen;
+	enum kcgi_err	 er = KCGI_OK;
 
 	/* 
 	 * Break up the data stream into FastCGI-capable chunks of at
@@ -122,19 +122,20 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
 		padlen = -rsz % 8;
+
 		head = fcgi_header(type, p->requestId, rsz, padlen);
 
-		if (fullwritenoerr(p->fcgi, head, 8) <= 0)
-			return(0);
-		if (fullwritenoerr(p->fcgi, buf, rsz) <= 0)
-			return(0);
-		if (fullwritenoerr(p->fcgi, pad, padlen) <= 0)
-			return(0);
+		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, head, 8)))
+			break;
+		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, buf, rsz)))
+			break;
+		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, pad, padlen)))
+			break;
 		sz -= rsz;
 		buf += rsz;
 	} while (sz > 0);
 
-	return(1);
+	return(er);
 }
 
 /*
@@ -191,49 +192,51 @@ linebuf_flush(struct kdata *p, int newln)
  * Return zero on failure (system error writing to output) or non-zero
  * on success.
  */
-static int
+static enum kcgi_err
 kdata_flush(struct kdata *p, const char *buf, size_t sz)
 {
+	enum kcgi_err	 er = KCGI_OK;
 
 	if (0 == sz || NULL == buf)
-		return(1);
+		return(er);
+
 #if HAVE_ZLIB
 	if (NULL != p->gz && KSTATE_HEAD != p->state) {
 		/*
 		 * FIXME: make this work properly on all systems.
-		 * This is known to break on FreeBSD: we may need to
+		 * This is known (?) to break on FreeBSD: we may need to
 		 * break the uncompressed buffer into chunks that will
 		 * not cause EAGAIN to be raised.
 		 */
+
 		if (0 == gzwrite(p->gz, buf, sz)) {
 			XWARNX("gzwrite");
-			return(0);
+			er = KCGI_SYSTEM;
 		}
-		return(1);
+		return(er);
 	}
 #endif
-	if (-1 == p->fcgi) {
-		if (fullwritenoerr(STDOUT_FILENO, buf, sz) <= 0)
-			return(0);
-	} else 
-		if ( ! fcgi_write(6, p, buf, sz))
-			return(0);
+	if (-1 == p->fcgi)
+		er = fullwritenoerr(STDOUT_FILENO, buf, sz);
+	else 
+		er = fcgi_write(6, p, buf, sz);
 
-	return(1);
+	return(er);
 }
 
 /*
  * Drain the output buffer with kdata_flush().
- * Returns zero on failure (system error), non-zero on success.
+ * Returns KCGI_OK, KCGI_SYSTEM, or KCGI_HUP.
+ * XXX: if errors occur, outbufpos is zeroed as if we wrote the data.
  */
-static int
+static enum kcgi_err
 kdata_drain(struct kdata *p)
 {
+	enum kcgi_err	 er;
 
-	if ( ! kdata_flush(p, p->outbuf, p->outbufpos))
-		return(0);
+	er = kdata_flush(p, p->outbuf, p->outbufpos);
 	p->outbufpos = 0;
-	return(1);
+	return(er);
 }
 
 /*
@@ -246,17 +249,18 @@ kdata_drain(struct kdata *p)
  * This will also handle debugging.
  * Returns KCGI_ENOMEM if any allocation failures occur during the
  * sequence, KCGI_SYSTEM if any errors occur writing to the output
- * channel, or KCGI_OK on success.
+ * channel, KCGI_HUP on channel hangup, or KCGI_OK on success.
  */
 static enum kcgi_err
 kdata_write(struct kdata *p, const char *buf, size_t sz)
 {
 	size_t	 	 i;
+	enum kcgi_err	 er = KCGI_OK;
 
 	assert(NULL != p);
 
 	if (0 == sz || NULL == buf)
-		return(KCGI_OK);
+		return(er);
 
 	/*
 	 * We want to debug writes.
@@ -301,11 +305,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 * the wire.
 	 */
 
-	if (0 == p->outbufsz) {
-		if ( ! kdata_flush(p, buf, sz))
-			return(KCGI_SYSTEM);
-		return(KCGI_OK);
-	}
+	if (0 == p->outbufsz)
+		return(kdata_flush(p, buf, sz));
 
 	/*
 	 * If we want to accept new data and it exceeds the buffer size,
@@ -318,20 +319,17 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 */
 
 	if (p->outbufpos + sz > p->outbufsz) {
-		if ( ! kdata_drain(p))
-			return(KCGI_SYSTEM);
-		if (sz > p->outbufsz) {
-			if ( ! kdata_flush(p, buf, sz))
-				return(KCGI_SYSTEM);
-			return(KCGI_OK);
-		}
+		if (KCGI_OK != (er = kdata_drain(p)))
+			return(er);
+		if (sz > p->outbufsz)
+			return(kdata_flush(p, buf, sz));
 	}
 
 	assert(p->outbufpos + sz <= p->outbufsz);
 	assert(NULL != p->outbuf);
 	memcpy(p->outbuf + p->outbufpos, buf, sz);
 	p->outbufpos += sz;
-	return(KCGI_OK);
+	return(er);
 }
 
 enum kcgi_err
@@ -550,8 +548,8 @@ kdata_body(struct kdata *p)
 	 * Should an option be added to disable this?
 	 */
 
-	if ( ! kdata_drain(p))
-		return(KCGI_SYSTEM);
+	if (KCGI_OK != (er = kdata_drain(p)))
+		return(er);
 
 	if (-1 == p->fcgi)
 		if (0 != fflush(stdout)) {
