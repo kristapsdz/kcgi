@@ -1900,13 +1900,17 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 			     ! isgraph((unsigned char)b[pos + i]))
 				break;
 
-		if (0 == keysz || i < keysz) {
+		if (0 == keysz) {
+			XWARNX("RFC violation: empty "
+				"environment parameter");
+			pos += valsz;
+			continue;
+		} else if (i < keysz) {
 			XWARNX("RFC violation: bad character "
 				"in environment parameters");
 			pos += keysz + valsz;
 			continue;
 		}
-
 
 		/* Look up the key in our existing keys. */
 
