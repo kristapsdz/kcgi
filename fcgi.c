@@ -238,12 +238,12 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				XWARNX("work request empty read");
 				goto out;
 			}
-			rc = fullwritenoerr(pfd[1].fd, buf, ssz);
-			if (rc < 0) {
-				XWARNX("worker write error");
+			kerr = fullwritenoerr(pfd[1].fd, buf, ssz);
+			if (KCGI_HUP == kerr) {
+				XWARNX("worker hangup");
 				goto out;
-			} else if (0 == rc) {
-				XWARNX("worker has disconnected");
+			} else if (KCGI_OK != kerr) {
+				XWARNX("worker write error");
 				goto out;
 			}
 		}
@@ -299,14 +299,14 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * that we've finished processing this request.
 		 */
 		if (-1 != fdfiled) {
-			rc = fullwritenoerr(fdfiled, 
+			kerr = fullwritenoerr(fdfiled, 
 				&magic, sizeof(uint64_t));
-			if (rc < 0) {
-				XWARNX("failed ack to manager");
+			if (KCGI_HUP == kerr) {
+				XWARNX("manager hangup");
 				goto out;
-			} else if (0 == rc) {
-				XWARNX("manager has exited");
-				break;
+			} else if (KCGI_OK != kerr) {
+				XWARNX("manager write error");
+				goto out;
 			}
 		}
 
@@ -681,7 +681,10 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	if (c < 0 && ! sig) {
 		XWARNX("fullreadfd");
 		return(KCGI_SYSTEM);
-	} else if (0 == c || (c < 0 && sig)) {
+	} else if (0 == c) {
+		XWARNX("application hangup");
+		return(KCGI_HUP);
+	} else if (c < 0 && sig) {
 		XWARNX("application signalled");
 		return(KCGI_HUP);
 	}
