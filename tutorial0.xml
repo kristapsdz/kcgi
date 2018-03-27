@@ -147,7 +147,7 @@ const char *const pages[PAGE__MAX] = {
 		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
   if (PAGE_INDEX != r->page)
     return(KHTTP_404);
-  else if (NULL != r->path)
+  else if (NULL == r->path)
     return(KHTTP_404);
   else if (KMIME_TEXT_HTML != r->mime)
     return(KHTTP_404);
