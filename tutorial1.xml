@@ -30,6 +30,7 @@
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
 #include &lt;stdlib.h&gt; /* EXIT_FAILURE, etc. */
+#include &lt;time.h&gt; /* for the time() function */
 #include &lt;kcgi.h&gt;</pre>
 	</figure>
 	<p>
