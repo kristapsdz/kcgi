@@ -147,7 +147,7 @@ const char *const pages[PAGE__MAX] = {
 		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
   if (PAGE_INDEX != r->page)
     return(KHTTP_404);
-  else if (NULL != r->path)
+  else if ('\0' != *r->path) /* no index/xxxx */
     return(KHTTP_404);
   else if (KMIME_TEXT_HTML != r->mime)
     return(KHTTP_404);
@@ -248,21 +248,19 @@ const char *const pages[PAGE__MAX] = {
 		We also make sure the instructions on the main page are followed regarding OpenBSD sandboxing in the file-system jail.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% sudo mkdir -p /var/www/dev
-% (cd /var/www/dev ; sudo sh /dev/MAKEDEV systrace)
-% sudo rcctl enable httpd
-% sudo rcctl start httpd
-% sudo rcctl check httpd
+		<pre class="prettyprint lang-sh linenums">% doas rcctl enable httpd
+% doas rcctl start httpd
+% doas rcctl check httpd
 httpd(ok)
-% sudo rcctl enable slowcgi
-% sudo rcctl start slowcgi
-% sudo rcctl check slowcgi
+% doas rcctl enable slowcgi
+% doas rcctl start slowcgi
+% doas rcctl check slowcgi
 slowcgi(ok)</pre>
 	</figure>
 	<p>
 		Assuming we built the static binary, we can now just install into the CGI directory and be ready to go!
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% sudo install -m 0555 tutorial0.cgi /var/www/cgi-bin</pre>
+		<pre class="prettyprint lang-sh linenums">% doas install -m 0555 tutorial0.cgi /var/www/cgi-bin</pre>
 	</figure>
 </article>
