@@ -95,8 +95,9 @@ main(int argc, char *argv[])
 		See <a href="tutorial0.html">Getting Started with CGI in C</a> for these steps in detail.
 		All of these steps work for FastCGI, of course.
 		Enjoy!
+		(On non-OpenBSD systems, you'll probably need to use <code>sudo</code> instead of <code>doas</code>.)
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% sudo install -m 0555 tutorial5 /var/www/cgi-bin</pre>
+		<pre class="prettyprint lang-sh linenums">% doas install -m 0555 tutorial5 /var/www/cgi-bin</pre>
 	</figure>
 </article>

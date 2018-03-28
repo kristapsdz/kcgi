@@ -105,8 +105,8 @@ main(void)
 		Let's first install our web application within the server root.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% sudo mkdir -p /var/www/fcgi-bin
-% sudo install -m 0555 tutorial2 /var/www/fcgi-bin</pre>
+		<pre class="prettyprint lang-sh linenums">% doas mkdir -p /var/www/fcgi-bin
+% doas install -m 0555 tutorial2 /var/www/fcgi-bin</pre>
 	</figure>
 	<p>
 		We must now set up the socket by executing our server.
@@ -114,7 +114,7 @@ main(void)
 		file-system jail, then execute a pool of applications.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% sudo kfcgi -U www -u www -- /fcgi-bin/tutorial2</pre>
+		<pre class="prettyprint lang-sh linenums">% doas kfcgi -U www -u www -- /fcgi-bin/tutorial2</pre>
 	</figure>
 	<p>
 		That's it!  
