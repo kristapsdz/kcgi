@@ -327,10 +327,10 @@ extending01.html: extending01.xml tutorial.xml
 	sblg -t tutorial.xml -s date -o- -C $< versions.xml $(TUTORIALXMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
-	mandoc -Thtml -Ostyle=mandoc.css,man=%N.%S.html $< >$@
+	mandoc -Thtml -Ostyle=mandoc.css $< >$@
 
 .8.8.html:
-	mandoc -Thtml -Ostyle=mandoc.css,man=%N.%S.html $< >$@
+	mandoc -Thtml -Ostyle=mandoc.css $< >$@
 
 kcgi.tgz.sha512: kcgi.tgz
 	openssl dgst -sha512 kcgi.tgz >$@
