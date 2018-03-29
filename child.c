@@ -1717,9 +1717,10 @@ kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
 /*
  * Read in the entire header and data for the begin sequence request.
  * This is defined in section 5.1 of the v1.0 specification.
+ * Return KCGI_OK if data has been read and is proper.
  */
-static struct fcgi_bgn *
-kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
+static enum kcgi_err
+kworker_fcgi_begin(int fd, 
 	unsigned char **b, size_t *bsz, uint16_t *rid)
 {
 	struct fcgi_hdr	*hdr, realhdr;
@@ -1730,38 +1731,37 @@ kworker_fcgi_begin(int fd, struct fcgi_bgn *bgn,
 	 * Read the header entry.
 	 * Our buffer is initialised to handle this. 
 	 */
+
 	assert(*bsz >= 8);
+
 	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
-		return(NULL);
+		return KCGI_SYSTEM;
+
 	*rid = hdr->requestId;
 
 	/* Read the content and discard padding. */
+
 	if (FCGI_BEGIN_REQUEST != hdr->type) {
 		XWARNX("unexpected FastCGI header type");
-		return(NULL);
+		return KCGI_FORM;
 	} else if ( ! kworker_fcgi_content(fd, hdr, b, bsz)) {
 		XWARNX("failed read FastCGI begin content");
-		return(NULL);
+		return KCGI_SYSTEM;
 	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
 		XWARNX("failed discard FastCGI begin padding");
-		return(NULL);
+		return KCGI_SYSTEM;
 	}
 
-	/* Translate network-byte order. */
 	ptr = (struct fcgi_bgn *)*b;
-	bgn->role = ntohs(ptr->role);
-	bgn->flags = ptr->flags;
-	if (0 != bgn->flags) {
+
+	/* If we use non-char parts, we'd need to ntohl them. */
+
+	if (0 != ptr->flags) {
 		XWARNX("FCGI_KEEP_CONN is not supported");
-		return(NULL);
+		return KCGI_FORM;
 	}
-#if 0
-	fprintf(stderr, "%s: DEBUG role: %" PRIu16 "\n", 
-		__func__, bgn->role);
-	fprintf(stderr, "%s: DEBUG flags: %" PRIu8 "\n", 
-		__func__, bgn->flags);
-#endif
-	return(bgn);
+
+	return KCGI_OK;
 }
 
 /*
@@ -1979,7 +1979,6 @@ kworker_fcgi_child(int wfd, int work_ctl,
 {
 	struct parms 	 pp;
 	struct fcgi_hdr	*hdr, realhdr;
-	struct fcgi_bgn	*bgn, realbgn;
 	enum kcgi_err	 er;
 	unsigned char	*buf, *sbuf;
 	struct env	*envs;
@@ -1995,6 +1994,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	envs = NULL;
 	cookie = 0;
 	bsz = 8;
+
 	if (NULL == (buf = XMALLOC(bsz)))
 		return;
 
@@ -2009,6 +2009,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	 * Sequences must consist of a single FastCGI session as defined
 	 * in the FastCGI version 1.0 reference document.
 	 */
+
 	for (;;) {
 		/* Clear all memory. */
 		free(sbuf);
@@ -2038,10 +2039,17 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		} else if (rc == 0)
 			break;
 
-		bgn = kworker_fcgi_begin
-			(work_ctl, &realbgn, &buf, &bsz, &rid);
-		if (NULL == bgn)
+		er = kworker_fcgi_begin(work_ctl, &buf, &bsz, &rid);
+
+		if (KCGI_HUP == er) {
+			XWARNX("connection severed when "
+				"beginning FastCGI sequence");
+			continue;
+		} else if (KCGI_OK != er) {
+			XWARNX("unrecoverable error "
+				"beginning FastCGI sequence");
 			break;
+		}
 
 		/*
 		 * Now read one or more parameters.
