@@ -183,6 +183,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		/* Write a header cookie to the work. */
 		fullwrite(work, &cookie, sizeof(uint32_t));
 #if 0 /* Soon: __OpenBSD__ */
+		/* XXX: remove this */
 		/*
 		 * OpenBSD (and maybe others?) have the ability to
 		 * splice using the setsockopt() capability.
@@ -213,6 +214,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * Keep pushing data into the worker til it has read it
 		 * all, at which point it will write to us.
 		 */
+
 		pfd[0].fd = fd;
 		pfd[0].events = POLLIN;
 		pfd[1].fd = work;
@@ -225,19 +227,42 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				XWARNX("poll expired!?");
 				continue;
 			}
-			if (POLLIN & pfd[1].revents) {
-				/* Child is responding! */
+
+			/*
+			 * If the child responds, that means that the
+			 * full request has been read and processed.
+			 * If not, we probably still have data to write
+			 * to it from the connection.
+			 */
+
+			if (POLLIN & pfd[1].revents) 
 				break;
-			} else if ( ! (POLLIN & pfd[0].revents)) {
+
+			if ( ! (POLLIN & pfd[0].revents)) {
 				XWARNX("work request poll error");
 				goto out;
 			} else if ((ssz = read(fd, buf, BUFSIZ)) < 0) {
 				XWARN("read");
 				goto out;
-			} else if (0 == ssz) {
-				XWARNX("work request empty read");
+			} 
+
+			/* 
+			 * Send the child the amount of data we've read.
+			 * This will let the child see if the connection
+			 * abruptly closes, at which point we'll have a
+			 * read size of zero, and error out.
+			 */
+
+			kerr = fullwritenoerr
+				(pfd[1].fd, &ssz, sizeof(size_t));
+			if (KCGI_HUP == kerr) {
+				XWARNX("worker hangup");
+				goto out;
+			} else if (KCGI_OK != kerr) {
+				XWARNX("worker write error");
 				goto out;
 			}
+
 			kerr = fullwritenoerr(pfd[1].fd, buf, ssz);
 			if (KCGI_HUP == kerr) {
 				XWARNX("worker hangup");
@@ -246,10 +271,25 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				XWARNX("worker write error");
 				goto out;
 			}
+
+			/*
+			 * If we wrote a zero-sized buffer, it means
+			 * that the connection has unexpectedly closed.
+			 * The child will stop all processing for the
+			 * request and will not return to the parsing
+			 * routine for the given session.
+			 */
+
+			if (0 == ssz) {
+				XWARNX("work request empty read: "
+					"aborting further processing");
+				goto recover;
+			}
 		}
 #endif
 
 		/* Now verify that the worker is sane. */
+
 		if (fullread(pfd[1].fd, &test, 
 			 sizeof(uint32_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
@@ -264,7 +304,9 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			goto out;
 		}
 
+		/* XXX: remove this */
 		/* Doesn't need to be crypto quality. */
+
 #if HAVE_ARC4RANDOM
 		cookie = arc4random();
 #else
@@ -292,7 +334,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			XWARNX("failed to verify FastCGI requestId");
 			goto out;
 		}
-
+recover:
 		/*
 		 * If we are being passed descriptors (instead of
 		 * waiting on the accept()), then notify the manager
