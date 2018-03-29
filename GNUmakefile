@@ -156,6 +156,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-nullqueryval \
 		   regress/test-path-check \
 		   regress/test-ping \
+		   regress/test-ping-double \
 		   regress/test-post \
 		   regress/test-returncode \
 		   regress/test-template \
