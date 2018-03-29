@@ -68,14 +68,16 @@ dosignal(int arg)
 
 /*
  * This is our control process.
- * It listens for FastCGI connections on STDIN_FILENO ("fdaccept") xor
- * for file descriptors (from "fdfiled").
+ * It listens for FastCGI connections on the manager connection in
+ * traditional mode ("fdaccept") xor extended mode ("fdfiled").
  * When it has one, it reads and passes to the worker (sibling) process,
  * which will be parsing the data.
  * When the worker has finished, it passes back the request identifier,
  * which this passes to the main application for output.
- * This exits when the FastCGI connection fd HUPs.
- * It will close the fdaccept or fdfiled descriptor.
+ * If the current FastCGI connection closes, abandon it and wait for the
+ * next.
+ * This exits with the manager connection closes.
+ * On exit, it will close the fdaccept or fdfiled descriptor.
  */
 static int
 kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
@@ -108,6 +110,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		pfd[1].fd = ctrl;
 		pfd[1].events = POLLIN;
 		pfd[1].revents = 0;
+
 		/*
 		 * If either the worker or manager disconnect, then exit
 		 * cleanly.
@@ -115,6 +118,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * code, which will say whether it did something bad, so
 		 * we don't really care.
 		 */
+
 		if ((rc = poll(pfd, 2, -1)) < 0) {
 			XWARN("poll");
 			goto out;
@@ -133,6 +137,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			 * that other control processes are fairly
 			 * notified.
 			 */
+
 			sslen = sizeof(ss);
 			fd = accept(fdaccept, 
 				(struct sockaddr *)&ss, &sslen);
@@ -152,6 +157,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			 * kfcgi-like application that's managing
 			 * connection counts.
 			 */
+
 			rc = fullreadfd(fdfiled, 
 				&fd, &magic, sizeof(uint64_t));
 			if (rc < 0) {
@@ -168,12 +174,14 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * making it consistent with the behaviour of the CGI
 		 * socket, which is also set as such.
 		 */
+
 		if (KCGI_OK != kxsocketprep(fd)) {
 			XWARNX("work request socket error");
 			goto out;
 		}
 
 		/* This doesn't need to be crypto quality. */
+
 #if HAVE_ARC4RANDOM
 		cookie = arc4random();
 #else
@@ -283,6 +291,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * It will do output, so it also needs the FastCGI
 		 * socket request identifier.
 		 */
+
 		if ( ! fullwritefd(ctrl, fd, &rid, sizeof(uint16_t))) {
 			XWARNX("failed to send FastCGI socket");
 			goto out;
@@ -292,6 +301,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		 * This will wait til the application is finished.
 		 * It will then double-check the requestId. 
 		 */
+
 		if (fullread(ctrl, &rtest, sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
 			goto out;
@@ -299,12 +309,16 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			XWARNX("failed to verify FastCGI requestId");
 			goto out;
 		}
+
 recover:
 		/*
 		 * If we are being passed descriptors (instead of
 		 * waiting on the accept()), then notify the manager
 		 * that we've finished processing this request.
+		 * We also jump to here if the connection fails in any
+		 * way whilst being transcribed to the worker.
 		 */
+
 		if (-1 != fdfiled) {
 			kerr = fullwritenoerr(fdfiled, 
 				&magic, sizeof(uint64_t));
