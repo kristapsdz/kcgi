@@ -143,6 +143,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-fcgi-header-bad \
 		   regress/test-fcgi-path-check \
 		   regress/test-fcgi-ping \
+		   regress/test-fcgi-ping-double \
 		   regress/test-fcgi-upload \
 		   regress/test-file-get \
 		   regress/test-fork \
