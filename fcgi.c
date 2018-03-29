@@ -277,14 +277,6 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			goto out;
 		}
 
-		/* XXX: remove this */
-		/* Doesn't need to be crypto quality. */
-
-#if HAVE_ARC4RANDOM
-		cookie = arc4random();
-#else
-		cookie = random();
-#endif
 		/*
 		 * Pass the file descriptor, which has had its data
 		 * sucked dry, to the main application.
