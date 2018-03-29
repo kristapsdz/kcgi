@@ -182,33 +182,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 
 		/* Write a header cookie to the work. */
 		fullwrite(work, &cookie, sizeof(uint32_t));
-#if 0 /* Soon: __OpenBSD__ */
-		/* XXX: remove this */
-		/*
-		 * OpenBSD (and maybe others?) have the ability to
-		 * splice using the setsockopt() capability.
-		 * Splice so that the worker can read; when the worker
-		 * has drained all input, it will notify us.
-		 */
-		if (-1 == setsockopt(fd, SO_SPLICE, &work)) {
-			XWARN("setsockopt: SO_SPLICE");
-			goto out;
-		}
-		pfd[0].fd = work;
-		pfd[0].events = POLLIN;
-		for (;;) {
-			if ((rc = poll(pfd, 1, -1)) < 0) {
-				XWARN("poll");
-				goto out;
-			} else if (0 == rc) {
-				XWARNX("poll expired!?");
-				continue;
-			} else if (POLLIN & pfd[0].revents) 
-				break;
-			XWARNX("work request poll error");
-			goto out;
-		}
-#else
+
 		/*
 		 * Doing this the slow way...
 		 * Keep pushing data into the worker til it has read it
@@ -286,7 +260,6 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 				goto recover;
 			}
 		}
-#endif
 
 		/* Now verify that the worker is sane. */
 
