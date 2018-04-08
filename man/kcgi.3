@@ -148,6 +148,36 @@ respectively.
 A numeric concatenation of the version is defined as
 .Dv KCGI_VSTAMP ,
 which may be used to test for version number applicability.
+.Ss Pledge Promises
+The
+.Nm kcgi
+library is built to operate in security-sensitive environments, including
+.Xr pledge 2
+on
+.Ox .
+The following is a list of all required promises.
+.Bl -tag -width Ds
+.It Va cpath wpath
+.Xr kutil_openlog 3
+requiress file-system access to produce its log.
+.It Va proc
+.Xr khttp_parse 3
+and
+.Xr khttp_fcgi_init 3
+must create child processes.
+.It Va stdio
+Required by essentially all
+.Xr kcgi 3
+functions.
+.It Va rpath
+.Xr khttp_template 3
+and
+.Xr khttp_templatex 3
+need access to their template files.
+.It Va unix sendfd recvfd
+.Xr khttp_fcgi_init 3
+needs these for inheritence by its child processes.
+.El
 .Sh EXAMPLES
 The following simple example assumes that
 .Pa kcgi.h
