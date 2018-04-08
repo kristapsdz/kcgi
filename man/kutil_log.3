@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2016--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2016--2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -160,8 +160,9 @@ These functions accept the following variables:
 .It Ft "const struct kreq *" Ns Fa r
 Active request handle opened with
 .Xr khttp_parse 3 .
-May not be
-.Dv NULL .
+If
+.Dv NULL ,
+the remote host field will be omitted.
 .It Ft "const char *" Ns Fa level
 A human-readable log level.
 If
@@ -225,15 +226,21 @@ The output format is as follows, with a trailing newline:
 .Dl addr ident [date] level msg: errmsg
 .Pp
 Here,
-.Dq addr
-is the remote host as passed to the CGI script; and where
-.Dq ident
+.Qq addr
+is the remote host as passed to the CGI script or
+.Qq -
+if
+.Fa r
+is
+.Dv NULL ; 
+and where
+.Qq ident
 and
-.Dq level ,
+.Qq level ,
 if
 .Dv NULL ,
 will be rendered as
-.Dq - .
+.Qq - .
 The date is formatted as an HTTP date (RFC 822) in GMT.
 .Sh AUTHORS
 These functions were written by
