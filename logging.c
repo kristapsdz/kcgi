@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2016--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2016--2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -69,7 +69,8 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 
 	/* Everything up to the message itself. */
 
-	fprintf(stderr, "%s %s [%s] %s ", r->remote, 
+	fprintf(stderr, "%s %s [%s] %s ", 
+		NULL == r ? "-" : r->remote, 
 		NULL == ident ? "-" : ident, date, 
 		NULL == lvl ? "-" : lvl);
 
