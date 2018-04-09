@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -57,9 +57,8 @@ context allocated with
 .Xr khttp_parse 3
 or
 .Xr khttp_fcgi_parse 3 .
-These functions may only be invoked after
-.Xr khttp_body 3 ,
-else their behaviour is undefined.
+These functions should only be invoked after
+.Xr khttp_body 3 .
 .Fn khttp_putc
 emits a single character;
 .Fn khttp_puts
@@ -83,13 +82,29 @@ if called.
 .Sh RETURN VALUES
 These functions return an
 .Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream.
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+For FastCGI connections, the connection has been terminated.
+The current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.El
 .Sh SEE ALSO
 .Xr kcgi 3 ,
 .Xr kcgi_writer_disable 3 ,
