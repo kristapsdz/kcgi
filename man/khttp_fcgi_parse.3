@@ -41,12 +41,16 @@ to
 .Xr khttp_fcgi_init 3
 and be followed by
 .Xr khttp_fcgi_free 3 .
+.Pp
 The
 .Fa req
 object filled in by
 .Fn khttp_fcgi_parse
-must always be matched by
-.Xr khttp_free 3 .
+must be matched by
+.Xr khttp_free 3
+if and only if the return value is
+.Dv KCGI_OK .
+Otherwise, resources are internally freed.
 .Sh RETURN VALUES
 These are the same as in
 .Xr khttp_parse 3 ,
