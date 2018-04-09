@@ -765,6 +765,7 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 
 	if (NULL == req->kdata) {
 		XWARNX("kdata_alloc");
+		close(fd);
 		goto err;
 	}
 
@@ -821,8 +822,9 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 
 	return kerr;
 err:
-	if (-1 != fd)
-		close(fd);
+	kdata_free(req->kdata, 0);
+	req->kdata = NULL;
+	kreq_free(req);
 	return kerr;
 }
 
