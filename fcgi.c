@@ -201,6 +201,7 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		pfd[0].events = POLLIN;
 		pfd[1].fd = work;
 		pfd[1].events = POLLIN;
+
 		for (;;) {
 			if ((rc = poll(pfd, 2, -1)) < 0) {
 				XWARN("poll");
@@ -234,6 +235,9 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 			 * abruptly closes, at which point we'll have a
 			 * read size of zero, and error out.
 			 */
+
+			XWARNX("control socket writing "
+				"%zu bytes to worker", ssz);
 
 			kerr = fullwritenoerr
 				(pfd[1].fd, &ssz, sizeof(size_t));
@@ -270,17 +274,22 @@ kfcgi_control(int work, int ctrl, int fdaccept, int fdfiled)
 		}
 
 		/* Now verify that the worker is sane. */
+		/* 
+		 * FIXME: pass back a return code if the FastCGI
+		 * protocol itself has been buggered?
+		 */
 
 		if (fullread(pfd[1].fd, &test, 
-			 sizeof(uint32_t), 0, &kerr) < 0) {
+		    sizeof(uint32_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI cookie");
 			goto out;
 		} else if (cookie != test) {
 			XWARNX("failed to verify FastCGI cookie");
 			goto out;
 		} 
+
 		if (fullread(pfd[1].fd, &rid, 
-			 sizeof(uint16_t), 0, &kerr) < 0) {
+		    sizeof(uint16_t), 0, &kerr) < 0) {
 			XWARNX("failed to read FastCGI requestId");
 			goto out;
 		}

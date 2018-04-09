@@ -114,6 +114,16 @@ struct	fcgi_bgn {
 };
 
 /*
+ * A buffer of reads from kfcgi_control().
+ */
+struct	fcgi_buf {
+	size_t	 sz; /* bytes in buffer */
+	size_t	 pos; /* current position (from last read) */
+	int	 fd; /* file descriptor */
+	char	*buf; /* buffer itself */
+};
+
+/*
  * Parameters required to validate fields.
  */
 struct	parms {
@@ -1651,113 +1661,134 @@ kworker_child(int wfd,
 }
 
 /*
+ * Reads from the FastCGI control process, kfcgi_control(), are buffered
+ * according to what the control process can read from the web server.
+ * Here we read ahead til we have enough data for what currently needs
+ * to be read.
+ * Returns a pointer to the data of size "sz" or NULL if errors occured.
+ * If error is KCGI_OK, this *always* returns a buffer.
+ * The error is reported in "er".
+ */
+static char *
+kworker_fcgi_read(struct fcgi_buf *b, size_t nsz, enum kcgi_err *er)
+{
+	void	*pp;
+	int	 rc;
+	size_t	 sz;
+again:
+	*er = KCGI_OK;
+	if (b->pos + nsz <= b->sz) {
+		XWARNX("satisfying worker request for %zu "
+			"bytes (have %zu available)",
+			nsz, b->sz - b->pos);
+		b->pos += nsz;
+		return &b->buf[b->pos - nsz];
+	}
+
+	/* Fill up the next frame. */
+
+	rc = fullread(b->fd, &sz, sizeof(size_t), 0, er);
+	if (rc <= 0) {
+		XWARNX("failed reading frame size from control");
+		return NULL;
+	} else if (0 == sz) {
+		XWARNX("FastCGI connection unexpectedly closed");
+		*er = KCGI_HUP;
+		return NULL;
+	} 
+
+	XWARNX("worker reading %zu bytes from worker "
+		"(%zu total, %zu unread)", sz, b->sz + sz,
+		(b->sz + sz) - b->pos);
+
+	if (NULL == (pp = XREALLOC(b->buf, b->sz + sz))) {
+		*er = KCGI_ENOMEM;
+		return NULL;
+	}
+
+	b->buf = pp;
+	rc = fullread(b->fd, b->buf + b->sz, sz, 0, er);
+	if (rc <= 0) {
+		XWARNX("failed reading frame from FastCGI control");
+		return NULL;
+	}
+	b->sz += sz;
+	goto again;
+}
+
+
+/*
  * Read the FastCGI header (see section 8, Types and Contents,
  * FCGI_Header, in the FastCGI Specification v1.0).
- * Return zero if have data, non-zero on success.
+ * Return KCGI_OK on success, KCGI_HUP on connection close, KCGI_FORM
+ * with FastCGI protocol errors, and a fatal error otherwise.
  */
-static struct fcgi_hdr *
-kworker_fcgi_header(int fd, struct fcgi_hdr *hdr, unsigned char *buf)
+static enum kcgi_err
+kworker_fcgi_header(struct fcgi_buf *b, struct fcgi_hdr *hdr)
 {
 	enum kcgi_err	 er;
 	struct fcgi_hdr	*ptr;
-	int		 rc;
+	char		*buf;
 
-	if ((rc = fullread(fd, buf, 8, 0, &er)) < 0) {
-		XWARNX("failed read FastCGI header");
-		return(NULL);
-	} 
+	if (NULL == (buf = kworker_fcgi_read(b, 8, &er)))
+		return er;
 
 	/* Translate from network-byte order. */
 
 	ptr = (struct fcgi_hdr *)buf;
+
 	hdr->version = ptr->version;
 	hdr->type = ptr->type;
 	hdr->requestId = ntohs(ptr->requestId);
 	hdr->contentLength = ntohs(ptr->contentLength);
 	hdr->paddingLength = ptr->paddingLength;
-#if 0
-	fprintf(stderr, "%s: DEBUG version: %" PRIu8 "\n", 
-		__func__, hdr->version);
-	fprintf(stderr, "%s: DEBUG type: %" PRIu8 "\n", 
-		__func__, hdr->type);
-	fprintf(stderr, "%s: DEBUG requestId: %" PRIu16 "\n", 
-		__func__, hdr->requestId);
-	fprintf(stderr, "%s: DEBUG contentLength: %" PRIu16 "\n", 
-		__func__, hdr->contentLength);
-	fprintf(stderr, "%s: DEBUG paddingLength: %" PRIu8 "\n", 
-		__func__, hdr->paddingLength);
-#endif
-	if (1 != hdr->version) {
-		XWARNX("bad FastCGI header version");
-		return(NULL);
-	}
-	return(hdr);
-}
 
-/*
- * Read the content from an FastCGI request.
- * We might need to expand the buffer holding the content.
- */
-static int
-kworker_fcgi_content(int fd, const struct fcgi_hdr *hdr,
-	unsigned char **buf, size_t *bufmaxsz)
-{
-	void		*ptr;
-	enum kcgi_err	 er;
+	if (1 == hdr->version)
+		return KCGI_OK;
 
-	if (hdr->contentLength > *bufmaxsz) {
-		*bufmaxsz = hdr->contentLength;
-		if (NULL == (ptr = XREALLOC(*buf, *bufmaxsz)))
-			return(0);
-		*buf = ptr;
-	}
-	return(fullread(fd, *buf, hdr->contentLength, 0, &er));
+	XWARNX("bad FastCGI header version: "
+		"%" PRIu8 " (want 1)", hdr->version);
+	return KCGI_FORM;
 }
 
 /*
  * Read in the entire header and data for the begin sequence request.
  * This is defined in section 5.1 of the v1.0 specification.
- * Return KCGI_OK if data has been read and is proper.
+ * Return KCGI_OK on success, KCGI_HUP on connection close, KCGI_FORM
+ * with FastCGI protocol errors, and a fatal error otherwise.
  */
 static enum kcgi_err
-kworker_fcgi_begin(int fd, 
-	unsigned char **b, size_t *bsz, uint16_t *rid)
+kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 {
-	struct fcgi_hdr	*hdr, realhdr;
+	struct fcgi_hdr	 hdr;
 	struct fcgi_bgn	*ptr;
+	char		*buf;
 	enum kcgi_err	 er;
 
-	/* 
-	 * Read the header entry.
-	 * Our buffer is initialised to handle this. 
-	 */
+	/* Read the header entry. */
 
-	assert(*bsz >= 8);
+	if (KCGI_OK != (er = kworker_fcgi_header(b, &hdr)))
+		return er;
 
-	if (NULL == (hdr = kworker_fcgi_header(fd, &realhdr, *b)))
-		return KCGI_SYSTEM;
+	*rid = hdr.requestId;
 
-	*rid = hdr->requestId;
-
-	/* Read the content and discard padding. */
-
-	if (FCGI_BEGIN_REQUEST != hdr->type) {
-		XWARNX("unexpected FastCGI header type");
+	if (FCGI_BEGIN_REQUEST != hdr.type) {
+		XWARNX("bad FastCGI type: %" PRIu8 " (want "
+			"%d)", hdr.type, FCGI_BEGIN_REQUEST);
 		return KCGI_FORM;
-	} else if ( ! kworker_fcgi_content(fd, hdr, b, bsz)) {
-		XWARNX("failed read FastCGI begin content");
-		return KCGI_SYSTEM;
-	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard FastCGI begin padding");
-		return KCGI_SYSTEM;
-	}
+	} 
+	
+	/* Read the "begin" content and discard padding. */
 
-	ptr = (struct fcgi_bgn *)*b;
+	buf = kworker_fcgi_read(b, 
+		hdr.contentLength + 
+		hdr.paddingLength, &er);
 
-	/* If we use non-char parts, we'd need to ntohl them. */
+	ptr = (struct fcgi_bgn *)buf;
 
-	if (0 != ptr->flags) {
-		XWARNX("FCGI_KEEP_CONN is not supported");
+	if (ptr->flags) {
+		XWARNX("bad FastCGI flags: %" PRId8 
+			" (want 0)", ptr->flags);
 		return KCGI_FORM;
 	}
 
@@ -1768,51 +1799,61 @@ kworker_fcgi_begin(int fd,
  * Read in a data stream as defined within section 5.3 of the v1.0
  * specification.
  * We might have multiple stdin buffers for the same data, so always
- * append to the existing.
+ * append to the existing NUL-terminated buffer.
+ * Return KCGI_OK on success, KCGI_HUP on connection close, KCGI_FORM
+ * with FastCGI protocol errors, and a fatal error otherwise.
  */
-static int
-kworker_fcgi_stdin(int fd, const struct fcgi_hdr *hdr,
-	unsigned char **bp, size_t *bsz, 
+static enum kcgi_err
+kworker_fcgi_stdin(struct fcgi_buf *b, const struct fcgi_hdr *hdr,
 	unsigned char **sbp, size_t *ssz)
 {
 	enum kcgi_err	 er;
 	void		*ptr;
+	char		*bp;
+
+	/* Read the "begin" content and discard padding. */
+
+	bp = kworker_fcgi_read(b, 
+		hdr->contentLength + 
+		hdr->paddingLength, &er);
 
 	/* 
-	 * FIXME: there's no need to read this into yet another buffer:
-	 * just copy it directly into our accumulating buffer `sbp'.
+	 * Short-circuit: no data to read.
+	 * The caller should detect this and stop reading from the
+	 * FastCGI connection.
 	 */
-	/* Read the content and discard the padding. */
-	if (hdr->contentLength > 0 && ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
-		XWARNX("failed read FastCGI stdin content");
-		return(-1);
-	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard FastCGI stdin padding");
-		return(-1);
-	} 
-	
-	/* Always NUL-terminate! */
+
+	if (0 == hdr->contentLength)
+		return KCGI_OK;
+
+	/* 
+	 * Use another buffer for the stdin.
+	 * This is because our buffer (b->buf) consists of FastCGI
+	 * frames (data interspersed with control information).
+	 * Obviously, we want to extract our data from that.
+	 * Make sure it's NUL-terminated!
+	 * FIXME: check for addition overflow.
+	 */
+
 	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
 	if (NULL == ptr)
-		return(-1);
+		return KCGI_ENOMEM;
+
 	*sbp = ptr;
-	memcpy(*sbp + *ssz, *bp, hdr->contentLength);
+	memcpy(*sbp + *ssz, bp, hdr->contentLength);
 	(*sbp)[*ssz + hdr->contentLength] = '\0';
 	*ssz += hdr->contentLength;
-#if 0
-	fprintf(stderr, "%s: DEBUG data: %" PRIu16 " bytes\n", 
-		__func__, hdr->contentLength);
-#endif
-	return(hdr->contentLength > 0);
+	return KCGI_OK;
 }
 
 /*
  * Read out a series of parameters contained within a FastCGI parameter
  * request defined in section 5.2 of the v1.0 specification.
+ * Return KCGI_OK on success, KCGI_HUP on connection close, KCGI_FORM
+ * with FastCGI protocol errors, and a fatal error otherwise.
  */
-static int
-kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
-	unsigned char **bp, size_t *bsz,
+static enum kcgi_err
+kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr, 
 	struct env **envs, size_t *envsz)
 {
 	size_t	 	 i, remain, pos, keysz, valsz;
@@ -1820,15 +1861,12 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	enum kcgi_err	 er;
 	void		*ptr;
 
-	/* Read the content and discard the padding. */
+	b = kworker_fcgi_read(buf, 
+		hdr->contentLength + 
+		hdr->paddingLength, &er);
 
-	if ( ! kworker_fcgi_content(fd, hdr, bp, bsz)) {
-		XWARNX("failed read FastCGI param content");
-		return(0);
-	} else if (0 == fulldiscard(fd, hdr->paddingLength, &er)) {
-		XWARNX("failed discard FastCGI param padding");
-		return(0);
-	}
+	if (NULL == buf)
+		return er;
 
 	/*
 	 * Loop through the string data that's laid out as a key length
@@ -1836,9 +1874,9 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 	 * There can be arbitrarily many key-values per string.
 	 */
 
-	b = *bp;
 	remain = hdr->contentLength;
 	pos = 0;
+
 	while (remain > 0) {
 		/* First read the lengths. */
 		assert(pos < hdr->contentLength);
@@ -1859,13 +1897,13 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 		}
 		if (remain < 1) {
 			XWARNX("invalid FastCGI params data");
-			return(0);
+			return KCGI_FORM;
 		}
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
 			if (remain <= 3) {
 				XWARNX("invalid FastCGI params data");
-				return(0);
+				return KCGI_FORM;
 			}
 			valsz = ((b[pos] & 0x7f) << 24) + 
 				  (b[pos + 1] << 16) + 
@@ -1882,7 +1920,7 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 
 		if (pos + keysz + valsz > hdr->contentLength) {
 			XWARNX("invalid FastCGI params data");
-			return(0);
+			return KCGI_FORM;
 		}
 
 		remain -= keysz;
@@ -1931,12 +1969,12 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 				(*envs, *envsz + 1, 
 				 sizeof(struct env));
 			if (NULL == ptr)
-				return(0);
+				return KCGI_ENOMEM;
 
 			*envs = ptr;
 			(*envs)[i].key = XMALLOC(keysz + 1);
 			if (NULL == (*envs)[i].key)
-				return(0);
+				return KCGI_ENOMEM;
 
 			memcpy((*envs)[i].key, &b[pos], keysz);
 			(*envs)[i].key[keysz] = '\0';
@@ -1951,19 +1989,16 @@ kworker_fcgi_params(int fd, const struct fcgi_hdr *hdr,
 
 		(*envs)[i].val = XMALLOC(valsz + 1);
 		if (NULL == (*envs)[i].val)
-			return(0);
+			return KCGI_ENOMEM;
 
 		memcpy((*envs)[i].val, &b[pos], valsz);
 		(*envs)[i].val[valsz] = '\0';
 		(*envs)[i].valsz = valsz;
 
 		pos += valsz;
-#if 0
-		fprintf(stderr, "%s: DEBUG: params: %s=%s\n", 
-			__func__, (*envs)[i].key, (*envs)[i].val);
-#endif
 	}
-	return(1);
+
+	return KCGI_OK;
 }
 
 /*
@@ -1978,25 +2013,18 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	unsigned int debugging)
 {
 	struct parms 	 pp;
-	struct fcgi_hdr	*hdr, realhdr;
+	struct fcgi_hdr	 hdr;
 	enum kcgi_err	 er;
-	unsigned char	*buf, *sbuf;
-	struct env	*envs;
+	unsigned char	*sbuf = NULL;
+	struct env	*envs = NULL;
 	uint16_t	 rid;
-	uint32_t	 cookie;
-	size_t		 i, bsz, ssz, envsz;
+	uint32_t	 cookie = 0;
+	size_t		 i, ssz = 0, envsz = 0;
 	int		 rc, md5;
 	enum kmethod	 meth;
+	struct fcgi_buf	 fbuf;
 
-	sbuf = NULL;
-	ssz = 0;
-	envsz = 0;
-	envs = NULL;
-	cookie = 0;
-	bsz = 8;
-
-	if (NULL == (buf = XMALLOC(bsz)))
-		return;
+	memset(&fbuf, 0, sizeof(struct fcgi_buf));
 
 	pp.fd = wfd;
 	pp.keys = keys;
@@ -2012,6 +2040,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 
 	for (;;) {
 		/* Clear all memory. */
+
 		free(sbuf);
 		sbuf = NULL;
 		ssz = 0;
@@ -2024,6 +2053,10 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		envsz = 0;
 		cookie = 0;
 
+		free(fbuf.buf);
+		memset(&fbuf, 0, sizeof(struct fcgi_buf));
+		fbuf.fd = work_ctl;
+
 		/* 
 		 * Begin by reading our magic cookie.
 		 * This is emitted by the server at the start of our
@@ -2032,18 +2065,20 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		 * indicate that we've finished our reads.
 		 */
 
-		if ((rc = fullread(work_ctl,
-			 &cookie, sizeof(uint32_t), 1, &er)) < 0) {
+		rc = fullread(fbuf.fd, 
+			&cookie, sizeof(uint32_t), 1, &er);
+		if (rc < 0) {
 			XWARNX("failed read FastCGI cookie");
 			break;
-		} else if (rc == 0)
+		} else if (0 == rc) {
+			XWARNX("FastCGI control socket closed");
 			break;
+		}
 
-		er = kworker_fcgi_begin(work_ctl, &buf, &bsz, &rid);
-
+		er = kworker_fcgi_begin(&fbuf, &rid);
 		if (KCGI_HUP == er) {
-			XWARNX("connection severed when "
-				"beginning FastCGI sequence");
+			XWARNX("FastCGI connection severed: "
+				"ignoring connection");
 			continue;
 		} else if (KCGI_OK != er) {
 			XWARNX("unrecoverable error "
@@ -2057,33 +2092,48 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		 * headers in the content one by one.
 		 */
 
+		er = KCGI_OK;
 		envsz = 0;
-		for (;;) {
-			hdr = kworker_fcgi_header
-				(work_ctl, &realhdr, buf);
-			if (NULL == hdr)
+		memset(&hdr, 0, sizeof(struct fcgi_hdr));
+
+		while (KCGI_OK == er) {
+			er = kworker_fcgi_header(&fbuf, &hdr);
+			if (KCGI_OK != er) 
 				break;
-			if (rid != hdr->requestId) {
-				XWARNX("unexpected FastCGI requestId");
-				hdr = NULL;
+			if (rid != hdr.requestId) {
+				XWARNX("unknown FastCGI requestId: "
+					"%" PRIu16 " (want %" PRIu16 
+					")", hdr.requestId, rid);
+				er = KCGI_FORM;
 				break;
-			} else if (FCGI_PARAMS != hdr->type)
+			} 
+
+			if (FCGI_PARAMS != hdr.type)
 				break;
-			if (kworker_fcgi_params
-				(work_ctl, hdr, &buf, &bsz,
-				 &envs, &envsz))
-				continue;
-			hdr = NULL;
+			er = kworker_fcgi_params
+				(&fbuf, &hdr, &envs, &envsz);
+		}
+
+		if (KCGI_HUP == er) {
+			XWARNX("FastCGI connection severed: "
+				"ignoring connection");
+			continue;
+		} else if (KCGI_OK != er) {
+			XWARNX("unrecoverable error "
+				"reading FastCGI headers");
 			break;
 		}
-		if (NULL == hdr)
-			break;
 
-		if (FCGI_STDIN != hdr->type) {
-			XWARNX("unexpected FastCGI header type");
+		if (FCGI_STDIN != hdr.type) {
+			XWARNX("bad FastCGI type: %" PRIu8 " "
+				"(want %d)", hdr.type, FCGI_STDIN);
+			er = KCGI_FORM;
 			break;
-		} else if (rid != hdr->requestId) {
-			XWARNX("unexpected FastCGI requestId");
+		} else if (rid != hdr.requestId) {
+			XWARNX("unexpected FastCGI requestId: "
+				"%" PRIu16 " (want %" PRIu16 ")", 
+				hdr.requestId, rid);
+			er = KCGI_FORM;
 			break;
 		}
 
@@ -2094,27 +2144,49 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		 */
 
 		for (;;) {
-			rc = kworker_fcgi_stdin
-				(work_ctl, hdr, &buf, &bsz, &sbuf, &ssz);
-			if (rc <= 0)
-				break;
-			hdr = kworker_fcgi_header
-				(work_ctl, &realhdr, buf);
-			if (NULL == hdr)
-				break;
-			if (rid != hdr->requestId) {
-				XWARNX("unexpected FastCGI requestId");
-				hdr = NULL;
-				break;
-			} else if (FCGI_STDIN == hdr->type)
-				continue;
+			/*
+			 * Call this even if we have a zero-length data
+			 * payload as specified by contentLength.
+			 * This is because there might be padding, and
+			 * we want to make sure we've drawn everything
+			 * from the socket before exiting.
+			 */
 
-			XWARNX("unexpected FastCGI header type");
-			hdr = NULL;
+			er = kworker_fcgi_stdin
+				(&fbuf, &hdr, &sbuf, &ssz);
+
+			if (KCGI_OK != er ||
+			    0 == hdr.contentLength)
+				break;
+
+			/* Now read the next header. */
+
+			er = kworker_fcgi_header(&fbuf, &hdr);
+			if (KCGI_OK != er)
+				break;
+			if (rid != hdr.requestId) {
+				XWARNX("unknown FastCGI requestId: "
+					"%" PRIu16 " (want %" PRIu16 
+					")", hdr.requestId, rid);
+				er = KCGI_FORM;
+				break;
+			} 
+			
+			if (FCGI_STDIN == hdr.type)
+				continue;
+			XWARNX("bad FastCGI type: %" PRIu8 " "
+				"(want %d)", hdr.type, FCGI_STDIN);
+			er = KCGI_FORM;
 			break;
 		}
-		if (rc < 0 || NULL == hdr) {
-			XWARNX("not responding to FastCGI!?");
+
+		if (KCGI_HUP == er) {
+			XWARNX("FastCGI connection severed: "
+				"ignoring connection");
+			continue;
+		} else if (KCGI_OK != er) {
+			XWARNX("unrecoverable error "
+				"reading FastCGI data");
 			break;
 		}
 
@@ -2142,9 +2214,13 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		kworker_child_httphost(envs, wfd, envsz);
 		kworker_child_port(envs, wfd, envsz);
 
-		/* And now the message body itself. */
+		/* 
+		 * And now the message body itself.
+		 * We must either have a NULL message or non-zero
+		 * length.
+		 */
 
-		assert(NULL != sbuf);
+		assert(0 == ssz || NULL != sbuf);
 		kworker_child_body(envs, wfd, envsz, &pp, 
 			meth, (char *)sbuf, ssz, debugging, md5);
 		kworker_child_query(envs, wfd, envsz, &pp);
@@ -2156,7 +2232,8 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		free(envs[i].key);
 		free(envs[i].val);
 	}
+
 	free(sbuf);
-	free(buf);
 	free(envs);
+	free(fbuf.buf);
 }
