@@ -100,6 +100,7 @@ int	 	 ksandbox_systrace_init_parent(void *, enum sandtype, pid_t);
 #ifdef HAVE_SECCOMP_FILTER
 int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
 #endif
+void		 kreq_free(struct kreq *);
 
 /*
  * These are just wrappers over the native functions that report when
