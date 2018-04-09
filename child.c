@@ -1678,9 +1678,6 @@ kworker_fcgi_read(struct fcgi_buf *b, size_t nsz, enum kcgi_err *er)
 again:
 	*er = KCGI_OK;
 	if (b->pos + nsz <= b->sz) {
-		XWARNX("satisfying worker request for %zu "
-			"bytes (have %zu available)",
-			nsz, b->sz - b->pos);
 		b->pos += nsz;
 		return &b->buf[b->pos - nsz];
 	}
@@ -1689,17 +1686,15 @@ again:
 
 	rc = fullread(b->fd, &sz, sizeof(size_t), 0, er);
 	if (rc <= 0) {
-		XWARNX("failed reading frame size from control");
+		XWARNX("FastCGI: error reading "
+			"frame size from control");
 		return NULL;
 	} else if (0 == sz) {
-		XWARNX("FastCGI connection unexpectedly closed");
+		XWARNX("FastCGI: connection unexpectedly "
+			"closed at frame size reading");
 		*er = KCGI_HUP;
 		return NULL;
 	} 
-
-	XWARNX("worker reading %zu bytes from worker "
-		"(%zu total, %zu unread)", sz, b->sz + sz,
-		(b->sz + sz) - b->pos);
 
 	if (NULL == (pp = XREALLOC(b->buf, b->sz + sz))) {
 		*er = KCGI_ENOMEM;
@@ -1709,7 +1704,8 @@ again:
 	b->buf = pp;
 	rc = fullread(b->fd, b->buf + b->sz, sz, 0, er);
 	if (rc <= 0) {
-		XWARNX("failed reading frame from FastCGI control");
+		XWARNX("FastCGI: error reading "
+			"frame data from control");
 		return NULL;
 	}
 	b->sz += sz;
@@ -1746,7 +1742,7 @@ kworker_fcgi_header(struct fcgi_buf *b, struct fcgi_hdr *hdr)
 	if (1 == hdr->version)
 		return KCGI_OK;
 
-	XWARNX("bad FastCGI header version: "
+	XWARNX("FastCGI: bad header version: "
 		"%" PRIu8 " (want 1)", hdr->version);
 	return KCGI_FORM;
 }
@@ -1773,7 +1769,7 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 	*rid = hdr.requestId;
 
 	if (FCGI_BEGIN_REQUEST != hdr.type) {
-		XWARNX("bad FastCGI type: %" PRIu8 " (want "
+		XWARNX("FastCGI: bad type: %" PRIu8 " (want "
 			"%d)", hdr.type, FCGI_BEGIN_REQUEST);
 		return KCGI_FORM;
 	} 
@@ -1787,7 +1783,7 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 	ptr = (struct fcgi_bgn *)buf;
 
 	if (ptr->flags) {
-		XWARNX("bad FastCGI flags: %" PRId8 
+		XWARNX("FastCGI: bad flags: %" PRId8 
 			" (want 0)", ptr->flags);
 		return KCGI_FORM;
 	}
@@ -1882,7 +1878,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
 			if (remain <= 3) {
-				XWARNX("invalid FastCGI params data");
+				XWARNX("FastCGI: bad params data");
 				return(0);
 			}
 			keysz = ((b[pos] & 0x7f) << 24) + 
@@ -1896,13 +1892,13 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 			remain--;
 		}
 		if (remain < 1) {
-			XWARNX("invalid FastCGI params data");
+			XWARNX("FastCGI: bad params data");
 			return KCGI_FORM;
 		}
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
 			if (remain <= 3) {
-				XWARNX("invalid FastCGI params data");
+				XWARNX("FastCGI: bad params data");
 				return KCGI_FORM;
 			}
 			valsz = ((b[pos] & 0x7f) << 24) + 
@@ -1919,7 +1915,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		/* Make sure we have room for data. */
 
 		if (pos + keysz + valsz > hdr->contentLength) {
-			XWARNX("invalid FastCGI params data");
+			XWARNX("FastCGI: bad params data");
 			return KCGI_FORM;
 		}
 
@@ -1939,13 +1935,14 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 				break;
 
 		if (0 == keysz) {
-			XWARNX("RFC violation: empty "
+			XWARNX("RFC (FastCGI) violation: empty "
 				"environment parameter");
 			pos += valsz;
 			continue;
 		} else if (i < keysz) {
-			XWARNX("RFC violation: bad character "
-				"in environment parameters");
+			XWARNX("RFC (FastCGI) violation: bad "
+				"character in environment "
+				"parameters");
 			pos += keysz + valsz;
 			continue;
 		}
@@ -2036,60 +2033,73 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	 * Loop over all incoming sequences to this particular slave.
 	 * Sequences must consist of a single FastCGI session as defined
 	 * in the FastCGI version 1.0 reference document.
+	 *
+	 * If the connection closes out at any point, we receive a
+	 * zero-length read from the control socket.
+	 * The response to this should be to write an zero error code
+	 * back to the control socket, then keep on listening.
+	 * Otherwise, if we've read the full message, write a non-zero
+	 * error code, then our identifier and cookie, then the rest
+	 * goes directly to the parse routines in kworker_parent().
 	 */
 
 	for (;;) {
-		/* Clear all memory. */
-
 		free(sbuf);
-		sbuf = NULL;
-		ssz = 0;
 		for (i = 0; i < envsz; i++) {
 			free(envs[i].key);
 			free(envs[i].val);
 		}
 		free(envs);
+		free(fbuf.buf);
+
+		sbuf = NULL;
+		ssz = 0;
 		envs = NULL;
 		envsz = 0;
 		cookie = 0;
-
-		free(fbuf.buf);
 		memset(&fbuf, 0, sizeof(struct fcgi_buf));
 		fbuf.fd = work_ctl;
 
 		/* 
 		 * Begin by reading our magic cookie.
-		 * This is emitted by the server at the start of our
-		 * sequence.
-		 * We'll reply with it on the control channel to
-		 * indicate that we've finished our reads.
+		 * This is emitted by kfcgi_control() at the start of
+		 * our sequence.
+		 * When we've finished reading data with success, we'll
+		 * respond with this value.
 		 */
 
 		rc = fullread(fbuf.fd, 
 			&cookie, sizeof(uint32_t), 1, &er);
 		if (rc < 0) {
-			XWARNX("failed read FastCGI cookie");
+			XWARNX("FastCGI: error reading worker cookie");
 			break;
 		} else if (0 == rc) {
-			XWARNX("FastCGI control socket closed");
+			XWARNX("FastCGI: worker termination");
 			break;
 		}
 
+		/* Now start the FastCGI sequence. */
+
 		er = kworker_fcgi_begin(&fbuf, &rid);
 		if (KCGI_HUP == er) {
-			XWARNX("FastCGI connection severed: "
-				"ignoring connection");
+			XWARNX("FastCGI: connection severed at "
+				"start: ignoring connection");
+			/* Note: writing error code... */
+			rc = 0;
+			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
 		} else if (KCGI_OK != er) {
-			XWARNX("unrecoverable error "
-				"beginning FastCGI sequence");
+			XWARNX("FastCGI: unrecoverable error "
+				"at start sequence");
 			break;
 		}
 
 		/*
 		 * Now read one or more parameters.
-		 * We'll first read them all at once, then parse the
-		 * headers in the content one by one.
+		 * We read them all at once, then do the parsing later
+		 * after we've read all of our data.
+		 * We read parameters til we no longer have the
+		 * FCGI_PARAMS type on the current header.
 		 */
 
 		er = KCGI_OK;
@@ -2101,13 +2111,12 @@ kworker_fcgi_child(int wfd, int work_ctl,
 			if (KCGI_OK != er) 
 				break;
 			if (rid != hdr.requestId) {
-				XWARNX("unknown FastCGI requestId: "
+				XWARNX("FastCGI: unknown request ID: "
 					"%" PRIu16 " (want %" PRIu16 
 					")", hdr.requestId, rid);
 				er = KCGI_FORM;
 				break;
 			} 
-
 			if (FCGI_PARAMS != hdr.type)
 				break;
 			er = kworker_fcgi_params
@@ -2115,22 +2124,23 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		}
 
 		if (KCGI_HUP == er) {
-			XWARNX("FastCGI connection severed: "
-				"ignoring connection");
+			XWARNX("FastCGI: connection severed at "
+				"parameters: ignoring connection");
+			/* Note: writing error code... */
+			rc = 0;
+			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
 		} else if (KCGI_OK != er) {
-			XWARNX("unrecoverable error "
-				"reading FastCGI headers");
+			XWARNX("FastCGI: unrecoverable error "
+				"at parameter sequence");
 			break;
-		}
-
-		if (FCGI_STDIN != hdr.type) {
-			XWARNX("bad FastCGI type: %" PRIu8 " "
+		} else if (FCGI_STDIN != hdr.type) {
+			XWARNX("FastCGI: bad header type: %" PRIu8 " "
 				"(want %d)", hdr.type, FCGI_STDIN);
 			er = KCGI_FORM;
 			break;
 		} else if (rid != hdr.requestId) {
-			XWARNX("unexpected FastCGI requestId: "
+			XWARNX("FastCGI: bad FastCGI request ID: "
 				"%" PRIu16 " (want %" PRIu16 ")", 
 				hdr.requestId, rid);
 			er = KCGI_FORM;
@@ -2151,12 +2161,10 @@ kworker_fcgi_child(int wfd, int work_ctl,
 			 * we want to make sure we've drawn everything
 			 * from the socket before exiting.
 			 */
-
 			er = kworker_fcgi_stdin
 				(&fbuf, &hdr, &sbuf, &ssz);
 
-			if (KCGI_OK != er ||
-			    0 == hdr.contentLength)
+			if (KCGI_OK != er || 0 == hdr.contentLength)
 				break;
 
 			/* Now read the next header. */
@@ -2165,41 +2173,70 @@ kworker_fcgi_child(int wfd, int work_ctl,
 			if (KCGI_OK != er)
 				break;
 			if (rid != hdr.requestId) {
-				XWARNX("unknown FastCGI requestId: "
-					"%" PRIu16 " (want %" PRIu16 
-					")", hdr.requestId, rid);
+				XWARNX("FastCGI: bad FastCGI "
+					"request ID: %" PRIu16 " "
+					"(want %" PRIu16 ")", 
+					hdr.requestId, rid);
 				er = KCGI_FORM;
 				break;
 			} 
-			
+
 			if (FCGI_STDIN == hdr.type)
 				continue;
-			XWARNX("bad FastCGI type: %" PRIu8 " "
+			XWARNX("FastCGI: bad header type: %" PRIu8 " "
 				"(want %d)", hdr.type, FCGI_STDIN);
 			er = KCGI_FORM;
 			break;
 		}
 
 		if (KCGI_HUP == er) {
-			XWARNX("FastCGI connection severed: "
-				"ignoring connection");
+			XWARNX("FastCGI: connection severed at "
+				"stdin: ignoring connection");
+			/* Note: writing error code. */
+			rc = 0;
+			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
 		} else if (KCGI_OK != er) {
-			XWARNX("unrecoverable error "
-				"reading FastCGI data");
+			XWARNX("FastCGI: unrecoverable error "
+				"at stdin sequence");
 			break;
 		}
 
 		/* 
 		 * Notify the control process that we've received all of
 		 * our data by giving back the cookie and requestId.
+		 * FIXME: merge cookie and rc.
 		 */
 
+		rc = 1;
+		fullwrite(work_ctl, &rc, sizeof(int));
 		fullwrite(work_ctl, &cookie, sizeof(uint32_t));
 		fullwrite(work_ctl, &rid, sizeof(uint16_t));
 
 		/* 
+		 * Read our last zero-length frame.
+		 * This is because kfcgi_control() always ends with an
+		 * empty frame, regardless of whether we're in an error
+		 * or not.
+		 * So if we're this far, we've read the full request,
+		 * and we should have an empty frame.
+		 */
+
+		rc = fullread(fbuf.fd, &ssz, sizeof(size_t), 0, &er);
+		if (rc <= 0) {
+			XWARNX("FastCGI: error reading "
+				"empty-frame trailer");
+			break;
+		} else if (0 != ssz) {
+			XWARNX("FastCGI: empty-frame trailer not "
+				"zero-length: %zu Bytes remain", ssz);
+			er = KCGI_FORM;
+			break;
+		} 
+
+		/* 
 		 * Now we can reply to our request.
+		 * See kworker_parent().
 		 * These are in a very specific order.
 		 */
 
@@ -2228,12 +2265,13 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		kworker_child_last(wfd);
 	}
 
+	/* The same as what we do at the loop start. */
+
+	free(sbuf);
 	for (i = 0; i < envsz; i++) {
 		free(envs[i].key);
 		free(envs[i].val);
 	}
-
-	free(sbuf);
 	free(envs);
 	free(fbuf.buf);
 }
