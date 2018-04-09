@@ -17,11 +17,41 @@
 				Thanks, Elouan!
 			</div>
 			<div>
-				Also merge a set of tutorial fixes from <a href="https://github.com/cyball">cyball</a>, thanks!
+				To this end (<strong>API change</strong>), <a
+					href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a> now
+				returns the <code>KCGI_EXIT</code> when the system has exited.
+				The <strong>KCGI_HUP</code> is reserved for when the output has
+				closed (after parsing) and the current FastCGI connection is no
+				longer valid.
 			</div>
 			<div>
-				Allow the <a href="kutil_log.3.html">kutil_log(3)</a> functions to
-				accept a <code>NULL</code> request.
+				While studying these code paths, make sure that a sequence of writes
+				(using <a href="khttp_write.3.html">khttp_write(3)</a> or any of the
+				writing front-ends) won't fail if <a
+					href="khttp_body.3.html">khttp_body(3)</a> wasn't able to
+				complete due to the connection closing.
+				Specifically, if the connection closes during  <a
+					href="khttp_body.3.html">khttp_body(3)</a> (returning
+				<code>KCGI_HUP</code>), the system will still expect headers.
+				Earlier, it would assert with subsequent <a
+					href="khttp_write.3.html">khttp_write(3)</a> if the error
+				were not caught and the 
+				In the modified behaviour, it will return <code>KCGI_FORM</code> to
+				indicate that the system is out of state.
+			</div>
+			<div>
+				Make <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a> only
+				require that callers invoke <a
+					href="khttp_free.3.html">khttp_free(3)</a> if exiting with success.
+				This mirrors <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+			<div>
+				Merge a set of tutorial fixes from <a
+					href="https://github.com/cyball">cyball</a>, thanks!
+			</div>
+			<div>
+				Lastly, allow the <a href="kutil_log.3.html">kutil_log(3)</a>
+				functions to accept a <code>NULL</code> request.
 				This makes it possible to use these functions for consistent logging
 				without a request.
 			</div>
