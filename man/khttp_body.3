@@ -84,19 +84,25 @@ and
 .Fn khttp_body_compress
 functions return an
 .Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, and
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream.
-The
+indicating the error state.
+.Bl -tag -width Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+Returned by
 .Fn khttp_body_compress
-function also returns
-.Dv KCGI_FORM
 if compression was requested but is not provided by the operating
 system.
+.El
 .Sh EXAMPLES
 Write out an HTTP header sequence and text content with automatic
 compression detection.
