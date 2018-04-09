@@ -776,9 +776,14 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * Now we read the response, funneling it to the output.
 	 * Stop reading on error or when we receive the end of data
 	 * token from the FastCGI client.
+	 * Start with the return code as non-zero, because getting no
+	 * FastCGI response is valid (failed connection) while getting
+	 * some is an error.
 	 */
 
+	rc = 1;
 	while (fcgi_hdr_read(fd, &hdr)) {
+		rc = 0;
 		if (3 == hdr.type) {
 			/* End of message. */
 			if ( ! fcgi_end_read(fd, &rc)) {
