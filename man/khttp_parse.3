@@ -72,11 +72,12 @@ They are the central functions in the
 .Xr kcgi 3
 library, parsing and validating key-value form (query string, message
 body, cookie) data and opaque message bodies.
+.Pp
 They must be matched by
 .Xr khttp_free 3
 if and only if the return value is
 .Dv KCGI_OK .
-.Pq otherwise, resources are internally freed .
+Otherwise, resources are internally freed.
 .Pp
 The collective arguments are as follows:
 .Bl -tag -width Ds
