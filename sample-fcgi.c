@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,57 +24,77 @@
 #include "kcgi.h"
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	struct kreq	 req;
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
-	const char	*pname;
-	int		 rc, c, debug;
-
-	if ((pname = strrchr(argv[0], '/')) == NULL)
-		pname = argv[0];
-	else
-		++pname;
-
-	debug = 0;
-	while (-1 != (c = getopt(argc, argv, "d:")))
-		switch (c) {
-		case ('d'):
-			debug = atoi(optarg);
-			break;
-		default:
-			return(EXIT_FAILURE);
-		}
 
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0))
-		return(EXIT_FAILURE);
+		return EXIT_FAILURE;
 
-	for (rc = 0;;) {
+	for (;;) {
 		er = khttp_fcgi_parse(fcgi, &req);
-		if (KCGI_HUP == er) {
-			fprintf(stderr, "Terminate: "
-				"parse hangup\n");
-			rc = 1;
-			khttp_free(&req);
+		if (KCGI_EXIT == er) {
+			fprintf(stderr, "khttp_fcgi_parse: terminate\n");
 			break;
+		} else if (KCGI_HUP == er) {
+			fprintf(stderr, "khttp_fcgi_parse: interrupt\n");
+			continue;
 		} else if (KCGI_OK != er) {
-			fprintf(stderr, "Terminate: "
-				"parse error: %d\n", er);
+			fprintf(stderr, "khttp_fcgi_parse: error: %d\n", er);
+			break;
+		}
+
+		er = khttp_head(&req, kresps[KRESP_STATUS], 
+			"%s", khttps[KHTTP_200]);
+		if (KCGI_HUP == er) {
+			fprintf(stderr, "khttp_head: interrupt\n");
+			khttp_free(&req);
+			continue;
+		} else if (KCGI_OK != er) {
+			fprintf(stderr, "khttp_head: error: %d\n", er);
 			khttp_free(&req);
 			break;
 		}
-		khttp_head(&req, kresps[KRESP_STATUS], 
-			"%s", khttps[KHTTP_200]);
-		khttp_head(&req, kresps[KRESP_CONTENT_TYPE], 
+
+		er = khttp_head(&req, kresps[KRESP_CONTENT_TYPE], 
 			"%s", kmimetypes[req.mime]);
-		khttp_body(&req);
-		khttp_puts(&req, "Hello, world!\n");
-		khttp_free(&req);
-		if (debug > 0 && 0 == --debug)
+		if (KCGI_HUP == er) {
+			fprintf(stderr, "khttp_head: interrupt\n");
+			khttp_free(&req);
+			continue;
+		} else if (KCGI_OK != er) {
+			fprintf(stderr, "khttp_head: error: %d\n", er);
+			khttp_free(&req);
 			break;
+		}
+
+		er = khttp_body(&req);
+		if (KCGI_HUP == er) {
+			fprintf(stderr, "khttp_body: interrupt\n");
+			khttp_free(&req);
+			continue;
+		} else if (KCGI_OK != er) {
+			fprintf(stderr, "khttp_body: error: %d\n", er);
+			khttp_free(&req);
+			break;
+		}
+
+		er = khttp_puts(&req, "Hello, world!\n");
+		if (KCGI_HUP == er) {
+			fprintf(stderr, "khttp_puts: interrupt\n");
+			khttp_free(&req);
+			continue;
+		} else if (KCGI_OK != er) {
+			fprintf(stderr, "khttp_puts: error: %d\n", er);
+			khttp_free(&req);
+			break;
+		}
+
+		khttp_free(&req);
 	}
 
 	khttp_fcgi_free(fcgi);
-	return(rc ? EXIT_SUCCESS : EXIT_FAILURE);
+	return KCGI_EXIT == er ? EXIT_SUCCESS : EXIT_FAILURE;
 }
