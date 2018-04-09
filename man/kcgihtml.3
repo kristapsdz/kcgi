@@ -275,24 +275,13 @@ This is generally for use with
 .Xr khttp_template 3 .
 .El
 .Sh RETURN VALUES
-All functions return an
-.Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, or
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream.
+All functions inherit return values from
+.Xr khttp_write 3 .
 The
 .Fn kkhtml_closeto
 function returns
 .Dv KCGI_FORM
 if the requested number of scopes exceeds available scopes.
-The return of any error code except
-.Dv KCGI_OK
-may leave the output state inconsistent, and should result in program
-termination.
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.
 .Sh AUTHORS

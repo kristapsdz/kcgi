@@ -216,16 +216,9 @@ Invokes
 for all elements in the bounded buffer.
 .El
 .Sh RETURN VALUES
-All functions return an
-.Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, or
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream.
-Some functions return the
+All functions inherit return values from
+.Xr khttp_write 3 .
+Some functions additionally return the
 .Dv KCGI_FORM
 code to indicate that the maximum number of scopes has already been opened.
 .Sh STANDARDS

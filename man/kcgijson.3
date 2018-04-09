@@ -314,26 +314,15 @@ otherwise this returns
 .Dv KCGI_FORM .
 .El
 .Sh RETURN VALUES
-All functions return an
-.Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure, or
-.Dv KCGI_SYSTEM
-for an internal system error writing to the output stream.
-Some functions return the
+All functions inherit return values from
+.Xr khttp_write 3 .
+Some functions additionally return the
 .Dv KCGI_FORM
 code to indicate that the given operation is not allowed in the current
 context, such as invoking
 .Fn kjson_obj_close
 with a previous invocation of
 .Fn kjson_array_open .
-The return of any error code except
-.Dv KCGI_OK
-may leave the output state inconsistent, and should result in program
-termination.
 .Sh EXAMPLES
 Let
 .Vt struct kreq *r
