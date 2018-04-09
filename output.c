@@ -337,7 +337,8 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
 
 	assert(NULL != req->kdata);
-	assert(KSTATE_BODY == req->kdata->state);
+	if (KSTATE_BODY != req->kdata->state) 
+		return KCGI_FORM;
 	assert( ! req->kdata->disabled);
 	return(kdata_write(req->kdata, buf, sz));
 }
@@ -686,7 +687,8 @@ enum kcgi_err
 kcgi_writer_write(struct kcgi_writer *p, const void *buf, size_t sz)
 {
 
-	assert(KSTATE_BODY == p->kdata->state);
+	if (KSTATE_BODY != p->kdata->state)
+		return KCGI_FORM;
 	return(kdata_write(p->kdata, buf, sz));
 }
 
