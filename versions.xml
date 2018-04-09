@@ -3,6 +3,32 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-03-25">ongoing</time>
+		</header>
+		<aside>
+			<div>
+				Propogate difference (in FastCGI) between the connection closing
+				(which is a recoverable error) and the manager killing the
+				connection or the control socket exiting, which are not recoverable.
+				This is thanks to Elouan Pignet, who was kind enough to diagnose the
+				problem and provide access to his system for a fix.
+				Thanks, Elouan!
+			</div>
+			<div>
+				Also merge a set of tutorial fixes from <a href="https://github.com/cyball">cyball</a>, thanks!
+			</div>
+			<div>
+				Allow the <a href="kutil_log.3.html">kutil_log(3)</a> functions to
+				accept a <code>NULL</code> request.
+				This makes it possible to use these functions for consistent logging
+				without a request.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.2</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-03-24">2018-03-24</time>
