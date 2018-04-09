@@ -488,6 +488,8 @@ enum	kcgi_err {
 	/* ENOMEM (fork, malloc, etc.). */
 	KCGI_ENOMEM,
 	/* FastCGI request to exit. */
+	KCGI_EXIT,
+	/* FastCGI connection has closed. */
 	KCGI_HUP,
 	/* ENFILE or EMFILE (fd ops). */
 	KCGI_ENFILE,
