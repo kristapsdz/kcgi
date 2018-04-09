@@ -618,7 +618,7 @@ kpair_free(struct kpair *p, size_t sz)
 	free(p);
 }
 
-static void
+void
 kreq_free(struct kreq *req)
 {
 	size_t	 i;
