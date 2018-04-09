@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -258,54 +259,72 @@ fullwriteword(int fd, const char *buf)
  * We need this for writing our response to a socket that may be closed
  * at any time, like the FastCGI one.
  * Returns KCGI_SYSTEM, KCGI_HUP, or KCGI_OK.
+ * Ignores SIGPIPE, restoring it on exit.
  */
 enum kcgi_err
 fullwritenoerr(int fd, const void *buf, size_t bufsz)
 {
-	ssize_t	 	 ssz;
-	size_t	 	 sz;
-	struct pollfd	 pfd;
-	int		 rc;
+	ssize_t	 	  ssz;
+	size_t	 	  sz;
+	struct pollfd	  pfd;
+	int		  rc;
+	enum kcgi_err	  er = KCGI_OK;
+	void		(*sig)(int);
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
 
+	sig = signal(SIGPIPE, SIG_IGN);
+
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if ((rc = poll(&pfd, 1, -1)) < 0) {
 			XWARN("poll: %d, POLLOUT", fd);
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 		} else if (0 == rc) {
 			XWARNX("poll: timeout!?");
 			ssz = 0;
 			continue;
 		} else if (POLLHUP & pfd.revents) {
 			XWARNX("poll: POLLHUP");
-			return(KCGI_HUP);
+			er = KCGI_HUP;
+			break;
 		} else if (POLLERR & pfd.revents) {
 			XWARNX("poll: POLLER");
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 #ifdef __APPLE__
 		} else if ( ! (POLLOUT & pfd.revents) && 
 			    ! (POLLNVAL & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 #else
 		} else if ( ! (POLLOUT & pfd.revents)) {
 			XWARNX("poll: not POLLOUT");
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 #endif
 		} 
 		
 		if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0) {
+			if (EPIPE == errno) {
+				XWARNX("write: HUP");
+				er = KCGI_HUP;
+				break;
+			}
 			XWARN("write: %d, %zu", fd, bufsz - sz);
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 		} else if (sz > SIZE_MAX - (size_t)ssz) {
 			XWARNX("write: overflow: %zu, %zd", sz, ssz);
-			return(KCGI_SYSTEM);
+			er = KCGI_SYSTEM;
+			break;
 		} 
 	}
 
-	return(KCGI_OK);
+	signal(SIGPIPE, sig);
+	return er;
 }
 
 /*
