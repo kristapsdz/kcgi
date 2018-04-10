@@ -24,21 +24,6 @@
 
 #include "../kcgi.h"
 
-struct	buf {
-	char	*b;
-	size_t	 sz;
-};
-
-static int
-bufwrite(const char *b, size_t sz, void *arg)
-{
-	struct buf *buf = arg;
-
-	buf->b = krealloc(buf->b, buf->sz + sz);
-	memcpy(buf->b + buf->sz, b, sz);
-	return(1);
-}
-
 static int
 test1_cmp(size_t idx, void *arg)
 {
@@ -47,7 +32,7 @@ test1_cmp(size_t idx, void *arg)
 	if (idx)
 		return(0);
 
-	bufwrite(res, strlen(res), arg);
+	kcgi_buf_puts(arg, res);
 	return(1);
 }
 
@@ -59,7 +44,7 @@ test1_fallthrough(const char *k, size_t ksz, void *arg)
 
 	keysz = strlen(key);
 	if (keysz == ksz && 0 == memcmp(key, k, keysz))
-		bufwrite(val, strlen(val), arg);
+		kcgi_buf_puts(arg, val);
 	return(1);
 }
 
@@ -72,7 +57,7 @@ test1(void)
 	const char	*test;
 	const char	*r;
 	size_t		 testsz, rsz;
-	struct buf	 b;
+	struct kcgi_buf	 b;
 	int		 rc, c = 0;
 
 	test = "abc@@foobar@@def";
@@ -80,23 +65,23 @@ test1(void)
 
 	memset(&t, 0, sizeof(struct ktemplate));
 	memset(&tkx, 0, sizeof(struct ktemplatex));
-	memset(&b, 0, sizeof(struct buf));
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	t.key = NULL;
 	t.keysz = 0;
 	t.arg = &b;
 	t.cb = test1_cmp;
-	tkx.writer = bufwrite;
+	tkx.writer = kcgi_buf_write;
 	tkx.fbk = NULL;
 
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	if (0 != rc)
 		goto out;
-	if (b.sz != testsz || memcmp(test, b.b, testsz))
+	if (b.sz != testsz || memcmp(test, b.buf, testsz))
 		goto out;
 
-	free(b.b);
-	b.sz = 0;
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	t.key = keys;
 	t.keysz = 1;
@@ -105,11 +90,11 @@ test1(void)
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	r = "abcfoodef";
 	rsz = strlen(r);
-	if (b.sz != rsz || memcmp(r, b.b, rsz))
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.b);
-	b.sz = 0;
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	test = "abc@@bar@@def";
 	testsz = strlen(test);
@@ -121,11 +106,11 @@ test1(void)
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	r = "abc@@bar@@def";
 	rsz = strlen(r);
-	if (b.sz != rsz || memcmp(r, b.b, rsz))
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.b);
-	b.sz = 0;
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	test = "abc@@foobar@@def";
 	testsz = strlen(test);
@@ -138,11 +123,11 @@ test1(void)
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	r = "abc@@foobar@@def";
 	rsz = strlen(r);
-	if (b.sz != rsz || memcmp(r, b.b, rsz))
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.b);
-	b.sz = 0;
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	test = "abc@@bar@@def";
 	testsz = strlen(test);
@@ -155,11 +140,11 @@ test1(void)
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	r = "abcfoodef";
 	rsz = strlen(r);
-	if (b.sz != rsz || memcmp(r, b.b, rsz))
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.b);
-	b.sz = 0;
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 
 	test = "abc@@bar@@def@@moobar@@";
 	testsz = strlen(test);
@@ -172,12 +157,12 @@ test1(void)
 	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
 	r = "abcfoodef@@moobar@@";
 	rsz = strlen(r);
-	if (b.sz != rsz || memcmp(r, b.b, rsz))
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
 	c = 1;
 out:
-	free(b.b);
+	free(b.buf);
 	return(c ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
