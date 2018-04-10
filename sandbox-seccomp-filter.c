@@ -132,6 +132,11 @@ static const struct sock_filter preauth_ctrl[] = {
 #else
 	SC_ALLOW(sigprocmask),
 #endif
+#ifdef __NR_rt_sigaction
+	SC_ALLOW(rt_sigaction),
+#else
+	SC_ALLOW(sigaction),
+#endif
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_FILTER_FAIL),
 };
 
@@ -198,12 +203,12 @@ static const struct sock_fprog preauth_prog_ctrl = {
 
 #ifdef SANDBOX_SECCOMP_DEBUG
 static void
-ssh_sandbox_violation(int signum, 
+ssh_sandbox_violation_control(int signum, 
 	siginfo_t *info, void *void_context)
 {
 
 	fprintf(stderr, 
-		"%s: unexpected system call "
+		"%s: unexpected system call (control) "
 		"(arch:0x%x,syscall:%d @ %p)\n",
 		__func__, info->si_arch, 
 		info->si_syscall, info->si_call_addr);
@@ -211,7 +216,20 @@ ssh_sandbox_violation(int signum,
 }
 
 static void
-ssh_sandbox_child_debugging(void)
+ssh_sandbox_violation_worker(int signum, 
+	siginfo_t *info, void *void_context)
+{
+
+	fprintf(stderr, 
+		"%s: unexpected system call (worker) "
+		"(arch:0x%x,syscall:%d @ %p)\n",
+		__func__, info->si_arch, 
+		info->si_syscall, info->si_call_addr);
+	exit(1);
+}
+
+static void
+ssh_sandbox_child_debugging(enum sandtype type)
 {
 	struct sigaction act;
 	sigset_t mask;
@@ -220,7 +238,9 @@ ssh_sandbox_child_debugging(void)
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGSYS);
 
-	act.sa_sigaction = &ssh_sandbox_violation;
+	act.sa_sigaction = SAND_WORKER == type ?
+		&ssh_sandbox_violation_worker :
+		&ssh_sandbox_violation_control;
 	act.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGSYS, &act, NULL) == -1)
 		fprintf(stderr, "%s: sigaction(SIGSYS): %s\n", 
@@ -253,7 +273,7 @@ ksandbox_seccomp_init_child(void *arg, enum sandtype type)
 		XWARN("setrlimit(RLIMIT_NPROC)");
 
 #ifdef SANDBOX_SECCOMP_DEBUG
-	ssh_sandbox_child_debugging();
+	ssh_sandbox_child_debugging(type);
 #endif 
 
 	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == -1) {
