@@ -18,7 +18,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "kcgi.h"
@@ -31,16 +30,13 @@ main(void)
 	enum kcgi_err	 er;
 
 	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0))
-		return EXIT_FAILURE;
+		return 0;
 
 	for (;;) {
 		er = khttp_fcgi_parse(fcgi, &req);
 		if (KCGI_EXIT == er) {
 			fprintf(stderr, "khttp_fcgi_parse: terminate\n");
 			break;
-		} else if (KCGI_HUP == er) {
-			fprintf(stderr, "khttp_fcgi_parse: interrupt\n");
-			continue;
 		} else if (KCGI_OK != er) {
 			fprintf(stderr, "khttp_fcgi_parse: error: %d\n", er);
 			break;
@@ -96,5 +92,5 @@ main(void)
 	}
 
 	khttp_fcgi_free(fcgi);
-	return KCGI_EXIT == er ? EXIT_SUCCESS : EXIT_FAILURE;
+	return 0;
 }
