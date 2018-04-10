@@ -1414,7 +1414,8 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	/* Check FastCGI input lengths. */
 
 	if (NULL != bp && bsz != len)
-		XWARNX("real and reported content lengths differ");
+		XWARNX("real (%zu) and reported (%zu) content "
+			"lengths differ", bsz, len);
 
 	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
@@ -2016,7 +2017,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 	struct env	*envs = NULL;
 	uint16_t	 rid;
 	uint32_t	 cookie = 0;
-	size_t		 i, ssz = 0, envsz = 0;
+	size_t		 i, ssz = 0, sz, envsz = 0;
 	int		 rc, md5;
 	enum kmethod	 meth;
 	struct fcgi_buf	 fbuf;
@@ -2222,14 +2223,14 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		 * and we should have an empty frame.
 		 */
 
-		rc = fullread(fbuf.fd, &ssz, sizeof(size_t), 0, &er);
+		rc = fullread(fbuf.fd, &sz, sizeof(size_t), 0, &er);
 		if (rc <= 0) {
 			XWARNX("FastCGI: error reading "
 				"empty-frame trailer");
 			break;
-		} else if (0 != ssz) {
+		} else if (0 != sz) {
 			XWARNX("FastCGI: empty-frame trailer not "
-				"zero-length: %zu Bytes remain", ssz);
+				"zero-length: %zu Bytes remain", sz);
 			er = KCGI_FORM;
 			break;
 		} 
