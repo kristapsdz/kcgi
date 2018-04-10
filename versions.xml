@@ -5,7 +5,7 @@
 		<header>
 			<h1>0.10.3</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2018-03-25">ongoing</time>
+			<time datetime="2018-04-09">2018-04-09</time>
 		</header>
 		<aside>
 			<div>
@@ -20,9 +20,10 @@
 				To this end (<strong>API change</strong>), <a
 					href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a> now
 				returns the <code>KCGI_EXIT</code> when the system has exited.
-				The <strong>KCGI_HUP</code> is reserved for when the output has
-				closed (after parsing) and the current FastCGI connection is no
-				longer valid.
+				The <code>KCGI_HUP</code> is reserved for when the output channel
+				has closed (after parsing) and the current connection is no longer
+				valid.
+				The documentation has been updated for relevant functions.
 			</div>
 			<div>
 				While studying these code paths, make sure that a sequence of writes
@@ -50,10 +51,16 @@
 					href="https://github.com/cyball">cyball</a>, thanks!
 			</div>
 			<div>
-				Lastly, allow the <a href="kutil_log.3.html">kutil_log(3)</a>
-				functions to accept a <code>NULL</code> request.
+				Allow the <a href="kutil_log.3.html">kutil_log(3)</a> functions to
+				accept a <code>NULL</code> request.
 				This makes it possible to use these functions for consistent logging
 				without a request.
+			</div>
+			<div>
+				Lastly, run through all code snippets, apply <a
+					href="https://man.openbsd.org/style.9">style(9)</a>, and
+				make sure that the MIME type is properly checked.
+				Also add <a href="tutorial6.html">Best practises for pledge(2) security</a>.
 			</div>
 		</aside>
 	</article>
