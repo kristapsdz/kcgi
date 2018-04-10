@@ -7,8 +7,14 @@
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
+		<link rel="stylesheet" href="prettify.css" />
 		<link rel="stylesheet" href="index.css" />
-		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+		<script src="prettify.js"></script>
+		<script>
+			window.addEventListener('load', function() {
+				PR.prettyPrint();
+			});
+		</script>
 	</head>
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
@@ -49,97 +55,94 @@
 			<figure id="sample">
 				<input type="radio" name="sample-show" value="0" id="show-nocomments" checked="checked" />
 				<input type="radio" name="sample-show" value="1" id="show-comments" />
-				<figcaption>
-					The following simple example implements a server that just echoes <q>Hello, World!</q> as an HTTP
-					response to a CGI request.
-					Click on any italicitised fields to link to the documentation.
-				</figcaption>
 				<nav>
 					<label id="label-nocomments" for="show-nocomments">
-						<i class="fa fa-comments"></i> Hide source comments
+						<i class="fa fa-fw fa-comments"></i> Hide source comments
 					</label>
 					<label id="label-comments" for="show-comments">
-						<i class="fa fa-comments"></i> Show source comments
+						<i class="fa fa-fw fa-comments"></i> Show source comments
 					</label>
 				</nav>
+				<figcaption>
+					The following echoes <q>Hello, World!</q> as an HTTP response to a CGI request.
+					Click on any italicitised fields to link to the documentation.
+				</figcaption>
 				<pre id="nocomments" class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt; /* EXIT_SUCCESS, etc. */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {
-  struct kreq r;
-  const char *page = "index";
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
-    return(EXIT_FAILURE);
-  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
-    "%s", khttps[KHTTP_200]);
-  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-    "%s", kmimetypes[KMIME__MAX == r.mime ? 
-      KMIME_APP_OCTET_STREAM : r.mime]);
-  <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
-  <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
-  <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
-  return(EXIT_SUCCESS);
+    struct kreq r;
+    const char *page = "index";
+    if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+        return 0;
+    <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[KMIME__MAX == r.mime ? 
+        KMIME_APP_OCTET_STREAM : r.mime]);
+    <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
+    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
+    return 0;
 }</pre>
 				<pre id="comments" class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt; /* EXIT_SUCCESS, etc. */
 #include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
 
 int main(void) {
-  struct kreq r;
-  const char *page = "index";
-
-  /*
-   * Parse the HTTP environment.
-   * We only know a single page, "index", which is also
-   * the default page if none is supplied.
-   * (We don't validate any input fields.)
-   */
-
-  if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
-    return(EXIT_FAILURE);
-
-  /* 
-   * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
-   * defined in the <q>method</q> variable) then switch on which
-   * page was requested (<q>page</q> variable).
-   * But for brevity's sake, just output a response: HTTP 200.
-   */
-
-  <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
-    "%s", khttps[KHTTP_200]);
-
-  /* 
-   * Show content-type, defaulting to HTML if none was specified
-   * or octet-stream if the type was otherwise unknown.
-   */
-
-  khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-    "%s", kmimetypes[KMIME__MAX == r.mime ? 
-    KMIME_APP_OCTET_STREAM : r.mime]);
-
-  /* No more HTTP headers: start the HTTP document body. */
-
-  <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
+    struct kreq r;
+    const char *page = "index";
   
-  /*
-   * We can put any content below here: JSON, HTML, etc.
-   * Usually we'd switch on our MIME type.
-   * However, we're just going to put the literal string as noted&#8230;
-   */
-
-  <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
-
-  /* Flush the document and free resources. */
-
-  <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
-  return(EXIT_SUCCESS);
+    /*
+     * Parse the HTTP environment.
+     * We only know a single page, "index", which is also
+     * the default page if none is supplied.
+     * (We don't validate any input fields.)
+     */
+  
+    if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+        return 0;
+  
+    /* 
+     * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
+     * defined in the <q>method</q> variable) then switch on which
+     * page was requested (<q>page</q> variable).
+     * But for brevity's sake, just output a response: HTTP 200.
+     */
+  
+    <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+  
+    /* 
+     * Show content-type, defaulting to HTML if none was specified
+     * or octet-stream if the type was otherwise unknown.
+     */
+  
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[KMIME__MAX == r.mime ? 
+        KMIME_APP_OCTET_STREAM : r.mime]);
+  
+    /* No more HTTP headers: start the HTTP document body. */
+  
+    <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
+    
+    /*
+     * We can put any content below here: JSON, HTML, etc.
+     * Usually we'd switch on our MIME type.
+     * However, we're just going to put the literal string as noted&#8230;
+     */
+  
+    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+  
+    /* Flush the document and free resources. */
+  
+    <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
+    return 0;
 }</pre>
 			</figure>
 			<p>
@@ -472,7 +475,7 @@ int main(void) {
 		</section>
 		<footer>
 			<div>
-				&#169; 2014&#8211;2017 
+				&#169; 2014&#8211;2018
 				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
 			</div>
 			<div>
