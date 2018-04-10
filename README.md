@@ -24,22 +24,21 @@ kcgi parses the request and can manage output.
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
 #include <stdint.h> /* int64_t */
-#include <stdlib.h> /* EXIT_SUCCESS, etc. */
 #include <kcgi.h>
  
 int main(void) {
   struct kreq r;
   const char *page = "index";
   if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
-	return(EXIT_FAILURE);
+	return 0;
   khttp_head(&r, kresps[KRESP_STATUS],
 	"%s", khttps[KHTTP_200]);
   khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-	"%s", kmimetypes[r.mime]);
+	"%s", kmimetypes[KMIME_TEXT_PLAIN]);
   khttp_body(&r);
   khttp_puts(&r, "Hello, world!\n");
   khttp_free(&r);
-  return(EXIT_SUCCESS);
+  return 0;
 }
 ```
 
