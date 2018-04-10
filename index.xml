@@ -81,8 +81,7 @@ int main(void) {
     <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[KMIME__MAX == r.mime ? 
-        KMIME_APP_OCTET_STREAM : r.mime]);
+        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
     <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
     <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
@@ -119,13 +118,12 @@ int main(void) {
         "%s", khttps[KHTTP_200]);
   
     /* 
-     * Show content-type, defaulting to HTML if none was specified
-     * or octet-stream if the type was otherwise unknown.
+     * Show content-type unilaterally as text/plain.
+     * This would usually be set from r.mime.
      */
   
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[KMIME__MAX == r.mime ? 
-        KMIME_APP_OCTET_STREAM : r.mime]);
+        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
   
     /* No more HTTP headers: start the HTTP document body. */
   

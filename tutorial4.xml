@@ -242,17 +242,15 @@ str_to_adate(const char* s, char sep, struct adate *d)
 		Now, we consider the basic handling of the request.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint linenums">
-int
-main(int argc, char* argv[])
-{
+		<pre class="prettyprint linenums">int
+main(void) {
   struct kreq r;
   struct adate ad;
   struct kpair *p;
 
   if (khttp_parse(&amp;r, NULL, 0,
       pages, PG__MAX, PG_INDEX) != KCGI_OK)
-    return EXIT_FAILURE  /* abort */;
+    return 0 /* abort */;
 
   if (r.mime != KMIME_TEXT_HTML) {
     handle_err(&amp;r, KHTTP_404);

@@ -46,29 +46,25 @@
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint linenums">int 
-main(int argc, char *argv[]) 
-{
-	enum kcgi_err	  er;
-	struct kreq	  r;
-	const char *const pages[1] = { "index" };
+main(void) {
+    enum kcgi_err	  er;
+    struct kreq	  r;
+    const char *const pages[1] = { "index" };
 
-	/* Set up our main HTTP context. */
+    /* Set up our main HTTP context. */
 
-	er = khttp_parse(&amp;r, NULL, 0, pages, 1, 0);
-	if (KCGI_OK != er)
-		return 0;
-
-	khttp_head(&amp;r, kresps[KRESP_STATUS], 
-	  "%s", khttps[KHTTP_200]);
-	khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-	  "%s", kmimetypes[r.mime]);
-	khttp_body(&amp;r);
-	khttp_puts(&amp;r, "Hello, world!\n");
-
-	std::cerr &lt;&lt; "Said hello!";
-
-	khttp_free(&amp;r);
-	return 0;
+    er = khttp_parse(&amp;r, NULL, 0, pages, 1, 0);
+    if (KCGI_OK != er)
+        return 0;
+    khttp_head(&amp;r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    khttp_puts(&amp;r, "Hello, world!\n");
+    std::cerr &lt;&lt; "Said hello!";
+    khttp_free(&amp;r);
+    return 0;
 }</pre>
 	</figure>
 	<p>
