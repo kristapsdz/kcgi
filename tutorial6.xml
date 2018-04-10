@@ -43,15 +43,18 @@
 		<img class="tall" src="tutorial6.svg" alt="" />
 	</figure>
 	<h3>
-		Source Code
+		Source Code: CGI
 	</h3>
 	<p>
-		Let's start with a trivial application.
+		Let's start with a trivial CGI application.
 		This parses the HTTP context with <a href="khttp_parse.3.html">khttp_parse(3)</a>, then emits output using the writing
 		functions.
 		Most applications will perform some sort of work based upon the context, such as with form input, but it's irrelevant for the
 		purposes of explanation.
+	</p>
+	<p>
 		I avoid error checking for brevity, but <strong>each function needs to be checked for return values</strong>.
+		This goes for all examples, all the time!
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
@@ -61,8 +64,7 @@
 #include &lt;kcgi.h&gt;
 
 int 
-main(int argc, char *argv[]) 
-{
+main(void) {
     struct kreq r;
     const char *const pages[1] = { "index" };
 
@@ -71,7 +73,7 @@ main(int argc, char *argv[])
     khttp_head(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[r.mime]);
+        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;r);
     khttp_puts(&amp;r, "Hello, world!\n");
     khttp_free(&amp;r);
@@ -143,8 +145,7 @@ if (-1 == pledge("stdio rpath", NULL))
 #include &lt;kcgi.h&gt;
 
 int 
-main(int argc, char *argv[]) 
-{
+main(void) {
     struct kreq r;
     const char *const pages[1] = { "index" };
 
@@ -157,7 +158,7 @@ main(int argc, char *argv[])
     khttp_head(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[r.mime]);
+        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;r);
     khttp_puts(&amp;r, "Hello, world!\n");
     khttp_free(&amp;r);
@@ -169,4 +170,75 @@ main(int argc, char *argv[])
 		If you're going to be writing CGI scripts that must be portable across architectures, consider using
 		<a href="https://github.com/kristapsdz/oconfigure">oconfigure</a> for a selection of portable OpenBSD functions and feature tests.
 	</p>
+	<h3>
+		Source Code: FastCGI
+	</h3>
+	<p>
+		This follows the logic of the CGI example, but we need to have extra promises to account for the increased complexity of FastCGI processing.
+		First, start with our simple example without any header inclusions&#8212;all of which are the same as in the CGI example.
+	</p>
+	<p>
+		Again, <strong>each function needs to be checked for return values</strong>.
+		This would otherwise clutter up the examples, but production systems <strong>must</strong> error check.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">int 
+main(void) {
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+    struct kfcgi *fcgi;
+    enum kcgi_err er;
+
+    if (KCGI_OK != khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0))
+        return 0;
+    for (;;) {
+        if (KCGI_OK != khttp_fcgi_parse(fcgi, &amp;req))
+            break;
+        khttp_head(&amp;r, kresps[KRESP_STATUS], 
+            "%s", khttps[KHTTP_200]);
+        khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+            "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_body(&amp;r);
+        khttp_puts(&amp;r, "Hello, world!\n");
+        khttp_free(&amp;r);
+    }
+    return 0;
+}</pre>
+	</figure>
+	<p>
+		The FastCGI-specific functions we need to manage are
+		<a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a> and
+		<a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>.
+		The promises required are all noted in <a href="kcgi.3.html">kcgi(3)</a>.
+		The rest follow from the CGI example.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">int 
+main(void) {
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+    struct kfcgi *fcgi;
+    enum kcgi_err er;
+
+    if (-1 == pledge("unix sendfd recvfd proc stdio", NULL))
+        return 0;
+    if (KCGI_OK != khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0))
+        return 0;
+    if (-1 == pledge("stdio recvfd", NULL))
+        return 0;
+    for (;;) {
+        if (KCGI_OK != khttp_fcgi_parse(fcgi, &amp;req))
+            break;
+        khttp_head(&amp;r, kresps[KRESP_STATUS], 
+            "%s", khttps[KHTTP_200]);
+        khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+            "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_body(&amp;r);
+        khttp_puts(&amp;r, "Hello, world!\n");
+        khttp_free(&amp;r);
+    }
+    khttp_fcgi_free(fcgi);
+    return 0;
+}</pre>
+	</figure>
 </article>
