@@ -172,7 +172,7 @@ const char *const pages[PAGE__MAX] = {
     khttp_head(&amp;r, kresps[KRESP_STATUS],
       "%s", khttps[er]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
-      "%s", kmimetypes[r.mime]);
+      "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;r);
     if (KMIME_TEXT_HTML == r.mime)
       khttp_puts(&amp;r, "Could not service request.");
@@ -180,7 +180,7 @@ const char *const pages[PAGE__MAX] = {
     khttp_head(&amp;r, kresps[KRESP_STATUS],
       "%s", khttps[KHTTP_200]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
-      "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+      "%s", kmimetypes[r.mime]);
     khttp_body(&amp;r);
     process_safe(&amp;r);
   }
