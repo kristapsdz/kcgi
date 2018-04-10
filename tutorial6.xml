@@ -1,0 +1,172 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope" itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			Best practises for <a href="https://man.openbsd.org/pledge.2">pledge(2)</a> security
+		</h2>
+		<address itemprop="author"><a href="https://github.com/kristapsdz">Kristaps Dzonsons</a></address>
+		<time itemprop="datePublished" datetime="2018-04-06">6 April, 2018</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			Let's set the record straight for securing <span class="nm">kcgi</span> CGI and FastCGI applications with <a
+				href="https://man.openbsd.org/pledge.2">pledge(2)</a>.
+			This is focussed on secure <a href="https://www.openbsd.org">OpenBSD</a> deployments.
+		</aside>
+	</p>
+	<h3>
+		Theory
+	</h3>
+	<p>
+		Internally, <span class="nm">kcgi</span> makes considerable use of available security tools.
+		But it's also designed to be invoked in a secure environment.
+		We'll start with <a href="https://man.openbsd.org/pledge.2">pledge(2)</a>, which has been around on <a
+			href="https://www.openbsd.org">OpenBSD</a> since version 5.9.
+		If you're reading this tutorial, you're probably on <a href="https://www.openbsd.org">OpenBSD</a>, and you probably have
+		knowledge of <a href="https://man.openbsd.org/pledge.2">pledge(2)</a>.
+	</p>
+	<p>
+		How to begin?
+		Read <a href="kcgi.3.html">kcgi(3)</a>.
+		It includes canonical information on which <a href="https://man.openbsd.org/pledge.2">pledge(2)</a> promises you'll need for
+		each function in the library.
+		This is just a tutorial&#8212;the manpage is canonical and overrides what you may read here.
+	</p>
+	<p>
+		Next, assess the promises that your application needs.
+		From  <a href="kcgi.3.html">kcgi(3)</a>, it's easy to see which promises we'll need to start.
+		You'll need to augment this list with whichever tools you're also using.
+		The general push is to start with the broadest set of required promises, then restrict as quickly as possible.
+		Sometimes this can be done in a single  <a href="https://man.openbsd.org/pledge.2">pledge(2)</a>, but other times it takes a
+		few.
+	</p>
+	<figure>
+		<img class="tall" src="tutorial6.svg" alt="" />
+	</figure>
+	<h3>
+		Source Code
+	</h3>
+	<p>
+		Let's start with a trivial application.
+		This parses the HTTP context with <a href="khttp_parse.3.html">khttp_parse(3)</a>, then emits output using the writing
+		functions.
+		Most applications will perform some sort of work based upon the context, such as with form input, but it's irrelevant for the
+		purposes of explanation.
+		I avoid error checking for brevity, but <strong>each function needs to be checked for return values</strong>.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
+#include &lt;kcgi.h&gt;
+
+int 
+main(int argc, char *argv[]) 
+{
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+
+    if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+        return 0;
+    khttp_head(&amp;r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    khttp_puts(&amp;r, "Hello, world!\n");
+    khttp_free(&amp;r);
+    return 0;
+}</pre>
+	</figure>
+	<p>
+		Obviously, this does very little.
+		And that's fine, because <a href="https://man.openbsd.org/pledge.2">pledge(2)</a> doesn't really care about how complex your
+		application is&#8212;just which system resources are used.
+		Our main focus is going to be <a href="khttp_parse.3.html">khttp_parse(3)</a>, which requires the system resources to create
+		its parsing contexts and safely get our data extracted and processed.
+		After that, all we're doing is constructing a response.
+	</p>
+	<p>
+		To use this security tool, all we need is to include <code>&lt;unistd.h&gt;</code> and to understand the <a
+			href="https://man.openbsd.org/pledge.2">pledge(2)</a> system call.
+		We'll start with the most significant protection: by constraining our application after the context has been parsed.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+    return 0;
+if (-1 == pledge("stdio", NULL))
+    return 0;</pre>
+	</figure>
+	<p>
+		This <a href="https://man.openbsd.org/pledge.2">pledge(2)</a> promise restricts the process to simply using available I/O
+		channels.
+		The only <span class="nm">kcgi</span> functions requiring more than <code>"stdio"</code> are the file-based template functions
+		described in <a href="khttp_template.3.html">khttp_template(3)</a> and <a href="khttp_template.3.html">khttp_templatex(3)</a>,
+		which also require <code>"rpath"</code>.
+	</p>
+	<p>
+		We can further secure our systems by pushing  <a href="https://man.openbsd.org/pledge.2">pledge(2)</a> <em>before</em> the call
+		to  <a href="khttp_parse.3.html">khttp_parse(3)</a>.
+		The only promises <a href="khttp_parse.3.html">khttp_parse(3)</a> requires are to <a
+			href="https://man.openbsd.org/fork.2">fork(2)</a> its internal handlers.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">if (-1 == pledge("stdio proc", NULL))
+    return 0;
+if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+    return 0;
+if (-1 == pledge("stdio", NULL))
+    return 0;</pre>
+	</figure>
+	<p>
+		Or if one is using <a href="khttp_template.3.html">khttp_template(3)</a> to marshall a response:
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">if (-1 == pledge("stdio rpath proc", NULL))
+    return 0;
+if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+    return 0;
+if (-1 == pledge("stdio rpath", NULL))
+    return 0;</pre>
+	</figure>
+	<p>
+		That's it!
+		Obviously, you'll need to expand the set of promises proportionate to your application's needs.
+		Let's put it all together:
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
+#include &lt;unistd.h&gt; /* pledge */
+#include &lt;kcgi.h&gt;
+
+int 
+main(int argc, char *argv[]) 
+{
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+
+    if (-1 == pledge("stdio proc", NULL))
+        return 0;
+    if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+        return 0;
+    if (-1 == pledge("stdio", NULL))
+        return 0;
+    khttp_head(&amp;r, kresps[KRESP_STATUS], 
+        "%s", khttps[KHTTP_200]);
+    khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
+        "%s", kmimetypes[r.mime]);
+    khttp_body(&amp;r);
+    khttp_puts(&amp;r, "Hello, world!\n");
+    khttp_free(&amp;r);
+    return 0;
+}</pre>
+	</figure>
+	<p>
+		One last note: portability.
+		If you're going to be writing CGI scripts that must be portable across architectures, consider using
+		<a href="https://github.com/kristapsdz/oconfigure">oconfigure</a> for a selection of portable OpenBSD functions and feature tests.
+	</p>
+</article>

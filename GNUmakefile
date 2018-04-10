@@ -30,7 +30,8 @@ TUTORIALXMLS	 = tutorial0.xml \
 		   tutorial2.xml \
 		   tutorial3.xml \
 		   tutorial4.xml \
-		   tutorial5.xml
+		   tutorial5.xml \
+		   tutorial6.xml
 TUTORIALHTMLS	 = $(addsuffix .html, $(foreach xml, $(TUTORIALXMLS), $(basename $(xml) .xml)))
 SBLGS		 = archive.html \
 		   index.html \
@@ -178,10 +179,13 @@ SVGS		 = figure1.svg \
 		   extending01-a.svg \
 		   extending01-b.svg \
 		   extending01-c.svg \
-		   extending01-d.svg
+		   extending01-d.svg \
+		   tutorial6.svg
 CSSS	         = archive.css \
 	           index.css \
 	           mandoc.css \
+		   prettify.css \
+		   prettify.js \
 		   tutorial.css
 LIBS		 = libkcgi.a \
 		   libkcgihtml.a \
