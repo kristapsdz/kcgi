@@ -1724,15 +1724,15 @@ static enum kcgi_err
 kworker_fcgi_header(struct fcgi_buf *b, struct fcgi_hdr *hdr)
 {
 	enum kcgi_err	 er;
-	struct fcgi_hdr	*ptr;
-	char		*buf;
+	const struct fcgi_hdr *ptr;
+	const char	*buf;
 
 	if (NULL == (buf = kworker_fcgi_read(b, 8, &er)))
 		return er;
 
 	/* Translate from network-byte order. */
 
-	ptr = (struct fcgi_hdr *)buf;
+	ptr = (const struct fcgi_hdr *)buf;
 
 	hdr->version = ptr->version;
 	hdr->type = ptr->type;
@@ -1758,8 +1758,8 @@ static enum kcgi_err
 kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 {
 	struct fcgi_hdr	 hdr;
-	struct fcgi_bgn	*ptr;
-	char		*buf;
+	const struct fcgi_bgn *ptr;
+	const char	*buf;
 	enum kcgi_err	 er;
 
 	/* Read the header entry. */
@@ -1781,7 +1781,7 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 		hdr.contentLength + 
 		hdr.paddingLength, &er);
 
-	ptr = (struct fcgi_bgn *)buf;
+	ptr = (const struct fcgi_bgn *)buf;
 
 	if (ptr->flags) {
 		XWARNX("FastCGI: bad flags: %" PRId8 
@@ -1854,15 +1854,15 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 	struct env **envs, size_t *envsz)
 {
 	size_t	 	 i, remain, pos, keysz, valsz;
-	unsigned char	*b;
+	const unsigned char *b;
 	enum kcgi_err	 er;
 	void		*ptr;
 
-	b = kworker_fcgi_read(buf, 
-		hdr->contentLength + 
-		hdr->paddingLength, &er);
+	b = (unsigned char *)kworker_fcgi_read
+		(buf, hdr->contentLength + 
+		 hdr->paddingLength, &er);
 
-	if (NULL == buf)
+	if (NULL == b)
 		return er;
 
 	/*
