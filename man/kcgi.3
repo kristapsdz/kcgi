@@ -182,7 +182,11 @@ needs these for inheritence by its child processes.
 The following simple example assumes that
 .Pa kcgi.h
 is in the compiler's include path.
-It does nothing but emit
+None of them perform error checking: each call into the
+.Nm kcgi
+library should have its error code checked!
+.Pp
+The following does nothing but emit
 .Dq Hello, world!
 to the output.
 .Bd -literal
