@@ -1,0 +1,22 @@
+digraph {
+	rankdir="LR";
+	subgraph cluster0 {
+		graph[rankdir="TB",style="invis"];
+		node[shape="plaintext"];
+		start[label="promises"];
+		forkop[label="\"stdio proc unix sendfd\""];
+		acceptop[label="\"stdio unix sendfd\""];
+		recvop[label="\"stdio sendfd\""];
+		readop[label="\"stdio\""];
+	}
+	subgraph cluster1 {
+		graph[rankdir="TB"];
+		start2[label="operations", shape="plaintext"];
+		forkop2[label="fork(2)"];
+		acceptop2[label="accept(2)"];
+		recvop2[label="recvmsg(2)"];
+		readop2[label="read(2)"];
+	}
+	start -> start2[style="invis"];
+	forkop -> forkop2[style="invis"];
+}
