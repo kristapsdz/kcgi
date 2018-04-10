@@ -33,7 +33,6 @@
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt; /* EXIT_FAILURE, etc. */
 #include &lt;kcgi.h&gt;
 
 int
@@ -44,20 +43,20 @@ main(void)
 
   if (KCGI_OK != khttp_fcgi_init
      (&amp;fcgi, NULL, 0, NULL, 0, 0))
-    return(EXIT_FAILURE);
+    return 0;
 
   while (KCGI_OK == khttp_fcgi_parse(fcgi, &amp;req)) {
     khttp_head(&amp;req, kresps[KRESP_STATUS], 
       "%s", khttps[KHTTP_200]);
     khttp_head(&amp;req, kresps[KRESP_CONTENT_TYPE], 
-      "%s", kmimetypes[req.mime]);
+      "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;req);
     khttp_puts(&amp;req, "Hello, world!\n");
     khttp_free(&amp;req);
   }
 
   khttp_fcgi_free(fcgi);
-  return(EXIT_SUCCESS);
+  return 0;
 }</pre>
 	</figure>
 	<p>
