@@ -29,7 +29,6 @@
 #include &lt;stdarg.h&gt; /* va_list */
 #include &lt;stddef.h&gt; /* NULL */
 #include &lt;stdint.h&gt; /* int64_t */
-#include &lt;stdlib.h&gt; /* EXIT_FAILURE, etc. */
 #include &lt;time.h&gt; /* time(3) */
 #include &lt;kcgi.h&gt;</pre>
 	</figure>
@@ -69,11 +68,11 @@
 	<figure class="sample">
 		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
   if (KMIME_TEXT_HTML != r->mime)
-    return(KHTTP_404);
+    return KHTTP_404;
   else if (KMETHOD_GET != r->method)
-    return(KHTTP_405);
+    return KHTTP_405;
   else
-    return(KHTTP_200);
+    return KHTTP_200;
 }</pre> 
 	</figure>
 	<p>
@@ -134,20 +133,20 @@
   struct kreq r;
   enum khttp er;
   if (KCGI_OK != khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0))  
-    return(EXIT_FAILURE);
+    return 0;
   if (KHTTP_200 != (er = sanitise(&amp;r))) {
     khttp_head(&amp;r, kresps[KRESP_STATUS],
       "%s", khttps[er]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
-      "%s", kmimetypes[r.mime]);
+      "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;r);
     if (KMIME_TEXT_HTML == r.mime)
       khttp_puts(&amp;r, "Could not service request.");
   } else
     process(&amp;r);
   khttp_free(&amp;r);
-  return(EXIT_SUCCESS);
-};</pre>
+  return 0;
+}</pre>
 	</figure>
 	<p>
 		For compilation, linking, and installation, see <a href="tutorial0.html">Getting Started with CGI in C</a>.
