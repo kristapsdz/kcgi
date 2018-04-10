@@ -9,11 +9,20 @@
 		</header>
 		<aside>
 			<div>
-				Propogate difference (in FastCGI) between the connection closing
-				(which is a recoverable error) and the manager killing the
-				connection or the control socket exiting, which are not recoverable.
-				This is thanks to Elouan Pignet, who was kind enough to diagnose the
-				problem and provide access to his system for a fix.
+				The <q>FastCGI release</q>: when running <span
+					class="nm">kcgi</span>'s FastCGI mode on nginx, processes
+				were being mysteriously killed under high load.
+				This was due to the end-point closing the connection before all data
+				was being read or written.
+				To wit, I now establish a difference (in FastCGI) between the
+				connection closing (which is a recoverable error) and the manager
+				killing the connection or the control socket exiting, which are not
+				recoverable.
+				Since most of this development was on Linux/ARM with nginx, the
+				sandbox for Linux has also been tooled up.
+				A <strong>big</strong> thanks to Elouan Pignet, who was kind enough
+				to diagnose the problem and provide access to his system for a fix,
+				including several failed attempts.
 				Thanks, Elouan!
 			</div>
 			<div>
@@ -60,7 +69,8 @@
 				Lastly, run through all code snippets, apply <a
 					href="https://man.openbsd.org/style.9">style(9)</a>, and
 				make sure that the MIME type is properly checked.
-				Also add <a href="tutorial6.html">Best practises for pledge(2) security</a>.
+				And add a new tutorial, <a href="tutorial6.html">Best practises for
+					pledge(2) security</a>.
 			</div>
 		</aside>
 	</article>
