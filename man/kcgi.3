@@ -174,7 +174,12 @@ functions.
 and
 .Xr khttp_templatex 3
 need access to their template files.
-.It Va unix sendfd recvfd
+.It Va recvfd
+.Xr khttp_fcgi_init 3
+needs these for inheritence by its child processes and
+.Xr khttp_fcgi_parse 3
+needs this for accepting the end-point descriptor for each connection.
+.It Va unix sendfd
 .Xr khttp_fcgi_init 3
 needs these for inheritence by its child processes.
 .El
