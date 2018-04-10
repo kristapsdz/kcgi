@@ -7,8 +7,14 @@
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
+		<link rel="stylesheet" href="prettify.css" />
 		<link rel="stylesheet" href="tutorial.css" />
-		<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?skin=sons-of-obsidian"></script>
+		<script src="prettify.js"></script>
+		<script>
+			window.addEventListener('load', function() {
+				PR.prettyPrint();
+			});
+		</script>
 	</head>
 	<body>
 		<header>
@@ -28,13 +34,9 @@
 				</nav>
 			</section>
 		</header>
-		<article data-sblg-article="1" data-sblg-permlink="0">
-		</article>
-		<div id="permlink">
-			<a href="${sblg-url}"><i class="fa fa-link"></i> Permanent link</a> to this article.
-		</div>
+		<article data-sblg-article="1" data-sblg-permlink="0"></article>
 		<footer>
-			<div>&#169; 2014&#8211;2017 <a rel="author" href="https://kristaps.bsd.lv">Kristaps Dzonsons</a></div>
+			<div>&#169; 2014&#8211;2018 <a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a></div>
 			<div>
 				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
