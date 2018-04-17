@@ -510,6 +510,8 @@ struct	ktemplatex {
 
 __BEGIN_DECLS
 
+const char	*kcgi_strerror(enum kcgi_err);
+
 enum kcgi_err	 khttp_body(struct kreq *);
 enum kcgi_err	 khttp_body_compress(struct kreq *, int);
 void		 khttp_free(struct kreq *);
