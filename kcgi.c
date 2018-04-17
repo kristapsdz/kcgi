@@ -288,6 +288,26 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"xml", /* KMIME_TEXT_XML */
 };
 
+const char *const kerrors[] = {
+	"success", /* KCGI_OK */
+	"cannot allocate memory", /* KCGI_ENOMEM */
+	"FastCGI exit", /* KCGI_EXIT */
+	"end-point connection closed", /* KCGI_HUP */
+	"too many open sockets", /* KCGI_ENFILE */
+	"failed to fork child", /* KCGI_EAGAIN */
+	"internal error", /* KCGI_FORM */
+	"system error", /* KCGI_SYSTEM */
+};
+
+const char *
+kcgi_strerror(enum kcgi_err er)
+{
+
+	assert(er <= KCGI_SYSTEM);
+	assert(er >= KCGI_OK);
+	return(kerrors[er]);
+}
+
 /*
  * Safe strdup(): don't return on exhaustion.
  */
