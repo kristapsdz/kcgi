@@ -93,13 +93,13 @@ khttp_templatex_buf(const struct ktemplate *t,
 		/* Seek to find the end "@@" marker. */
 
 		start = i + 2;
-		for (end = start + 1; end < sz - 1; end++)
+		for (end = start; end < sz - 1; end++)
 			if ('@' == buf[end] && '@' == buf[end + 1])
 				break;
 
-		/* Continue printing if not found of 0-length. */
+		/* Continue printing if not found. */
 
-		if (end == sz - 1 || end == start) {
+		if (end >= sz - 1) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
 				return(er);
 			continue;
@@ -131,6 +131,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 				XWARNX("template error");
 				return(KCGI_FORM);
 			}
+			i = end + 1;
 		} else if (j == t->keysz) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
 				return(er);
