@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2017, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017--2018 Kristaps Dzonsons <kristaps@bsd.lv>
 .\" Copyright (c) 2018 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -221,15 +221,21 @@ If the
 .Ar key
 is found in
 .Fa t->key ,
-the callback
+the key sequence is removed from the buffer and the callback
 .Fa t->cb
 is invoked.
-Otherwise, the fallthrough callback
+Otherwise, if the fallthrough callback
 .Fa tx->fbk
-is invoked if it is not
-.Dv NULL .
-Otherwise, the key sequence is passed unchanged to the current writing
-function.
+is not
+.Dv NULL ,
+the key sequence is removed from the buffer and the callback
+.Fa tx-fbk
+is invoked.
+If the key sequence is not found in
+.Fa t->key
+and the fallthrough callback is 
+.Dv NULL ,
+the key sequence is passed unchanged to the current writing function.
 .Pp
 If
 .Fa t
