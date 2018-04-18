@@ -714,13 +714,13 @@ khttp_parsex(struct kreq *req,
 	 */
 	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
 		XWARNX("kxsocketprep");
-		return(KCGI_SYSTEM);
+		return KCGI_SYSTEM;
 	} else if ( ! ksandbox_alloc(&work_box))
-		return(KCGI_ENOMEM);
+		return KCGI_ENOMEM;
 
 	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		ksandbox_free(work_box);
-		return(KCGI_SYSTEM);
+		return KCGI_SYSTEM;
 	}
 
 	if (-1 == (work_pid = fork())) {
@@ -729,7 +729,7 @@ khttp_parsex(struct kreq *req,
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
 		ksandbox_free(work_box);
-		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
+		return EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM;
 	} else if (0 == work_pid) {
 		/* Conditionally free our argument. */
 		if (NULL != argfree)
@@ -838,7 +838,7 @@ khttp_parsex(struct kreq *req,
 		goto err;
 	ksandbox_close(work_box);
 	ksandbox_free(work_box);
-	return(kerr);
+	return kerr;
 err:
 	assert(KCGI_OK != kerr);
 	if (-1 != work_dat[KWORKER_PARENT])
@@ -850,7 +850,7 @@ err:
 	kdata_free(req->kdata, 0);
 	req->kdata = NULL;
 	kreq_free(req);
-	return(kerr);
+	return kerr;
 }
 
 /*
