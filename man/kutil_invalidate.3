@@ -1,0 +1,59 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KUTIL_INVALIDATE 3
+.Os
+.Sh NAME
+.Nm kutil_invalidate
+.Nd invalidate a kcgi input pair
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft void
+.Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
+.Sh DESCRIPTION
+The
+.Fn kutil_invalidate
+function marks the input pair
+.Fa kp
+as invalid, moving it from a
+.Fa req->cookiemap
+or
+.Va req->fieldmap
+bucket into the corresponding
+.Va req->cookienmap
+or
+.Va req->fieldnmap
+bucket.
+It also resets
+.Fa kp->type
+to
+.Dv KPAIR__MAX .
+If
+.Fa kp
+is not valid to begin with, this function does nothing.
+.\" .Sh RETURN VALUES
+.Sh SEE ALSO
+.Xr kcgi 3 ,
+.Xr khttp_parse 3
+.Sh AUTHORS
+These functions were written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

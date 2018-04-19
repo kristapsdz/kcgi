@@ -19,7 +19,6 @@
 .Dt KVALID_STRING 3
 .Os
 .Sh NAME
-.Nm kutil_invalidate ,
 .Nm kvalid_bit ,
 .Nm kvalid_date ,
 .Nm kvalid_double ,
@@ -37,8 +36,6 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft void
-.Fn kutil_invalidate "struct kreq *req" "struct kpair *kp"
 .Ft int
 .Fn kvalid_bit "struct kpair *kp"
 .Ft int
@@ -134,27 +131,6 @@ The range does not extend to
 but is limited to
 .Dv INT64_MAX .
 .El
-.Pp
-The
-.Fn kutil_invalidate
-function marks the validated input pair
-.Fa kp
-as invalid, moving it from a
-.Fa req->cookiemap
-or
-.Va req->fieldmap
-bucket into the corresponding
-.Va req->cookienmap
-or
-.Va req->fieldnmap
-bucket.
-It also resets
-.Fa kp->type
-to
-.Dv KPAIR__MAX .
-If
-.Fa kp
-is not valid to begin with, this function does nothing.
 .Sh RETURN VALUES
 All validation functions return 1 if validation succeeds or 0 if it
 fails.
