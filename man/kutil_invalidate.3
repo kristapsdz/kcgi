@@ -46,14 +46,18 @@ bucket.
 It also resets
 .Fa kp->type
 to
-.Dv KPAIR__MAX .
-If
-.Fa kp
-is not valid to begin with, this function does nothing.
+.Dv KPAIR__MAX ,
+zeroes
+.Fa kp->parsed ,
+and sets
+.Fa kp->state
+to
+.Dv KPAIR_INVALID .
 .\" .Sh RETURN VALUES
 .Sh SEE ALSO
 .Xr kcgi 3 ,
-.Xr khttp_parse 3
+.Xr khttp_parse 3 ,
+.Xr kvalid_string 3
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
