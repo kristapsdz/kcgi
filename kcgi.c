@@ -853,11 +853,6 @@ err:
 	return kerr;
 }
 
-/*
- * This entire function would be two lines if we were using the
- * sys/queue macros.h.
- * FIXME: this can be simplified with the new "keypos" value.
- */
 void
 kutil_invalidate(struct kreq *r, struct kpair *kp)
 {
@@ -866,27 +861,25 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 
 	if (NULL == kp)
 		return;
-	else if (KPAIR__MAX == kp->type)
+
+	kp->type = KPAIR__MAX;
+	kp->state = KPAIR_INVALID;
+	memset(&kp->parsed, 0, sizeof(union parsed));
+
+	/* We're not bucketed. */
+
+	if ((i = kp->keypos) == r->keysz)
 		return;
 
-	/*
-	 * Look through our entire fieldmap to locate the pair, then
-	 * move it into the "bad" list.
-	 */
-	kp->type = KPAIR__MAX;
-	for (i = 0; i < r->keysz; i++) {
-		/* First time's the charm. */
+	/* Is it in our fieldmap? */
+
+	if (NULL != r->fieldmap[i]) {
 		if (kp == r->fieldmap[i]) {
-			/* Move existing fieldmap. */
 			r->fieldmap[i] = kp->next;
-			/* Invalidate, append to fieldnmap. */
 			kp->next = r->fieldnmap[i];
 			r->fieldnmap[i] = kp;
 			return;
-		} else if (NULL == r->fieldmap[i])
-			continue;
-
-		/* See if we're buried in the list. */
+		} 
 		lastp = r->fieldmap[i];
 		p = lastp->next;
 		for ( ; NULL != p; lastp = p, p = p->next)
@@ -897,17 +890,16 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 				return;
 			}
 	}
-	/*
-	 * Same as above, but look in the cookie map.
-	 */
-	for (i = 0; i < r->keysz; i++) {
+
+	/* ...cookies? */
+
+	if (NULL != r->cookiemap[i]) {
 		if (kp == r->cookiemap[i]) {
 			r->cookiemap[i] = kp->next;
 			kp->next = r->cookienmap[i];
 			r->cookienmap[i] = kp;
 			return;
-		} else if (NULL == r->cookiemap[i])
-			continue;
+		} 
 		lastp = r->cookiemap[i];
 		p = lastp->next;
 		for ( ; NULL != p; lastp = p, p = p->next) 
