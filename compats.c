@@ -35,24 +35,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void vwarni(const char *, va_list);
-static void vwarnxi(const char *, va_list);
-
-static void
-vwarnxi(const char *fmt, va_list ap)
+void
+vwarnx(const char *fmt, va_list ap)
 {
 	fprintf(stderr, "%s: ", getprogname());
 	if (fmt != NULL)
 		vfprintf(stderr, fmt, ap);
 }
 
-static void
-vwarni(const char *fmt, va_list ap)
+void
+vwarn(const char *fmt, va_list ap)
 {
 	int sverrno;
 
 	sverrno = errno;
-	vwarnxi(fmt, ap);
+	vwarnx(fmt, ap);
 	if (fmt != NULL)
 		fputs(": ", stderr);
 	fprintf(stderr, "%s\n", strerror(sverrno));
@@ -64,7 +61,7 @@ err(int eval, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarni(fmt, ap);
+	vwarn(fmt, ap);
 	va_end(ap);
 	exit(eval);
 }
@@ -75,7 +72,7 @@ errx(int eval, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarnxi(fmt, ap);
+	vwarnx(fmt, ap);
 	va_end(ap);
 	fputc('\n', stderr);
 	exit(eval);
@@ -87,7 +84,7 @@ warn(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarni(fmt, ap);
+	vwarn(fmt, ap);
 	va_end(ap);
 }
 
@@ -97,7 +94,7 @@ warnx(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarnxi(fmt, ap);
+	vwarnx(fmt, ap);
 	va_end(ap);
 	fputc('\n', stderr);
 }
