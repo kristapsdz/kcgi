@@ -34,7 +34,7 @@ static enum kcgi_err
 khttp_templatex_write(const char *dat, size_t sz, void *arg)
 {
 
-	return(khttp_write(arg, dat, sz));
+	return khttp_write(arg, dat, sz);
 }
 
 enum kcgi_err
@@ -46,7 +46,7 @@ khttp_template_buf(struct kreq *req,
 	memset(&x, 0, sizeof(struct ktemplatex));
 	x.writer = khttp_templatex_write;
 
-	return(khttp_templatex_buf(t, buf, sz, &x, req));
+	return khttp_templatex_buf(t, buf, sz, &x, req);
 }
 
 /*
@@ -68,7 +68,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 	enum kcgi_err	 er;
 
 	if (0 == sz)
-		return(KCGI_OK);
+		return KCGI_OK;
 
 	fp = opt->writer;
 
@@ -80,13 +80,14 @@ khttp_templatex_buf(const struct ktemplate *t,
 	 */
 
 	if (NULL == t && NULL == opt->fbk)
-		return(fp(buf, sz, arg));
+		return fp(buf, sz, arg);
 
 	for (i = 0; i < sz - 1; i++) {
 		/* Look for the starting "@@" marker. */
-		if ('@' != buf[i] || '@' != buf[i + 1]) {
+
+		if ( ! ('@' == buf[i] && '@' == buf[i + 1])) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
-				return(er);
+				return er;
 			continue;
 		} 
 
@@ -101,7 +102,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 
 		if (end >= sz - 1) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
-				return(er);
+				return er;
 			continue;
 		}
 
@@ -120,7 +121,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 				continue;
 			if ( ! (*t->cb)(j, t->arg)) {
 				XWARNX("template error");
-				return(KCGI_FORM);
+				return KCGI_FORM;
 			}
 			break;
 		}
@@ -129,20 +130,20 @@ khttp_templatex_buf(const struct ktemplate *t,
 			len = end - start;
 			if ( ! (*opt->fbk)(&buf[start], len, t->arg)) {
 				XWARNX("template error");
-				return(KCGI_FORM);
+				return KCGI_FORM;
 			}
 			i = end + 1;
 		} else if (j == t->keysz) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
-				return(er);
+				return er;
 		} else
 			i = end + 1;
 	}
 
 	if (i < sz && KCGI_OK != (er = fp(&buf[i], 1, arg)))
-		return(er);
+		return er;
 
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -153,7 +154,7 @@ khttp_template(struct kreq *req,
 
 	memset(&x, 0, sizeof(struct ktemplatex));
 	x.writer = khttp_templatex_write;
-	return(khttp_templatex(t, fname, &x, req));
+	return khttp_templatex(t, fname, &x, req);
 }
 
 enum kcgi_err
@@ -170,7 +171,7 @@ khttp_templatex(const struct ktemplate *t,
 
 	rc = khttp_templatex_fd(t, fd, fname, opt, arg);
 	close(fd);
-	return(rc);
+	return rc;
 }
 
 enum kcgi_err
@@ -181,7 +182,7 @@ khttp_template_fd(struct kreq *req,
 
 	memset(&x, 0, sizeof(struct ktemplatex));
 	x.writer = khttp_templatex_write;
-	return(khttp_templatex_fd(t, fd, fname, &x, req));
+	return khttp_templatex_fd(t, fd, fname, &x, req);
 }
 
 enum kcgi_err
@@ -199,13 +200,13 @@ khttp_templatex_fd(const struct ktemplate *t,
 
 	if (-1 == fstat(fd, &st)) {
 		XWARN("fstat: %s", fname);
-		return(KCGI_SYSTEM);
+		return KCGI_SYSTEM;
 	} else if (st.st_size > SSIZE_MAX) {
 		XWARNX("size overflow: %s", fname);
-		return(KCGI_SYSTEM);
+		return KCGI_SYSTEM;
 	} else if (st.st_size <= 0) {
 		XWARNX("zero-length: %s", fname);
-		return(KCGI_OK);
+		return KCGI_OK;
 	}
 
 	sz = (size_t)st.st_size;
@@ -213,10 +214,10 @@ khttp_templatex_fd(const struct ktemplate *t,
 
 	if (MAP_FAILED == buf) {
 		XWARN("mmap: %s", fname);
-		return(KCGI_SYSTEM);
+		return KCGI_SYSTEM;
 	}
 
 	rc = khttp_templatex_buf(t, buf, sz, opt, arg);
 	munmap(buf, sz);
-	return(rc);
+	return rc;
 }
