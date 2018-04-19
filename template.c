@@ -83,7 +83,21 @@ khttp_templatex_buf(const struct ktemplate *t,
 		return fp(buf, sz, arg);
 
 	for (i = 0; i < sz - 1; i++) {
-		/* Look for the starting "@@" marker. */
+		/* 
+		 * See if we're at an escaped @@, i.e., it's preceded by
+		 * the backslash.
+		 * If we are, then emit the standalone @@.
+		 */
+
+		if (i < sz - 2 && '\\' == buf[i] &&
+		    '@' == buf[i + 1] && '@' == buf[i + 2]) {
+			if (KCGI_OK != (er = fp(&buf[i + 1], 2, arg)))
+				return er;
+			i += 2;
+			continue;
+		}
+
+		/* Look for the starting @@ marker. */
 
 		if ( ! ('@' == buf[i] && '@' == buf[i + 1])) {
 			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
