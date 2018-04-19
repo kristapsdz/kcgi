@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.1.2"
+OCONFIGURE_VERSION="0.1.3"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -317,6 +317,9 @@ __HEREDOC__
   ${HAVE_STRNLEN} -eq 0 ] \
 	&& echo "#include <sys/types.h>"
 
+[ ${HAVE_ERR} -eq 0 ] \
+	&& echo "#include <stdarg.h>"
+
 # Now we handle our HAVE_xxxx values.
 # Most will just be defined as 0 or 1.
 
@@ -362,6 +365,8 @@ if [ ${HAVE_ERR} -eq 0 ]; then
 	echo "extern void errx(int, const char *, ...);"
 	echo "extern void warn(const char *, ...);"
 	echo "extern void warnx(const char *, ...);"
+	echo "extern void vwarn(const char *, va_list);"
+	echo "extern void vwarnx(const char *, va_list);"
 fi
 
 if [ ${HAVE_MD5} -eq 0 ]; then
