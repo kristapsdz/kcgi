@@ -69,6 +69,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/kcgixml.3 \
 		   man/kcgi_buf_write.3 \
 		   man/kcgi_writer_disable.3 \
+		   man/kcgi_strerror.3 \
 		   man/khttp_body.3 \
 		   man/khttp_fcgi_free.3 \
 		   man/khttp_fcgi_init.3 \
