@@ -82,10 +82,11 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttpbasic_validate.3 \
 		   man/khttpdigest_validate.3 \
 		   man/kmalloc.3 \
-		   man/kutil_urlencode.3 \
 		   man/kutil_epoch2str.3 \
+		   man/kutil_invalidate.3 \
 		   man/kutil_log.3 \
 		   man/kutil_openlog.3 \
+		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
 MAN8S		 = man/kfcgi.8 
 MANS		 = $(MAN3S) \
@@ -153,6 +154,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header \
 		   regress/test-header-bad \
 		   regress/test-httpdate \
+		   regress/test-invalidate \
 		   regress/test-json-simple \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
