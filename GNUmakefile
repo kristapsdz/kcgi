@@ -263,11 +263,11 @@ $(LIBOBJS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o: config.h extern.h
 compats.o: config.h
 
 installcgi: sample samplepp sample-fcgi sample-cgi
-	install -m 0755 sample $(PREFIX)/sample.cgi
-	install -m 0755 samplepp $(PREFIX)/samplepp.cgi
-	install -m 0755 sample-cgi $(PREFIX)/sample-simple.cgi
-	install -m 0755 sample-fcgi $(PREFIX)/sample-fcgi.cgi
-	install -m 0444 template.xml $(PREFIX)
+	$(INSTALL_PROGRAM) sample $(PREFIX)/sample.cgi
+	$(INSTALL_PROGRAM) samplepp $(PREFIX)/samplepp.cgi
+	$(INSTALL_PROGRAM) sample-cgi $(PREFIX)/sample-simple.cgi
+	$(INSTALL_PROGRAM) sample-fcgi $(PREFIX)/sample-fcgi.cgi
+	$(INSTALL_DATA) template.xml $(PREFIX)
 
 install: all
 	mkdir -p $(DESTDIR)$(LIBDIR)
@@ -276,12 +276,12 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN3DIR)
 	mkdir -p $(DESTDIR)$(MAN8DIR)
 	mkdir -p $(DESTDIR)$(SBINDIR)
-	install -m 0444 $(LIBS) $(DESTDIR)$(LIBDIR)
-	install -m 0444 kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
-	install -m 0444 $(MAN3S) $(DESTDIR)$(MAN3DIR)
-	install -m 0444 $(MAN8S) $(DESTDIR)$(MAN8DIR)
-	install -m 0555 kfcgi $(DESTDIR)$(SBINDIR)
-	install -m 0444 template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
+	$(INSTALL_LIB) $(LIBS) $(DESTDIR)$(LIBDIR)
+	$(INSTALL_DATA) kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
+	$(INSTALL_MAN) $(MAN3S) $(DESTDIR)$(MAN3DIR)
+	$(INSTALL_MAN) $(MAN8S) $(DESTDIR)$(MAN8DIR)
+	$(INSTALL_PROGRAM) kfcgi $(DESTDIR)$(SBINDIR)
+	$(INSTALL_DATA) template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
 
 uninstall:
 	$(foreach $@_LIB, $(LIBS), rm -f $(DESTDIR)$(LIBDIR)/$($@_LIB);)
@@ -307,12 +307,12 @@ www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(TUTORIALHTMLS) extendi
 
 installwww: www
 	mkdir -p $(WWWDIR)/snapshots
-	install -m 0444 $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) atom.xml $(WWWDIR)
-	install -m 0444 sample.c $(WWWDIR)/sample.c.txt
-	install -m 0444 sample-fcgi.c $(WWWDIR)/sample-fcgi.c.txt
-	install -m 0444 kcgi.tgz kcgi.tgz.sha512 $(WWWDIR)/snapshots/
-	install -m 0444 kcgi.tgz $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz
-	install -m 0444 kcgi.tgz.sha512 $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz.sha512
+	$(INSTALL_DATA) $(SBLGS) $(CSSS) extending01.html $(TUTORIALHTMLS) $(SVGS) $(HTMLS) atom.xml $(WWWDIR)
+	$(INSTALL_DATA) sample.c $(WWWDIR)/sample.c.txt
+	$(INSTALL_DATA) sample-fcgi.c $(WWWDIR)/sample-fcgi.c.txt
+	$(INSTALL_DATA) kcgi.tgz kcgi.tgz.sha512 $(WWWDIR)/snapshots/
+	$(INSTALL_DATA) kcgi.tgz $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz
+	$(INSTALL_DATA) kcgi.tgz.sha512 $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz.sha512
 
 index.html: index.xml versions.xml $(TUTORIALHTMLS)
 	sblg -t index.xml -s date -o- versions.xml $(TUTORIALHTMLS) | sed "s!@VERSION@!$(VERSION)!g" >$@
@@ -348,12 +348,12 @@ kcgi.tgz:
 	mkdir -p .dist/kcgi-$(VERSION)/man
 	mkdir -p .dist/kcgi-$(VERSION)/regress
 	mkdir -p .dist/kcgi-$(VERSION)/afl
-	cp $(SRCS) .dist/kcgi-$(VERSION)
-	cp $(REGRESS_SRCS) .dist/kcgi-$(VERSION)/regress
-	cp $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
-	cp GNUmakefile template.xml .dist/kcgi-$(VERSION)
-	cp $(MANS) .dist/kcgi-$(VERSION)/man
-	$(INSTALL_PROGRAM) configure .dist/kcgi-$(VERSION)
+	install -m 0644 $(SRCS) .dist/kcgi-$(VERSION)
+	install -m 0644 $(REGRESS_SRCS) .dist/kcgi-$(VERSION)/regress
+	install -m 0644 $(AFL_SRCS) .dist/kcgi-$(VERSION)/afl
+	install -m 0644 GNUmakefile template.xml .dist/kcgi-$(VERSION)
+	install -m 0644 $(MANS) .dist/kcgi-$(VERSION)/man
+	install -m 0755 configure .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
 
