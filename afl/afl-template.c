@@ -31,12 +31,12 @@
 
 #include "../kcgi.h"
 
-static int
+static enum kcgi_err
 templatex_write(const char *dat, size_t sz, void *arg)
 {
 
 	fwrite(dat, 1, sz, stdout);
-	return(1);
+	return KCGI_OK;
 }
 
 static int
@@ -45,7 +45,7 @@ template_proc(size_t sz, void *arg)
 
 	assert(sz < 10);
 	printf("[%zu]", sz);
-	return(1);
+	return 1;
 }
 
 int
