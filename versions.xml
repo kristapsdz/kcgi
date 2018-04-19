@@ -3,6 +3,31 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-04-19">2018-04-19</time>
+		</header>
+		<aside>
+			<div>
+				Add <a href="kcgi_strerror.3.html">kcgi_strerror(3)</a> for a string
+				representation of the error codes.  Split <a
+					href="kutil_invalidate.3.html">kutil_invalidate(3)</a> into
+				its own manpage.
+				Fix up some corner cases in template handling: trailing delimiters,
+				empty key sequences, and so on.
+				Also allow for escaping delimeters, <code>\@@</code>, allowing for
+				the existence of delimeters as opaque text.
+			</div>
+			<div>
+				These fixes were implemented or suggested by Ingo Schwarze
+				(<q>schwarze@</q>) in an audit generously funded by CAPEM Solutions,
+				Inc.  
+				Thank you so much!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.3</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-04-10">2018-04-10</time>
