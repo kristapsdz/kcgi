@@ -82,11 +82,10 @@ test1(void)
 	if (b.sz != testsz || memcmp(test, b.buf, testsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Found in keys. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@foobar@@def";
 	testsz = strlen(test);
 	t.key = keys;
@@ -101,11 +100,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Not found: unchanged. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@bar@@def";
 	testsz = strlen(test);
 	t.key = keys;
@@ -120,11 +118,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Not found, fallthrough, not found (omitted). */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@foobar@@def";
 	testsz = strlen(test);
 	t.key = NULL;
@@ -140,11 +137,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Not found, fallthrough, found. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@bar@@def";
 	testsz = strlen(test);
 	t.key = NULL;
@@ -160,11 +156,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* First string found in keys, second omitted. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@bar@@def@@moobar@@";
 	testsz = strlen(test);
 	t.key = NULL;
@@ -180,11 +175,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Not found, no fallthrough, kept. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@@@def";
 	testsz = strlen(test);
 	t.key = NULL;
@@ -200,11 +194,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Not found, fallthrough, discarded. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@@@def";
 	testsz = strlen(test);
 	t.key = NULL;
@@ -220,11 +213,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Error: not terminated. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@def";
 	testsz = strlen(test);
 	t.key = keys;
@@ -240,11 +232,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Error: not terminated (w/fallthrough). */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@def";
 	testsz = strlen(test);
 	t.key = keys;
@@ -260,11 +251,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Error: not terminated at eof. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "abc@@";
 	testsz = strlen(test);
 	t.key = keys;
@@ -280,11 +270,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Full span. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "@@foobar@@";
 	testsz = strlen(test);
 	t.key = keys;
@@ -300,11 +289,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Empty string. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "";
 	testsz = strlen(test);
 	t.key = keys;
@@ -320,11 +308,10 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	free(b.buf);
-	memset(&b, 0, sizeof(struct kcgi_buf));
-
 	/* Only delim. */
 
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
 	test = "@@";
 	testsz = strlen(test);
 	t.key = keys;
@@ -336,6 +323,42 @@ test1(void)
 	if (KCGI_OK != rc)
 		goto out;
 	r = "@@";
+	rsz = strlen(r);
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
+		goto out;
+
+	/* Escaped. */
+
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
+	test = "abc\\@@foobar\\@@def";
+	testsz = strlen(test);
+	t.key = keys;
+	t.keysz = 1;
+	t.arg = &b;
+	t.cb = test1_cmp;
+	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
+	if (KCGI_OK != rc)
+		goto out;
+	r = "abc@@foobar@@def";
+	rsz = strlen(r);
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
+		goto out;
+
+	/* Escaped at eof. */
+
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
+	test = "abc\\@@";
+	testsz = strlen(test);
+	t.key = keys;
+	t.keysz = 1;
+	t.arg = &b;
+	t.cb = test1_cmp;
+	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
+	if (KCGI_OK != rc)
+		goto out;
+	r = "abc@@";
 	rsz = strlen(r);
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;

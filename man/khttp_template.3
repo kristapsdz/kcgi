@@ -209,7 +209,7 @@ If
 is 0, the template is considered empty and
 .Fa buf
 is ignored.
-.Pp
+.Ss Template language
 Each substring of the template buffer beginning and ending with a pair
 of
 .Dq at
@@ -217,6 +217,14 @@ signs,
 .Cm @@ Ns Ar key Ns Cm @@ ,
 is called a
 .Dq key sequence .
+If the
+.Dq at
+pair is escaped with a single backslash, 
+.Cm \e@@ ,
+it's considered opaque text.
+A key sequence may not contain an escaped pair: this is parsed as a backslash
+followed by the trailing pair.
+.Pp
 If the
 .Ar key
 is found in
