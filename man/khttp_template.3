@@ -221,7 +221,8 @@ If the
 .Dq at
 pair is escaped with a single backslash, 
 .Cm \e@@ ,
-it's considered opaque text.
+the backslash is removed and it's emitted as
+.Cm @@ .
 A key sequence may not contain an escaped pair: this is parsed as a backslash
 followed by the trailing pair.
 .Pp
