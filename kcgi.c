@@ -431,7 +431,8 @@ kutil_urlencode(const char *cp)
 			p[cur++] = '+';
 			continue;
 		}
-		cur += snprintf(p + cur, 4, "%%%.2x", ch);
+		cur += snprintf(p + cur, 4, "%%%.2x", 
+			(unsigned char)ch);
 	}
 
 	return(p);
