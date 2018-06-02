@@ -149,7 +149,7 @@ resp_open(struct kreq *req, enum khttp http)
 	khttp_head(req, kresps[KRESP_STATUS], 
 		"%s", khttps[http]);
 	khttp_head(req, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[req->mime]);
+		"%s", kmimetypes[mime]);
 	khttp_body(req);
 }
 
