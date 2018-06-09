@@ -3,6 +3,21 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.6</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-04-19">2018-04-19</time>
+		</header>
+		<aside>
+			<div>
+				Quick fix from Ross Richardson regarding URL encoding with the high bit set.
+				Thank you so much!
+				Also push in some small fixes from the <a
+					href="https://github.com/kristapsdz/kcgi">GitHub</a> list.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.5</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-04-19">2018-04-19</time>
