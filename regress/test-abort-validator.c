@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +25,10 @@
 
 #include "../kcgi.h"
 #include "regress.h"
+
+/* This crashes Mac OS X.  Great job, guys! */
+
+#ifndef __APPLE__
 
 static int
 parent(CURL *curl)
@@ -62,3 +66,14 @@ main(int argc, char *argv[])
 
 	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
+
+#else
+
+int
+main(int argc, char *argv[])
+{
+
+	return 0;
+}
+
+#endif
