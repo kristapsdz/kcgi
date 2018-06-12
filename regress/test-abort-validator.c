@@ -26,7 +26,7 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-/* This crashes Mac OS X.  Great job, guys! */
+/* This crashes Mac OS X.  */
 
 #ifndef __APPLE__
 
@@ -73,7 +73,7 @@ int
 main(int argc, char *argv[])
 {
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 #endif
