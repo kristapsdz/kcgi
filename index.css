@@ -17,6 +17,13 @@ body > header a:hover			{ color: #ff0; }
 body > header nav .version		{ border-right: thin solid silver; 
 					  color: #abc;
 					  padding-right: 1ex; }
+.psa					{ border: 3px solid red;
+					  padding: 0 1.1em;
+					  box-shadow: 0px 0px 1px red;
+					  background-color: #fdd;
+					  border-radius: 8pt; }
+.psa strong				{ font-weight: 500; 
+					  color: red; }
 #version ul,
 #header ul				{ margin: auto 0; 
 					  padding: 0;

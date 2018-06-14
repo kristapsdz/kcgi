@@ -41,6 +41,20 @@
 			</section>
 		</header>
 		<section>
+			<div class="psa">
+				<p>
+					<strong>PSA</strong>: do not run <span class="nm">kcgi</span> on Mac OSX.
+					The regression suite has uncovered numerous places ([<a
+						href="https://github.com/kristapsdz/kcgi/issues/39">1</a>], [<a
+						href="https://github.com/kristapsdz/kcgi/issues/40">2</a>]) where a Sierra or High Sierra system
+					will completely crash.
+					This is reproducible for certain CGI scripts and most FastCGI handling, and is possible in live
+					deployments&#8212;not just within the regression suite.
+					Apple has not yet responded to a bug report, though it was just filed.
+					Many thanks to <a href="https://github.com/sunqingyao">sunqingyao@</a> for delving into this bug and
+					sounding its depths.
+				</p>
+			</div>
 			<p id="intro">
 				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
 					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
@@ -298,16 +312,6 @@ int main(void) {
 				default are deployed within a <a
 					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
 				this is the case, you'll need to statically link your binary.
-				If running within a <a
-					href="https://man.openbsd.org/chroot.2">chroot(2)</a> and on
-				OpenBSD prior to 5.9 (i.e., with <a
-					href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>),
-				be aware that the sandbox method requires <span class="file">/dev/systrace</span> within the
-				server root.
-				By default, this file does not exist in the web server root.
-				Moreover, the default web server root mount-point, <span class="file">/var</span>, is mounted
-				<code>nodev</code>.
-				This complication does not exist for the other sandboxes.
 			</p>
 			<p>
 				FastCGI applications may either be started directly by the web server (which is popular with <a
@@ -362,7 +366,7 @@ int main(void) {
 				</dd>
 				<dt>
 					<a href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
-					(<a href="https://www.openbsd.org">OpenBSD</a>)
+					(<a href="https://www.openbsd.org">OpenBSD</a>, <strong>deprecated</strong>)
 				</dt>
 				<dd>
 					This requires the existence of <i>/dev/systrace</i> if running in a
