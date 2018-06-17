@@ -204,6 +204,8 @@ kauth_count(uint32_t *count, const char **cp)
 {
 	struct pdigbuf	 buf;
 	char		 numbuf[9];
+	const char	*numstr;
+	uint8_t		 byte;
 
 	*count = 0;
 
@@ -219,16 +221,31 @@ kauth_count(uint32_t *count, const char **cp)
 
 	memcpy(numbuf, buf.pos, buf.sz);
 	numbuf[buf.sz] = '\0';
+	numstr = numbuf;
 
 	/* 
 	 * Convert from the hex string into a number.
 	 * There are a maximum of 8 possible digits in this hex value,
 	 * so we'll have no more than 0xffffffff.
 	 * Default to zero if there are errors.
-	 * Note: UINT32_MAX < long long int maximum.
 	 */
 
-	*count = strtonum(numbuf, 0, UINT32_MAX, NULL);
+	while (*numstr) {
+		byte = *numstr++;
+
+		if (byte >= '0' && byte <= '9')
+			byte = byte - '0';
+		else if (byte >= 'a' && byte <='f')
+			byte = byte - 'a' + 10;
+		else if (byte >= 'A' && byte <='F')
+			byte = byte - 'A' + 10;
+		else  {
+			*count = 0;
+			return;
+		}
+
+		*count = (*count << 4) | (byte & 0xF);
+	}
 }
 
 static int
