@@ -44,9 +44,9 @@ parent(CURL *curl)
 		"nonce=\"367sj3265s5\","
 		"uri=\"/plain.txt\","
 		"qop=auth-int,"
-		"nc=00000001,"
+		"nc=000001ff,"
 		"cnonce=\"hxk1lu63b6c7vhk\","
-		"response=\"5ab6822b9d906cc711760a7783b28dca\","
+		"response=\"517a8a2617faed1847835f3ec271ca38\","
 		"opaque=\"87aaxcval4gba36\"");
 	list = curl_slist_append(list,
 		"Content-Type: application/octet-stream");
