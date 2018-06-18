@@ -224,7 +224,7 @@ kfcgi: kfcgi.o libconfig.a
 
 kfcgi.o: config.h
 
-regress/%.o: regress/%.c config.h regress/regress.h
+regress/%.o: regress/%.c config.h regress/regress.h kcgi.h
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ -c $<
 
 regress/%: regress/%.o regress/regress.o libkcgiregress.a libkcgijson.a libkcgi.a
