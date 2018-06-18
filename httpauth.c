@@ -204,6 +204,8 @@ kauth_count(uint32_t *count, const char **cp)
 {
 	struct pdigbuf	 buf;
 	char		 numbuf[9];
+	char		*ep;
+	unsigned long long ulval;
 
 	*count = 0;
 
@@ -228,7 +230,16 @@ kauth_count(uint32_t *count, const char **cp)
 	 * Note: UINT32_MAX < long long int maximum.
 	 */
 
-	*count = strtonum(numbuf, 0, UINT32_MAX, NULL);
+	errno = 0;
+	ulval = strtoull(numbuf, &ep, 16);
+	if (numbuf[0] == '\0' || *ep != '\0')
+		*count = 0;
+	else if (errno == ERANGE && ulval == ULLONG_MAX)
+		*count = 0;
+	else if (ulval > UINT32_MAX)
+		*count = 0;
+	else
+		*count = ulval;
 }
 
 static int
