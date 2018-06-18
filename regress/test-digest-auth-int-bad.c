@@ -28,7 +28,7 @@
 #include "regress.h"
 
 static int
-parent3(CURL *curl)
+parent0(CURL *curl)
 {
 	struct curl_slist *list = NULL;
 	const char *body = "PLAIN TEXT";
@@ -44,38 +44,9 @@ parent3(CURL *curl)
 		"nonce=\"367sj3265s5\","
 		"uri=\"/plain.txt\","
 		"qop=auth-int,"
-		"nc=ffffffff,"
+		"nc=00000000,"
 		"cnonce=\"hxk1lu63b6c7vhk\","
-		"response=\"bc9ef2fa9891939c3fbb0a5892410c75\","
-		"opaque=\"87aaxcval4gba36\"");
-	list = curl_slist_append(list,
-		"Content-Type: application/octet-stream");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-	c = curl_easy_perform(curl);
-	curl_slist_free_all(list);
-	return(CURLE_OK == c);
-}
-
-static int
-parent2(CURL *curl)
-{
-	struct curl_slist *list = NULL;
-	const char *body = "PLAIN TEXT";
-	int c;
-
-	curl_easy_setopt(curl, CURLOPT_URL,
-		"http://localhost:17123/plain.txt");
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
-	list = curl_slist_append(list,
-		"Authorization: Digest username=\"admin\","
-		"realm=\"AuthInt Example\","
-		"nonce=\"367sj3265s5\","
-		"uri=\"/plain.txt\","
-		"qop=auth-int,"
-		"nc=000001ff,"
-		"cnonce=\"hxk1lu63b6c7vhk\","
-		"response=\"517a8a2617faed1847835f3ec271ca38\","
+		"response=\"5ab6822b9d906cc711760a7783b28dca\","
 		"opaque=\"87aaxcval4gba36\"");
 	list = curl_slist_append(list,
 		"Content-Type: application/octet-stream");
@@ -104,7 +75,7 @@ parent1(CURL *curl)
 		"qop=auth-int,"
 		"nc=00000001,"
 		"cnonce=\"hxk1lu63b6c7vhk\","
-		"response=\"5ab6822b9d906cc711760a7783b28dca\","
+		"response=\"f00f00f00f00f00f00760a7783b28dca\","
 		"opaque=\"87aaxcval4gba36\"");
 	list = curl_slist_append(list,
 		"Content-Type: application/octet-stream");
@@ -154,11 +125,9 @@ int
 main(int argc, char *argv[])
 {
 
-	if ( ! regress_cgi(parent1, child))
+	if (regress_cgi(parent0, child))
 		return EXIT_FAILURE;
-	if ( ! regress_cgi(parent2, child))
-		return EXIT_FAILURE;
-	if ( ! regress_cgi(parent3, child))
+	if (regress_cgi(parent1, child))
 		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
