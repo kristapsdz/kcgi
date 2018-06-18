@@ -177,6 +177,7 @@ const char *const kmimetypes[KMIME__MAX] = {
 	"application/json", /* KMIME_APP_JSON */
 	"application/octet-stream", /* KMIME_APP_OCTET_STREAM */
 	"application/pdf", /* KMIME_APP_PDF */
+	"application/xml", /* KMIME_APP_XML */
 	"application/zip", /* KMIME_APP_ZIP */
 	"image/gif", /* KMIME_IMAGE_GIF */
 	"image/jpeg", /* KMIME_IMAGE_JPEG */
@@ -275,6 +276,7 @@ const char *const ksuffixes[KMIME__MAX] = {
 	"json", /* KMIME_APP_JSON */
 	NULL, /* KMIME_APP_OCTET_STREAM */
 	"pdf", /* KMIME_APP_PDF */
+	"xml", /* KMIME_APP_XML */
 	"zip", /* KMIME_APP_ZIP */
 	"gif", /* KMIME_IMAGE_GIF */
 	"jpg", /* KMIME_IMAGE_JPEG */
