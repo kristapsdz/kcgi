@@ -22,9 +22,6 @@
 
 #include <stdarg.h>
 #include <stdint.h>
-#if !HAVE_ARC4RANDOM
-# include <bsd/stdlib.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -52,7 +49,11 @@ main(int argc, char *argv[])
 		 * We would do more values, but Linux sometimes has
 		 * 32-bit time.
 		 */
+#if HAVE_ARC4RANDOM
 		v = arc4random_uniform(50 * 365 * 24 * 60 * 60);
+#else
+		v = random() % (50 * 365 * 24 * 60 * 60);
+#endif
 		tm = gmtime(&v);
 		strftime(inbuf, sizeof(inbuf), "%a, %d %b %Y %T GMT", tm);
 		kutil_epoch2str(v, testbuf, sizeof(testbuf));
