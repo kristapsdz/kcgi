@@ -17,6 +17,13 @@
 				supported MIME types.
 				Thanks!
 			</div>
+			<div>
+				Remove <strong>-lbsd</strong> requirement for Linux regression
+				tests.
+				Fix another issue where <a
+					href="https://man.openbsd.org/fpclassify.3">fpclassify(3)</a>
+				on Linux requires <strong>-lm</strong>.
+			</div>
 		</aside>
 	</article>
 	<article data-sblg-article="1" data-sblg-tags="version">
