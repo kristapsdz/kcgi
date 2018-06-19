@@ -10,6 +10,7 @@ STATIC 		 = -static
 ifeq ($(shell uname), Linux)
 # Linux's fpclassify needs -lm.
 LIBADD		+= -lm
+#CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 endif
 
 ifeq ($(shell uname), Darwin)
@@ -21,7 +22,6 @@ endif
 
 # You probably don't need to change anything else...
 
-#CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
 WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
 DATADIR 	 = $(SHAREDIR)/kcgi
 TUTORIALXMLS	 = tutorial0.xml \
