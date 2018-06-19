@@ -8,9 +8,8 @@ include Makefile.configure
 STATIC 		 = -static
 
 ifeq ($(shell uname), Linux)
-# Linux needs libbsd for regression tests.
-LIBADD		+= $(shell pkg-config --libs libbsd)
-CFLAGS		+= $(shell pkg-config --cflags libbsd)
+# Linux's fpclassify needs -lm.
+LIBADD		+= -lm
 endif
 
 ifeq ($(shell uname), Darwin)
