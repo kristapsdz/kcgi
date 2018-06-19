@@ -3,6 +3,24 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.7</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-06-19">2018-06-19</time>
+		</header>
+		<aside>
+			<div>
+				Some excellent fixes from <a
+					href="https://github.com/mk-f">mk-f@</a> in getting better
+				support for <a href="https://kristaps.bsd.lv/kcaldav">kcaldav</a>: 
+				fixing the <code>nc</code> value in digest authentication to be hex
+				and adding support for <code>application/xml</code> to the list of
+				supported MIME types.
+				Thanks!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.6</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-04-19">2018-04-19</time>
