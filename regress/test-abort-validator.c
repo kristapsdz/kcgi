@@ -26,10 +26,6 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-/* This crashes Mac OS X.  */
-
-#ifndef __APPLE__
-
 static int
 parent(CURL *curl)
 {
@@ -66,14 +62,3 @@ main(int argc, char *argv[])
 
 	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-
-#else
-
-int
-main(int argc, char *argv[])
-{
-
-	return EXIT_SUCCESS;
-}
-
-#endif

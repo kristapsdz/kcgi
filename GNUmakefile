@@ -131,8 +131,7 @@ AFL		 = afl/afl-multipart \
 		   afl/afl-plain \
 		   afl/afl-template \
 		   afl/afl-urlencoded
-REGRESS		 = regress/test-abort-validator \
-		   regress/test-basic \
+REGRESS		 = regress/test-basic \
 		   regress/test-basic-curl \
 		   regress/test-bigfile \
 		   regress/test-buf \
@@ -140,15 +139,6 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-digest \
 		   regress/test-digest-auth-int \
 		   regress/test-digest-auth-int-bad \
-		   regress/test-fcgi-abort-validator \
-		   regress/test-fcgi-bigfile \
-		   regress/test-fcgi-file-get \
-		   regress/test-fcgi-header \
-		   regress/test-fcgi-header-bad \
-		   regress/test-fcgi-path-check \
-		   regress/test-fcgi-ping \
-		   regress/test-fcgi-ping-double \
-		   regress/test-fcgi-upload \
 		   regress/test-file-get \
 		   regress/test-fork \
 		   regress/test-gzip \
@@ -171,6 +161,23 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-urlpart \
 		   regress/test-valid-date \
 		   regress/test-valid-double
+
+# Apple's Mac OS X has an operating system failure when running these
+# tests (or running the same code as a regular CGI/FastCGI script).
+
+ifneq ($(shell uname), Darwin)
+REGRESS		+= regress/test-abort-validator \
+		   regress/test-fcgi-abort-validator \
+		   regress/test-fcgi-bigfile \
+		   regress/test-fcgi-file-get \
+		   regress/test-fcgi-header \
+		   regress/test-fcgi-header-bad \
+		   regress/test-fcgi-path-check \
+		   regress/test-fcgi-ping \
+		   regress/test-fcgi-ping-double \
+		   regress/test-fcgi-upload
+endif
+
 REGRESS_OBJS	 = $(addsuffix .o, $(REGRESS)) \
 		   regress/regress.o
 AFL_SRCS	 = $(addsuffix .c, $(AFL)) 
