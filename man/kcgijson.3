@@ -236,6 +236,10 @@ for example,
 % cc -I/usr/local/include -c -o sample.o sample.c
 % cc -L/usr/local/lib -o sample -lkcgijson -lkcgi -lz
 .Ed
+.Pp
+On some systems (e.g., Linux), you may also need
+.Fl l Ns Ar m
+as a linker flag.
 .Bl -tag -width Ds
 .It Fn kjson_open
 Initialise the JSON context
