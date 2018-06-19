@@ -158,7 +158,7 @@ int main(void) {
 }</pre>
 			</figure>
 			<p>
-				For a fuller example, see <a href="sample.c.html">sample.c</a>, or jump to the <a href="#usage">Usage</a> section.
+				For a fuller example, see <a href="sample.c.html">sample.c</a>, or jump to the <a href="#usage">Documentation</a> section.
 				(Want a C++ version?  See <a href="samplepp.cc.html">samplepp.cc</a>.)
 			</p>
 			<p>
@@ -209,8 +209,7 @@ int main(void) {
 				(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
 				The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
 				If you're running the regression tests (see <a href="#testing">Testing</a>), you'll need <a
-					href="https://curl.haxx.se/libcurl/">libcurl</a> and <a
-					href="https://libbsd.freedesktop.org">libbsd</a> (on Linux).
+					href="https://curl.haxx.se/libcurl/">libcurl</a>.
 			</p>
 			<p>
 				Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
@@ -240,7 +239,7 @@ int main(void) {
 		</section>
 		<section id="usage">
 			<h2>
-				Usage
+				Documentation
 			</h2>
 			<p>
 				The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
@@ -306,6 +305,7 @@ int main(void) {
 				<span class="file">stdarg.h</span> for the <code>va_list</code> type).
 				Linking is similarly normative: link to <span class="file">libkcgi</span> and, if your system has
 				compression support, <span class="file">libz</span>.
+				Linux systems using <a href="kcgijson.3.html">kcgijson(3)</a> will need to link with <span class="file">libm</span>.
 			</p>
 			<p>
 				Well-deployed web servers, such as the default <a href="https://www.openbsd.org">OpenBSD</a> server, by
