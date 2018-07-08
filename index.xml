@@ -191,7 +191,7 @@ int main(void) {
 				Installation
 			</h2>
 			<p>
-				First, check if <span class="nm">kcgi</span> isn't already a third-part port for your system, such as
+				First, check if <span class="nm">kcgi</span> isn't already a third-party port for your system, such as
 				for <a href="https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
 					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>.
 				If so, install using that system.
