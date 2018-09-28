@@ -41,20 +41,6 @@
 			</section>
 		</header>
 		<section>
-			<div class="psa">
-				<p>
-					<strong>PSA</strong>: do not run <span class="nm">kcgi</span> on Mac OSX.
-					The regression suite has uncovered numerous places ([<a
-						href="https://github.com/kristapsdz/kcgi/issues/39">1</a>], [<a
-						href="https://github.com/kristapsdz/kcgi/issues/40">2</a>]) where a Sierra or High Sierra system
-					will completely crash.
-					This is reproducible for certain CGI scripts and most FastCGI handling, and is possible in live
-					deployments&#8212;not just within the regression suite.
-					Apple has not yet responded to a bug report, though it was just filed.
-					Many thanks to <a href="https://github.com/sunqingyao">sunqingyao@</a> for delving into this bug and
-					sounding its depths.
-				</p>
-			</div>
 			<p id="intro">
 				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
 					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
@@ -79,7 +65,7 @@
 				</nav>
 				<figcaption>
 					The following echoes <q>Hello, World!</q> as an HTTP response to a CGI request.
-					Click on any italicitised fields to link to the documentation.
+					Click on any <strong>bold</strong> fields to link to the documentation.
 				</figcaption>
 				<pre id="nocomments" class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
 #include &lt;stdarg.h&gt; /* va_list */
@@ -204,7 +190,7 @@ int main(void) {
 					itemprop="operatingSystem">Linux</a> machines, BSD (<a href="https://www.openbsd.org"
 					itemprop="operatingSystem">OpenBSD</a>, <a href="https://www.freebsd.org"
 					itemprop="operatingSystem">FreeBSD</a>), and <a href="https://www.apple.com/osx"
-					itemprop="operatingSystem">Mac OSX</a> (Snow Leopard, Lion) on i386 and AMD64.
+					itemprop="operatingSystem">Mac OSX</a> (only Mojave and newer!) on i386 and AMD64.
 				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 					href="https://nginx.org">nginx</a>, and OpenBSD's <a
 					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
