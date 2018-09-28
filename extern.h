@@ -78,25 +78,23 @@ int		 fullwritefd(int, int, void *, size_t);
 int		 ksandbox_alloc(void **);
 void		 ksandbox_close(void *);
 void		 ksandbox_free(void *);
-int		 ksandbox_init_child(void *, 
-			enum sandtype, int, int, int, int);
+int		 ksandbox_init_child(enum sandtype, int, int, int, int);
 #ifdef HAVE_CAPSICUM
-int	 	 ksandbox_capsicum_init_child(void *, 
-			enum sandtype, int, int, int, int);
+int	 	 ksandbox_capsicum_init_child
+			(enum sandtype, int, int, int, int);
 #endif
 #ifdef HAVE_PLEDGE
-int	 	 ksandbox_pledge_init_child(void *, enum sandtype);
+int	 	 ksandbox_pledge_init_child(enum sandtype);
 #endif
 #ifdef HAVE_SANDBOX_INIT
-int	 	 ksandbox_darwin_init_child(void *, enum sandtype);
+int	 	 ksandbox_darwin_init_child(enum sandtype);
 #endif
 #ifdef HAVE_SYSTRACE
 void		*ksandbox_systrace_alloc(void);
 void	 	 ksandbox_systrace_close(void *);
-int	 	 ksandbox_systrace_init_child(void *, enum sandtype);
 #endif
 #ifdef HAVE_SECCOMP_FILTER
-int	 	 ksandbox_seccomp_init_child(void *, enum sandtype);
+int	 	 ksandbox_seccomp_init_child(enum sandtype);
 #endif
 void		 kreq_free(struct kreq *);
 

@@ -32,8 +32,7 @@
 #include "extern.h"
 
 static int
-ksandbox_capsicum_init_control(void *arg, 
-	int worker, int fdfiled, int fdaccept)
+ksandbox_capsicum_init_control(int worker, int fdfiled, int fdaccept)
 {
 	int rc;
 	struct rlimit	 rl_zero;
@@ -102,7 +101,7 @@ ksandbox_capsicum_init_control(void *arg,
 }
 
 static int
-ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
+ksandbox_capsicum_init_worker(int fd1, int fd2)
 {
 	int rc;
 	struct rlimit	 rl_zero;
@@ -164,25 +163,24 @@ ksandbox_capsicum_init_worker(void *arg, int fd1, int fd2)
 }
 
 int
-ksandbox_capsicum_init_child(void *arg, 
-	enum sandtype type, int fd1, int fd2,
-	int fdfiled, int fdaccept)
+ksandbox_capsicum_init_child(enum sandtype type, 
+	int fd1, int fd2, int fdfiled, int fdaccept)
 {
 	int	 rc;
 
 	switch (type) {
 	case (SAND_WORKER):
-		rc = ksandbox_capsicum_init_worker(arg, fd1, fd2);
+		rc = ksandbox_capsicum_init_worker(fd1, fd2);
 		break;
 	case (SAND_CONTROL_OLD):
 		assert(-1 == fd2);
 		rc = ksandbox_capsicum_init_control
-			(arg, fd1, fdfiled, fdaccept);
+			(fd1, fdfiled, fdaccept);
 		break;
 	case (SAND_CONTROL_NEW):
 		assert(-1 == fd2);
 		rc = ksandbox_capsicum_init_control
-			(arg, fd1, fdfiled, fdaccept);
+			(fd1, fdfiled, fdaccept);
 		break;
 	default:
 		abort();

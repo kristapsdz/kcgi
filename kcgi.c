@@ -741,7 +741,7 @@ khttp_parsex(struct kreq *req,
 		close(work_dat[KWORKER_PARENT]);
 		er = EXIT_FAILURE;
 		if ( ! ksandbox_init_child
-			(work_box, SAND_WORKER,
+			(SAND_WORKER,
 			 work_dat[KWORKER_CHILD], -1, -1, -1)) {
 			XWARNX("ksandbox_init_child");
 		} else if (KCGI_OK != kworker_child
