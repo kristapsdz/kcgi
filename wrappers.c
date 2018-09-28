@@ -100,7 +100,7 @@ kxrealloc(const char *file, int line, void *pp, size_t sz)
 			"(non-portable zero-length)");
 	if (NULL != (p = realloc(pp, sz)))
 		return(p);
-	kxwarn(file, line, "realloc(%p, %zu)", pp, sz);
+	kxwarn(file, line, "realloc(-, %zu)", sz);
 	return(p);
 }
 
