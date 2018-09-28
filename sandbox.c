@@ -17,12 +17,10 @@
 #include "config.h"
 
 #if !HAVE_PLEDGE
-#if !HAVE_SYSTRACE
 #if !HAVE_SECCOMP_FILTER
 #if !HAVE_CAPSICUM
 #if !HAVE_SANDBOX_INIT
 #warning Compiling without a sandbox!?
-#endif
 #endif
 #endif
 #endif
@@ -59,7 +57,7 @@ ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
 	return(1);
 #elif HAVE_PLEDGE
 	return(1);
-#elif HAVE_SYSTRACE
+#elif 0
 	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
 		XWARNX("ksandbox_systrace_init_child");
 		return(0);
@@ -87,7 +85,7 @@ ksandbox_alloc(void **pp)
 	return(1);
 #elif HAVE_PLEDGE
 	return(1);
-#elif HAVE_SYSTRACE
+#elif 0
 	if (NULL == (*pp = (ksandbox_systrace_alloc()))) {
 		XWARNX("ksandbox_systrace_alloc");
 		return(0);
@@ -119,7 +117,7 @@ ksandbox_close(void *arg)
 	return;
 #elif HAVE_PLEDGE
 	return;
-#elif HAVE_SYSTRACE
+#elif 0
 	ksandbox_systrace_close(arg);
 #elif HAVE_SECCOMP_FILTER
 	return;
@@ -162,7 +160,7 @@ ksandbox_init_child(void *arg,
 		XWARNX("ksandbox_pledge_init_child");
 		return(0);
 	}
-#elif HAVE_SYSTRACE
+#elif 0
 	if ( ! ksandbox_systrace_init_child(arg, type)) {
 		XWARNX("ksandbox_systrace_init_child");
 		return(0);
