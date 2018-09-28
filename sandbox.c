@@ -43,32 +43,6 @@ struct	ksandbox {
 };
 
 /*
- * Perform system-specific initialisation for the parent.
- * This is only used by systrace(4), which requires the parent to
- * register the child's systrace hooks.
- */
-int
-ksandbox_init_parent(void *arg, enum sandtype type, pid_t child)
-{
-
-#if HAVE_CAPSICUM
-	return(1);
-#elif HAVE_SANDBOX_INIT
-	return(1);
-#elif HAVE_PLEDGE
-	return(1);
-#elif 0
-	if ( ! ksandbox_systrace_init_parent(arg, type, child)) {
-		XWARNX("ksandbox_systrace_init_child");
-		return(0);
-	}
-#elif HAVE_SECCOMP_FILTER
-	return(1);
-#endif
-	return(1);
-}
-
-/*
  * Allocate system-specific data for the sandbox.
  * This is only used by systrace, which requires extra accounting
  * information for the child.

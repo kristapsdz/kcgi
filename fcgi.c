@@ -542,17 +542,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	close(work_dat[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_CHILD]);
 
-	if ( ! ksandbox_init_parent
-		 (work_box, SAND_WORKER, work_pid)) {
-		XWARNX("ksandbox_init_parent");
-		close(work_dat[KWORKER_PARENT]);
-		close(work_ctl[KWORKER_PARENT]);
-		kxwaitpid(work_pid);
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
-		return(KCGI_SYSTEM);
-	}
-
 	if (KCGI_OK != kxsocketpair
 		 (AF_UNIX, SOCK_STREAM, 0, sock_ctl)) {
 		close(work_dat[KWORKER_PARENT]);
@@ -607,19 +596,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(fdaccept);
 	if (-1 != fdfiled)
 		close(fdfiled);
-
-	if ( ! ksandbox_init_parent(sock_box, st, sock_pid)) {
-		XWARNX("ksandbox_init_parent");
-		close(sock_ctl[KWORKER_PARENT]);
-		close(work_dat[KWORKER_PARENT]);
-		kxwaitpid(work_pid);
-		kxwaitpid(sock_pid);
-		ksandbox_close(work_box);
-		ksandbox_free(work_box);
-		ksandbox_close(sock_box);
-		ksandbox_free(sock_box);
-		return(KCGI_SYSTEM);
-	}
 
 	/* Now allocate our device. */
 	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));

@@ -759,13 +759,6 @@ khttp_parsex(struct kreq *req,
 	close(work_dat[KWORKER_CHILD]);
 	work_dat[KWORKER_CHILD] = -1;
 
-	if ( ! ksandbox_init_parent
-		 (work_box, SAND_WORKER, work_pid)) {
-		XWARNX("ksandbox_init_parent");
-		kerr = KCGI_SYSTEM;
-		goto err;
-	}
-
 	if (NULL == opts)
 		kopts.sndbufsz = -1;
 	else
