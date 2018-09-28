@@ -4,7 +4,7 @@ body					{ color: #222;
 					  font-family: "Alegreya sans", sans-serif; 
 					  font-weight: 400;
 					  font-size: 14pt; }
-code, pre				{ font-size: smaller; }
+code, pre				{ font-size: 11pt; }
 a					{ text-decoration: none; 
 					  color: blue; }
 strong, b				{ font-weight: 700; }
