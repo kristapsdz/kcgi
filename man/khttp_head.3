@@ -43,7 +43,7 @@ function takes a
 .Xr kcgi 3
 context
 .Fa req
-that was previously initialized by
+that was previously initialised by
 .Xr khttp_parse 3
 and emits one HTTP header with the given HTTP response
 .Fa key .
@@ -99,7 +99,9 @@ and value
 for the global path, one may invoke the following.
 Assume that
 .Fa r
-is a context initialized by
+is a pointer to a
+.Ft struct kreq
+successfully initialised by
 .Xr khttp_parse 3 .
 .Bd -literal
 const char *ckey = "foo", *cval = "bar";

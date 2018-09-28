@@ -108,7 +108,9 @@ Write out an HTTP header sequence and text content with automatic
 compression detection.
 Assume that
 .Fa r
-is a context initialized by
+is a pointer to a
+.Ft struct kreq
+successfully initialised by
 .Xr khttp_parse 3 .
 .Bd -literal
 khttp_head(r, kresps[KRESP_STATUS],
