@@ -306,7 +306,6 @@ kcgi_strerror(enum kcgi_err er)
 {
 
 	assert(er <= KCGI_SYSTEM);
-	assert(er >= KCGI_OK);
 	return(kerrors[er]);
 }
 
