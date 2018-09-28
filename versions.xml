@@ -3,6 +3,28 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.8</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-08-28">
+				ONGOING
+			</time>
+		</header>
+		<aside>
+			<div>
+				Good-bye, systrace(4)&#8230;
+			</div>
+			<div>
+				Many minor documentation fixes from the GitHub pulls and issues page.
+				Thank you for everybody's submissions!
+			</div>
+			<div>
+				Many thanks to Valentin Pistol for verifying that the regressions
+				suite works properly on newer (Majove) builds of MacOS.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.7</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-06-19">2018-06-19</time>
