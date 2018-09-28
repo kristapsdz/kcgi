@@ -29,7 +29,7 @@
 #include "extern.h"
 
 int
-ksandbox_darwin_init_child(void *arg, enum sandtype type)
+ksandbox_darwin_init_child(enum sandtype type)
 {
 	int	 	 rc;
 	char		*er;

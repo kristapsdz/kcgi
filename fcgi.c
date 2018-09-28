@@ -517,8 +517,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
-		if ( ! ksandbox_init_child(work_box, 
-			 SAND_WORKER,
+		if ( ! ksandbox_init_child(SAND_WORKER,
 			 work_dat[KWORKER_CHILD],
 			 work_ctl[KWORKER_CHILD], -1, -1)) {
 			XWARNX("ksandbox_init_child");
@@ -573,8 +572,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_PARENT]);
 		ksandbox_free(work_box);
-		if ( ! ksandbox_init_child(sock_box, 
-			 st, sock_ctl[KWORKER_CHILD], -1,
+		if ( ! ksandbox_init_child(st, 
+			 sock_ctl[KWORKER_CHILD], -1,
 			 fdfiled, fdaccept)) {
 			XWARNX("ksandbox_init_child");
 			er = EXIT_FAILURE;

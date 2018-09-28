@@ -26,7 +26,7 @@
 #include "extern.h"
 
 int
-ksandbox_pledge_init_child(void *arg, enum sandtype type)
+ksandbox_pledge_init_child(enum sandtype type)
 {
 	const char *fl;
 

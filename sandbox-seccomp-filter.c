@@ -252,7 +252,7 @@ ssh_sandbox_child_debugging(enum sandtype type)
 #endif /* SANDBOX_SECCOMP_DEBUG */
 
 int
-ksandbox_seccomp_init_child(void *arg, enum sandtype type)
+ksandbox_seccomp_init_child(enum sandtype type)
 {
 	struct rlimit rl_zero;
 	int nnp_failed = 0;

@@ -113,34 +113,28 @@ ksandbox_close(void *arg)
  * Whew!
  */
 int
-ksandbox_init_child(void *arg, 
-	enum sandtype type, int fd1, int fd2,
-	int fdfiled, int fdaccept)
+ksandbox_init_child(enum sandtype type, 
+	int fd1, int fd2, int fdfiled, int fdaccept)
 {
 
 #if HAVE_CAPSICUM
-	if ( ! ksandbox_capsicum_init_child(arg, type, 
+	if ( ! ksandbox_capsicum_init_child(type, 
 	    fd1, fd2, fdfiled, fdaccept)) {
 		XWARNX("ksandbox_capsicum_init_child");
 		return(0);
 	}
 #elif HAVE_SANDBOX_INIT
-	if ( ! ksandbox_darwin_init_child(arg, type)) {
+	if ( ! ksandbox_darwin_init_child(type)) {
 		XWARNX("ksandbox_darwin_init_child");
 		return(0);
 	}
 #elif HAVE_PLEDGE
-	if ( ! ksandbox_pledge_init_child(arg, type)) {
+	if ( ! ksandbox_pledge_init_child(type)) {
 		XWARNX("ksandbox_pledge_init_child");
 		return(0);
 	}
-#elif 0
-	if ( ! ksandbox_systrace_init_child(arg, type)) {
-		XWARNX("ksandbox_systrace_init_child");
-		return(0);
-	}
 #elif HAVE_SECCOMP_FILTER
-	if ( ! ksandbox_seccomp_init_child(arg, type)) {
+	if ( ! ksandbox_seccomp_init_child(type)) {
 		XWARNX("ksandbox_seccomp_init_child");
 		return(0);
 	}
