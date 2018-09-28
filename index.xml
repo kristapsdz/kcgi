@@ -353,24 +353,11 @@ int main(void) {
 					the correct <code>AUDIT_ARCH_xxx</code> found in <code>/usr/include/linux/audit.h</code>.
 				</dd>
 				<dt>
-					<a href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
-					(<a href="https://www.openbsd.org">OpenBSD</a>, <strong>deprecated</strong>)
-				</dt>
-				<dd>
-					This requires the existence of <i>/dev/systrace</i> if running in a
-					<code>chroot(2)</code>, which is strongly suggested.
-					If you're using a stock <a href="https://www.openbsd.org">OpenBSD</a>, make sure that the
-					mount-point of <i>/dev/systrace</i> isn't mounted <code>nodev</code>!
-				</dd>
-				<dt>
 					<a href="https://man.openbsd.org/pledge.2">pledge(2)</a>
 					(<a href="https://www.openbsd.org">OpenBSD</a>)
 				</dt>
 				<dd>
 					This will only work on OpenBSD &gt;5.8.
-					It is selected with higher priority over <a
-						href="https://man.openbsd.org/OpenBSD-5.8/man4/systrace.4">systrace(4)</a>
-					on OpenBSD machines.
 				</dd>
 				<dt>
 					<a href="https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man3/sandbox_init.3.html">sandbox_init(3)</a>
