@@ -75,9 +75,6 @@ enum kcgi_err	 fullwritenoerr(int, const void *, size_t);
 void		 fullwriteword(int, const char *);
 int		 fullwritefd(int, int, void *, size_t);
 
-int		 ksandbox_alloc(void **);
-void		 ksandbox_close(void *);
-void		 ksandbox_free(void *);
 int		 ksandbox_init_child(enum sandtype, int, int, int, int);
 #ifdef HAVE_CAPSICUM
 int	 	 ksandbox_capsicum_init_child
@@ -88,10 +85,6 @@ int	 	 ksandbox_pledge_init_child(enum sandtype);
 #endif
 #ifdef HAVE_SANDBOX_INIT
 int	 	 ksandbox_darwin_init_child(enum sandtype);
-#endif
-#ifdef HAVE_SYSTRACE
-void		*ksandbox_systrace_alloc(void);
-void	 	 ksandbox_systrace_close(void *);
 #endif
 #ifdef HAVE_SECCOMP_FILTER
 int	 	 ksandbox_seccomp_init_child(enum sandtype);

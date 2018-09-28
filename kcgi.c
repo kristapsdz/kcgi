@@ -704,7 +704,6 @@ khttp_parsex(struct kreq *req,
 	enum kcgi_err	  kerr;
 	int 		  er;
 	struct kopts	  kopts;
-	void		 *work_box;
 	int		  work_dat[2];
 	pid_t		  work_pid;
 
@@ -718,20 +717,16 @@ khttp_parsex(struct kreq *req,
 	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
 		XWARNX("kxsocketprep");
 		return KCGI_SYSTEM;
-	} else if ( ! ksandbox_alloc(&work_box))
-		return KCGI_ENOMEM;
-
-	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat)) {
-		ksandbox_free(work_box);
-		return KCGI_SYSTEM;
 	}
+
+	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat))
+		return KCGI_SYSTEM;
 
 	if (-1 == (work_pid = fork())) {
 		er = errno;
 		XWARN("fork");
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
-		ksandbox_free(work_box);
 		return EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM;
 	} else if (0 == work_pid) {
 		/* Conditionally free our argument. */
@@ -750,7 +745,6 @@ khttp_parsex(struct kreq *req,
 			XWARNX("kworker_child");
 		} else
 			er = EXIT_SUCCESS;
-		ksandbox_free(work_box);
 		close(work_dat[KWORKER_CHILD]);
 		_exit(er);
 		/* NOTREACHED */
@@ -832,8 +826,6 @@ khttp_parsex(struct kreq *req,
 	work_pid = -1;
 	if (KCGI_OK != kerr)
 		goto err;
-	ksandbox_close(work_box);
-	ksandbox_free(work_box);
 	return kerr;
 err:
 	assert(KCGI_OK != kerr);
@@ -841,8 +833,6 @@ err:
 		close(work_dat[KWORKER_PARENT]);
 	if (-1 != work_pid)
 		kxwaitpid(work_pid);
-	ksandbox_close(work_box);
-	ksandbox_free(work_box);
 	kdata_free(req->kdata, 0);
 	req->kdata = NULL;
 	kreq_free(req);

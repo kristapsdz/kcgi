@@ -47,8 +47,6 @@ struct	kfcgi {
 	size_t			  pagesz;
 	size_t			  defpage;
 	const struct kmimemap 	 *mimemap;
-	void			 *work_box;
-	void			 *sock_box;
 	pid_t			  work_pid;
 	pid_t			  sock_pid;
 	int			  work_dat;
@@ -396,7 +394,6 @@ khttp_fcgi_child_free(struct kfcgi *fcgi)
 
 	close(fcgi->sock_ctl);
 	close(fcgi->work_dat);
-	ksandbox_free(fcgi->work_box);
 	free(fcgi);
 }
 
@@ -412,10 +409,6 @@ khttp_fcgi_free(struct kfcgi *fcgi)
 	close(fcgi->work_dat);
 	kxwaitpid(fcgi->work_pid);
 	kxwaitpid(fcgi->sock_pid);
-	ksandbox_close(fcgi->work_box);
-	ksandbox_free(fcgi->work_box);
-	ksandbox_close(fcgi->sock_box);
-	ksandbox_free(fcgi->sock_box);
 	free(fcgi);
 	return(KCGI_OK);
 }
@@ -432,7 +425,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	struct kfcgi	*fcgi;
 	int 		 er, fdaccept, fdfiled;
 	int		 work_ctl[2], work_dat[2], sock_ctl[2];
-	void		*work_box, *sock_box;
 	pid_t		 work_pid, sock_pid;
 	const char	*cp, *ercp;
 	sigset_t	 mask;
@@ -467,27 +459,13 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	sigprocmask(SIG_BLOCK, &mask, NULL);
 	sig = 0;
 
-	if ( ! ksandbox_alloc(&work_box))
-		return(KCGI_ENOMEM);
-
-	if ( ! ksandbox_alloc(&sock_box)) {
-		ksandbox_free(work_box);
-		return(KCGI_ENOMEM);
-	}
-
-	if (KCGI_OK != kxsocketpair
-		 (AF_UNIX, SOCK_STREAM, 0, work_ctl)) {
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
+	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_ctl))
 		return(KCGI_SYSTEM);
-	}
 
 	if (KCGI_OK != kxsocketpair
 		 (AF_UNIX, SOCK_STREAM, 0, work_dat)) {
 		close(work_ctl[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_CHILD]);
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
@@ -498,8 +476,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_ctl[KWORKER_CHILD]);
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == work_pid) {
 		signal(SIGTERM, SIG_IGN);
@@ -530,8 +506,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 				 debugging);
 			er = EXIT_SUCCESS;
 		}
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
 		close(work_dat[KWORKER_CHILD]);
 		close(work_ctl[KWORKER_CHILD]);
 		_exit(er);
@@ -546,9 +520,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
 		kxwaitpid(work_pid);
-		ksandbox_close(work_box);
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
 		return(KCGI_SYSTEM);
 	}
 
@@ -560,9 +531,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(sock_ctl[KWORKER_CHILD]);
 		close(sock_ctl[KWORKER_PARENT]);
 		kxwaitpid(work_pid);
-		ksandbox_close(work_box);
-		ksandbox_free(work_box);
-		ksandbox_free(sock_box);
 		return(EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM);
 	} else if (0 == sock_pid) {
 		signal(SIGTERM, SIG_IGN);
@@ -571,7 +539,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_PARENT]);
-		ksandbox_free(work_box);
 		if ( ! ksandbox_init_child(st, 
 			 sock_ctl[KWORKER_CHILD], -1,
 			 fdfiled, fdaccept)) {
@@ -584,7 +551,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 				 fdaccept, fdfiled, work_pid);
 		close(work_ctl[KWORKER_PARENT]);
 		close(sock_ctl[KWORKER_CHILD]);
-		ksandbox_free(sock_box);
 		_exit(er);
 		/* NOTREACHED */
 	}
@@ -603,10 +569,6 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 		close(work_dat[KWORKER_PARENT]);
 		kxwaitpid(work_pid);
 		kxwaitpid(sock_pid);
-		ksandbox_close(work_box);
-		ksandbox_free(work_box);
-		ksandbox_close(sock_box);
-		ksandbox_free(sock_box);
 		return(KCGI_ENOMEM);
 	}
 
@@ -618,10 +580,8 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	if (fcgi->opts.sndbufsz < 0)
 		fcgi->opts.sndbufsz = UINT16_MAX;
 
-	fcgi->work_box = work_box;
 	fcgi->work_pid = work_pid;
 	fcgi->work_dat = work_dat[KWORKER_PARENT];
-	fcgi->sock_box = sock_box;
 	fcgi->sock_pid = sock_pid;
 	fcgi->sock_ctl = sock_ctl[KWORKER_PARENT];
 	fcgi->arg = arg;
