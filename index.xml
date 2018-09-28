@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<meta charset="utf-8" /> 
@@ -191,9 +191,11 @@ int main(void) {
 				Installation
 			</h2>
 			<p>
-				First, check if <span class="nm">kcgi</span> isn't already a third-part port for your system, such as
-				for <a href="https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a> or <a
-					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>.
+				First, check if <span class="nm">kcgi</span> isn't already packaged for your system, such as
+				for <a href="https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a>, <a
+					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>,
+				<a href="https://aur.archlinux.org/packages/kcgi/">Arch Linux</a>, and so on.
+				(If it is, make sure it's up to date!)
 				If so, install using that system.
 			</p>
 			<p>
