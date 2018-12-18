@@ -495,8 +495,10 @@ kdata_free(struct kdata *p, int flush)
 	free(p);
 }
 
+#if HAVE_ZLIB
 /*
  * Try to enable compression on the output stream itself.
+ * This function is only available with zlib.
  * We disallow compression on FastCGI streams because I don't yet have
  * the structure in place to copy the compressed data into a buffer then
  * write that out.
@@ -511,7 +513,7 @@ kdata_compress(struct kdata *p, int *ret)
 
 	*ret = 0;
 	assert(KSTATE_HEAD == p->state);
-#if HAVE_ZLIB
+
 	if (-1 != p->fcgi)
 		return(1);
 	assert(NULL == p->gz);
@@ -521,9 +523,9 @@ kdata_compress(struct kdata *p, int *ret)
 		return(0);
 	}
 	*ret = 1;
-#endif
 	return(1);
 }
+#endif
 
 /*
  * Begin the body sequence by draining the headers to the wire and
@@ -565,6 +567,12 @@ kdata_body(struct kdata *p)
 enum kcgi_err
 khttp_body(struct kreq *req)
 {
+	/*
+	 * If we don't have zlib available to us, we're not doing any
+	 * compression regardless, so most of this function is moot and
+	 * we pass directly into the underlying kdata_body() function.
+	 */
+#if HAVE_ZLIB
 	int	 	 hasreq = 0;
 	enum kcgi_err	 er;
 	const char	*cp;
@@ -593,7 +601,6 @@ khttp_body(struct kreq *req)
 	 * compression then write headers) is ok.
 	 */
 
-#if HAVE_ZLIB
 	if (hasreq) {
 		/*
 		 * We could just ignore this error, which means gzdopen
