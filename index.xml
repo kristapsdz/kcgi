@@ -187,7 +187,7 @@ int main(void) {
 			<p>
 				If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
 				To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="https://www.linux.org"
-					itemprop="operatingSystem">Linux</a> machines, BSD (<a href="https://www.openbsd.org"
+					itemprop="operatingSystem">Linux</a> machines (musl and glibc), BSD (<a href="https://www.openbsd.org"
 					itemprop="operatingSystem">OpenBSD</a>, <a href="https://www.freebsd.org"
 					itemprop="operatingSystem">FreeBSD</a>), and <a href="https://www.apple.com/osx"
 					itemprop="operatingSystem">Mac OSX</a> (only Mojave and newer!) on i386 and AMD64.
