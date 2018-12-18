@@ -5,9 +5,7 @@
 		<header>
 			<h1>0.10.8</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2018-08-28">
-				ONGOING
-			</time>
+			<time datetime="2018-12-18">2018-12-18</time>
 		</header>
 		<aside>
 			<div>
@@ -20,6 +18,18 @@
 			<div>
 				Many thanks to Valentin Pistol for verifying that the regressions
 				suite works properly on newer (Majove) builds of MacOS.
+			</div>
+			<div>
+				Allow compilation on 
+				<a href="https://www.musl-libc.org/">musl</a> 
+				by bringing in latest 
+				<a href="https://github.com/kristapsdz/oconfigure">oconfigure</a>
+				and making some tweaks.
+				This also makes building without zlib to complete without compiler
+				warnings.
+			</div>
+			<div>
+				Fix transmitting certain UTF-8 characters via JSON.
 			</div>
 		</aside>
 	</article>
