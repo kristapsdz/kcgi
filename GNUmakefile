@@ -144,6 +144,7 @@ REGRESS		 = regress/test-basic \
 		   regress/test-header-bad \
 		   regress/test-httpdate \
 		   regress/test-invalidate \
+		   regress/test-json-controlchars \
 		   regress/test-json-simple \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
