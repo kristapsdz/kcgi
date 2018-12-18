@@ -16,7 +16,6 @@
  */
 #include "config.h"
 
-#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -28,6 +27,7 @@
 #include <getopt.h>
 #include <limits.h>
 #include <pwd.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
