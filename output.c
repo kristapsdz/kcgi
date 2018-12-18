@@ -625,11 +625,24 @@ khttp_body(struct kreq *req)
 enum kcgi_err
 khttp_body_compress(struct kreq *req, int comp)
 {
+#if HAVE_ZLIB
 	int	 didcomp;
+#endif
+
+	/* 
+	 * First, if we didn't request compression, go directly into the
+	 * body of the document.
+	 */
 
 	if ( ! comp)
 		return(kdata_body(req->kdata));
+
 #if HAVE_ZLIB
+	/*
+	 * If we do have compression requested, try enabling it on the
+	 * output stream.
+	 */
+
 	if ( ! kdata_compress(req->kdata, &didcomp))
 		return(KCGI_ENOMEM);
 	else if ( ! didcomp)
