@@ -16,6 +16,19 @@ main(void)
 	return (arc4random() + 1) ? 0 : 1;
 }
 #endif /* TEST_ARC4RANDOM */
+#if TEST_B64_NTOP
+#include <netinet/in.h>
+#include <resolv.h>
+
+int
+main(void)
+{
+	const char *src = "hello world";
+	char output[1024];
+
+	return b64_ntop((const unsigned char *)src, 11, output, sizeof(output)) > 0 ? 0 : 1;
+}
+#endif /* TEST_B64_NTOP */
 #if TEST_CAPSICUM
 #include <sys/capsicum.h>
 
@@ -349,6 +362,25 @@ main(void)
 	return 0;
 }
 #endif /* TEST_STRTONUM */
+#if TEST_SYS_QUEUE
+#include <sys/queue.h>
+
+struct foo {
+	int bar;
+	TAILQ_ENTRY(foo) entries;
+};
+
+TAILQ_HEAD(fooq, foo);
+
+int
+main(void)
+{
+	struct fooq foo_q;
+
+	TAILQ_INIT(&foo_q);
+	return 0;
+}
+#endif /* TEST_SYS_QUEUE */
 #if TEST_SYSTRACE
 #include <sys/param.h>
 #include <dev/systrace.h>
