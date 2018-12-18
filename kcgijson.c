@@ -78,23 +78,25 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz, int quot)
 {
 	enum kcgi_err	e;
 	char		enc[7];
-	size_t		 i;
+	unsigned char	c;
+	size_t		i;
 
 	if (quot && KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
 		return(e);
 
 	for (i = 0; i < sz; i++) {
+		/* Make sure we're looking at the unsigned value. */
+		c = cp[i];
 		/* Encode control characters. */
-		if (cp[i] <= 0x1f) {
-			snprintf(enc, sizeof(enc),
-				"\\u%.4X", cp[i]);
+		if (c <= 0x1f) {
+			snprintf(enc, sizeof(enc), "\\u%.4X", c);
 			e = kcgi_writer_puts(r->arg, enc);
 			if (KCGI_OK != e)
 				return(e);
 			continue;
 		}
 		/* Quote, solidus, reverse solidus. */
-		switch (cp[i]) {
+		switch (c) {
 		case ('"'):
 		case ('\\'):
 		case ('/'):
