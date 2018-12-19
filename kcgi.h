@@ -616,6 +616,8 @@ char		*kutil_urlpart(struct kreq *, const char *,
 char		*kutil_urlpartx(struct kreq *, const char *,
 			const char *, const char *, ...);
 char		*kutil_urlencode(const char *);
+enum kcgi_err	 kutil_urldecode(const char *, char **);
+enum kcgi_err	 kutil_urldecode_inplace(char *);
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
 int		 kutil_openlog(const char *);
