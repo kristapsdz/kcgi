@@ -364,6 +364,7 @@ main(void)
 #endif /* TEST_STRTONUM */
 #if TEST_SYS_QUEUE
 #include <sys/queue.h>
+#include <stddef.h>
 
 struct foo {
 	int bar;
