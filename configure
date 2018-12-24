@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.1.6"
+OCONFIGURE_VERSION="0.1.7"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -290,7 +290,7 @@ runtest err		ERR				  || true
 runtest explicit_bzero	EXPLICIT_BZERO			  || true
 runtest getprogname	GETPROGNAME			  || true
 runtest INFTIM		INFTIM				  || true
-runtest md5		MD5				  || true
+runtest md5		MD5 "" "" "-lmd"		  || true
 runtest memmem		MEMMEM			  	  || true
 runtest memrchr		MEMRCHR			  	  || true
 runtest memset_s	MEMSET_S			  || true
