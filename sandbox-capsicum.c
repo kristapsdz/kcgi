@@ -44,9 +44,13 @@ ksandbox_capsicum_init_control(int worker, int fdfiled, int fdaccept)
 		/*
 		 * If we have old-style accept FastCGI sockets, then
 		 * mark us as accepting on it.
+		 * XXX: the CAP_READ and CAP_WRITE are necessary 
+		 * because they're required by descriptors we create
+		 * from the accept().
 		 */
 		cap_rights_init(&rights, 
-			CAP_EVENT, CAP_FCNTL, CAP_ACCEPT);
+			CAP_EVENT, CAP_FCNTL, CAP_ACCEPT, 
+			CAP_READ, CAP_WRITE);
 		if (cap_rights_limit(fdaccept, &rights) < 0 && 
 			 errno != ENOSYS) {
 			XWARN("cap_rights_limit: accept socket");
