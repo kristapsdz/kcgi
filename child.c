@@ -660,45 +660,6 @@ parse_body(const char *ct, const struct parms *pp, char *b, size_t bsz)
 }
 
 /*
- * In-place HTTP-decode a string.  The standard explanation is that this
- * turns "%4e+foo" into "n foo" in the regular way.  This is done
- * in-place over the allocated string.
- * Returns zero on decoding failure, non-zero otherwise.
- */
-static int
-urldecode(char *p)
-{
-	char             hex[3];
-	unsigned int	 c;
-
-	hex[2] = '\0';
-
-	for ( ; '\0' != *p; p++) {
-		if ('%' == *p) {
-			if ('\0' == (hex[0] = *(p + 1))) {
-				XWARNX("urldecode: short hex");
-				return(0);
-			} else if ('\0' == (hex[1] = *(p + 2))) {
-				XWARNX("urldecode: short hex");
-				return(0);
-			} else if (1 != sscanf(hex, "%x", &c)) {
-				XWARNX("urldecode: bad hex");
-				return(0);
-			} else if ('\0' == c) {
-				XWARNX("urldecode: NUL byte");
-				return(0);
-			}
-
-			*p = c;
-			memmove(p + 1, p + 3, strlen(p + 3) + 1);
-		} else if ('+' == *p)
-			*p = ' ';
-	}
-
-	return(1);
-}
-
-/*
  * Parse out key-value pairs from an HTTP cookie.
  * These are not URL encoded (at this phase): they're just simple
  * key-values "crumbs" with opaque values.
@@ -793,10 +754,10 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 		if ('\0' == *key)
 			XWARNX("RFC undefined behaviour: zero-length "
 				"URL-encoded form key (ignoring)");
-		else if ( ! urldecode(key))
+		else if (KCGI_FORM == kutil_urldecode_inplace(key))
 			XWARNX("RFC violation: invalid URL-encoding "
 				"for form key (ignoring)");
-		else if ( ! urldecode(val))
+		else if (KCGI_FORM == kutil_urldecode_inplace(val))
 			XWARNX("RFC violation: invalid URL-encoding "
 				"for form value (ignoring)");
 		else

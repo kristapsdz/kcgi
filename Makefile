@@ -197,6 +197,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-template \
 		   regress/test-upload \
 		   regress/test-urlencode \
+		   regress/test-urldecode \
 		   regress/test-urlpart \
 		   regress/test-valid-date \
 		   regress/test-valid-double 
