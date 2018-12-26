@@ -114,7 +114,7 @@ parent(CURL *curl)
 
 	/* Add the content of a file as a normal post text value */
 	curl_formadd(&post, &last, CURLFORM_COPYNAME, "filecontent", 
-		CURLFORM_FILECONTENT, "GNUmakefile", CURLFORM_END);
+		CURLFORM_FILECONTENT, "Makefile", CURLFORM_END);
 
 	/* Set the form info */
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
