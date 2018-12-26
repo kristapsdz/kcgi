@@ -299,12 +299,14 @@ kfcgi.o: config.h
 # Some of them use the JSON library, so pull those in as well.
 # Of course, all need the config.h and headers.
 
+$(REGRESS): config.h kcgi.h regress/regress.h
+$(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
+
 .for BIN in $(REGRESS)
-$(BIN).o: $(BIN).c config.h kcgi.h regress/regress.h
-	$(CC) $(CFLAGS) `curl-config --cflags` -c -o $@ $(BIN).c
-$(BIN): $(BIN).o regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
-	$(CC) -o $@ $(BIN).o regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` -lz $(LIBADD)
+$(BIN): $(BIN).c
+	$(CC) `curl-config --cflags` -o $@ $(BIN).c regress/regress.o \
+		libkcgiregress.a libkcgijson.a libkcgi.a \
+		`curl-config --libs` -lz $(LIBADD)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
