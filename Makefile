@@ -1,4 +1,5 @@
 .SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html
+.PHONY: regress afl
 
 include Makefile.configure
 
