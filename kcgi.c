@@ -439,6 +439,54 @@ kutil_urlencode(const char *cp)
 	return(p);
 }
 
+/*
+ * In-place HTTP-decode a string.  The standard explanation is that this
+ * turns "%4e+foo" into "n foo" in the regular way.  This is done
+ * in-place over the allocated string.
+ * Returns KCGI_FORM on decoding failure, KCGI_OK otherwise.
+ */
+enum kcgi_err
+kutil_urldecode_inplace(char *p)
+{
+	char		 hex[3];
+	unsigned int	 c;
+
+	hex[2] = '\0';
+
+	for ( ; '\0' != *p; p++) {
+		if ('%' == *p) {
+			if ('\0' == (hex[0] = *(p + 1))) {
+				XWARNX("urldecode: short hex");
+				return(KCGI_FORM);
+			} else if ('\0' == (hex[1] = *(p + 2))) {
+				XWARNX("urldecode: short hex");
+				return(KCGI_FORM);
+			} else if (1 != sscanf(hex, "%x", &c)) {
+				XWARNX("urldecode: bad hex");
+				return(KCGI_FORM);
+			} else if ('\0' == c) {
+				XWARNX("urldecode: NUL byte");
+				return(KCGI_FORM);
+			}
+
+			*p = c;
+			memmove(p + 1, p + 3, strlen(p + 3) + 1);
+		} else if ('+' == *p)
+			*p = ' ';
+	}
+
+	return(KCGI_OK);
+}
+
+enum kcgi_err
+kutil_urldecode(const char *src, char **dst)
+{
+	if (NULL == (*dst = strdup(src))) {
+		return(KCGI_ENOMEM);
+	}
+	return(kutil_urldecode_inplace(*dst));
+}
+
 char *
 kutil_urlabs(enum kscheme scheme, 
 	const char *host, uint16_t port, const char *path)
