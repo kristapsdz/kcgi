@@ -8,7 +8,7 @@ STATIC 		 = -static
 
 # Linux's fpclassify needs -lm.
 #LIBADD		+= -lm
-#CFLAGS		+= -DSANDBOX_SECCOMP_DEBUG
+#CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
 # Mac OS X doesn't support static linking.
 #STATIC 	 = 
@@ -275,9 +275,9 @@ clean:
 	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f $(SBLGS) $(THTMLS) extending01.html atom.xml
 	rm -f $(LIBOBJS) compats.o 
-	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o
+	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o regress/regress.o
 	rm -f *.core
-	rm -f $(REGRESS) $(AFL)
+	rm -f $(REGRESS) $(AFL) regress/*.o
 
 distclean: clean
 	rm -f config.h config.log Makefile.configure
@@ -299,13 +299,13 @@ kfcgi.o: config.h
 # Some of them use the JSON library, so pull those in as well.
 # Of course, all need the config.h and headers.
 
-$(REGRESS): regress/regress.o libkcgiregress.a libkcgijson.a \
-	libkcgi.a config.h regress/regress.h kcgi.h
-
-$(REGRESS):
-	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $@.c \
-		regress/regress.o libkcgiregress.a libkcgijson.a \
+.for BIN in $(REGRESS)
+$(BIN).o: $(BIN).c config.h kcgi.h regress/regress.h
+	$(CC) $(CFLAGS) `curl-config --cflags` -c -o $@ $(BIN).c
+$(BIN): $(BIN).o regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
+	$(CC) -o $@ $(BIN).o regress/regress.o libkcgiregress.a libkcgijson.a \
 		libkcgi.a `curl-config --libs` -lz $(LIBADD)
+.endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
 
@@ -315,10 +315,12 @@ regress/regress.o: regress/regress.c
 # The AFL programs call directly into libkcgi.a.
 # So require that and our configuration.
 
-$(AFL): config.h kcgi.h extern.h libkcgi.a
-
-$(AFL):
-	$(CC) $(CFLAGS) -o $@ $@.c libkcgi.a -lz
+.for BIN in $(AFL)
+$(BIN).o: $(BIN).c config.h kcgi.h extern.h
+	$(CC) $(CFLAGS) -c -o $@ $(BIN).c
+$(BIN): $(BIN).o libkcgi.a
+	$(CC) $(CFLAGS) -o $@ $(BIN).o libkcgi.a -lz
+.endfor
 
 # The main kcgi library.
 # Pulls in all objects along with the compatibility layer.
@@ -355,7 +357,7 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) -static -o $@ $(STATIC) samplepp.cc -L. libkcgi.a -lz
+	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a -lz
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
 	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
