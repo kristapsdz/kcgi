@@ -7,13 +7,15 @@ include Makefile.configure
 # This is only for the sample program!
 STATIC 		 = -static
 
-# Linux's fpclassify needs -lm.
+# Linux's fpclassify needs -lm and turn on seccomp debugging.
 #LIBADD		+= -lm
 #CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
-# Mac OS X doesn't support static linking.
+# FreeBSD requires -lmd for MD5.
+#LIBADD		+= -lmd
+
+# Mac OS X doesn't support static linking and depcrecates daemon(3).
 #STATIC 	 = 
-# Mac OS X has deprecated daemon(3).
 #CFLAGS		+= -Wno-deprecated-declarations
 
 # You probably don't need to change anything else...
