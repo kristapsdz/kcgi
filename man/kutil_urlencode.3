@@ -22,8 +22,8 @@
 .Nm kutil_urlabs ,
 .Nm kutil_urlpart ,
 .Nm kutil_urlpartx ,
-.Nm kutil_urlencode
-.Nm kutil_urldecode
+.Nm kutil_urlencode ,
+.Nm kutil_urldecode ,
 .Nm kutil_urldecode_inplace
 .Nd URL formatting for kcgi
 .Sh LIBRARY
@@ -57,16 +57,20 @@
 .Fa "..."
 .Fc
 .Ft "char *"
-.Fn kutil_urlencode "const char *cp"
+.Fo kutil_urlencode
+.Fa "const char *cp"
+.Fc
 .Ft "enum kcgi_err"
 .Fo kutil_urldecode
 .Fa "const char *src"
 .Fa "char **dst"
 .Fc
 .Ft "enum kcgi_err"
-.Fn kutil_urldecode_inplace "char *cp"
+.Fo kutil_urldecode_inplace
+.Fa "char *cp"
+.Fc
 .Sh DESCRIPTION
-These functions format various parts of a URL.
+These functions format or manipulate various parts of a URL.
 .Pp
 The
 .Fn kutil_urlpart
@@ -146,8 +150,11 @@ The
 .Fn kutil_urldecode
 function decodes the given string
 .Fa src
-and stores the result in the newly allocated string
-.Fa *dst .
+and stores the result in the allocated string
+.Fa dst .
+The caller must
+.Xr free 3
+the pointer.
 .Pp
 The
 .Fn kutil_urldecode_inplace
@@ -196,8 +203,8 @@ functions returns an error code:
 .It Dv KCGI_OK
 Success (not an error).
 .It Dv KCGI_ENOMEM
-Memory failure, only
-.Fn kutil_urldecode .
+Memory failure (only
+.Fn kutil_urldecode ) .
 .It Dv KCGI_FORM
 Malformed input data.
 .El
