@@ -106,7 +106,9 @@ static const struct sock_filter preauth_ctrl[] = {
 	SC_ALLOW(recvmsg),
 #endif
 	SC_ALLOW(read),
+	SC_ALLOW(readv),
 	SC_ALLOW(write),
+	SC_ALLOW(writev),
 	SC_ALLOW(close),
 #ifdef __NR_shutdown /* not defined on archs that go via socketcall(2) */
 	SC_ALLOW(shutdown),
@@ -158,7 +160,9 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(time),
 #endif
 	SC_ALLOW(read),
+	SC_ALLOW(readv),
 	SC_ALLOW(write),
+	SC_ALLOW(writev),
 	SC_ALLOW(close),
 #ifdef __NR_fcntl64 /* only noted on arm */
 	SC_ALLOW(fcntl64),
