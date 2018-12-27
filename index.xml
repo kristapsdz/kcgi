@@ -202,8 +202,8 @@ int main(void) {
 			<p>
 				Begin by downloading <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
 					href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
-				Once downloaded, configure with <code>./configure</code>, compile with <code>make</code> (or <code>gmake</code>
-				on OpenBSD systems).
+				Once downloaded, configure with <code>./configure</code>, compile with <code>make</code> (or <code>bmake</code>
+				on Linux systems).
 				Finally, install the software using <code>make install</code>. 
 				You can override default paths with a <code>configure.local</code> file (see the <a
 					href="https://github.com/kristapsdz/kcgi/blob/master/configure">configure</a> script for details)
