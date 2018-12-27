@@ -445,6 +445,9 @@ kutil_urldecode_inplace(char *p)
 	char		 hex[3];
 	unsigned int	 c;
 
+	if (NULL == p)
+		return KCGI_FORM;
+
 	hex[2] = '\0';
 
 	for ( ; '\0' != *p; p++) {
@@ -475,10 +478,22 @@ kutil_urldecode_inplace(char *p)
 enum kcgi_err
 kutil_urldecode(const char *src, char **dst)
 {
+	enum kcgi_err	 er;
 
+	*dst = NULL;
+
+	if (NULL == src)
+		return KCGI_FORM;
 	if (NULL == (*dst = XSTRDUP(src)))
 		return KCGI_ENOMEM;
-	return kutil_urldecode_inplace(*dst);
+
+	if (KCGI_OK == (er = kutil_urldecode_inplace(*dst)))
+		return er;
+
+	/* If we have decoding errors, clear the output. */
+	free(*dst);
+	*dst = NULL;
+	return er;
 }
 
 char *
