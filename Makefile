@@ -308,9 +308,9 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 
 .for BIN in $(REGRESS)
 $(BIN): $(BIN).c
-	$(CC) `curl-config --cflags` -o $@ $(BIN).c regress/regress.o \
-		libkcgiregress.a libkcgijson.a libkcgi.a \
-		`curl-config --libs` -lz $(LIBADD)
+	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
+		regress/regress.o libkcgiregress.a libkcgijson.a \
+		libkcgi.a `curl-config --libs` -lz $(LIBADD)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
