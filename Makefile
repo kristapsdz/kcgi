@@ -8,11 +8,11 @@ include Makefile.configure
 STATIC 		 = -static
 
 # Linux's fpclassify needs -lm and turn on seccomp debugging.
-#LIBADD		+= -lm
+#LDADD		+= -lm
 #CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
 # FreeBSD requires -lmd for MD5.
-#LIBADD		+= -lmd
+#LDADD		+= -lmd
 
 # Mac OS X doesn't support static linking and depcrecates daemon(3).
 #STATIC 	 = 
@@ -310,7 +310,7 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
 		regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` -lz $(LIBADD)
+		libkcgi.a `curl-config --libs` -lz $(LDADD)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
