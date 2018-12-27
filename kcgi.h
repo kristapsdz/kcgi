@@ -53,7 +53,7 @@
 /*
  * Build version.
  */
-#define	KCGI_VBUILD	8
+#define	KCGI_VBUILD	9
 
 /*
  * Version string of major.minor.build (as a literal string).

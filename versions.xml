@@ -3,6 +3,31 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.9</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2018-12-27">2018-12-27</time>
+		</header>
+		<aside>
+			<div>
+				A lot of work for functioning on FreeBSD (specifically, breakage 
+				with the sandbox) and musl libc.
+				Thanks to <code>href@random.sh</code> for access to a FreeBSD
+				machine for testing and solving this issue!
+			</div>
+			<div>
+				Add <a href="kutil_urlencode.3.html">kutil_urldecode(3)</a> and
+				<a href="kutil_urlencode.3.html">kutil_urldecode_inplace(3)</a>,
+				which are the reverse of the existing encode functions.
+			</div>
+			<div>
+				Also, revert to using BSD Makefile instead of GNU.
+				Linux downstream will need to adjust to use <code>bmake</code> for 
+				the build sequence.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.8</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-12-18">2018-12-18</time>
