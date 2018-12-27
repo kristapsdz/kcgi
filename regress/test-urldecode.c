@@ -16,10 +16,11 @@
  */
 #include "../config.h"
 
+#include <sys/param.h>
+
 #if HAVE_ERR
 # include <err.h>
 #endif
-
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,6 +29,10 @@
 #include <unistd.h>
 
 #include "../kcgi.h"
+
+#ifndef nitems
+#define nitems(_a) (sizeof((_a)) / sizeof((_a)[0]))
+#endif
 
 struct	test {
 	enum kcgi_err	 errorcode;
@@ -53,29 +58,47 @@ static	const struct test tests[] = {
 	{ KCGI_OK, "%09-_foo%25%09bar.-%09", "\t-_foo%\tbar.-\t" },
 	{ KCGI_OK, "-_foo%2509%7dbar.-", "-_foo%09}bar.-" },
 	{ KCGI_OK, "%09%09%09%09", "\t\t\t\t" },
-	{ KCGI_FORM, "foo%zubar", "foo%zubar" },
-	{ KCGI_FORM, "foo%", "foo%" },
-	{ KCGI_OK, NULL, NULL }
+	{ KCGI_FORM, "foo%zubar", NULL },
+	{ KCGI_FORM, "foo%", NULL },
+	{ KCGI_FORM, "%%%%%%", NULL },
+	{ KCGI_FORM, NULL, NULL }
 };
 
 int
 main(int argc, char *argv[])
 {
 	const struct test *t;
-	char	*url;
-	enum kcgi_err code;
+	char		*url;
+	enum kcgi_err 	 code;
+	size_t	 	 len, i;
+
+	len = nitems(tests);
 
 	url = NULL;
-	for (t = tests; NULL != t->input; t++) {
+	for (i = 0; i < len; i++) {
+		t = &tests[i];
 		code = kutil_urldecode(t->input, &url);
 		if (KCGI_ENOMEM == code)
-			return(EXIT_FAILURE);
+			err(EXIT_FAILURE, NULL);
 		if (t->errorcode != code)
-			errx(EXIT_FAILURE, "%s: fail (returned %i, "
-				"wanted %i)", t->input, code, t->errorcode);
-		if (strcmp(url, t->output))
-			errx(EXIT_FAILURE, "%s: fail (have %s, "
-				"want %s)", t->input, url, t->output);
+			errx(EXIT_FAILURE, "%s: fail "
+				"(returned %i, wanted %i)", 
+				t->input, code, t->errorcode);
+		if (KCGI_OK != code) {
+			if (NULL != url)
+				errx(EXIT_FAILURE, "%s: fail "
+					"(wanted NULL result)", 
+					t->input);
+		} else {
+			if (NULL == url)
+				errx(EXIT_FAILURE, "%s: fail "
+					"(have NULL result)", 
+					t->input);
+			if (strcmp(url, t->output))
+				errx(EXIT_FAILURE, "%s: fail "
+					"(have %s, want %s)", 
+					t->input, url, t->output);
+		}
 		free(url);
 	}
 

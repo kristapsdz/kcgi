@@ -152,13 +152,15 @@ function decodes the given string
 .Fa src
 and stores the result in the allocated string
 .Fa dst .
-The caller must
-.Xr free 3
-the pointer.
+If the return code is not
+.Dv KCGI_OK ,
+the result is set to
+.Dv NULL .
 .Pp
 The
 .Fn kutil_urldecode_inplace
 function decodes the given string in-place.
+If the string is malformed, the string may be only partially decoded.
 .Pp
 The
 .Fn kutil_urlabs
@@ -198,7 +200,7 @@ Additionally the
 .Fn kutil_urldecode
 and
 .Fn kutil_urldecode_inplace
-functions returns an error code:
+functions return an error code:
 .Bl -tag -width -Ds
 .It Dv KCGI_OK
 Success (not an error).
@@ -206,7 +208,9 @@ Success (not an error).
 Memory failure (only
 .Fn kutil_urldecode ) .
 .It Dv KCGI_FORM
-Malformed input data.
+Malformed or
+.Dv NULL
+input data.
 .El
 .Sh AUTHORS
 These functions were written by
