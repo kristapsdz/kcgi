@@ -195,7 +195,7 @@ int main(void) {
 					href="https://nginx.org">nginx</a>, and OpenBSD's <a
 					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
 				(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
-				The only hard dependency is <a href="https://www.gnu.org/software/make/">GNU make</a>.
+				The only hard dependency is BSD make (<code>bmake</code> on Linux).
 				If you're running the regression tests (see <a href="#testing">Testing</a>), you'll need <a
 					href="https://curl.haxx.se/libcurl/">libcurl</a>.
 			</p>

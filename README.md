@@ -54,7 +54,7 @@ packages or a stable version), the process it the similar as for source
 releases.
 
 Begin by cloning or downloading.  Then configure with `./configure`,
-compile with `make` (GNU make, so it may be `gmake` on your system),
+compile with `make` (BSD make, so it may be `bmake` on your system),
 then `sudo make install` (or using `doas`).  To install in an
 alternative directory to `/usr/local`, set the `PREFIX` variable when
 you run `configure`.  (See the
@@ -67,8 +67,24 @@ make
 doas make install
 ```
 
+On some Linux machines:
+
+```sh
+./configure LDADD='-lm'
+bmake
+doas bmake install
+```
+
+Or FreeBSD:
+
+```sh
+./configure LDADD='-lmd'
+make
+doas make install
+```
+
 You can also change the default value in the
-[GNUmakefile](https://github.com/kristapsdz/kcgi/blob/master/GNUmakefile).
+[Makefile](https://github.com/kristapsdz/kcgi/blob/master/Makefile).
 
 ## API Reference
 
@@ -90,7 +106,7 @@ If you're using an alternative installation path, you may need to edit
 
 It's useful to run the installed regression tests on the bleeding edge
 sources.
-(Again, this uses GNU make, so it may be `gmake` on your system.)
+(Again, this uses BSD make, so it may be `bmake` on your system.)
 
 ```sh
 make regress
@@ -100,7 +116,7 @@ The system contains a full regression suite and is also built to work
 with [AFL](http://lcamtuf.coredump.cx/afl/).
 To run some of the bundled tests, use the binaries compiled into the
 `afl` directory.
-(Again, this uses GNU make, so it may be `gmake` on your system.)
+(Again, this uses BSD make, so it may be `bmake` on your system.)
 
 ```sh
 make afl
