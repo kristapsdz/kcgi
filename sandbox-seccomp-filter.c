@@ -154,6 +154,9 @@ static const struct sock_filter preauth_work[] = {
 		offsetof(struct seccomp_data, nr)),
 	SC_DENY(open, EACCES),
 	SC_ALLOW(getpid),
+#ifdef __NR_getrandom
+	SC_ALLOW(getrandom),
+#endif
 	SC_ALLOW(gettimeofday),
 	SC_ALLOW(clock_gettime),
 #ifdef __NR_time /* not defined on EABI ARM */
