@@ -108,7 +108,7 @@
 	</figure>
 	<p>
 		We then define a constant bitmap corresponding with those <code>enum pg</code> values for which no extra path information should
-		be prsent in the <abbr>HTTP</abbr> request.
+		be present in the <abbr>HTTP</abbr> request.
 		This will be used for sanity-checking the request.
 	</p>
 	<figure class="sample">
