@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta charset="utf-8" /> 
 		<title>kcgi | minimal CGI and FastCGI library for C/C++</title>
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
@@ -19,10 +19,10 @@
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
 			<section id="breadcrumbs">
-				BSD.lv tools for BCHS: 
+				<a href="https://www.bsd.lv">BSD.lv</a> tools for <a href="https://learnbchs.org">BCHS</a>: 
 				<a href="https://kristaps.bsd.lv/kcgi">kcgi</a>, 
 				<a href="https://kristaps.bsd.lv/ksql">ksql</a>, 
-				<a href="https://kristaps.bsd.lv/kwebapp">kwebapp</a>
+				<a href="https://kristaps.bsd.lv/openradtool">ort</a>
 			</section>
 			<section id="header">
 				<h1>
@@ -31,7 +31,12 @@
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library for C/C++</span>
 				</h1>
 				<nav>
-					<span class="version">Version @VERSION@</span>
+					<span class="version">
+						Version 
+						<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navxml="1">
+							${sblg-titletext}
+						</nav>
+					</span>
 					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
@@ -45,19 +50,19 @@
 				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
 					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
 					applications</span>.
-				It is minimal, secure, and auditable&#8212;a useful addition to your <a
-					href="https://www.learnbchs.org">BCHS</a> application stack.
+				It is minimal, secure, and auditable.
+			</p>
+			<p>
 				To start, <a href="#install">install</a> the library then read the <a href="#usage">usage guide</a>.
-				Use the <a href="https://github.com/kristapsdz/kcgi">GitHub</a> tracker for questions or comments.
-				(Or find contact information there.)
-				<span class="nm">kcgi</span> is a <a href="https://www.bsd.lv">BSD.lv</a> project.
+				Use the <a href="https://github.com/kristapsdz/kcgi">GitHub</a> tracker for questions or comments,
+				or find contact information there for direct contact.
 			</p>
 			<figure id="sample">
 				<input type="radio" name="sample-show" value="0" id="show-nocomments" checked="checked" />
 				<input type="radio" name="sample-show" value="1" id="show-comments" />
 				<nav>
 					<label id="label-nocomments" for="show-nocomments">
-						<i class="fa fa-fw fa-comments"></i> Hide source comments
+						<i class="fa fa-fw fa-comments-o"></i> Hide source comments
 					</label>
 					<label id="label-comments" for="show-comments">
 						<i class="fa fa-fw fa-comments"></i> Show source comments
@@ -156,25 +161,27 @@ int main(void) {
 			</p>
 		</section>
 		<section id="version">
-			<h2>
-				Release notes
-			</h2>
-			<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1">
-				<div>
-					<div class="title">
-						Version <span class="version">${sblg-title}</span>:
-						<time datetime="${sblg-date}">${sblg-date}</time>
+			<div>
+				<h2>
+					current release
+				</h2>
+				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1">
+					<div>
+						<div class="title">
+							Version <span class="version">${sblg-title}</span>:
+							<time datetime="${sblg-date}">${sblg-date}</time>
+						</div>
+						<div class="content">${sblg-aside}</div>
 					</div>
-					<div class="content">${sblg-aside}</div>
-				</div>
-			</nav>
-			<p>
-				<a href="archive.html">Version archive</a>
-			</p>
+				</nav>
+				<p class="archive">
+					(<a href="archive.html">release archive</a>)
+				</p>
+			</div>
 		</section>
 		<section id="install">
 			<h2>
-				Installation
+				installation
 			</h2>
 			<p>
 				First, check if <span class="nm">kcgi</span> isn't already packaged for your system, such as
@@ -227,12 +234,12 @@ int main(void) {
 		</section>
 		<section id="usage">
 			<h2>
-				Documentation
+				documentation
 			</h2>
 			<p>
 				The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
 				canonical source of documentation.  
-				You can also <a href="functions.html">see all functions</a>; or if it's easier to start by example, you can use 
+				If it's easier to start by example, you can use 
 				<a href="https://github.com/kristapsdz/kcgi-framework">kcgi-framework</a> as an initial boilerplate to
 				start your project.
 				The following are introductory materials to the system.
@@ -281,7 +288,7 @@ int main(void) {
 		</section>
 		<section id="deploying">
 			<h2>
-				Deployment
+				deployment
 			</h2>
 			<p>
 				Applications using <span class="nm">kcgi</span> behave just like any other application.
@@ -311,7 +318,7 @@ int main(void) {
 		</section>
 		<section id="features">
 			<h2>
-				Implementation Details
+				implementation details
 			</h2>
 			<p>
 				The bulk of <span class="nm">kcgi</span>'s CGI handling lies in <a
@@ -391,7 +398,7 @@ int main(void) {
 		</section>
 		<section>
 			<h2 id="testing">
-				Testing
+				testing
 			</h2>
 			<p>
 				<span class="nm">kcgi</span> is shipped with a fully automated testing framework executed with
@@ -421,7 +428,7 @@ int main(void) {
 		</section>
 		<section>
 			<h2>
-				Performance
+				performance
 			</h2>
 			<p>
 				Security comes at a price&#8212;but not a stiff price.
@@ -452,7 +459,7 @@ int main(void) {
 		</section>
 		<footer>
 			<div>
-				&#169; 2014&#8211;2018
+				&#169; 2014&#8211;2019
 				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
 			</div>
 			<div>

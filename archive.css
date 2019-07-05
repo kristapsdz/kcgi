@@ -1,69 +1,70 @@
-html, body			{ margin: 0; 
-				  padding: 0; }
-body				{ color: #333; 
-				  font-family: "Alegreya sans", Calibri, Candara, Segoe, Segoe UI, Optima, Arial, sans-serif; 
-				  font-weight: 400;
-				  font-size: 14pt; }
-a				{ text-decoration: none; }
-strong, b			{ font-weight: 700; }
-code, pre			{ font-size: 12pt; }
-body > header			{ box-shadow: 0 1px 4px #888; 
-				  background-color: #333; 
-				  padding: 2em 20% 1ex 20%;
-				  color: #fff; }
-body > header a			{ color: #dd5; }
-body > header a:hover		{ color: #ff0; }
-body > header nav ul		{ margin: auto 0; 
-				  padding: 0;
-				  list-style-type: none; }
-body > header nav li		{ margin: 0; }
-body > header nav li + li	{ margin-top: 0.5em; }
-body > header nav		{ padding: 0.5ex 0 1ex 0; }
-body > header nav .version	{ border-right: thin solid silver; 
-				  color: #abc;
-				  padding-right: 1ex; }
-h1				{ font-size: 24pt; 
-				  margin: 0;
-				  margin-bottom: 8pt;
-				  font-weight: 400; }
-.nm, .file			{ font-style: italic; }
-h1 .nm				{ text-shadow: 1px 1px #666; 
-				  font-style: inherit; }
-h1 .nd				{ text-shadow: 1px 1px #333; }
-footer				{ margin-top: 1em; 
-				  text-align: center;
-				  font-size: 12pt;
-				  color: #666; }
-footer a			{ color: #000; }
-footer span			{ border-left: thin solid #ccc; 
-			  	  padding-left: 1ex; }
-footer				{ padding: 1ex;
-				  margin-top: 1em;
-				  margin-bottom: 1em; }
-.flag				{ font-weight: 500; }
-#functions, #archive		{ width: 60%;
-				  margin-left: auto;
-				  margin-right: auto; }
-#archive li + li		{ margin-top: 16pt; }
-#archive div.content > div + div	
-				{ margin-top: 8pt; }
-#archive ul			{ list-style-type: none;
-				  padding: 0;
-				  margin: 2em 0; }
-#archive .title			{ display: flex;
-				  border-bottom: thin solid #eee;
-				  margin-bottom: 0.25em; }
-#archive .title > :first-child	{ font-weight: 500; }
-#archive .title > :last-child	{ flex: 1; 
-				  font-size: 12pt;
-				  text-align: right; }
-#functions ul			{ margin-left: 0; 
-				  padding-left: 0; }
-#functions dd + dt		{ margin-top: 12pt; }
+html, body				{ margin: 0; 
+					  padding: 0; }
+body					{ color: #333; 
+					  font-family: "Alegreya sans", sans-serif; 
+					  font-weight: 400;
+					  line-height: 1.3em;
+					  font-size: 14pt; }
+a					{ text-decoration: none; }
+strong, b				{ font-weight: 700; }
+code, pre				{ font-size: 65%; }
+body > header				{ background-color: #333; 
+					  padding: 2rem 0 0 0;
+					  color: #fff; }
+body > header > section			{ width: 66rem;
+					  max-width: 98%;
+					  margin: 0 auto; }
+#header a				{ color: #dd5; }
+#header a:hover				{ color: #ff0; }
+#header nav				{ padding: 0.5rem 0;
+				 	  font-size: 90%; }
+#header nav .version			{ border-right: thin solid silver; 
+					  color: #abc;
+					  margin-right: 0.5rem;
+					  padding-right: 0.5rem; }
+h1					{ font-size: 175%; 
+					  margin: 0;
+					  font-weight: 400; }
+.nm, .file				{ font-style: italic; }
+h1 .nm					{ text-shadow: 1px 1px #666; 
+					  font-style: inherit; }
+h1 .nd					{ text-shadow: 1px 1px #333; }
+footer					{ margin-top: 1em; 
+					  text-align: center;
+					  font-size: 12pt;
+					  color: #666; }
+footer a				{ color: #000; }
+footer span				{ border-left: thin solid #ccc; 
+					  padding-left: 1ex; }
+footer					{ padding: 1ex;
+					  margin-top: 1em;
+					  margin-bottom: 1em; }
+.flag					{ font-weight: 500; }
+#functions, #archive			{ width: 66rem;
+					  max-width: 98%;
+					  margin-left: auto;
+					  margin-right: auto; }
+#archive .fa				{ font-size: 80%; }
+#archive li:first-child			{ color: #000;
+					  margin-bottom: 3rem; }
+#archive li + li			{ margin-top: 2rem;
+					  opacity: 0.6; }
+#archive div.content > div + div		
+					{ margin-top: 1rem; }
+#archive ul				{ list-style-type: none;
+					  padding: 0;
+					  margin: 2em 0; }
+#archive .title				{ display: flex;
+					  border-bottom: thin solid #eee;
+					  margin-bottom: 1rem; }
+#archive .title > :last-child		{ flex: 1; 
+					  font-size: 12pt;
+					  text-align: right; }
+#functions ul				{ margin-left: 0; 
+					  padding-left: 0; }
+#functions dd + dt			{ margin-top: 12pt; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
- h1				{ font-size: 15pt; }
- pre				{ font-size: 8pt; }
- #functions, #archive		{ width: 96%; }
- body > header			{ padding: 1em 2% 1ex 2%; }
+  h1					{ font-size: 125%;
+	  				  line-height: 125%; }
 }

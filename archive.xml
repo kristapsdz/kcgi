@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta charset="utf-8" /> 
 		<title>kcgi | minimal CGI and FastCGI library for C</title>
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
@@ -18,7 +18,12 @@
 					<span itemprop="description" class="nd">minimal CGI and FastCGI library for C/C++</span>
 				</h1>
 				<nav>
-					<span class="version">Version @VERSION@</span>
+					<span class="version">
+						Version
+						<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navxml="1">
+							${sblg-titletext}
+						</nav>
+					</span>
 					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
 					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
 					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
@@ -40,7 +45,7 @@
 		</article>
 		<footer>
 			<div>
-				&#169; 2014&#8211;2017 
+				&#169; 2014&#8211;2019
 				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
 			</div>
 			<div>

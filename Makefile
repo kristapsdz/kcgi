@@ -89,8 +89,7 @@ HTMLS		 = man/kcgi.3.html \
 		   man/kutil_openlog.3.html \
 		   man/kutil_urlencode.3.html \
 		   man/kvalid_string.3.html \
-		   man/kfcgi.8.html \
-		   functions.html
+		   man/kfcgi.8.html
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
@@ -379,8 +378,7 @@ sample-cgi: sample-cgi.o
 # that they're running in-house for releases.
 
 index.html: index.xml versions.xml $(THTMLS)
-	sblg -t index.xml -s date -o- versions.xml $(THTMLS) | \
-		sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t index.xml -s date -o- versions.xml $(THTMLS) >$@
 
 sample.c.html: sample.c
 	highlight -o $@ --inline-css --doc sample.c
@@ -389,8 +387,7 @@ samplepp.cc.html: samplepp.cc
 	highlight -o $@ --inline-css --doc samplepp.cc
 
 archive.html: archive.xml versions.xml $(THTMLS)
-	sblg -t archive.xml -s date -o- versions.xml $(THTMLS) | \
-		sed "s!@VERSION@!$(VERSION)!g" >$@
+	sblg -t archive.xml -s date -o- versions.xml $(THTMLS) >$@
 
 $(THTMLS): tutorial.xml versions.xml $(TXMLS)
 
@@ -406,10 +403,6 @@ extending01.html: extending01.xml tutorial.xml
 
 .8.8.html:
 	mandoc -Thtml -Ostyle=mandoc.css $< >$@
-
-functions.html: functions.xml genindex.sh
-	sh ./genindex.sh functions.xml | \
-		sed "s!@VERSION@!$(VERSION)!g" >$@
 
 atom.xml: versions.xml
 	sblg -s date -a versions.xml >$@
