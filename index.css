@@ -4,46 +4,51 @@ body					{ color: #222;
 					  font-family: "Alegreya sans", sans-serif; 
 					  font-weight: 400;
 					  font-size: 14pt; }
-code, pre				{ font-size: 11pt; }
+code, pre				{ font-size: 65%; }
 a					{ text-decoration: none; 
 					  color: blue; }
 strong, b				{ font-weight: 700; }
-body > header				{ box-shadow: 0 1px 4px #888; 
-					  background-color: #333;
-					  padding: 5em 25% 1ex 25%;
+body > header				{ background-color: #333;
+					  padding: 5rem 0 0 0;
 					  color: #fff; }
+body > header > *			{ width: 66rem;
+					  margin: 0 auto;
+					  max-width: 98%; }
 body > header a				{ color: #dd5; }
 body > header a:hover			{ color: #ff0; }
 body > header nav .version		{ border-right: thin solid silver; 
 					  color: #abc;
-					  padding-right: 1ex; }
-#version ul,
-#header ul				{ margin: auto 0; 
+					  padding-right: 0.5rem;
+					  margin-right: 0.5rem; }
+#breadcrumbs				{ font-size: 90%; }
+#version ul				{ margin: auto 0; 
 					  padding: 0;
 					  list-style-type: none; }
-#version nav li,
-#header nav li				{ margin: 0; }
+#version nav li				{ margin: 0; }
 #usage nav ul				{ list-style-type: none; 
 					  padding: 0; }
 #header					{ padding-top: 2em; }
-#header nav				{ padding: 0.5ex 0 1ex 0; }
-#version				{ background-color: #ddd; }
+#header nav				{ padding: 0.5rem 0;
+				 	  font-size: 90%; }
+#header nav .fa				{ font-size: 80%; }
+#version				{ background-color: #eee; }
 #version a, 
 #version time, 
 #version span.version			{ font-style: normal; }
 #version .content > div + div		{ margin-top: 0.5em; }
 #version nav .title			{ font-weight: 500; 
 					  margin-bottom: 1em; }
-h1					{ font-size: 28pt; 
+#version .archive			{ text-align: center; }
+h1					{ font-size: 175%; 
 					  margin: 0;
 					  line-height: 34pt;
 					  font-weight: 400; }
-#breadcrumbs				{ font-size: 14pt; }
+p					{ line-height: 1.3em; }
 .nm, .file				{ font-style: italic; }
 h1 .nm					{ text-shadow: 1px 1px #666; 
 					  font-style: inherit; }
 h1 .nd					{ text-shadow: 1px 1px #333; }
-#intro					{ font-size: 16pt; }
+#intro					{ font-size: 125%; }
 #sample					{ margin: 3rem 0; 
 					  color: #666; }
 #sample > input				{ display: none; }
@@ -57,6 +62,7 @@ h1 .nd					{ text-shadow: 1px 1px #333; }
 #sample					{ text-align: left; }
 #sample nav label			{ color: #44b; }
 #sample nav				{ margin: 1ex 0; }
+#sample .fa				{ font-size: 80%; }
 #show-comments:checked ~ nav #label-nocomments,
 #show-nocomments:checked ~ nav #label-comments,
 #show-comments:checked ~ #comments,
@@ -71,22 +77,26 @@ footer a				{ color: #000; }
 footer span				{ border-left: thin solid #ccc; 
 					  padding-left: 1ex; }
 footer div + div			{ margin-top: 0.5em; }
-body > section h2			{ font-size: x-large; 
+body > section h2			{ font-size: 120%; 
 					  font-weight: 500; 
+					  text-align: center;
+					  font-variant: small-caps;
 					  color: #333; }
-body > section h3			{ font-size: large; 
-					  font-weight: 500;
+body > section h3			{ font-size: inherit;
+					  font-weight: inherit;
 					  margin-bottom: 0.25ex;
 					  color: #333; }
-body > section				{ padding: 0.5em 25%; 
-					  margin: 0.5em 0; }
+#version > div, body > section		{ width: 66rem;
+				  	  max-width: 98%;
+					  padding: 1rem 0;
+					  margin: 0 auto; }
+#version				{ width: 100%;
+					  max-width: 100%; }
 figure figcaption			{ margin: 0.5em 0.2em; }
 figure					{ margin: 0; 
 					  text-align: center; 
 					  color: #444; }
 dd					{ margin: 0 0 1em 0; }
-body > header nav			{ overflow: hidden; }
-body > header nav li + li		{ margin-top: 1.5em; }
 pre.prettyprint				{ border: none; 
 					  line-height: 180%;
 					  margin: 0; 
@@ -98,23 +108,13 @@ footer					{ padding: 1ex;
 					  margin-bottom: 1em; }
 .flag					{ font-weight: 500; }
 
-@media only screen and (max-width: 1280px), only screen and (max-device-width: 1280px) {
-   body > header,
-   body > section			{ padding-left: 10%;
-	   			 	  padding-right: 10%; }
-}
-
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
-   h1					{ font-size: 15pt; 
-					  line-height: 18pt; }
-   pre					{ font-size: 8pt; }
+   h1					{ font-size: 125%;
+	   				  line-height: 125%; }
+   #intro				{ font-size: 100%; }
    figure img				{ display: block;
   					  max-width: 400px;
   					  margin-left: auto;
   					  margin-right: auto;
   					  width: 100%; }
-   body > section			{ padding: 0.5em 2%; 
-  					  margin: 0.5em 0; }
-   #header				{ padding-top: 1em; }
-   body > header			{ padding: 1em 2% 1ex 2%; }
 }
