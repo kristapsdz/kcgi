@@ -623,10 +623,10 @@ void		 kutil_invalidate(struct kreq *, struct kpair *);
 int		 kutil_openlog(const char *);
 void	 	 kutil_verr(const struct kreq *, 
 			const char *, const char *, va_list)
-			__attribute__((noreturn));
+			__attribute__((__noreturn__));
 void	 	 kutil_verrx(const struct kreq *, 
 			const char *, const char *, va_list)
-			__attribute__((noreturn));
+			__attribute__((__noreturn__));
 void		 kutil_vinfo(const struct kreq *, 
 			const char *, const char *, va_list);
 void		 kutil_vlog(const struct kreq *, const char *,
@@ -655,11 +655,11 @@ void		 kutil_warnx(const struct kreq *,
 void		 kutil_err(const struct kreq *, 
 			const char *, const char *, ...)
 			__attribute__((format(printf, 3, 4)))
-			__attribute__((noreturn));
+			__attribute__((__noreturn__));
 void		 kutil_errx(const struct kreq *, 
 			const char *, const char *, ...)
 			__attribute__((format(printf, 3, 4)))
-			__attribute__((noreturn));
+			__attribute__((__noreturn__));
 
 int		 kasprintf(char **, const char *, ...)
 			__attribute__((format(printf, 2, 3)));
