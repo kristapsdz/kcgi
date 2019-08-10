@@ -3,6 +3,21 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.11</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2019-07-05">2019-07-05</time>
+		</header>
+		<aside>
+			<div>
+				Maintenance release: 
+				bring up to date with latest <a
+					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>,
+				merge pending <a href="https://github.com/kristapsdz/kcgi">GitHub</a> pulls.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.10</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2018-12-27">2018-12-27</time>
