@@ -10,7 +10,7 @@
 		<aside itemprop="about">
 			Cookies are an integral part of any web application.
 			In this tutorial, I'll describe how to use the HTTP header functionality in <span class="nm">kcgi</span> to set,
-			recognise, and store headers.
+			recognise, and store cookies.
 		</aside>
 	</p>
 	<h3>
