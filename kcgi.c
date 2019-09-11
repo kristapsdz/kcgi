@@ -422,13 +422,14 @@ kutil_urlencode(const char *cp)
 		return(NULL);
 
 	for (cur = p; '\0' != (c = *cp); cp++) {
-		if (isalnum(c) || c == '-' ||
+		if (isalnum((unsigned char)c) || c == '-' ||
 		    c == '_' || c == '.' || c == '~')
 			*cur++ = c;
 		else if (' ' == c)
 			*cur++ = '+';
 		else
-			cur += sprintf(cur, "%%%.2hhX", c);
+			cur += sprintf(cur, "%%%.2hhX", 
+				(unsigned char)c);
 	}
 
 	*cur = '\0';
