@@ -439,28 +439,27 @@ enum kcgi_err
 kutil_urldecode_inplace(char *p)
 {
 	char	 c;
-	char	 hex[3];
 	char	*tail;
 
 	if (NULL == p)
 		return(KCGI_FORM);
 
-	hex[2] = '\0';
-
 	for (tail = p; '\0' != (c = *tail); *(p++) = c) {
 		if ('%' == c) {
-			if ('\0' == (hex[0] = tail[1]) ||
-			    '\0' == (hex[1] = tail[2])) {
-				XWARNX("urldecode: short hex");
-				goto err;
-			} else if (1 != sscanf(hex, "%hhx", &c)) {
+			if ((isdigit(tail[1]) ||
+			     ('A' <= tail[1] && 'F' >= tail[1]) ||
+			     ('a' <= tail[1] && 'f' >= tail[1])) &&
+			    (isdigit(tail[2]) ||
+			     ('A' <= tail[2] && 'F' < tail[2]) ||
+			     ('a' <= tail[2] && 'f' < tail[2])) &&
+			    1 == sscanf(tail + 1, "%2hhx", &c) &&
+			    '\0' != c) {
+				tail += 3;
+			} else {
 				XWARNX("urldecode: bad hex");
-				goto err;
-			} else if ('\0' >= c) {
-				XWARNX("urldecode: invalid byte");
-				goto err;
+				memmove(p, tail, strlen(tail) + 1);
+				return(KCGI_FORM);
 			}
-			tail += 3;
 		} else {
 			if ('+' == c)
 				c = ' ';
@@ -470,10 +469,6 @@ kutil_urldecode_inplace(char *p)
 
 	*p = '\0';
 	return(KCGI_OK);
-
-err:
-	memmove(p, tail, strlen(tail) + 1);
-	return(KCGI_FORM);
 }
 
 enum kcgi_err
