@@ -424,9 +424,9 @@ kutil_urlencode(const char *cp)
 	for (cur = p; '\0' != (c = *cp); cp++) {
 		if (isalnum(c) || c == '-' ||
 		    c == '_' || c == '.' || c == '~')
-			*(cur++) = c;
+			*cur++ = c;
 		else if (' ' == c)
-			*(cur++) = '+';
+			*cur++ = '+';
 		else
 			cur += sprintf(cur, "%%%.2hhX", c);
 	}
@@ -444,7 +444,7 @@ kutil_urldecode_inplace(char *p)
 	if (NULL == p)
 		return(KCGI_FORM);
 
-	for (tail = p; '\0' != (c = *tail); *(p++) = c) {
+	for (tail = p; '\0' != (c = *tail); *p++ = c) {
 		if ('%' == c) {
 			if (2 == sscanf(tail + 1, "%1hhx%1hhx", &d, &c) &&
 			    '\0' != (c |= d << 4)) {
@@ -469,6 +469,8 @@ enum kcgi_err
 kutil_urldecode(const char *src, char **dst)
 {
 	enum kcgi_err	 er;
+
+	*dst = NULL;
 
 	if (NULL == src)
 		return(KCGI_FORM);
