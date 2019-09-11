@@ -438,7 +438,7 @@ kutil_urlencode(const char *cp)
 enum kcgi_err
 kutil_urldecode_inplace(char *p)
 {
-	char	 c;
+	char	 c, d;
 	char	*tail;
 
 	if (NULL == p)
@@ -446,14 +446,8 @@ kutil_urldecode_inplace(char *p)
 
 	for (tail = p; '\0' != (c = *tail); *(p++) = c) {
 		if ('%' == c) {
-			if ((isdigit(tail[1]) ||
-			     ('A' <= tail[1] && 'F' >= tail[1]) ||
-			     ('a' <= tail[1] && 'f' >= tail[1])) &&
-			    (isdigit(tail[2]) ||
-			     ('A' <= tail[2] && 'F' < tail[2]) ||
-			     ('a' <= tail[2] && 'f' < tail[2])) &&
-			    1 == sscanf(tail + 1, "%2hhx", &c) &&
-			    '\0' != c) {
+			if (2 == sscanf(tail + 1, "%1hhx%1hhx", &d, &c) &&
+			    '\0' != (c |= d << 4)) {
 				tail += 3;
 			} else {
 				XWARNX("urldecode: bad hex");
