@@ -401,78 +401,79 @@ kmalloc(size_t sz)
 char *
 kutil_urlencode(const char *cp)
 {
-	char	*p;
-	char	 ch;
-	size_t	 sz, cur;
+	char	 c;
+	char	*p, *cur;
+	size_t	 sz;
 
 	if (NULL == cp)
 		return(NULL);
 
-	/* 
-	 * Leave three bytes per input byte for encoding. 
-	 * This ensures we needn't range-check.
-	 * First check whether our size overflows. 
-	 * We do this here because we need our size!
+	/*
+	 * Leave three bytes per input byte for encoding.
+	 * First check whether our size overflows.
 	 */
 
-	sz = strlen(cp) + 1;
-	if (SIZE_MAX / 3 < sz) {
+	sz = strlen(cp);
+	if ((SIZE_MAX - 1) / 3 < sz) {
 		XWARNX("multiplicative overflow: %zu", sz);
 		return(NULL);
 	}
-	if (NULL == (p = XCALLOC(sz, 3)))
+	if (NULL == (p = XMALLOC(sz * 3 + 1)))
 		return(NULL);
 
-	for (cur = 0; '\0' != (ch = *cp); cp++) {
-		if (isalnum((unsigned char)ch) || ch == '-' || 
-		    ch == '_' || ch == '.' || ch == '~') {
-			p[cur++] = ch;
-			continue;
-		} else if (' ' == ch) {
-			p[cur++] = '+';
-			continue;
-		}
-		cur += snprintf(p + cur, 4, "%%%.2x", 
-			(unsigned char)ch);
+	for (cur = p; '\0' != (c = *cp); cp++) {
+		if (isalnum(c) || c == '-' ||
+		    c == '_' || c == '.' || c == '~')
+			*(cur++) = c;
+		else if (' ' == c)
+			*(cur++) = '+';
+		else
+			cur += sprintf(cur, "%%%.2hhX", c);
 	}
 
+	*cur = '\0';
 	return(p);
 }
 
 enum kcgi_err
 kutil_urldecode_inplace(char *p)
 {
-	char		 hex[3];
-	unsigned int	 c;
+	char	 c;
+	char	 hex[3];
+	char	*tail;
 
 	if (NULL == p)
-		return KCGI_FORM;
+		return(KCGI_FORM);
 
 	hex[2] = '\0';
 
-	for ( ; '\0' != *p; p++) {
-		if ('%' == *p) {
-			if ('\0' == (hex[0] = *(p + 1))) {
+	for (tail = p; '\0' != (c = *tail); *(p++) = c) {
+		if ('%' == c) {
+			if ('\0' == (hex[0] = tail[1]) ||
+			    '\0' == (hex[1] = tail[2])) {
 				XWARNX("urldecode: short hex");
-				return KCGI_FORM;
-			} else if ('\0' == (hex[1] = *(p + 2))) {
-				XWARNX("urldecode: short hex");
-				return KCGI_FORM;
-			} else if (1 != sscanf(hex, "%x", &c)) {
+				goto err;
+			} else if (1 != sscanf(hex, "%hhx", &c)) {
 				XWARNX("urldecode: bad hex");
-				return KCGI_FORM;
-			} else if ('\0' == c) {
-				XWARNX("urldecode: NUL byte");
-				return KCGI_FORM;
+				goto err;
+			} else if ('\0' >= c) {
+				XWARNX("urldecode: invalid byte");
+				goto err;
 			}
-
-			*p = c;
-			memmove(p + 1, p + 3, strlen(p + 3) + 1);
-		} else if ('+' == *p)
-			*p = ' ';
+			tail += 3;
+		} else {
+			if ('+' == c)
+				c = ' ';
+			tail += 1;
+		}
 	}
 
-	return KCGI_OK;
+	*p = '\0';
+	return(KCGI_OK);
+
+err:
+	memmove(p, tail, strlen(tail) + 1);
+	return(KCGI_FORM);
 }
 
 enum kcgi_err
@@ -480,20 +481,18 @@ kutil_urldecode(const char *src, char **dst)
 {
 	enum kcgi_err	 er;
 
-	*dst = NULL;
-
 	if (NULL == src)
-		return KCGI_FORM;
+		return(KCGI_FORM);
 	if (NULL == (*dst = XSTRDUP(src)))
-		return KCGI_ENOMEM;
+		return(KCGI_ENOMEM);
 
 	if (KCGI_OK == (er = kutil_urldecode_inplace(*dst)))
-		return er;
+		return(KCGI_OK);
 
 	/* If we have decoding errors, clear the output. */
 	free(*dst);
 	*dst = NULL;
-	return er;
+	return(er);
 }
 
 char *
