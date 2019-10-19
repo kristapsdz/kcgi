@@ -37,6 +37,7 @@ parent(CURL *curl)
 	slist = curl_slist_append(slist, "Testing\tfoo:123");
 	slist = curl_slist_append(slist, "Testing-Test:321");
 	slist = curl_slist_append(slist, "Test\bing-Test:321");
+	curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:17123/");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	ret = curl_easy_perform(curl);

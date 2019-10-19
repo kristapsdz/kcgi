@@ -30,6 +30,7 @@ static int
 parent1(CURL *curl)
 {
 
+	curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/index1.html");
 	return CURLE_OK == curl_easy_perform(curl);
@@ -39,6 +40,7 @@ static int
 parent2(CURL *curl)
 {
 
+	curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/index2.html");
 	return CURLE_OK == curl_easy_perform(curl);

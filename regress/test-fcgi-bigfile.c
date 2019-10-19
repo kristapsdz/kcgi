@@ -48,6 +48,7 @@ parent(CURL *curl)
 	p[1024 * 1024 + 4] = '\0';
 
 	i = 0;
+	curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, doign);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &i);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p);

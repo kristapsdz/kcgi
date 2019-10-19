@@ -117,6 +117,7 @@ parent(CURL *curl)
 		CURLFORM_FILECONTENT, "Makefile", CURLFORM_END);
 
 	/* Set the form info */
+	curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, post);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(curl, CURLOPT_URL, 
