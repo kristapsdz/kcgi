@@ -444,6 +444,9 @@ if [ ${HAVE_SECCOMP_FILTER} -eq 1 ]; then
 		arm*)
 			echo "#define SECCOMP_AUDIT_ARCH AUDIT_ARCH_ARM"
 			;;
+		aarch64)
+			echo "#define SECCOMP_AUDIT_ARCH AUDIT_ARCH_AARCH64"
+			;;
 	esac
 fi
 
