@@ -47,6 +47,10 @@
 #include <linux/seccomp.h>
 #include <elf.h>
 
+#ifdef AUDIT_ARCH_AARCH64
+#define __ARCH_WANT_SYSCALL_NO_AT
+#define __ARCH_WANT_SYSCALL_DEPRECATED
+#endif
 #include <asm/unistd.h>
 
 #include <errno.h>
@@ -114,6 +118,9 @@ static const struct sock_filter preauth_ctrl[] = {
 	SC_ALLOW(shutdown),
 #endif
 	SC_ALLOW(brk),
+#ifdef __NR_ppoll
+	SC_ALLOW(ppoll),
+#endif
 	SC_ALLOW(poll),
 #ifdef __NR__newselect
 	SC_ALLOW(_newselect),
@@ -174,6 +181,9 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(shutdown),
 #endif
 	SC_ALLOW(brk),
+#ifdef __NR_ppoll
+	SC_ALLOW(ppoll),
+#endif
 	SC_ALLOW(poll),
 #ifdef __NR__newselect
 	SC_ALLOW(_newselect),
