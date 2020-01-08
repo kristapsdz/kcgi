@@ -7,6 +7,7 @@
 		<link rel="alternate" href="atom.xml" type="application/atom+xml" title="kcgi version feed" />
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
+		<link rel="stylesheet" href="https://bsd.lv/css/style.css" />
 		<link rel="stylesheet" href="prettify.css" />
 		<link rel="stylesheet" href="index.css" />
 		<script src="prettify.js"></script>
@@ -18,13 +19,13 @@
 	</head>
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
-			<section id="breadcrumbs">
+			<section id="breadcrumbs" class="text">
 				<a href="https://www.bsd.lv">BSD.lv</a> tools for <a href="https://learnbchs.org">BCHS</a>: 
 				<a href="https://kristaps.bsd.lv/kcgi">kcgi</a>, 
-				<a href="https://kristaps.bsd.lv/ksql">ksql</a>, 
+				<a href="https://kristaps.bsd.lv/sqlbox">sqlbox</a>, 
 				<a href="https://kristaps.bsd.lv/openradtool">ort</a>
 			</section>
-			<section id="header">
+			<section id="header" class="text">
 				<h1>
 					<a href="index.html" itemprop="name" class="nm">kcgi</a> 
 					&#8211; 
@@ -45,7 +46,7 @@
 				</nav>
 			</section>
 		</header>
-		<section>
+		<section class="text">
 			<p id="intro">
 				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
 					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
@@ -161,7 +162,7 @@ int main(void) {
 			</p>
 		</section>
 		<section id="version">
-			<div>
+			<div class="text">
 				<h2>
 					current release
 				</h2>
@@ -179,7 +180,7 @@ int main(void) {
 				</p>
 			</div>
 		</section>
-		<section id="install">
+		<section id="install" class="text">
 			<h2>
 				installation
 			</h2>
@@ -232,7 +233,7 @@ int main(void) {
 				other non-Microsoft functions.
 			</p>
 		</section>
-		<section id="usage">
+		<section id="usage" class="text">
 			<h2>
 				documentation
 			</h2>
@@ -286,7 +287,7 @@ int main(void) {
 				</li>
 			</ul>
 		</section>
-		<section id="deploying">
+		<section id="deploying" class="text">
 			<h2>
 				deployment
 			</h2>
@@ -316,7 +317,7 @@ int main(void) {
 				suggested for the security precautions taken by the wrapper).
 			</p>
 		</section>
-		<section id="features">
+		<section id="features" class="text">
 			<h2>
 				implementation details
 			</h2>
@@ -396,7 +397,7 @@ int main(void) {
 				socket connection and respond to new requests.
 			</p>
 		</section>
-		<section>
+		<section class="text">
 			<h2 id="testing">
 				testing
 			</h2>
@@ -426,7 +427,7 @@ int main(void) {
 				<em>Coverity has been discontinued as an ongoing mechanism due to the lack of an OpenBSD client.</em>
 			</p>
 		</section>
-		<section>
+		<section class="text">
 			<h2>
 				performance
 			</h2>
