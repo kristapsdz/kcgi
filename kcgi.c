@@ -405,8 +405,8 @@ kutil_urlencode(const char *cp)
 	char	 ch;
 	size_t	 sz, cur;
 
-	if (NULL == cp)
-		return(NULL);
+	if (cp == NULL)
+		return NULL;
 
 	/* 
 	 * Leave three bytes per input byte for encoding. 
@@ -418,12 +418,12 @@ kutil_urlencode(const char *cp)
 	sz = strlen(cp) + 1;
 	if (SIZE_MAX / 3 < sz) {
 		XWARNX("multiplicative overflow: %zu", sz);
-		return(NULL);
+		return NULL;
 	}
-	if (NULL == (p = XCALLOC(sz, 3)))
-		return(NULL);
+	if ((p = XCALLOC(sz, 3)) == NULL)
+		return NULL;
 
-	for (cur = 0; '\0' != (ch = *cp); cp++) {
+	for (cur = 0; (ch = *cp) != '\0'; cp++) {
 		if (isalnum((unsigned char)ch) || ch == '-' || 
 		    ch == '_' || ch == '.' || ch == '~') {
 			p[cur++] = ch;
@@ -432,46 +432,50 @@ kutil_urlencode(const char *cp)
 			p[cur++] = '+';
 			continue;
 		}
-		cur += snprintf(p + cur, 4, "%%%.2x", 
+		cur += snprintf(p + cur, 4, "%%%.2hhX", 
 			(unsigned char)ch);
 	}
 
-	return(p);
+	return p;
 }
 
 enum kcgi_err
 kutil_urldecode_inplace(char *p)
 {
-	char		 hex[3];
-	unsigned int	 c;
+	char	 	 c, d;
+	const char	*tail;
 
-	if (NULL == p)
+	if (p == NULL)
 		return KCGI_FORM;
 
-	hex[2] = '\0';
+	/*
+	 * Keep track of two positions: "p", where we'll write the
+	 * decoded results, and "tail", which is from where we'll
+	 * decode hex or copy data.
+	 */
 
-	for ( ; '\0' != *p; p++) {
-		if ('%' == *p) {
-			if ('\0' == (hex[0] = *(p + 1))) {
-				XWARNX("urldecode: short hex");
-				return KCGI_FORM;
-			} else if ('\0' == (hex[1] = *(p + 2))) {
-				XWARNX("urldecode: short hex");
-				return KCGI_FORM;
-			} else if (1 != sscanf(hex, "%x", &c)) {
-				XWARNX("urldecode: bad hex");
-				return KCGI_FORM;
-			} else if ('\0' == c) {
-				XWARNX("urldecode: NUL byte");
-				return KCGI_FORM;
-			}
+	for (tail = p; (c = *tail) != '\0'; *p++ = c) {
+		if (c != '%') {
+			if (c == '+')
+				c = ' ';
+			tail++;
+			continue;
+		}
 
-			*p = c;
-			memmove(p + 1, p + 3, strlen(p + 3) + 1);
-		} else if ('+' == *p)
-			*p = ' ';
+		/* 
+		 * Read hex '%xy' as two unsigned chars "c" and "d" then
+		 * combine them back into "c".
+		 */
+
+		if (sscanf(tail + 1, "%1hhx%1hhx", &d, &c) != 2 ||
+		    (c |= d << 4) == '\0') {
+			XWARNX("urldecode: bad hex");
+			return KCGI_FORM;
+		}
+		tail += 3;
 	}
 
+	*p = '\0';
 	return KCGI_OK;
 }
 
@@ -482,15 +486,15 @@ kutil_urldecode(const char *src, char **dst)
 
 	*dst = NULL;
 
-	if (NULL == src)
+	if (src == NULL)
 		return KCGI_FORM;
-	if (NULL == (*dst = XSTRDUP(src)))
+	if ((*dst = XSTRDUP(src)) == NULL)
 		return KCGI_ENOMEM;
-
-	if (KCGI_OK == (er = kutil_urldecode_inplace(*dst)))
-		return er;
+	if ((er = kutil_urldecode_inplace(*dst)) == KCGI_OK)
+		return KCGI_OK;
 
 	/* If we have decoding errors, clear the output. */
+
 	free(*dst);
 	*dst = NULL;
 	return er;
