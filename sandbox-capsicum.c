@@ -20,7 +20,7 @@
 #if HAVE_CAPSICUM
 
 #include <sys/resource.h>
-#include <sys/capability.h>
+#include <sys/capsicum.h>
 
 #include <assert.h>
 #include <unistd.h>
