@@ -29,7 +29,7 @@ kcgi parses the request and can manage output.
 int main(void) {
   struct kreq r;
   const char *page = "index";
-  if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
+  if (khttp_parse(&r, NULL, 0, &page, 1, 0) != KCGI_OK)
 	return 0;
   khttp_head(&r, kresps[KRESP_STATUS],
 	"%s", khttps[KHTTP_200]);
