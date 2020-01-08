@@ -638,15 +638,17 @@ dochild_prepare(void)
 static int
 dochild_fcgi(kcgi_regress_server child, void *carg)
 {
-	int			 in, rc, fd;
-	size_t			 sz, len;
+	int			 in, rc = 0, fd;
+	size_t			 sz, len, vecsz = 0, headsz;
 	pid_t			 pid;
 	struct sockaddr_un	 sun;
 	struct sockaddr		*ss;
 	ssize_t			 ssz;
 	extern char		*__progname;
-	char			 sfn[22];
-	char			 buf[BUFSIZ];
+	const char		*end = NULL, *start, *msg, *ovec, *cp;
+	char			 sfn[22], buf[BUFSIZ];
+	char			*vec = NULL;
+	void			*pp;
 	struct fcgi_hdr		 hdr;
 	mode_t		  	 mode;
 
@@ -722,8 +724,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 */
 
 	close(fd);
-	fd = in = -1;
-	rc = 0;
+	fd = -1;
 
 	/* Get the next incoming connection and FILE-ise it. */
 
@@ -755,14 +756,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	if (!dochild_params(in, &fd, &len, dochild_params_fcgi))
 		goto out;
 
-	/*
-	 * We might not have any data to read from the server, so
-	 * remember whether a Content-Type was stipulated and only
-	 * download data if it was.
-	 * This is required because we'll just sit here waiting for data
-	 * otherwise.
-	 * Note: "in" is non-blocking, so be respectful.
-	 */
+	/* Forward any data from the test's parent. */
 
 	while (len > 0) {
 		ssz = nb_read(in, buf, 
@@ -787,20 +781,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		goto out;
 	}
 
-	/*
-	 * Now we read the response, funneling it to the output.
-	 * Stop reading on error or when we receive the end of data
-	 * token from the FastCGI client.
-	 * Start with the return code as non-zero, because getting no
-	 * FastCGI response is valid (failed connection) while getting
-	 * some is an error.
-	 */
+	/* Read and buffer into "vec" til EOF or end of headers. */
 
-	rc = 1;
 	while (fcgi_hdr_read(fd, &hdr)) {
-		rc = 0;
 		if (hdr.type == FCGI_HDR_END) {
-			/* End of message. */
 			if (!fcgi_end_read(fd, &rc)) {
 				fprintf(stderr, "%s: bad fin\n", __func__);
 				goto out;
@@ -811,26 +795,111 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 				PRIu8 "\n", __func__, hdr.type);
 			goto out;
 		}
-
-		/* Echo using a temporary buffer. */
-
-		while (hdr.contentLength > 0) {
-			sz = hdr.contentLength > BUFSIZ ? 
-				BUFSIZ : hdr.contentLength;
-			if (b_read(fd, buf, sz)) {
-				if (!nb_write(in, buf, sz))
-					goto out;
-				hdr.contentLength -= sz;
-				continue;
-			} else
+		if (hdr.contentLength > 0) {
+			pp = realloc(vec, vecsz + hdr.contentLength);
+			if (pp == NULL) {
+				perror(NULL);
+				goto out;
+			}
+			vec = pp;
+			if (!b_read(fd, vec + vecsz, hdr.contentLength)) {
 				fprintf(stderr, "%s: bad read\n", __func__);
+				goto out;
+			}
+			vecsz += hdr.contentLength;
+		}
+		if (b_ignore(fd, hdr.paddingLength) == 0) {
+			fprintf(stderr, "%s: bad ignore\n", __func__);
 			goto out;
+		} 
+		if (vecsz == 0)
+			continue;
+		end = memmem(vec, vecsz, "\r\n\r\n", 4);
+		if (end != NULL)
+			break;
+	}
+
+	/* Uh-oh: we read the whole message and no headers. */
+
+	if (end == NULL) {
+		fprintf(stderr, "FastCGI script did "
+			"not terminate headers\n");
+		rc = 1;
+		goto out;
+	}
+
+	/* 
+	 * No "status" is ok: convert it to a 200.
+	 * If we do have a status, print it with the HTTP type.
+	 */
+
+	headsz = (size_t)(end - vec);
+
+	if ((start = memmem(vec, headsz, "Status:", 7)) == NULL) {
+		msg = "HTTP/1.1 200 OK\r\n";
+		if (!b_write(in, msg, strlen(msg)))
+			goto out;
+		fprintf(stderr, "FastCGI script did "
+			"not specify status\n");
+		ovec = vec;
+	} else {
+		msg = "HTTP/1.1";
+		if (!nb_write(in, msg, strlen(msg)))
+			goto out;
+		cp = start + 7;
+		while (cp < end) {
+			if (!nb_write(in, cp, 1))
+				goto out;
+			cp++;
+			if (cp[-1] == '\n')
+				break;
+		}
+		if (!nb_write(in, vec, (size_t)(start - vec)))
+			goto out;
+		vecsz -= (cp - vec);
+		ovec = cp;
+	}
+
+	/* Print remaining buffered data. */
+
+	if (!nb_write(in, ovec, vecsz))
+		goto out;
+
+	/* Forward remaining script output. */
+
+	while (fcgi_hdr_read(fd, &hdr)) {
+		if (hdr.type == FCGI_HDR_END) {
+			if (!fcgi_end_read(fd, &rc)) {
+				fprintf(stderr, "%s: bad fin\n", __func__);
+				goto out;
+			}
+			rc = 1;
+			break;
+		} else if (hdr.type != FCGI_HDR_DATA_OUT) {
+			fprintf(stderr, "%s: bad type: %" 
+				PRIu8 "\n", __func__, hdr.type);
+			goto out;
+		}
+		while (hdr.contentLength > 0) {
+			vecsz = hdr.contentLength > sizeof(buf) ?
+				sizeof(buf) : hdr.contentLength;
+			if (!b_read(fd, buf, vecsz)) {
+				fprintf(stderr, "%s: bad read\n", __func__);
+				goto out;
+			} else if (!nb_write(in, buf, vecsz)) {
+				fprintf(stderr, "%s: bad write\n", __func__);
+				goto out;
+			}
+			hdr.contentLength -= vecsz;
 		}
 		if (b_ignore(fd, hdr.paddingLength) == 0) {
 			fprintf(stderr, "%s: bad ignore\n", __func__);
 			goto out;
 		} 
 	}
+
+	if (rc == 0)
+		fprintf(stderr, "%s: no fin\n", __func__);
 out:
 	/* 
 	 * Begin by asking the child to exit.
@@ -854,6 +923,7 @@ out:
 
 	if (waitpid(pid, NULL, 0) == -1)
 		perror("waitpid");
+	free(vec);
 	return rc;
 }
 
