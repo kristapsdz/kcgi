@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014--2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014--2016, 2019 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -37,6 +37,8 @@
 
 #include "kcgiregress.h"
 
+#define	FCGI_HDR_SIZE		8
+
 /*
  * The FastCGI header.
  * This is duplicated elsewhere in the code, but is harmless as it isn't
@@ -45,6 +47,10 @@
 struct 	fcgi_hdr {
 	uint8_t	 version;
 	uint8_t	 type;
+#define	FCGI_HDR_END		3
+#define	FCGI_HDR_HEAD		4
+#define	FCGI_HDR_DATA_IN	5
+#define	FCGI_HDR_DATA_OUT	6
 	uint16_t requestId;
 	uint16_t contentLength;
 	uint8_t	 paddingLength;
@@ -53,8 +59,8 @@ struct 	fcgi_hdr {
 
 /*
  * Non-blocking read.
- * This reads as many (non-zero) bytes, and really only wraps the
- * poll(2) mechanism.
+ * Returns <0 on failure (system error) or bytes read, which may be
+ * zero in the event of EOF.
  */
 static ssize_t
 nb_read(int fd, void *buf, size_t bufsz)
@@ -62,26 +68,25 @@ nb_read(int fd, void *buf, size_t bufsz)
 	struct pollfd	 pfd;
 	int		 rc;
 
-	assert(NULL != buf && bufsz);
+	assert(buf != NULL && bufsz);
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 
 	if ((rc = poll(&pfd, 1, -1)) < 0) {
 		perror("poll");
-		return(-1);
-	} else if (0 == rc) {
+		return (-1);
+	} else if (rc == 0) {
 		fprintf(stderr, "poll: timeout!?\n");
-		return(-1);
+		return (-1);
 	} 
 	
-	return(read(fd, buf, bufsz));
+	return read(fd, buf, bufsz);
 }
 
 /*
- * Non-blocking write.
- * Write the entire buffer while respecting that we may need to wait for
- * the descriptor to clear up.
+ * Non-blocking write of "bufsz" bytes in "buf".
+ * Return TRUE on success, FALSE on failure (system error).
  */
 static int
 nb_write(int fd, const void *buf, size_t bufsz)
@@ -91,8 +96,8 @@ nb_write(int fd, const void *buf, size_t bufsz)
 	struct pollfd	 pfd;
 	int		 rc;
 
-	if (NULL == buf || 0 == bufsz)
-		return(1);
+	if (buf == NULL || bufsz == 0)
+		return 1;
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
@@ -100,7 +105,7 @@ nb_write(int fd, const void *buf, size_t bufsz)
 	for (sz = 0; sz < bufsz; sz += (size_t)ssz) {
 		if ((rc = poll(&pfd, 1, -1)) < 0)
 			perror("poll");
-		else if (0 == rc)
+		else if (rc == 0)
 			fprintf(stderr, "poll: timeout!?\n");
 		else if ((ssz = write(fd, buf + sz, bufsz - sz)) < 0)
 			perror("write");
@@ -109,73 +114,83 @@ nb_write(int fd, const void *buf, size_t bufsz)
 				"%zu, %zd", sz, ssz);
 		else
 			continue;
-		return(0);
+		return 0;
 	}
-	return(1);
+
+	return 1;
 }
 
 /*
- * Perform a non-blocking write to our child FastCGI process.
- * Return non-zero on success, zero on failure.
+ * Blocking write of "sz" bytes in "buf".
+ * Return TRUE on success, FALSE on failure (system error).
  */
 static int
-fcgi_write(int fd, const void *buf, size_t sz)
+b_write(int fd, const void *buf, size_t sz)
 {
 	ssize_t	 ssz;
-	size_t	 wsz;
+	size_t	 wsz = 0;
 
-	wsz = 0;
 	while (sz > 0) {
-		if (-1 == (ssz = write(fd, buf + wsz, sz))) {
+		if ((ssz = write(fd, buf + wsz, sz)) == -1) {
 			perror("write");
-			return(0);
+			return 0;
 		}
 		sz -= (size_t)ssz;
 		wsz += (size_t)ssz;
 	}
-	return(1);
+
+	return 1;
 }
 
+/*
+ * Blocking read (discarding bytes).
+ * Discards "sz" bytes and returns TRUE on success, FALSE on failure
+ * (system error or EOF).
+ */
 static int
-fcgi_ignore(int fd, size_t sz)
+b_ignore(int fd, size_t sz)
 {
 	ssize_t	 ssz;
 	char	 buf;
 
 	while (sz > 0) {
-		if (-1 == (ssz = read(fd, &buf, 1))) {
+		if ((ssz = read(fd, &buf, 1)) == -1) {
 			perror("read");
-			return(0);
-		} else if (0 == ssz) {
+			return 0;
+		} else if (ssz == 0) {
 			fputs("read: unexpected EOF\n", stderr);
-			return(0);
+			return 0;
 		}
 		sz--;
 	}
 
-	return(1);
+	return 1;
 }
 
+/*
+ * Blocking read.
+ * Reads "sz" bytes into buf and returns TRUE on success, FALSE on
+ * failure (system error or EOF).
+ */
 static int
-fcgi_read(int fd, void *buf, size_t sz)
+b_read(int fd, void *buf, size_t sz)
 {
 	ssize_t	 ssz;
-	size_t	 rsz;
+	size_t	 rsz = 0;
 
-	rsz = 0;
 	while (sz > 0) {
-		if (-1 == (ssz = read(fd, buf + rsz, sz))) {
+		if ((ssz = read(fd, buf + rsz, sz)) == -1) {
 			perror("read");
-			return(0);
-		} else if (0 == ssz) {
+			return 0;
+		} else if (ssz == 0) {
 			fputs("read: unexpected EOF\n", stderr);
-			return(0);
+			return 0;
 		}
 		sz -= (size_t)ssz;
 		rsz += (size_t)ssz;
 	}
 
-	return(1);
+	return 1;
 }
 
 /*
@@ -187,32 +202,32 @@ static int
 fcgi_hdr_write(int fd, const struct fcgi_hdr *hdr)
 {
 
-	if ( ! fcgi_write(fd, &hdr->version, 1))
+	if (!b_write(fd, &hdr->version, 1))
 		fprintf(stderr, "%s: version\n", __func__);
-	else if ( ! fcgi_write(fd, &hdr->type, 1))
+	else if (!b_write(fd, &hdr->type, 1))
 		fprintf(stderr, "%s: type\n", __func__);
-	else if ( ! fcgi_write(fd, &hdr->requestId, 2))
+	else if (!b_write(fd, &hdr->requestId, 2))
 		fprintf(stderr, "%s: requestId\n", __func__);
-	else if ( ! fcgi_write(fd, &hdr->contentLength, 2))
+	else if (!b_write(fd, &hdr->contentLength, 2))
 		fprintf(stderr, "%s: data length\n", __func__);
-	else if ( ! fcgi_write(fd, &hdr->paddingLength, 1))
+	else if (!b_write(fd, &hdr->paddingLength, 1))
 		fprintf(stderr, "%s: pad length\n", __func__);
-	else if ( ! fcgi_write(fd, &hdr->reserved, 1))
+	else if (!b_write(fd, &hdr->reserved, 1))
 		fprintf(stderr, "%s: reserved\n", __func__);
 	else
-		return(1);
+		return 1;
 
-	return(0);
+	return 0;
 }
 
 static int
 fcgi_hdr_read(int fd, struct fcgi_hdr *hdr)
 {
-	char		 buf[8];
+	char		 buf[FCGI_HDR_SIZE];
 
-	if ( ! fcgi_read(fd, buf, 8)) {
+	if (!b_read(fd, buf, sizeof(buf))) {
 		fprintf(stderr, "%s: header\n", __func__);
-		return(0);
+		return 0;
 	}
 
 	hdr->version = buf[0];
@@ -221,7 +236,8 @@ fcgi_hdr_read(int fd, struct fcgi_hdr *hdr)
 	hdr->contentLength = ntohs(*(uint16_t *)&buf[4]);
 	hdr->paddingLength = buf[6];
 	hdr->reserved = buf[7];
-	return(1);
+
+	return 1;
 }
 
 static int
@@ -230,20 +246,20 @@ fcgi_data_write(int fd, const void *buf, size_t sz)
 	struct fcgi_hdr	 hdr;
 
 	hdr.version = 1;
-	hdr.type = 5;
+	hdr.type = FCGI_HDR_DATA_IN;
 	hdr.requestId = htons(1);
 	hdr.contentLength = htons(sz);
 	hdr.paddingLength = 0;
 	hdr.reserved = 0;
 
-	if ( ! fcgi_hdr_write(fd, &hdr))
+	if (!fcgi_hdr_write(fd, &hdr))
 		fprintf(stderr, "%s: header\n", __func__);
-	else if ( ! fcgi_write(fd, buf, sz))
+	else if (!b_write(fd, buf, sz))
 		fprintf(stderr, "%s: data\n", __func__);
 	else
-		return(1);
+		return 1;
 
-	return(0);
+	return 0;
 }
 
 static int
@@ -253,31 +269,32 @@ fcgi_end_read(int fd, int *status)
 	uint8_t		 pst;
 	uint8_t		 res[3];
 
-	if ( ! fcgi_read(fd, &st, 4)) {
+	if (!b_read(fd, &st, 4)) {
 		fprintf(stderr, "%s: status\n", __func__);
-		return(0);
-	} else if ( ! fcgi_read(fd, &pst, 1)) {
+		return 0;
+	} else if (!b_read(fd, &pst, 1)) {
 		fprintf(stderr, "%s: flags\n", __func__);
-		return(0);
-	} else if ( ! fcgi_read(fd, res, sizeof(res))) {
+		return 0;
+	} else if (!b_read(fd, res, sizeof(res))) {
 		fprintf(stderr, "%s: reserved\n", __func__);
-		return(0);
+		return 0;
 	}
 
 	/*
 	 * We use EXIT_SUCCESS for our status message.
 	 * See output.c for where this is set.
 	 */
+
 	*status = ntohl(st) == EXIT_SUCCESS ? 1 : 0;
-	return(1);
+	return 1;
 }
 
 static int
 fcgi_begin_write(int fd)
 {
 	struct fcgi_hdr	 hdr;
-	uint16_t	 role;
-	uint8_t		 flags;
+	uint16_t	 role = htons(1);
+	uint8_t		 flags = 0;
 	uint8_t		 res[5];
 
 	hdr.version = 1;
@@ -286,22 +303,21 @@ fcgi_begin_write(int fd)
 	hdr.contentLength = htons(8);
 	hdr.paddingLength = 0;
 	hdr.reserved = 0;
-	role = htons(1);
-	flags = 0;
+
 	memset(res, 0, sizeof(res));
 
-	if ( ! fcgi_hdr_write(fd, &hdr))
+	if (!fcgi_hdr_write(fd, &hdr))
 		fprintf(stderr, "%s: header\n", __func__);
-	else if ( ! fcgi_write(fd, &role, 2))
+	else if (!b_write(fd, &role, 2))
 		fprintf(stderr, "%s: role\n", __func__);
-	else if ( ! fcgi_write(fd, &flags, 1))
+	else if (!b_write(fd, &flags, 1))
 		fprintf(stderr, "%s: flags\n", __func__);
-	else if ( ! fcgi_write(fd, res, sizeof(res)))
+	else if (!b_write(fd, res, sizeof(res)))
 		fprintf(stderr, "%s: reserved\n", __func__);
 	else
-		return(1);
+		return 1;
 
-	return(0);
+	return 0;
 }
 
 /*
@@ -313,7 +329,7 @@ dochild_params_cgi(const char *key, const char *val, void *arg)
 {
 
 	setenv(key, val, 1);
-	return(1);
+	return 1;
 }
 
 /*
@@ -324,25 +340,25 @@ dochild_params_cgi(const char *key, const char *val, void *arg)
 static int
 dochild_params_fcgi(const char *key, const char *val, void *arg)
 {
-	int	 	 fd;
+	int	 	 fd = *(int *)arg;
 	struct fcgi_hdr	 hdr;
 	uint32_t	 lenl;
 	uint8_t		 lens;
 	size_t		 sz;
 
-	fd = *(int *)arg;
 	sz = strlen(key) + (strlen(key) > 127 ? 4 : 1) +
 		strlen(val) + (strlen(val) > 127 ? 4 : 1);
 
 	/* Start with the FastCGI header. */
 
 	hdr.version = 1;
-	hdr.type = 4;
+	hdr.type = FCGI_HDR_HEAD;
 	hdr.requestId = htons(1);
 	hdr.contentLength = htons(sz);
 	hdr.paddingLength = 0;
 	hdr.reserved = 0;
-	if ( ! fcgi_hdr_write(fd, &hdr)) {
+
+	if (!fcgi_hdr_write(fd, &hdr)) {
 		fprintf(stderr, "%s: header\n", __func__);
 		return(0);
 	}
@@ -351,41 +367,41 @@ dochild_params_fcgi(const char *key, const char *val, void *arg)
 
 	if ((sz = strlen(key)) > 127) {
 		lenl = htonl(sz);
-		if ( ! fcgi_write(fd, &lenl, 4)) {
+		if (!b_write(fd, &lenl, 4)) {
 			fprintf(stderr, "%s: key length", __func__);
-			return(0);
+			return 0;
 		}
 	} else {
 		lens = sz;
-		if ( ! fcgi_write(fd, &lens, 1)) {
+		if (!b_write(fd, &lens, 1)) {
 			fprintf(stderr, "%s: key length", __func__);
-			return(0);
+			return 0;
 		}
 	}
 	if ((sz = strlen(val)) > 127) {
 		lenl = htonl(sz);
-		if ( ! fcgi_write(fd, &lenl, 4)) {
+		if (!b_write(fd, &lenl, 4)) {
 			fprintf(stderr, "%s: val length", __func__);
-			return(0);
+			return 0;
 		}
 	} else {
 		lens = sz;
-		if ( ! fcgi_write(fd, &lens, 1)) {
+		if (!b_write(fd, &lens, 1)) {
 			fprintf(stderr, "%s: val length", __func__);
-			return(0);
+			return 0;
 		}
 	}
 
 	/* Key and value data. */
-	if ( ! fcgi_write(fd, key, strlen(key))) {
+	if (!b_write(fd, key, strlen(key))) {
 		fprintf(stderr, "%s: key", __func__);
-		return(0);
-	} else if ( ! fcgi_write(fd, val, strlen(val))) {
+		return 0;
+	} else if (!b_write(fd, val, strlen(val))) {
 		fprintf(stderr, "%s: val", __func__);
-		return(0);
+		return 0;
 	}
 
-	return(1);
+	return 1;
 }
 
 /*
@@ -409,11 +425,11 @@ dochild_params(int fd, void *arg, size_t *length,
 	char		 c;
 	extern char	*__progname;
 
-	if (NULL != length)
+	if (length != NULL)
 		*length = 0;
 
-	if ( ! fp("SCRIPT_NAME", __progname, arg))
-		return(0);
+	if (!fp("SCRIPT_NAME", __progname, arg))
+		return 0;
 
 	/*
 	 * Read header lines without buffering and clobbering the data
@@ -421,7 +437,7 @@ dochild_params(int fd, void *arg, size_t *length,
 	 * Process them as the environment input to our CGI.
 	 */
 
-	for (first = 1;;) {
+	for (first = 1; ; ) {
 		/*
 		 * Start by reading the header itself into a
 		 * fixed-length buffer, making sure to respect that the
@@ -432,8 +448,8 @@ dochild_params(int fd, void *arg, size_t *length,
 			ssz = nb_read(fd, &c, 1);
 			if (ssz < 0) {
 				perror("read");
-				return(0);
-			} else if (0 == ssz || '\n' == (head[sz++] = c))
+				return 0;
+			} else if (ssz == 0 || (head[sz++] = c) == '\n')
 				break;
 		}
 
@@ -441,16 +457,16 @@ dochild_params(int fd, void *arg, size_t *length,
 
 		if (sz < 2 || sz == BUFSIZ) {
 			fprintf(stderr, "Bad HTTP header\n");
-			return(0);
-		} else if ('\r' != head[sz - 2]) {
+			return 0;
+		} else if (head[sz - 2] != '\r') {
 			fprintf(stderr, "Bad HTTP header CRLF\n");
-			return(0);
+			return 0;
 		}
 		head[sz - 2] = '\0';
 
 		/* Empty line: now we're at the CGI document. */
 
-		if ('\0' == head[0])
+		if (head[0] == '\0')
 			break;
 
 		/* Process our header. */
@@ -458,35 +474,35 @@ dochild_params(int fd, void *arg, size_t *length,
 		if (first) {
 			/* Snarf the first GET/POST line. */
 
-			if (0 == strncmp(head, "GET ", 4)) {
-				if ( ! fp("REQUEST_METHOD", "GET", arg))
-					return(0);
+			if (strncmp(head, "GET ", 4) == 0) {
+				if (!fp("REQUEST_METHOD", "GET", arg))
+					return 0;
 				path = head + 4;
-			} else if (0 == strncmp(head, "POST ", 5)) {
-				if ( ! fp("REQUEST_METHOD", "POST", arg))
+			} else if (strncmp(head, "POST ", 5) == 0) {
+				if (!fp("REQUEST_METHOD", "POST", arg))
 					return(0);
 				path = head + 5;
 			} else {
 				fprintf(stderr, "Unknown HTTP "
 					"first line: %s\n", head);
-				return(0);
+				return 0;
 			}
 
 			/* Split this into the path and query. */
 
 			cp = path;
-			while ('\0' != *cp && ! isspace((unsigned char)*cp))
+			while (*cp != '\0' && !isspace((unsigned char)*cp))
 				cp++;
 			*cp = '\0';
-			if (NULL != (query = strchr(path, '?')))
+			if ((query = strchr(path, '?')) != NULL)
 				*query++ = '\0';
 
 			first = 0;
-			if ( ! fp("PATH_INFO", path, arg))
-				return(0);
-			if (NULL != query)
-				if ( ! fp("QUERY_STRING", query, arg))
-					return(0);
+			if (!fp("PATH_INFO", path, arg))
+				return 0;
+			if (query != NULL)
+				if (!fp("QUERY_STRING", query, arg))
+					return 0;
 			continue;
 		}
 
@@ -497,23 +513,23 @@ dochild_params(int fd, void *arg, size_t *length,
 		 */
 
 		key = head;
-		if (NULL == (val = strchr(key, ':')))
+		if ((val = strchr(key, ':')) == NULL)
 			continue;
 		*val++ = '\0';
-		while ('\0' != *val && isspace((unsigned char)*val))
+		while (*val != '\0' && isspace((unsigned char)*val))
 			val++;
 
 		/* Recognise some attributes... */
 
-		if (0 == strcmp(key, "Content-Length")) {
-			if (NULL != length)
+		if (strcmp(key, "Content-Length") == 0) {
+			if (length != NULL)
 				*length = atoi(val);
-			if ( ! fp("CONTENT_LENGTH", val, arg))
-				return(0);
+			if (!fp("CONTENT_LENGTH", val, arg))
+				return 0;
 			continue;
-		} else if (0 == strcmp(key, "Content-Type")) {
-			if ( ! fp("CONTENT_TYPE", val, arg))
-				return(0);
+		} else if (strcmp(key, "Content-Type") == 0) {
+			if (!fp("CONTENT_TYPE", val, arg))
+				return 0;
 			continue;
 		}
 
@@ -525,17 +541,17 @@ dochild_params(int fd, void *arg, size_t *length,
 		strlcpy(buf, "HTTP_", sizeof(buf));
 		sz = strlcat(buf, key, sizeof(buf));
 		assert(sz < sizeof(buf));
-		for (cp = buf; '\0' != *cp; cp++) 
-			if ('-' == *cp)
+		for (cp = buf;  *cp != '\0'; cp++) 
+			if (*cp == '-')
 				*cp = '_';
 			else if (isalpha((unsigned char)*cp))
 				*cp = toupper((unsigned char)*cp);
 
-		if ( ! fp(buf, val, arg))
-			return(0);
+		if (!fp(buf, val, arg))
+			return 0;
 	}
 
-	return(1);
+	return 1;
 }
 
 /*
@@ -549,11 +565,10 @@ dochild_params(int fd, void *arg, size_t *length,
 static int
 dochild_prepare(void)
 {
-	int	 	 s, in, opt;
+	int	 	 s, in, opt = 1;
 	struct sockaddr_in ad, rem;
 	socklen_t	 len;
 
-	opt = 1;
 	memset(&ad, 0, sizeof(struct sockaddr_in));
 
 	/*
@@ -561,28 +576,28 @@ dochild_prepare(void)
 	 * We pretty much just choose a random port for this.
 	 */
 
-	if (-1 == (s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))) {
+	if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
 		perror("socket");
-		return(-1);
-	} else if (-1 == setsockopt(s, SOL_SOCKET, 
-		 SO_REUSEADDR, &opt, sizeof(opt))) {
+		return (-1);
+	} else if (setsockopt(s, SOL_SOCKET, 
+		   SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
 		perror("setsockopt");
 		close(s);
-		return(-1);
+		return (-1);
 	}
 
 	ad.sin_family = AF_INET;
-	ad.sin_port = htons(17123);
+	ad.sin_port = htons(KCGI_REGRESS_PORT);
 	ad.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-	if (-1 == bind(s, (struct sockaddr *)&ad, sizeof(ad))) {
+	if (bind(s, (struct sockaddr *)&ad, sizeof(ad)) == -1) {
 		perror("bind");
 		close(s);
-		return(-1);
-	} else if (-1 == listen(s, 1)) {
+		return (-1);
+	} else if (listen(s, 1) == -1) {
 		perror("listen");
 		close(s);
-		return(-1);
+		return (-1);
 	}
 
 	/*
@@ -601,19 +616,19 @@ dochild_prepare(void)
 	 */
 
 	len = sizeof(struct sockaddr_in);
-	if (-1 == (in = accept(s, (struct sockaddr *)&rem, &len))) {
+	if ((in = accept(s, (struct sockaddr *)&rem, &len)) == -1) {
 		perror("accept");
 		close(s);
-		return(-1);
-	} else if (-1 == fcntl(in, F_SETFL, O_NONBLOCK)) {
+		return (-1);
+	} else if (fcntl(in, F_SETFL, O_NONBLOCK) == -1) {
 		perror("fcntl: O_NONBLOCK");
 		close(s);
 		close(in);
-		return(0);
+		return 0;
 	}
 
 	close(s);
-	return(in);
+	return in;
 }
 
 /*
@@ -645,12 +660,12 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	/* This shuts up Coverity. */
 
 	mode = umask(S_IXUSR | S_IRWXG | S_IRWXO);
-	if (-1 == (fd = mkstemp(sfn))) {
+	if ((fd = mkstemp(sfn)) == -1) {
 		perror(sfn);
-		return(0);
-	} else if (-1 == close(fd) || -1 == unlink(sfn)) {
+		return 0;
+	} else if (close(fd) == -1 || unlink(sfn) == -1) {
 		perror(sfn);
-		return(0);
+		return 0;
 	}
 	umask(mode);
 
@@ -662,23 +677,23 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	sz = strlcpy(sun.sun_path, sfn, sizeof(sun.sun_path));
 	if (sz >= sizeof(sun.sun_path)) {
 		fprintf(stderr, "socket path to long\n");
-		return(0);
+		return 0;
 	}
 #ifndef __linux__
 	sun.sun_len = sz;
 #endif
 
-	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
+	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		perror("socket");
-		return(0);
-	} else if (-1 == bind(fd, ss, sizeof(sun))) {
+		return 0;
+	} else if (bind(fd, ss, sizeof(sun)) == -1) {
 		perror(sfn);
 		close(fd);
-		return(0);
-	} else if (-1 == listen(fd, 5)) {
+		return 0;
+	} else if (listen(fd, 5) == -1) {
 		perror(sfn);
 		close(fd);
-		return(0);
+		return 0;
 	}
 
 	/*
@@ -688,16 +703,16 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * UNIX socket.
 	 */
 
-	if (-1 == (pid = fork())) {
+	if ((pid = fork()) == -1) {
 		perror("fork");
 		unlink(sfn);
 		close(fd);
-		return(0);
-	} else if (0 == pid) {
-		if (-1 == dup2(fd, STDIN_FILENO))
+		return 0;
+	} else if (pid == 0) {
+		if (dup2(fd, STDIN_FILENO) == -1)
 			_exit(EXIT_FAILURE);
 		close(fd);
-		return(child(carg));
+		return child(carg);
 	}
 
 	/* 
@@ -712,7 +727,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	/* Get the next incoming connection and FILE-ise it. */
 
-	if (-1 == (in = dochild_prepare())) 
+	if ((in = dochild_prepare()) == -1) 
 		goto out;
 
 	/*
@@ -721,13 +736,13 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	 * Then remove the object, as nobody needs it any more.
 	 */
 
-	if (-1 == (fd = socket(AF_UNIX, SOCK_STREAM, 0))) {
+	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		perror(sfn);
 		goto out;
-	} else if (-1 == connect(fd, ss, sizeof(sun))) {
+	} else if (connect(fd, ss, sizeof(sun)) == -1) {
 		perror(sfn);
 		goto out;
-	} else if (-1 == unlink(sfn)) {
+	} else if (unlink(sfn) == -1) {
 		perror(sfn);
 		goto out;
 	} 
@@ -735,9 +750,9 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	/* Write the request, its parameters, and all data. */
 
-	if ( ! fcgi_begin_write(fd))
+	if (!fcgi_begin_write(fd))
 		goto out;
-	else if ( ! dochild_params(in, &fd, &len, dochild_params_fcgi))
+	if (!dochild_params(in, &fd, &len, dochild_params_fcgi))
 		goto out;
 
 	/*
@@ -755,10 +770,10 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		if (ssz < 0) {
 			perror("read");
 			goto out;
-		} else if (0 == ssz)
+		} else if (ssz == 0)
 			break;
 
-		if ( ! fcgi_data_write(fd, buf, ssz)) {
+		if (!fcgi_data_write(fd, buf, ssz)) {
 			fprintf(stderr, "%s: stdout\n", __func__);
 			goto out;
 		}
@@ -767,7 +782,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	/* Indicate end of input. */
 
-	if ( ! fcgi_data_write(fd, NULL, 0)) {
+	if (!fcgi_data_write(fd, NULL, 0)) {
 		fprintf(stderr, "%s: stdout (FIN)\n", __func__);
 		goto out;
 	}
@@ -784,14 +799,14 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	rc = 1;
 	while (fcgi_hdr_read(fd, &hdr)) {
 		rc = 0;
-		if (3 == hdr.type) {
+		if (hdr.type == FCGI_HDR_END) {
 			/* End of message. */
-			if ( ! fcgi_end_read(fd, &rc)) {
+			if (!fcgi_end_read(fd, &rc)) {
 				fprintf(stderr, "%s: bad fin\n", __func__);
 				goto out;
 			}
 			break;
-		} else if (6 != hdr.type) {
+		} else if (hdr.type != FCGI_HDR_DATA_OUT) {
 			fprintf(stderr, "%s: bad type: %" 
 				PRIu8 "\n", __func__, hdr.type);
 			goto out;
@@ -802,8 +817,8 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 		while (hdr.contentLength > 0) {
 			sz = hdr.contentLength > BUFSIZ ? 
 				BUFSIZ : hdr.contentLength;
-			if (fcgi_read(fd, buf, sz)) {
-				if ( ! nb_write(in, buf, sz))
+			if (b_read(fd, buf, sz)) {
+				if (!nb_write(in, buf, sz))
 					goto out;
 				hdr.contentLength -= sz;
 				continue;
@@ -811,7 +826,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 				fprintf(stderr, "%s: bad read\n", __func__);
 			goto out;
 		}
-		if (0 == fcgi_ignore(fd, hdr.paddingLength)) {
+		if (b_ignore(fd, hdr.paddingLength) == 0) {
 			fprintf(stderr, "%s: bad ignore\n", __func__);
 			goto out;
 		} 
@@ -823,11 +838,11 @@ out:
 	 */
 
 	kill(pid, SIGTERM);
-	if (-1 != in)
+	if (in != -1)
 		close(in);
-	if ('\0' != sfn[0])
+	if (sfn[0] != '\0')
 		unlink(sfn);
-	if (-1 != fd)
+	if (fd != -1)
 		close(fd);
 
 	/*
@@ -837,9 +852,9 @@ out:
 	 * warnings elsewhere.
 	 */
 
-	if (-1 == waitpid(pid, NULL, 0))
+	if (waitpid(pid, NULL, 0) == -1)
 		perror("waitpid");
-	return(rc);
+	return rc;
 }
 
 /*
@@ -858,8 +873,8 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 	char		 buf[BUFSIZ];
 	ssize_t		 ssz;
 
-	if (-1 == (in = dochild_prepare())) 
-		return(0);
+	if ((in = dochild_prepare()) == -1) 
+		return 0;
 
 	/*
 	 * We need to do some filtering from the CGI script's output
@@ -872,21 +887,21 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 	 * Whatever.
 	 */
 
-	if (-1 == socketpair(PF_LOCAL, SOCK_STREAM, 0, fd)) {
+	if (socketpair(PF_LOCAL, SOCK_STREAM, 0, fd) == -1) {
 		perror("socketpair");
 		close(in);
-		return(0);
+		return 0;
 	} 
 
 	/* Launch the actual CGI process. */
 
-	if (-1 == (pid = fork())) {
+	if ((pid = fork()) == -1) {
 		perror("fork");
 		close(fd[0]);
 		close(fd[1]);
 		close(in);
-		return(0);
-	} else if (0 == pid) {
+		return 0;
+	} else if (pid == 0) {
 		close(fd[1]);
 		/*
 		 * First, we suck down the HTTP headeres into our CGI
@@ -896,14 +911,14 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		 * Then assign our stdout to be fd[0].
 		 */
 
-		if ( ! dochild_params(in, NULL, NULL, 
-		    dochild_params_cgi)) {
+		if (!dochild_params
+		    (in, NULL, NULL, dochild_params_cgi)) {
 			close(in);
 			close(fd[0]);
 			return(0);
 		}
 
-		if (STDIN_FILENO != dup2(in, STDIN_FILENO)) {
+		if (dup2(in, STDIN_FILENO) != STDIN_FILENO) {
 			perror("dup2");
 			close(in);
 			close(fd[0]);
@@ -911,10 +926,10 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		} 
 		close(in);
 
-		if (STDOUT_FILENO != dup2(fd[0], STDOUT_FILENO)) {
+		if (dup2(fd[0], STDOUT_FILENO) != STDOUT_FILENO) {
 			perror("dup2");
 			close(fd[0]);
-			return(0);
+			return 0;
 		} 
 		close(fd[0]);
 
@@ -939,7 +954,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 
 	while ((ssz = read(fd[1], buf, sizeof(buf))) > 0) {
 		pp = realloc(vec, vecsz + ssz);
-		if (NULL == pp) {
+		if (pp == NULL) {
 			perror("realloc");
 			goto out;
 		}
@@ -947,7 +962,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		memcpy(vec + vecsz, buf, ssz);
 		vecsz += ssz;
 		end = memmem(vec, vecsz, "\r\n\r\n", 4);
-		if (NULL != end)
+		if (end != NULL)
 			break;
 	}
 
@@ -962,12 +977,12 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 	 * Now we start to scan for the status line or dump.
 	 */
 
-	if (NULL != end) {
+	if (end != NULL) {
 		/* Look for the status field. */
 
 		headsz = (size_t)(end - vec);
 		start = memmem(vec, headsz, "Status:", 7);
-		if (NULL == start) {
+		if (start == NULL) {
 			/*
 			 * No status field.
 			 * This is Ok (according to CGI).
@@ -976,7 +991,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			 */
 
 			msg = "HTTP/1.1 200 OK\r\n";
-			if ( ! nb_write(in, msg, strlen(msg)))
+			if (!nb_write(in, msg, strlen(msg)))
 				goto out;
 			fprintf(stderr, "CGI script did "
 				"not specify status\n");
@@ -989,17 +1004,17 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			 */
 
 			msg = "HTTP/1.1";
-			if ( ! nb_write(in, msg, strlen(msg)))
+			if (!nb_write(in, msg, strlen(msg)))
 				goto out;
 			cp = start + 7;
 			while (cp < end) {
-				if ( ! nb_write(in, cp, 1))
+				if (!nb_write(in, cp, 1))
 					goto out;
 				cp++;
-				if ('\n' == cp[-1])
+				if (cp[-1] == '\n')
 					break;
 			}
-			if ( ! nb_write(in, vec, (size_t)(start - vec)))
+			if (!nb_write(in, vec, (size_t)(start - vec)))
 				goto out;
 			vecsz -= (cp - vec);
 			ovec = cp;
@@ -1010,7 +1025,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 		 * on the CGI script til its dry.
 		 */
 
-		if ( ! nb_write(in, ovec, vecsz))
+		if (!nb_write(in, ovec, vecsz))
 			goto out;
 
 		while ((ssz = read(fd[1], buf, sizeof(buf))) > 0)
@@ -1022,7 +1037,7 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 			goto out;
 		}
 	} else {
-		if ( ! nb_write(in, vec, vecsz))
+		if (!nb_write(in, vec, vecsz))
 			goto out;
 		fprintf(stderr, "CGI script did "
 			"not terminate headers\n");
@@ -1030,13 +1045,13 @@ dochild_cgi(kcgi_regress_server child, void *carg)
 
 	rc = 1;
 out:
-	if (-1 == waitpid(pid, NULL, 0))
+	if (waitpid(pid, NULL, 0) == -1)
 		perror("waitpid");
 
 	free(vec);
 	close(in);
 	close(fd[1]);
-	return(rc);
+	return rc;
 }
 
 /*
@@ -1060,10 +1075,10 @@ regress(int fastcgi,
 	 * usual way.
 	 */
 
-	if (-1 == (chld = fork())) {
+	if ((chld = fork()) == -1) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
-	} else if (0 == chld) {
+	} else if (chld == 0) {
 		rc = fastcgi ?
 			dochild_fcgi(child, carg) :
 			dochild_cgi(child, carg);
@@ -1086,20 +1101,20 @@ regress(int fastcgi,
 	 * So simply wake it up and continue our work.
 	 */
 
-	if (-1 == pid) {
+	if (pid == -1) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
-	} else if ( ! WIFSTOPPED(st)) {
+	} else if (!WIFSTOPPED(st)) {
 		fprintf(stderr, "child not sleeping\n");
 		exit(EXIT_FAILURE);
-	} else if (-1 == kill(chld, SIGCONT)) {
+	} else if (kill(chld, SIGCONT) == -1) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
 	}
 
 	rc = parent(parg);
 
-	if (-1 == waitpid(pid, &st, 0)) {
+	if (waitpid(pid, &st, 0) == -1) {
 		perror(NULL);
 		exit(EXIT_FAILURE);
 	} 
@@ -1113,7 +1128,7 @@ kcgi_regress_cgi(kcgi_regress_client parent, void *parg,
 	kcgi_regress_server child, void *carg)
 {
 
-	return(regress(0, parent, parg, child, carg));
+	return regress(0, parent, parg, child, carg);
 }
 
 int
@@ -1121,5 +1136,5 @@ kcgi_regress_fcgi(kcgi_regress_client parent, void *parg,
 	kcgi_regress_server child, void *carg)
 {
 
-	return(regress(1, parent, parg, child, carg));
+	return regress(1, parent, parg, child, carg);
 }
