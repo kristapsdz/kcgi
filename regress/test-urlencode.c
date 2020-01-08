@@ -45,12 +45,12 @@ static	const struct test tests[] = {
 	{ "foo.bar.", "foo.bar." },
 	{ "foo.bar.-", "foo.bar.-" },
 	{ "-_foo.bar.-", "-_foo.bar.-" },
-	{ "-_foo+bar.-", "-_foo%2bbar.-" },
+	{ "-_foo+bar.-", "-_foo%2Bbar.-" },
 	{ "-_foo\tbar.-", "-_foo%09bar.-" },
 	{ "\t-_foo\tbar.-", "%09-_foo%09bar.-" },
 	{ "\t-_foo\tbar.-\t", "%09-_foo%09bar.-%09" },
 	{ "\t-_foo%\tbar.-\t", "%09-_foo%25%09bar.-%09" },
-	{ "-_foo%09}bar.-", "-_foo%2509%7dbar.-" },
+	{ "-_foo%09}bar.-", "-_foo%2509%7Dbar.-" },
 	{ "\t\t\t\t", "%09%09%09%09" },
 	{ NULL, NULL }
 };
