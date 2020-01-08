@@ -1,9 +1,7 @@
 html, body				{ margin: 0; 
 					  padding: 0; }
 body					{ color: #222; 
-					  font-family: "Alegreya sans", sans-serif; 
-					  font-weight: 400;
-					  font-size: 14pt; }
+					  font-family: "Alegreya sans", sans-serif;  }
 code, pre				{ font-size: 65%; }
 a					{ text-decoration: none; 
 					  color: blue; }
@@ -11,9 +9,6 @@ strong, b				{ font-weight: 700; }
 body > header				{ background-color: #333;
 					  padding: 5rem 0 0 0;
 					  color: #fff; }
-body > header > *			{ width: 66rem;
-					  margin: 0 auto;
-					  max-width: 98%; }
 body > header a				{ color: #dd5; }
 body > header a:hover			{ color: #ff0; }
 body > header nav .version		{ border-right: thin solid silver; 
@@ -86,12 +81,7 @@ body > section h3			{ font-size: inherit;
 					  font-weight: inherit;
 					  margin-bottom: 0.25ex;
 					  color: #333; }
-#version > div, body > section		{ width: 66rem;
-				  	  max-width: 98%;
-					  padding: 1rem 0;
-					  margin: 0 auto; }
-#version				{ width: 100%;
-					  max-width: 100%; }
+#version > div, body > section		{ padding: 1rem 0; }
 figure figcaption			{ margin: 0.5em 0.2em; }
 figure					{ margin: 0; 
 					  text-align: center; 
