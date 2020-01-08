@@ -32,6 +32,8 @@
 #  endif
 #endif
 
+#define	KCGI_REGRESS_PORT 17123
+
 __BEGIN_DECLS
 
 typedef int	(*kcgi_regress_client)(void *);
