@@ -81,7 +81,7 @@
 int main(void) {
     struct kreq r;
     const char *page = "index";
-    if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+    if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
         return 0;
     <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
@@ -109,7 +109,7 @@ int main(void) {
      * (We don't validate any input fields.)
      */
   
-    if (KCGI_OK != <a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0))
+    if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
         return 0;
   
     /* 
