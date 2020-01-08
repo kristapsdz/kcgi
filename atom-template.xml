@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>kcgi version feed</title>
-	<link href="https://kristaps.bsd.lv/kcgi/atom.xml" rel="self" />
 	<link href="https://kristaps.bsd.lv/kcgi" />
-	<id data-sblg-id="1" />
-	<updated data-sblg-updated="1" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
-	<entry data-sblg-entry="1" data-sblg-altlink="0" />
+	<link href="https://kristaps.bsd.lv/kcgi/atom.xml" rel="self" />
+	<id />
+	<updated />
+	<entry data-sblg-forall="1" data-sblg-entry="1" />
 </feed>
