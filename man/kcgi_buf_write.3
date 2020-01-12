@@ -101,6 +101,14 @@ The
 must be zeroed prior to usage, and the contained buffer passed to
 .Xr free 3
 when no longer used.
+.Sh RETURN VALUES
+These functions return an
+.Ft enum kcgi_err
+indicating the error state:
+.Dv KCGI_OK
+for no error,
+.Dv KCGI_ENOMEM
+for an internal memory allocation failure.
 .Sh EXAMPLES
 The following creates a simple NUL-terminated buffer.
 It does not perform any error checking.
@@ -114,14 +122,6 @@ kcgi_buf_puts(&buf, "world!");
 puts(buf.buf); /* Emits "Hello, world!" */
 free(buf.buf);
 .Ed
-.Sh RETURN VALUES
-These functions return an
-.Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure.
 .Sh SEE ALSO
 .Xr khttp_templatex 3
 .Sh AUTHORS
