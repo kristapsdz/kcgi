@@ -1,16 +1,14 @@
 html, body				{ margin: 0; 
 					  padding: 0; }
 body					{ color: #333; 
-					  font-family: "Alegreya sans", sans-serif; 
-					  font-weight: 400;
-					  font-size: 14pt; }
-code, pre				{ font-size: smaller; }
+					  font-family: "Alegreya sans", sans-serif; }
+code, pre				{ font-size: 65%; }
 a					{ text-decoration: none; 
 					  color: blue; }
 strong, b				{ font-weight: 700; }
 body > header				{ box-shadow: 0 1px 4px #888; 
 					  background-color: #333;
-					  padding: 2em 25% 1ex 25%;
+					  padding: 2em 0 1ex 0;
 					  color: #fff; }
 body > header a				{ color: #dd5; }
 body > header a:hover			{ color: #ff0; }
@@ -22,7 +20,9 @@ body > header				{ padding-top: 2em; }
 body > header nav			{ padding: 0.5ex 0 1ex 0; }
 body > header nav .version		{ border-right: thin solid silver; 
 					  color: #abc;
+					  font-size: 90%;
 					  padding-right: 1ex; }
+body > header nav i.fa			{ font-size: 80%; }
 h1					{ font-size: 24pt; 
 					  margin: 0;
 					  margin-bottom: 8pt;
@@ -47,7 +47,7 @@ article h3				{ font-size: large;
 article[data-sblg-article],
 article section,
 figure nav,
-article figcaption			{ padding: 1ex 25%; 
+article figcaption			{ padding: 1ex 0; 
 					  margin: 0; }
 article[data-sblg-article] header address,
 article[data-sblg-article] header time
@@ -76,15 +76,6 @@ footer					{ padding: 1ex;
 					  margin-top: 1em;
 					  margin-bottom: 1em; }
 
-@media only screen and (max-width: 1280px), only screen and (max-device-width: 1280px) {
-   article[data-sblg-article],
-   article section,
-   figure nav,
-   article figcaption,
-   body > header			{ padding-left: 10%;
-	   			 	  padding-right: 10%; }
-}
-
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
    h1					{ font-size: 15pt; }
    img					{ max-width: 400px;
@@ -92,6 +83,6 @@ footer					{ padding: 1ex;
    article[data-sblg-article],
    article section,
    figure nav,
-   article figcaption			{ padding: 1ex 2%; }
-   body > header			{ padding: 1em 2% 1ex 2%; }
+   article figcaption			{ padding: 1ex 0; }
+   body > header			{ padding: 1em 0 1ex 0; }
 }
