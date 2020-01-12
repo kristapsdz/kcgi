@@ -273,6 +273,22 @@ installwww: www
 	$(INSTALL_DATA) kcgi.tgz $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz
 	$(INSTALL_DATA) kcgi.tgz.sha512 $(WWWDIR)/snapshots/kcgi-$(VERSION).tgz.sha512
 
+distcheck: kcgi.tgz.sha512
+	mandoc -Tlint -Wwarning $(MANS)
+	newest=`grep "<h1>" versions.xml | head -n1 | sed 's![ 	]*!!g'` ; \
+	       [ "$$newest" == "<h1>$(VERSION)</h1>" ] || \
+		{ echo "Version $(VERSION) not newest in versions.xml" 1>&2 ; exit 1 ; }
+	rm -rf .distcheck
+	sha512 -C kcgi.tgz.sha512 kcgi.tgz
+	mkdir -p .distcheck
+	tar -zvxpf kcgi.tgz -C .distcheck
+	( cd .distcheck/kcgi-$(VERSION) && ./configure PREFIX=prefix \
+		CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" LDADD="$(LDADD)" )
+	( cd .distcheck/kcgi-$(VERSION) && make )
+	( cd .distcheck/kcgi-$(VERSION) && make regress )
+	( cd .distcheck/kcgi-$(VERSION) && make install )
+	rm -rf .distcheck
+
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) 
 	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
@@ -417,7 +433,7 @@ atom.xml: versions.xml
 # Also only used with the `www' target.
 
 kcgi.tgz.sha512: kcgi.tgz
-	openssl dgst -sha512 kcgi.tgz >$@
+	sha512 kcgi.tgz >$@
 
 kcgi.tgz:
 	mkdir -p .dist/kcgi-$(VERSION)
