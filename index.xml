@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns#">
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta charset="utf-8" /> 
@@ -16,6 +16,13 @@
 				PR.prettyPrint();
 			});
 		</script>
+		<meta property="og:title" content="kcgi: minimal CGI and FastCGI library for C/C++" />
+		<meta property="og:description" 
+		 content="A C/C++ library for security-oriented web applications." />
+	 	<meta property="og:url" content="https://kristaps.bsd.lv/kcgi/index.html" />
+		<meta property="og:type" content="website" />
+		<meta name="description" 
+		 content="A C/C++ library for security-oriented web applications." />
 	</head>
 	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
 		<header>
@@ -460,7 +467,7 @@ int main(void) {
 		</section>
 		<footer>
 			<div>
-				&#169; 2014&#8211;2019
+				&#169; 2014&#8211;2020
 				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
 			</div>
 			<div>
