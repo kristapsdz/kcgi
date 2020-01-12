@@ -3,6 +3,34 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.12</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-01-12">2020-01-12</time>
+		</header>
+		<aside>
+			<div>
+				Fix regression framework.
+				This was failing for FastCGI tests because the framework wasn't
+				properly prefixing the HTTP version as it was for CGI tests.
+				This now allows all tests to run under the new curl.
+			</div>
+			<div>
+				Use the proper Capsicum header for FreeBSD.
+			</div>
+			<div>
+				Bring in the latest <a
+					href="https://github.com/kristapsdz/oconfigure">oconfigure</a>
+				and also merge dependent changes for seccomp on Linux.
+				Then enable seccomp protection for aarch64 on Linux.
+			</div>
+			<div>
+				Bring in optimisations and corrections in URL decoding by Dapeng
+				Gao, thanks!
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.11</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2019-07-05">2019-07-05</time>
