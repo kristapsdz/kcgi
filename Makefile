@@ -210,7 +210,6 @@ SVGS		 = figure1.svg \
 		   tutorial6.svg
 CSSS	         = archive.css \
 	           index.css \
-	           mandoc.css \
 		   prettify.css \
 		   prettify.js \
 		   tutorial.css
@@ -415,10 +414,10 @@ extending01.html: extending01.xml tutorial.xml
 		sed "s!@VERSION@!$(VERSION)!g" >$@
 
 .3.3.html:
-	mandoc -Thtml -Ostyle=mandoc.css $< >$@
+	mandoc -Ostyle=https://bsd.lv/css/mandoc.css -Thtml $< >$@
 
 .8.8.html:
-	mandoc -Thtml -Ostyle=mandoc.css $< >$@
+	mandoc -Ostyle=https://bsd.lv/css/mandoc.css -Thtml $< >$@
 
 atom.xml: versions.xml
 	sblg -s date -a versions.xml >$@
