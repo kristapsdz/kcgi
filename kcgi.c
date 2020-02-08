@@ -371,6 +371,20 @@ kasprintf(char **p, const char *fmt, ...)
 }
 
 /*
+ * Safe vasprintf(): don't return on exhaustion.
+ */
+int
+kvasprintf(char **p, const char *fmt, va_list ap)
+{
+	int	 len;
+
+	if ((len = XVASPRINTF(p, fmt, ap)) >= 0)
+		return(len);
+
+	exit(EXIT_FAILURE);
+}
+
+/*
  * Safe calloc(): don't return on exhaustion.
  */
 void *
