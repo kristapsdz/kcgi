@@ -528,7 +528,7 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	va_list		 ap;
 	int		 rc;
 	char		*p, *pp, *keyp, *valp, *valpp;
-	size_t		 total, count;
+	size_t		 total, count = 0;
 	char	 	 buf[256]; /* max double/int64_t */
 
 	if ((pp = kutil_urlencode(page)) == NULL)
@@ -550,14 +550,12 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		return NULL;
 
 	total = strlen(p) + 1;
-	va_start(ap, page);
-	count = 0;
-	
-	/* FIXME: va_end(ap) on exit. */
 
+	va_start(ap, page);
 	while ((pp = va_arg(ap, char *)) != NULL) {
 		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
+			va_end(ap);
 			return NULL;
 		}
 
@@ -581,12 +579,14 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		default:
 			free(p);
 			free(keyp);
+			va_end(ap);
 			return NULL;
 		}
 
 		if (valp == NULL) {
 			free(p);
 			free(keyp);
+			va_end(ap);
 			return NULL;
 		}
 
@@ -599,6 +599,7 @@ kutil_urlpartx(struct kreq *req, const char *path,
 			free(p);
 			free(keyp);
 			free(valpp);
+			va_end(ap);
 			return NULL;
 		}
 		p = pp;
@@ -616,8 +617,8 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		free(valpp);
 		count++;
 	}
-
 	va_end(ap);
+
 	return p;
 }
 
@@ -627,7 +628,7 @@ kutil_urlpart(struct kreq *req, const char *path,
 {
 	va_list		 ap;
 	char		*p, *pp, *keyp, *valp;
-	size_t		 total, count;
+	size_t		 total, count = 0;
 	int		 len;
 
 	if ((pp = kutil_urlencode(page)) == NULL)
@@ -642,21 +643,18 @@ kutil_urlpart(struct kreq *req, const char *path,
 		XASPRINTF(&p, "%s%s%s", 
 			NULL != path ? path : "",
 			NULL != path ? "/" : "", pp);
-
 	free(pp);
 
 	if (len < 0)
 		return NULL;
 
 	total = strlen(p) + 1;
+
 	va_start(ap, page);
-	count = 0;
-
-	/* FIXME: va_end(ap) on exit. */
-
 	while (NULL != (pp = va_arg(ap, char *))) {
 		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
+			va_end(ap);
 			return NULL;
 		}
 
@@ -664,6 +662,7 @@ kutil_urlpart(struct kreq *req, const char *path,
 		if (valp == NULL) {
 			free(p);
 			free(keyp);
+			va_end(ap);
 			return NULL;
 		}
 
@@ -676,6 +675,7 @@ kutil_urlpart(struct kreq *req, const char *path,
 			free(p);
 			free(keyp);
 			free(valp);
+			va_end(ap);
 			return NULL;
 		}
 		p = pp;
@@ -693,8 +693,8 @@ kutil_urlpart(struct kreq *req, const char *path,
 		free(valp);
 		count++;
 	}
-
 	va_end(ap);
+
 	return p;
 }
 
