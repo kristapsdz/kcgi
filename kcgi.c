@@ -192,57 +192,60 @@ const char *const kmimetypes[KMIME__MAX] = {
 };
 
 const char *const khttps[KHTTP__MAX] = {
-	"100 Continue",
-	"101 Switching Protocols",
-	"103 Checkpoint",
-	"200 OK",
-	"201 Created",
-	"202 Accepted",
-	"203 Non-Authoritative Information",
-	"204 No Content",
-	"205 Reset Content",
-	"206 Partial Content",
-	"207 Multi-Status",
-	"300 Multiple Choices",
-	"301 Moved Permanently",
-	"302 Found",
-	"303 See Other",
-	"304 Not Modified",
-	"306 Switch Proxy",
-	"307 Temporary Redirect",
-	"308 Resume Incomplete",
-	"400 Bad Request",
-	"401 Unauthorized",
-	"402 Payment Required",
-	"403 Forbidden",
-	"404 Not Found",
-	"405 Method Not Allowed",
-	"406 Not Acceptable",
-	"407 Proxy Authentication Required",
-	"408 Request Timeout",
-	"409 Conflict",
-	"410 Gone",
-	"411 Length Required",
-	"412 Precondition Failed",
-	"413 Request Entity Too Large",
-	"414 Request-URI Too Long",
-	"415 Unsupported Media Type",
-	"416 Requested Range Not Satisfiable",
-	"417 Expectation Failed",
-	"424 Failed Dependency",
-	"428 Precondition Required",
-	"429 Too Many Requests",
-	"431 Request Header Fields Too Large",
-	"500 Internal Server Error",
-	"501 Not Implemented",
-	"502 Bad Gateway",
-	"503 Service Unavailable",
-	"504 Gateway Timeout",
-	"505 HTTP Version Not Supported",
-	"507 Insufficient Storage",
-	"511 Network Authentication Required",
+	"100 Continue",				/* KHTTP_100 */
+	"101 Switching Protocols",              /* KHTTP_101 */
+	"103 Checkpoint",                       /* KHTTP_103 */
+	"200 OK",                               /* KHTTP_200 */
+	"201 Created",                          /* KHTTP_201 */
+	"202 Accepted",                         /* KHTTP_202 */
+	"203 Non-Authoritative Information",    /* KHTTP_203 */
+	"204 No Content",                       /* KHTTP_204 */
+	"205 Reset Content",                    /* KHTTP_205 */
+	"206 Partial Content",                  /* KHTTP_206 */
+	"207 Multi-Status",                     /* KHTTP_207 */
+	"300 Multiple Choices",                 /* KHTTP_300 */
+	"301 Moved Permanently",                /* KHTTP_301 */
+	"302 Found",                            /* KHTTP_302 */
+	"303 See Other",                        /* KHTTP_303 */
+	"304 Not Modified",                     /* KHTTP_304 */
+	"306 Switch Proxy",                     /* KHTTP_306 */
+	"307 Temporary Redirect",               /* KHTTP_307 */
+	"308 Resume Incomplete",                /* KHTTP_308 */
+	"400 Bad Request",                      /* KHTTP_400 */
+	"401 Unauthorized",                     /* KHTTP_401 */
+	"402 Payment Required",                 /* KHTTP_402 */
+	"403 Forbidden",                        /* KHTTP_403 */
+	"404 Not Found",                        /* KHTTP_404 */
+	"405 Method Not Allowed",               /* KHTTP_405 */
+	"406 Not Acceptable",                   /* KHTTP_406 */
+	"407 Proxy Authentication Required",    /* KHTTP_407 */
+	"408 Request Timeout",                  /* KHTTP_408 */
+	"409 Conflict",                         /* KHTTP_409 */
+	"410 Gone",                             /* KHTTP_410 */
+	"411 Length Required",                  /* KHTTP_411 */
+	"412 Precondition Failed",              /* KHTTP_412 */
+	"413 Request Entity Too Large",         /* KHTTP_413 */
+	"414 Request-URI Too Long",             /* KHTTP_414 */
+	"415 Unsupported Media Type",           /* KHTTP_415 */
+	"416 Requested Range Not Satisfiable",  /* KHTTP_416 */
+	"417 Expectation Failed",               /* KHTTP_417 */
+	"424 Failed Dependency",                /* KHTTP_424 */
+	"428 Precondition Required",            /* KHTTP_428 */
+	"429 Too Many Requests",                /* KHTTP_429 */
+	"431 Request Header Fields Too Large",  /* KHTTP_431 */
+	"500 Internal Server Error",            /* KHTTP_500 */
+	"501 Not Implemented",                  /* KHTTP_501 */
+	"502 Bad Gateway",                      /* KHTTP_502 */
+	"503 Service Unavailable",              /* KHTTP_503 */
+	"504 Gateway Timeout",                  /* KHTTP_504 */
+	"505 HTTP Version Not Supported",       /* KHTTP_505 */
+	"507 Insufficient Storage",             /* KHTTP_507 */
+	"511 Network Authentication Required",  /* KHTTP_511 */
 };
 
+/*
+ * This doesn't have a preset size.
+ */
 const struct kmimemap ksuffixmap[] = {
 	{ "css", KMIME_TEXT_CSS },
 	{ "csv", KMIME_TEXT_CSV },
@@ -272,33 +275,33 @@ const struct kmimemap ksuffixmap[] = {
  * Default MIME suffix per type.
  */
 const char *const ksuffixes[KMIME__MAX] = {
-	"js", /* KMIME_APP_JAVASCRIPT */
+	"js",	/* KMIME_APP_JAVASCRIPT */
 	"json", /* KMIME_APP_JSON */
-	NULL, /* KMIME_APP_OCTET_STREAM */
-	"pdf", /* KMIME_APP_PDF */
-	"xml", /* KMIME_APP_XML */
-	"zip", /* KMIME_APP_ZIP */
-	"gif", /* KMIME_IMAGE_GIF */
-	"jpg", /* KMIME_IMAGE_JPEG */
-	"png", /* KMIME_IMAGE_PNG */
-	"svg", /* KMIME_IMAGE_PNG */
-	"ics", /* KMIME_TEXT_CALENDAR */
-	"css", /* KMIME_TEXT_CSS */
-	"csv", /* KMIME_TEXT_CSV */
-	"html", /* KMIME_TEXT_HTML */
-	"txt", /* KMIME_TEXT_PLAIN */
-	"xml", /* KMIME_TEXT_XML */
+	NULL,	/* KMIME_APP_OCTET_STREAM */
+	"pdf",	/* KMIME_APP_PDF */
+	"xml",	/* KMIME_APP_XML */
+	"zip",	/* KMIME_APP_ZIP */
+	"gif",	/* KMIME_IMAGE_GIF */
+	"jpg",	/* KMIME_IMAGE_JPEG */
+	"png",	/* KMIME_IMAGE_PNG */
+	"svg",	/* KMIME_IMAGE_PNG */
+	"ics",	/* KMIME_TEXT_CALENDAR */
+	"css",	/* KMIME_TEXT_CSS */
+	"csv",	/* KMIME_TEXT_CSV */
+	"html",	/* KMIME_TEXT_HTML */
+	"txt",	/* KMIME_TEXT_PLAIN */
+	"xml",	/* KMIME_TEXT_XML */
 };
 
 const char *const kerrors[] = {
-	"success", /* KCGI_OK */
-	"cannot allocate memory", /* KCGI_ENOMEM */
-	"FastCGI exit", /* KCGI_EXIT */
-	"end-point connection closed", /* KCGI_HUP */
-	"too many open sockets", /* KCGI_ENFILE */
-	"failed to fork child", /* KCGI_EAGAIN */
-	"internal error", /* KCGI_FORM */
-	"system error", /* KCGI_SYSTEM */
+	"success", 			/* KCGI_OK */
+	"cannot allocate memory",	/* KCGI_ENOMEM */
+	"FastCGI exit",			/* KCGI_EXIT */
+	"end-point connection closed",	/* KCGI_HUP */
+	"too many open sockets",	/* KCGI_ENFILE */
+	"failed to fork child",		/* KCGI_EAGAIN */
+	"internal error",		/* KCGI_FORM */
+	"system error",			/* KCGI_SYSTEM */
 };
 
 const char *
@@ -306,7 +309,7 @@ kcgi_strerror(enum kcgi_err er)
 {
 
 	assert(er <= KCGI_SYSTEM);
-	return(kerrors[er]);
+	return kerrors[er];
 }
 
 /*
@@ -317,9 +320,8 @@ kstrdup(const char *cp)
 {
 	char	*p;
 
-	if (NULL != (p = XSTRDUP(cp)))
-		return(p);
-
+	if ((p = XSTRDUP(cp)) != NULL)
+		return p;
 	exit(EXIT_FAILURE);
 }
 
@@ -331,9 +333,8 @@ krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = XREALLOC(pp, sz)))
-		return(p);
-
+	if ((p = XREALLOC(pp, sz)) != NULL)
+		return p;
 	exit(EXIT_FAILURE);
 }
 
@@ -345,9 +346,8 @@ kreallocarray(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = XREALLOCARRAY(pp, nm, sz)))
-		return(p);
-
+	if ((p = XREALLOCARRAY(pp, nm, sz)) != NULL)
+		return p;
 	exit(EXIT_FAILURE);
 }
 
@@ -365,8 +365,7 @@ kasprintf(char **p, const char *fmt, ...)
 	va_end(ap);
 
 	if (len >= 0)
-		return(len);
-
+		return len;
 	exit(EXIT_FAILURE);
 }
 
@@ -379,8 +378,7 @@ kvasprintf(char **p, const char *fmt, va_list ap)
 	int	 len;
 
 	if ((len = XVASPRINTF(p, fmt, ap)) >= 0)
-		return(len);
-
+		return len;
 	exit(EXIT_FAILURE);
 }
 
@@ -392,9 +390,8 @@ kcalloc(size_t nm, size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = XCALLOC(nm, sz)))
-		return(p);
-
+	if ((p = XCALLOC(nm, sz)) != NULL)
+		return p;
 	exit(EXIT_FAILURE);
 }
 
@@ -406,9 +403,8 @@ kmalloc(size_t sz)
 {
 	char	*p;
 
-	if (NULL != (p = XMALLOC(sz)))
-		return(p);
-
+	if ((p = XMALLOC(sz)) != NULL)
+		return p;
 	exit(EXIT_FAILURE);
 }
 
@@ -522,7 +518,7 @@ kutil_urlabs(enum kscheme scheme,
 
 	XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
 	    kschemes[scheme], host, port, path);
-	return(p);
+	return p;
 }
 
 char *
@@ -535,12 +531,12 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	size_t		 total, count;
 	char	 	 buf[256]; /* max double/int64_t */
 
-	if (NULL == (pp = kutil_urlencode(page)))
-		return(NULL);
+	if ((pp = kutil_urlencode(page)) == NULL)
+		return NULL;
 
 	/* If we have a MIME type, append it. */
 
-	rc = NULL != mime ?
+	rc = mime != NULL ?
 		XASPRINTF(&p, "%s%s%s.%s", 
 			NULL != path ? path : "",
 			NULL != path ? "/" : "", pp, mime) :
@@ -550,33 +546,34 @@ kutil_urlpartx(struct kreq *req, const char *path,
 
 	free(pp);
 
-	if (rc < 0)
-		return(NULL);
+	if (rc == -1)
+		return NULL;
 
 	total = strlen(p) + 1;
 	va_start(ap, page);
 	count = 0;
+	
+	/* FIXME: va_end(ap) on exit. */
 
-	while (NULL != (pp = va_arg(ap, char *))) {
-		keyp = kutil_urlencode(pp);
-		if (NULL == keyp) {
+	while ((pp = va_arg(ap, char *)) != NULL) {
+		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
-			return(NULL);
+			return NULL;
 		}
 
 		valp = valpp = NULL;
 
 		switch (va_arg(ap, enum kattrx)) {
-		case (KATTRX_STRING):
+		case KATTRX_STRING:
 			valp = kutil_urlencode(va_arg(ap, char *));
 			valpp = valp;
 			break;
-		case (KATTRX_INT):
+		case KATTRX_INT:
 			(void)snprintf(buf, sizeof(buf),
 				"%" PRId64, va_arg(ap, int64_t));
 			valp = buf;
 			break;
-		case (KATTRX_DOUBLE):
+		case KATTRX_DOUBLE:
 			(void)snprintf(buf, sizeof(buf),
 				"%g", va_arg(ap, double));
 			valp = buf;
@@ -584,13 +581,13 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		default:
 			free(p);
 			free(keyp);
-			return(NULL);
+			return NULL;
 		}
 
-		if (NULL == valp) {
+		if (valp == NULL) {
 			free(p);
 			free(keyp);
-			return(NULL);
+			return NULL;
 		}
 
 		/* Size for key, value, ? or &, and =. */
@@ -598,11 +595,11 @@ kutil_urlpartx(struct kreq *req, const char *path,
 
 		total += strlen(keyp) + strlen(valp) + 2;
 
-		if (NULL == (pp = XREALLOC(p, total))) {
+		if ((pp = XREALLOC(p, total)) == NULL) {
 			free(p);
 			free(keyp);
 			free(valpp);
-			return(NULL);
+			return NULL;
 		}
 		p = pp;
 
@@ -621,7 +618,7 @@ kutil_urlpartx(struct kreq *req, const char *path,
 	}
 
 	va_end(ap);
-	return(p);
+	return p;
 }
 
 char *
@@ -633,12 +630,12 @@ kutil_urlpart(struct kreq *req, const char *path,
 	size_t		 total, count;
 	int		 len;
 
-	if (NULL == (pp = kutil_urlencode(page)))
-		return(NULL);
+	if ((pp = kutil_urlencode(page)) == NULL)
+		return NULL;
 
 	/* If we have a MIME type, append it. */
 
-	len = NULL != mime ?
+	len = mime != NULL ?
 		XASPRINTF(&p, "%s%s%s.%s", 
 			NULL != path ? path : "",
 			NULL != path ? "/" : "", pp, mime) :
@@ -649,24 +646,25 @@ kutil_urlpart(struct kreq *req, const char *path,
 	free(pp);
 
 	if (len < 0)
-		return(NULL);
+		return NULL;
 
 	total = strlen(p) + 1;
 	va_start(ap, page);
 	count = 0;
 
+	/* FIXME: va_end(ap) on exit. */
+
 	while (NULL != (pp = va_arg(ap, char *))) {
-		keyp = kutil_urlencode(pp);
-		if (NULL == keyp) {
+		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
-			return(NULL);
+			return NULL;
 		}
 
 		valp = kutil_urlencode(va_arg(ap, char *));
-		if (NULL == valp) {
+		if (valp == NULL) {
 			free(p);
 			free(keyp);
-			return(NULL);
+			return NULL;
 		}
 
 		/* Size for key, value, ? or &, and =. */
@@ -674,11 +672,11 @@ kutil_urlpart(struct kreq *req, const char *path,
 
 		total += strlen(keyp) + strlen(valp) + 2;
 
-		if (NULL == (pp = XREALLOC(p, total))) {
+		if ((pp = XREALLOC(p, total)) == NULL) {
 			free(p);
 			free(keyp);
 			free(valp);
-			return(NULL);
+			return NULL;
 		}
 		p = pp;
 
@@ -697,13 +695,13 @@ kutil_urlpart(struct kreq *req, const char *path,
 	}
 
 	va_end(ap);
-	return(p);
+	return p;
 }
 
 static void
 kpair_free(struct kpair *p, size_t sz)
 {
-	size_t		 i;
+	size_t	 i;
 
 	for (i = 0; i < sz; i++) {
 		free(p[i].key);
@@ -740,7 +738,7 @@ kreq_free(struct kreq *req)
 	free(req->pagename);
 	free(req->pname);
 	free(req->rawauth.digest);
-	if (KAUTH_DIGEST == req->rawauth.type) {
+	if (req->rawauth.type == KAUTH_DIGEST) {
 		free(req->rawauth.d.digest.user);
 		free(req->rawauth.d.digest.uri);
 		free(req->rawauth.d.digest.realm);
@@ -748,7 +746,7 @@ kreq_free(struct kreq *req)
 		free(req->rawauth.d.digest.cnonce);
 		free(req->rawauth.d.digest.response);
 		free(req->rawauth.d.digest.opaque);
-	} else if (KAUTH_BASIC == req->rawauth.type) 
+	} else if (req->rawauth.type == KAUTH_BASIC) 
 		free(req->rawauth.d.basic.response);
 }
 
@@ -759,9 +757,9 @@ khttp_parse(struct kreq *req,
 	size_t defpage)
 {
 
-	return(khttp_parsex(req, ksuffixmap, kmimetypes, 
+	return khttp_parsex(req, ksuffixmap, kmimetypes, 
 		KMIME__MAX, keys, keysz, pages, pagesz, 
-		KMIME_TEXT_HTML, defpage, NULL, NULL, 0, NULL));
+		KMIME_TEXT_HTML, defpage, NULL, NULL, 0, NULL);
 }
 
 enum kcgi_err
@@ -788,28 +786,28 @@ khttp_parsex(struct kreq *req,
 	 * must be non-blocking in order to make the reads not spin the
 	 * CPU.
 	 */
-	if (KCGI_OK != kxsocketprep(STDIN_FILENO)) {
+
+	if (kxsocketprep(STDIN_FILENO) != KCGI_OK) {
 		XWARNX("kxsocketprep");
 		return KCGI_SYSTEM;
 	}
 
-	if (KCGI_OK != kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat))
+	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat) != KCGI_OK)
 		return KCGI_SYSTEM;
 
-	if (-1 == (work_pid = fork())) {
+	if ((work_pid = fork()) == -1) {
 		er = errno;
 		XWARN("fork");
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
 		return EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM;
-	} else if (0 == work_pid) {
-		/* Conditionally free our argument. */
-		if (NULL != argfree)
+	} else if (work_pid == 0) {
+		if (argfree != NULL)
 			(*argfree)(arg);
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
 		er = EXIT_FAILURE;
-		if ( ! ksandbox_init_child
+		if (!ksandbox_init_child
 			(SAND_WORKER,
 			 work_dat[KWORKER_CHILD], -1, -1, -1)) {
 			XWARNX("ksandbox_init_child");
@@ -827,7 +825,7 @@ khttp_parsex(struct kreq *req,
 	close(work_dat[KWORKER_CHILD]);
 	work_dat[KWORKER_CHILD] = -1;
 
-	if (NULL == opts)
+	if (opts == NULL)
 		kopts.sndbufsz = -1;
 	else
 		memcpy(&kopts, opts, sizeof(struct kopts));
@@ -844,25 +842,26 @@ khttp_parsex(struct kreq *req,
 	 * Also, we're running our child in the background, so make sure
 	 * that it gets killed!
 	 */
+
 	req->arg = arg;
 	req->keys = keys;
 	req->keysz = keysz;
 	req->kdata = kdata_alloc(-1, -1, 0, debugging, &kopts);
-	if (NULL == req->kdata)
+	if (req->kdata == NULL)
 		goto err;
 
 	if (keysz) {
 		req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
-		if (NULL == req->cookiemap)
+		if (req->cookiemap == NULL)
 			goto err;
 		req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
-		if (NULL == req->cookienmap)
+		if (req->cookienmap == NULL)
 			goto err;
 		req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
-		if (NULL == req->fieldmap)
+		if (req->fieldmap == NULL)
 			goto err;
 		req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
-		if (NULL == req->fieldnmap)
+		if (req->fieldnmap == NULL)
 			goto err;
 	}
 
@@ -870,27 +869,33 @@ khttp_parsex(struct kreq *req,
 	 * Now read the input fields from the child and conditionally
 	 * assign them to our lookup table.
 	 */
+
 	kerr = kworker_parent(work_dat[KWORKER_PARENT], req, 1, mimesz);
-	if (KCGI_OK != kerr)
+	if (kerr != KCGI_OK)
 		goto err;
 
 	/* Look up page type from component. */
+
 	req->page = defpage;
-	if ('\0' != *req->pagename)
+	if (*req->pagename != '\0')
 		for (req->page = 0; req->page < pagesz; req->page++)
-			if (0 == strcasecmp(pages[req->page], req->pagename))
+			if (strcasecmp
+			    (pages[req->page], req->pagename) == 0)
 				break;
 
-	/* Start with the default. */
+	/*
+	 * Look up the MIME type, defaulting to defmime if none.
+	 * If we can't find it, use the maximum (mimesz).
+	 */
+
 	req->mime = defmime;
-	if ('\0' != *req->suffix) {
-		for (mm = suffixmap; NULL != mm->name; mm++)
-			if (0 == strcasecmp(mm->name, req->suffix)) {
+	if (*req->suffix != '\0') {
+		for (mm = suffixmap; mm->name != NULL; mm++)
+			if (strcasecmp(mm->name, req->suffix) == 0) {
 				req->mime = mm->mime;
 				break;
 			}
-		 /* Could not find this mime type! */
-		if (NULL == mm->name)
+		if (mm->name == NULL)
 			req->mime = mimesz;
 	}
 
@@ -898,14 +903,14 @@ khttp_parsex(struct kreq *req,
 	work_dat[KWORKER_PARENT] = -1;
 	kerr = kxwaitpid(work_pid);
 	work_pid = -1;
-	if (KCGI_OK != kerr)
+	if (kerr != KCGI_OK)
 		goto err;
 	return kerr;
 err:
-	assert(KCGI_OK != kerr);
-	if (-1 != work_dat[KWORKER_PARENT])
+	assert(kerr != KCGI_OK);
+	if (work_dat[KWORKER_PARENT] != -1)
 		close(work_dat[KWORKER_PARENT]);
-	if (-1 != work_pid)
+	if (work_pid != -1)
 		kxwaitpid(work_pid);
 	kdata_free(req->kdata, 0);
 	req->kdata = NULL;
@@ -919,7 +924,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 	struct kpair	*p, *lastp;
 	size_t		 i;
 
-	if (NULL == kp)
+	if (kp == NULL)
 		return;
 
 	kp->type = KPAIR__MAX;
@@ -933,7 +938,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 
 	/* Is it in our fieldmap? */
 
-	if (NULL != r->fieldmap[i]) {
+	if (r->fieldmap[i] != NULL) {
 		if (kp == r->fieldmap[i]) {
 			r->fieldmap[i] = kp->next;
 			kp->next = r->fieldnmap[i];
@@ -942,7 +947,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 		} 
 		lastp = r->fieldmap[i];
 		p = lastp->next;
-		for ( ; NULL != p; lastp = p, p = p->next)
+		for ( ; p != NULL; lastp = p, p = p->next)
 			if (kp == p) {
 				lastp->next = kp->next;
 				kp->next = r->fieldnmap[i];
@@ -953,7 +958,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 
 	/* ...cookies? */
 
-	if (NULL != r->cookiemap[i]) {
+	if (r->cookiemap[i] != NULL) {
 		if (kp == r->cookiemap[i]) {
 			r->cookiemap[i] = kp->next;
 			kp->next = r->cookienmap[i];
@@ -962,7 +967,7 @@ kutil_invalidate(struct kreq *r, struct kpair *kp)
 		} 
 		lastp = r->cookiemap[i];
 		p = lastp->next;
-		for ( ; NULL != p; lastp = p, p = p->next) 
+		for ( ; p != NULL; lastp = p, p = p->next) 
 			if (kp == p) {
 				lastp->next = kp->next;
 				kp->next = r->cookienmap[i];
@@ -998,7 +1003,7 @@ khttp_free(struct kreq *req)
 static char *
 trim(char *val)
 {
-	char		*cp;
+	char	*cp;
 
 	while (isspace((unsigned char)*val))
 		val++;
@@ -1007,50 +1012,53 @@ trim(char *val)
 	while (cp > val && isspace((unsigned char)*cp))
 		*cp-- = '\0';
 
-	return(val);
+	return val;
 }
 
 /*
  * Simple email address validation: this is NOT according to the spec,
  * but a simple heuristic look at the address.
  * Note that this lowercases the mail address.
+ * FIXME: this needs to be relaxed.
  */
 static char *
 valid_email(char *p)
 {
-	char		*domain, *cp, *start;
-	size_t		 i, sz;
+	char	*domain, *cp, *start;
+	size_t	 i, sz;
+
+	/* Trim all white-space before and after. */
 
 	cp = start = trim(p);
 
 	if ((sz = strlen(cp)) < 5 || sz > 254)
-		return(NULL);
-	if (NULL == (domain = strchr(cp, '@')))
-		return(NULL);
+		return NULL;
+	if ((domain = strchr(cp, '@')) == NULL)
+		return NULL;
 	if ((sz = domain - cp) < 1 || sz > 64)
-		return(NULL);
+		return NULL;
 
 	for (i = 0; i < sz; i++) {
 		if (isalnum((unsigned char)cp[i]))
 			continue;
-		if (NULL == strchr("!#$%&'*+-/=?^_`{|}~.", cp[i]))
-			return(NULL);
+		if (strchr("!#$%&'*+-/=?^_`{|}~.", cp[i]) == NULL)
+			return NULL;
 	}
 
-	assert('@' == cp[i]);
+	assert(cp[i] == '@');
 	cp = &cp[++i];
 	if ((sz = strlen(cp)) < 4 || sz > 254)
-		return(NULL);
+		return NULL;
 
 	for (i = 0; i < sz; i++) 
-		if ( ! isalnum((unsigned char)cp[i]))
-			if (NULL == strchr("-.", cp[i]))
-				return(NULL);
+		if (!isalnum((unsigned char)cp[i]))
+			if (strchr("-.", cp[i]) == NULL)
+				return NULL;
 
-	for (cp = start; '\0' != *cp; cp++)
+	for (cp = start; *cp != '\0'; cp++)
 		*cp = tolower((unsigned char)*cp);
 
-	return(start);
+	return start;
 }
 
 int
@@ -1058,75 +1066,75 @@ kvalid_date(struct kpair *kp)
 {
 	int		 mday, mon, year;
 
-	if (kp->valsz != 10 || '\0' != kp->val[10] ||
-	    ! isdigit((unsigned char)kp->val[0]) ||
-	    ! isdigit((unsigned char)kp->val[1]) ||
-	    ! isdigit((unsigned char)kp->val[2]) ||
-	    ! isdigit((unsigned char)kp->val[3]) ||
-	    '-' != kp->val[4] || 
-	    ! isdigit((unsigned char)kp->val[5]) ||
-	    ! isdigit((unsigned char)kp->val[6]) ||
-	    '-' != kp->val[7] || 
-	    ! isdigit((unsigned char)kp->val[8]) ||
-	    ! isdigit((unsigned char)kp->val[9]))
-		return(0);
+	if (kp->valsz != 10 || kp->val[10] != '\0' ||
+	    !isdigit((unsigned char)kp->val[0]) ||
+	    !isdigit((unsigned char)kp->val[1]) ||
+	    !isdigit((unsigned char)kp->val[2]) ||
+	    !isdigit((unsigned char)kp->val[3]) ||
+	    kp->val[4] != '-' || 
+	    !isdigit((unsigned char)kp->val[5]) ||
+	    !isdigit((unsigned char)kp->val[6]) ||
+	    kp->val[7] != '-' || 
+	    !isdigit((unsigned char)kp->val[8]) ||
+	    !isdigit((unsigned char)kp->val[9]))
+		return 0;
 
 	year = atoi(&kp->val[0]);
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
-	if ( ! kutil_date_check(mday, mon, year))
-		return(0);
+	if (!kutil_date_check(mday, mon, year))
+		return 0;
 
 	kp->parsed.i = kutil_date2epoch(mday, mon, year);
 	kp->type = KPAIR_INTEGER;
-	return(1);
+	return 1;
 }
 
 int
 kvalid_stringne(struct kpair *p)
 {
-
 	/*
 	 * To check if we're a valid string, simply make sure that the
 	 * NUL-terminator is where we expect it to be.
 	 */
-	if (strlen(p->val) != p->valsz || 0 == p->valsz)
-		return(0);
+
+	if (strlen(p->val) != p->valsz || p->valsz == 0)
+		return 0;
 	p->type = KPAIR_STRING;
 	p->parsed.s = p->val;
-	return(1);
+	return 1;
 }
 
 int
 kvalid_string(struct kpair *p)
 {
-
 	/*
 	 * To check if we're a valid string, simply make sure that the
 	 * NUL-terminator is where we expect it to be.
 	 */
+
 	if (strlen(p->val) != p->valsz)
-		return(0);
+		return 0;
 	p->type = KPAIR_STRING;
 	p->parsed.s = p->val;
-	return(1);
+	return 1;
 }
 
 int
 kvalid_email(struct kpair *p)
 {
 
-	if ( ! kvalid_stringne(p))
-		return(0);
-	return(NULL != (p->parsed.s = valid_email(p->val)));
+	if (!kvalid_stringne(p))
+		return 0;
+	return (p->parsed.s = valid_email(p->val)) != NULL;
 }
 
 int
 kvalid_udouble(struct kpair *p)
 {
 
-	return(kvalid_double(p) && p->parsed.d > 0.0);
+	return kvalid_double(p) && p->parsed.d > 0.0;
 }
 
 int
@@ -1137,8 +1145,8 @@ kvalid_double(struct kpair *p)
 	double		 lval;
 	int		 er;
 
-	if ( ! kvalid_stringne(p))
-		return(0);
+	if (!kvalid_stringne(p))
+		return 0;
 
 	/* 
 	 * We might get an empty string from trim, which constitutes a
@@ -1149,8 +1157,8 @@ kvalid_double(struct kpair *p)
 	 */
 
 	nval = trim(p->val);
-	if ('\0' == nval[0])
-		return(0);
+	if (nval[0] == '\0')
+		return 0;
 
 	/* Save errno so we can restore it later. */
 
@@ -1158,18 +1166,18 @@ kvalid_double(struct kpair *p)
 	errno = 0;
 	lval = strtod(nval, &ep);
 	if (errno == ERANGE)
-		return(0);
+		return 0;
 
 	/* Restore errno. */
 
 	errno = er;
 
 	if (*ep != '\0')
-		return(0);
+		return 0;
 
 	p->parsed.d = lval;
 	p->type = KPAIR_DOUBLE;
-	return(1);
+	return 1;
 }
 
 int
@@ -1177,21 +1185,21 @@ kvalid_int(struct kpair *p)
 {
 	const char	*ep;
 
-	if ( ! kvalid_stringne(p))
-		return(0);
+	if (!kvalid_stringne(p))
+		return 0;
 	p->parsed.i = strtonum
 		(trim(p->val), INT64_MIN, INT64_MAX, &ep);
 	p->type = KPAIR_INTEGER;
-	return(NULL == ep);
+	return ep == NULL;
 }
 
 int
 kvalid_bit(struct kpair *p)
 {
 
-	if ( ! kvalid_uint(p))
-		return(0);
-	return(p->parsed.i <= 64);
+	if (!kvalid_uint(p))
+		return 0;
+	return p->parsed.i <= 64;
 }
 
 int
@@ -1201,7 +1209,7 @@ kvalid_uint(struct kpair *p)
 
 	p->parsed.i = strtonum(trim(p->val), 0, INT64_MAX, &ep);
 	p->type = KPAIR_INTEGER;
-	return(NULL == ep);
+	return ep == NULL;
 }
 
 enum kcgi_err
@@ -1210,34 +1218,34 @@ kcgi_buf_write(const char *s, size_t sz, void *arg)
 	struct kcgi_buf	*b = arg;
 	void		*pp;
 
-	if (NULL == s)
-		return(KCGI_OK);
+	if (s == NULL)
+		return KCGI_OK;
 
 	if (b->sz + sz + 1 > b->maxsz) {
 		b->maxsz = b->sz + sz + 1 + 
 			(0 == b->growsz ? 1024 : b->growsz);
 		pp = realloc(b->buf, b->maxsz);
-		if (NULL == pp)
-			return(KCGI_ENOMEM);
+		if (pp == NULL)
+			return KCGI_ENOMEM;
 		b->buf = pp;
 	}
 
 	memcpy(&b->buf[b->sz], s, sz);
 	b->sz += sz;
 	b->buf[b->sz] = '\0';
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
 kcgi_buf_putc(struct kcgi_buf *buf, char c)
 {
 
-	return(kcgi_buf_write(&c, 1, buf));
+	return kcgi_buf_write(&c, 1, buf);
 }
 
 enum kcgi_err
 kcgi_buf_puts(struct kcgi_buf *buf, const char *cp)
 {
 
-	return(kcgi_buf_write(cp, strlen(cp), buf));
+	return kcgi_buf_write(cp, strlen(cp), buf);
 }
