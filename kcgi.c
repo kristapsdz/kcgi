@@ -1019,41 +1019,28 @@ trim(char *val)
  * Simple email address validation: this is NOT according to the spec,
  * but a simple heuristic look at the address.
  * Note that this lowercases the mail address.
- * FIXME: this needs to be relaxed.
  */
 static char *
 valid_email(char *p)
 {
-	char	*domain, *cp, *start;
-	size_t	 i, sz;
+	char	*cp, *start;
+	size_t	 sz;
 
-	/* Trim all white-space before and after. */
+	/* 
+	 * Trim all white-space before and after.
+	 * Length check (min: a@b, max: 254 bytes).
+	 * Make sure we have an at-sign.
+	 * Make sure at signs aren't at the start or end.
+	 */
 
 	cp = start = trim(p);
 
-	if ((sz = strlen(cp)) < 5 || sz > 254)
+	if ((sz = strlen(cp)) < 3 || sz > 254)
 		return NULL;
-	if ((domain = strchr(cp, '@')) == NULL)
+	if (cp[0] == '@' || cp[sz - 1] == '@')
 		return NULL;
-	if ((sz = domain - cp) < 1 || sz > 64)
+	if (strchr(cp, '@') == NULL)
 		return NULL;
-
-	for (i = 0; i < sz; i++) {
-		if (isalnum((unsigned char)cp[i]))
-			continue;
-		if (strchr("!#$%&'*+-/=?^_`{|}~.", cp[i]) == NULL)
-			return NULL;
-	}
-
-	assert(cp[i] == '@');
-	cp = &cp[++i];
-	if ((sz = strlen(cp)) < 4 || sz > 254)
-		return NULL;
-
-	for (i = 0; i < sz; i++) 
-		if (!isalnum((unsigned char)cp[i]))
-			if (strchr("-.", cp[i]) == NULL)
-				return NULL;
 
 	for (cp = start; *cp != '\0'; cp++)
 		*cp = tolower((unsigned char)*cp);
