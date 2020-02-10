@@ -199,7 +199,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-urldecode \
 		   regress/test-urlpart \
 		   regress/test-valid-date \
-		   regress/test-valid-double 
+		   regress/test-valid-double \
+		   regress/test-valid-email 
 SVGS		 = figure1.svg \
 		   figure2.png \
 		   figure4.svg \
