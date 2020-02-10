@@ -663,6 +663,8 @@ void		 kutil_errx(const struct kreq *,
 
 int		 kasprintf(char **, const char *, ...)
 			__attribute__((format(printf, 2, 3)));
+int		 kvasprintf(char **, const char *, va_list)
+			__attribute__((format(printf, 2, 0)));
 void		*kcalloc(size_t, size_t);
 void		*kmalloc(size_t);
 void		*krealloc(void *, size_t);
