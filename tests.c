@@ -89,6 +89,18 @@ main(void)
 	return(0);
 }
 #endif /* TEST_EXPLICIT_BZERO */
+#if TEST_GETEXECNAME
+#include <stdlib.h>
+
+int
+main(void)
+{
+	const char * progname;
+
+	progname = getexecname();
+	return progname == NULL;
+}
+#endif /* TEST_GETEXECNAME */
 #if TEST_GETPROGNAME
 #include <stdlib.h>
 
