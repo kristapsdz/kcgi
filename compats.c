@@ -466,6 +466,7 @@ explicit_bzero(void *p, size_t n)
 /*
  * Copyright (c) 2016 Nicholas Marriott <nicholas.marriott@gmail.com>
  * Copyright (c) 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2020 Stephen Gregoratto <dev@sgregoratto.me>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -484,7 +485,14 @@ explicit_bzero(void *p, size_t n)
 
 #include <errno.h>
 
-#if HAVE_PROGRAM_INVOCATION_SHORT_NAME
+#if HAVE_GETEXECNAME
+#include <stdlib.h>
+const char *
+getprogname(void)
+{
+	return getexecname();
+}
+#elif HAVE_PROGRAM_INVOCATION_SHORT_NAME
 const char *
 getprogname(void)
 {
@@ -929,7 +937,7 @@ readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
 #ifndef TCSASOFT
 	const int tcasoft = 0;
 #else
-	const int tcasoft = TCASOFT;
+	const int tcasoft = TCSASOFT;
 #endif
 
 	/* I suppose we could alloc on demand in this case (XXX). */

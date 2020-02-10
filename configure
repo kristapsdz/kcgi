@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.1.15"
+OCONFIGURE_VERSION="0.1.17"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -137,6 +137,7 @@ HAVE_CAPSICUM=
 HAVE_ENDIAN_H=
 HAVE_ERR=
 HAVE_EXPLICIT_BZERO=
+HAVE_GETEXECNAME=
 HAVE_GETPROGNAME=
 HAVE_INFTIM=
 HAVE_MD5=
@@ -297,6 +298,7 @@ runtest capsicum	CAPSICUM			  || true
 runtest endian_h	ENDIAN_H			  || true
 runtest err		ERR				  || true
 runtest explicit_bzero	EXPLICIT_BZERO			  || true
+runtest getexecname	GETEXECNAME			  || true
 runtest getprogname	GETPROGNAME			  || true
 runtest INFTIM		INFTIM				  || true
 runtest md5		MD5 "" "" "-lmd"		  || true
@@ -390,6 +392,7 @@ cat << __HEREDOC__
 #define HAVE_ENDIAN_H ${HAVE_ENDIAN_H}
 #define HAVE_ERR ${HAVE_ERR}
 #define HAVE_EXPLICIT_BZERO ${HAVE_EXPLICIT_BZERO}
+#define HAVE_GETEXECNAME ${HAVE_GETEXECNAME}
 #define HAVE_GETPROGNAME ${HAVE_GETPROGNAME}
 #define HAVE_INFTIM ${HAVE_INFTIM}
 #define HAVE_MD5 ${HAVE_MD5}
