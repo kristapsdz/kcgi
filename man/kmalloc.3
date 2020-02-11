@@ -23,7 +23,8 @@
 .Nm kmalloc ,
 .Nm krealloc ,
 .Nm kreallocarray ,
-.Nm kstrdup
+.Nm kstrdup ,
+.Nm kvasprintf
 .Nd memory allocation functions for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -44,10 +45,12 @@
 .Fn kreallocarray "void *p" "size_t nm" "size_t sz"
 .Ft "char *"
 .Fn kstrdup "const char *cp"
+.Ft int
+.Fn kvasprintf "char **p" "const char *fmt" "va_list ap"
 .Sh DESCRIPTION
-These functions are wrappers around the usual libc versions, except
-that on allocation failure, they print a warning message to the
-standard error output and call
+These functions wrap around corresponding libc versions except that on
+allocation failure, they print a warning message to standard error
+output and call
 .Xr exit 3 .
 .Pp
 Calling
@@ -60,8 +63,12 @@ with
 .Fa sz
 or
 .Fa nm
-equal to zero prints a warning message to the standard error output and
-produces non-portable results.
+equal to zero, or passing
+.Dv NULL
+to
+.Fn kstrdup ,
+additionally prints a warning message to the standard
+error output and produces non-portable results.
 .Sh SEE ALSO
 .Xr kcgi 3
 .Sh AUTHORS
