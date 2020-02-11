@@ -143,17 +143,11 @@
 .Fa "..."
 .Fc
 .Sh DESCRIPTION
-These functions format messages for reporting on
-.Vt stderr ,
-avoiding common CGI script pitfalls such as unwittingly using
-.Xr localtime 3
-when in a
-.Xr chroot 2 .
-Moreover, they allow for a consist logging output format, as most web
-servers are inconsistent on how they log script output.
+These functions consistently format and output messages on standard
+error.
 See
 .Xr kutil_openlog 3
-for configuring an alternative log file.
+for configuring an alternative log destination.
 .Pp
 These functions accept the following variables:
 .Bl -tag -width Ds
@@ -198,7 +192,7 @@ and
 .Fn kutil_verrx
 functions exit with
 .Dv EXIT_FAILURE .
-They will never return.
+They never return.
 .Ss Output format
 The log messages are filtered on output: non-printable
 .Pq see Xr isprint 3
@@ -245,6 +239,3 @@ The date is formatted as an HTTP date (RFC 822) in GMT.
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh BUGS
-The log message size is limited to 1023 bytes.
-Anything over that will be silently truncated.

@@ -42,21 +42,16 @@ static	const char *llevels[LLEVEL__MAX] = {
 
 /*
  * Actual logging function.
- * This works best if stderr is line buffered, otherwise we may clobber
- * other message who are writing at the same time.
- * All strings are trusted to have "good" characters except for the
- * variable array, which may contain anything and is filtered.
- *
- * FIXME: don't use fixed-length buffer.
- * FIXME: don't trust "lvl" and "ident".
+ * Only the optional error string is trusted to have "good" characters;
+ * all others may contain anything and are filtered.
  */
 static void
 logmsg(const struct kreq *r, const char *err, const char *lvl, 
 	const char *ident, const char *fmt, va_list ap)
 {
-	int		 i, sz;
-	char		 date[64];
-	char		 msg[1024];
+	int	 i, cmpsz, sz;
+	char	 date[64];
+	char	*msg, *var, *cmp, *p;
 
 	/* 
 	 * Convert to GMT.
@@ -67,58 +62,93 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 
 	kutil_epoch2str(time(NULL), date, sizeof(date));
 
-	/* Everything up to the message itself. */
-
-	fprintf(stderr, "%s %s [%s] %s ", 
-		NULL == r ? "-" : r->remote, 
-		NULL == ident ? "-" : ident, date, 
-		NULL == lvl ? "-" : lvl);
-
 	/*
-	 * Now format the message itself.
-	 * Assume that the message is UNTRUSTED, and filter the contents
-	 * of each character to see if it's a valid printable.
+	 * Format the variable args, then compose with the log prefix
+	 * to form the basic message.
 	 */
 
-	sz = vsnprintf(msg, sizeof(msg), fmt, ap);
-	for (i = 0; i < sz; i++)
-		switch (msg[i]) {
-		case ('\n'):
-			fputs("\\n", stderr);
-			break;
-		case ('\r'):
-			fputs("\\r", stderr);
-			break;
-		case ('\t'):
-			fputs("\\t", stderr);
+	kvasprintf(&var, fmt, ap);
+	cmpsz = kasprintf
+		(&cmp, "%s %s [%s] %s %s",
+		 r == NULL ? "-" : r->remote, 
+		 ident == NULL ? "-" : ident, date, 
+		 lvl == NULL ? "-" : lvl, var);
+	free(var);
+
+	/*
+	 * Allocate the required memory for the message, leaving room
+	 * for whitespace character expansion and optional error message.
+	 * Start by buffering for \n\0.
+	 */
+
+	sz = cmpsz + 2;
+
+	for (i = 0; i < cmpsz; i++)
+		switch (cmp[i]) {
+		case '\n':
+		case '\r':
+		case '\t':
+			sz++;
 			break;
 		default:
-			if (isprint((unsigned char)msg[i]))
-				fputc(msg[i], stderr);
-			else
-				fputc('?', stderr);
 			break;
 		}
 
+	/* Next, buffer for ": ". */
+
+	if (err != NULL)
+		sz += 2 + strlen(err);
+
+	p = msg = kmalloc(sz);
+
 	/*
-	 * Emit the system error message, if applicable.
+	 * Copy message into final buffer, filtering unprintables
+	 * and whitespace.
 	 */
 
-	if (NULL != err) {
-		fputs(": ", stderr);
-		fputs(err, stderr);
-	}
+	for (i = 0; i < cmpsz; i++)
+		switch (cmp[i]) {
+		case '\n':
+			*p++ = '\\';
+			*p++ = 'n';
+			break;
+		case '\r':
+			*p++ = '\\';
+			*p++ = 'r';
+			break;
+		case '\t':
+			*p++ = '\\';
+			*p++ = 't';
+			break;
+		default:
+			if (isprint((unsigned char)cmp[i]))
+				*p++ = cmp[i];
+			else
+				*p++ = '?';
+			break;
+		}
+	*p = '\0';
+	free(cmp);
 
-	fputc('\n', stderr);
+	/* Append optional error message, and newline */
+
+	if (NULL != err) {
+		(void)strlcat(msg, ": ", sz);
+		(void)strlcat(msg, err, sz);
+	}
+	(void)strlcat(msg, "\n", sz);
+
+	fputs(msg, stderr);
+	free(msg);
 }
 
 int
 kutil_openlog(const char *file)
 {
 
-	if (NULL != file && NULL == freopen(file, "a", stderr))
-		return(0);
-	return(EOF != setvbuf(stderr, NULL, _IOLBF, 0));
+	if (file != NULL && freopen(file, "a", stderr) == NULL)
+		return 0;
+	return setvbuf(stderr, NULL, _IOLBF, 0) != EOF;
 }
 
 void
