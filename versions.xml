@@ -3,6 +3,34 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.13</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-02-17">2020-02-17</time>
+		</header>
+		<aside>
+			<div>
+				Re-write the internal logging function so that it does not use a
+				static buffer, lifting the previous 1024 byte limit.
+				This means that log messages might exhaust memory, but that seems
+				the lesser of two evils.
+			</div>
+			<div>
+				Relax <a href="kvalid_string.3.html">kvalid_email(3)</a> so that it
+				accepts three-byte e-mails (e.g., <code>a@b</code>) but tighten it
+				to require not starting or ending with a <code>@</code>.
+			</div>
+			<div>
+				Add a new user-visible wrapper function, <a
+					href="kmalloc.3.html">kvasprintf(3)</a>.
+			</div>
+			<div>
+				Protect against <code>NULL</code> format strings being passed to the
+				logging functions.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.12</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-01-12">2020-01-12</time>
