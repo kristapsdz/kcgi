@@ -186,6 +186,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-invalidate \
 		   regress/test-json-controlchars \
 		   regress/test-json-simple \
+		   regress/test-logging \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
 		   regress/test-path-check \
