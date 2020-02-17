@@ -182,6 +182,9 @@ The
 style format string for the variable argument or argument list
 following.
 This formats the log message.
+If
+.Dv NULL ,
+no message is printed.
 .El
 .Pp
 The
@@ -229,8 +232,9 @@ is
 .Dv NULL ; 
 and where
 .Qq ident
+.Qq level
 and
-.Qq level ,
+.Qq msg ,
 if
 .Dv NULL ,
 will be rendered as

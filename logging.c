@@ -51,7 +51,7 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 {
 	int	 i, cmpsz, sz;
 	char	 date[64];
-	char	*msg, *var, *cmp, *p;
+	char	*msg, *var = NULL, *cmp, *p;
 
 	/* 
 	 * Convert to GMT.
@@ -67,13 +67,20 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	 * to form the basic message.
 	 */
 
-	kvasprintf(&var, fmt, ap);
-	cmpsz = kasprintf
-		(&cmp, "%s %s [%s] %s %s",
-		 r == NULL ? "-" : r->remote, 
-		 ident == NULL ? "-" : ident, date, 
-		 lvl == NULL ? "-" : lvl, var);
-	free(var);
+	if (fmt != NULL) {
+		kvasprintf(&var, fmt, ap);
+		cmpsz = kasprintf
+			(&cmp, "%s %s [%s] %s %s",
+			 r == NULL ? "-" : r->remote, 
+			 ident == NULL ? "-" : ident, date, 
+			 lvl == NULL ? "-" : lvl, var);
+		free(var);
+	} else
+		cmpsz = kasprintf
+			(&cmp, "%s %s [%s] %s -",
+			 r == NULL ? "-" : r->remote, 
+			 ident == NULL ? "-" : ident, date, 
+			 lvl == NULL ? "-" : lvl);
 
 	/*
 	 * Allocate the required memory for the message, leaving room
