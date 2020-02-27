@@ -227,14 +227,12 @@ Passing a
 value as the key for any key-value pair function is the same as calling
 the standalone version.
 .Pp
-To use these functions, include the
-.In kcgijson.h
-header and compile with
-.Lb kcgijson ,
-for example,
+To compile and link, use
+.Xr pkg-config 1
+as follows:
 .Bd -literal
-% cc -I/usr/local/include -c -o sample.o sample.c
-% cc -L/usr/local/lib -o sample -lkcgijson -lkcgi -lz
+% cc `pkg-config --cflags kcgi-json` -c -o sample.o sample.c
+% cc -o sample sample.o `pkg-config --libs kcgi-json`
 .Ed
 .Pp
 On some systems (e.g., Linux), you may also need

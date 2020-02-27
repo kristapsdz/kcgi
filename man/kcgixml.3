@@ -139,14 +139,12 @@ The
 .Fn kxml_pop
 family closes out opened elements.
 .Pp
-To use these functions, you must include the
-.In kcgixml.h
-header and compile with
-.Lb kcgixml ,
-for example,
+To compile and link, use
+.Xr pkg-config 1
+as follows:
 .Bd -literal
-% cc -I/usr/local/include -c -o sample.o sample.c
-% cc -L/usr/local/lib -o sample -lkcgixml -lkcgi -lz
+% cc `pkg-config --cflags kcgi-xml` -c -o sample.o sample.c
+% cc -o sample sample.o `pkg-config --libs kcgi-xml`
 .Ed
 .Bl -tag -width Ds
 .It Fn kxml_close
