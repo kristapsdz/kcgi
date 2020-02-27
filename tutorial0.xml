@@ -144,13 +144,13 @@ const char *const pages[PAGE__MAX] = {
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
-  if (PAGE_INDEX != r->page)
+  if (r->page != PAGE_INDEX)
     return KHTTP_404;
-  else if ('\0' != *r->path) /* no index/xxxx */
+  else if (*r->path != '\0') /* no index/xxxx */
     return KHTTP_404;
-  else if (KMIME_TEXT_HTML != r->mime)
+  else if (r->mime != KMIME_TEXT_HTML)
     return KHTTP_404;
-  else if (KMETHOD_GET != r->method)
+  else if (r->metehod != KMETHOD_GET)
     return KHTTP_405;
   return KHTTP_200;
 }</pre> 
@@ -165,10 +165,10 @@ const char *const pages[PAGE__MAX] = {
 		<pre class="prettyprint linenums">int main(void) {
   struct kreq r;
   enum khttp er;
-  if (KCGI_OK != khttp_parse(&amp;r, keys, KEY__MAX,
-      pages, PAGE__MAX, PAGE_INDEX))  
+  if (khttp_parse(&amp;r, keys, KEY__MAX,
+      pages, PAGE__MAX, PAGE_INDEX) != KCGI_OK)
     return 0;
-  if (KHTTP_200 != (er = sanitise(&amp;r))) {
+  if ((er = sanitise(&amp;r)) != KHTTP_200) {
     khttp_head(&amp;r, kresps[KRESP_STATUS],
       "%s", khttps[er]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
@@ -202,18 +202,17 @@ const char *const pages[PAGE__MAX] = {
 		without access to other libraries, and are thus statically linked.
 		In short, it depends on your environment.
 		Let's call our application <code>tutorial0.cgi</code> and the source file, <code>tutorial0.c</code>.
-		I assume <span class="nm">kcgi</span> has been installed into <code>/usr/local</code> and is being linked with zlib(3).
 		To dynamically link:
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% cc -I/usr/local/include -c -o tutorial0.o tutorial0.c
-% cc -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgihtml -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% cc `pkg-config --cflags kcgi-html` -c -o tutorial0.o tutorial0.c
+% cc -o tutorial0.cgi tutorial0.o `pkg-config --libs kcgi-html`</pre>
 	</figure>
 	<p>
 		For static linking, which is the norm in more sophisticated systems like OpenBSD:
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% cc -static -L/usr/local/lib -o tutorial0.cgi tutorial0.o -lkcgihtml -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% cc -static -o tutorial0.cgi tutorial0.o `pkg-config --libs kcgi-html`</pre>
 	</figure>
 	<h3>
 		Install
