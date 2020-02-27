@@ -275,7 +275,7 @@ distcheck: kcgi.tgz.sha512
 	mkdir -p .distcheck
 	tar -zvxpf kcgi.tgz -C .distcheck
 	( cd .distcheck/kcgi-$(VERSION) && ./configure PREFIX=prefix \
-		CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" LDADD="$(LDADD)" )
+		CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" )
 	( cd .distcheck/kcgi-$(VERSION) && make )
 	( cd .distcheck/kcgi-$(VERSION) && make regress )
 	( cd .distcheck/kcgi-$(VERSION) && make install )
@@ -318,7 +318,7 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
 		regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5) $(LDADD)
+		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5) -lm
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
