@@ -47,14 +47,14 @@
 	<figure class="sample">
 		<pre class="prettyprint linenums">int 
 main(void) {
-    enum kcgi_err	  er;
-    struct kreq	  r;
+    enum kcgi_err er;
+    struct kreq r;
     const char *const pages[1] = { "index" };
 
     /* Set up our main HTTP context. */
 
     er = khttp_parse(&amp;r, NULL, 0, pages, 1, 0);
-    if (KCGI_OK != er)
+    if (er != KCGI_OK)
         return 0;
     khttp_head(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
@@ -72,19 +72,17 @@ main(void) {
 		The difference is that we've used some C++ code to emit <q>Said hello!</q> to the error log.
 		The next part is how we can compile this code.
 		For that, we'll need to use a C++ compiler instead of the C compiler we've been using to date.
-		For the sake of argument, let's assume that the <span class="nm">kcgi</span> headers are libraries are installed in the system directories.
-		However, mostly they'll need <code>-L/usr/local/lib</code> and <code>-I/usr/local/include</code>.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% c++ -W -Wall -Wextra -c -o tutorial5.o tutorial5.cc
-% c++ -static -W -Wall -Wextra -o tutorial5 tutorial5.cc -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% c++ `pkg-config --cflags kcgi` -c -o tutorial5.o tutorial5.cc
+% c++ -static -o tutorial5 tutorial5.cc `pkg-config --libs kcgi`</pre>
 	</figure>
 	<p>
 		Or just&#8230;
 		(and noting again the <code>-static</code>, which we need by being in our file-system jail)
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% c++ -static -W -Wall -Wextra -o tutorial5 tutorial5.cc -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% c++ -static `pkg-config --cflags --libs kcgi` -o tutorial5 tutorial5.cc</pre>
 	</figure>
 	<p>
 		Now you can install your compiled CGI script just like any CGI script.

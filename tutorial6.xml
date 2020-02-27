@@ -68,7 +68,7 @@ main(void) {
     struct kreq r;
     const char *const pages[1] = { "index" };
 
-    if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+    if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
         return 0;
     khttp_head(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
@@ -94,9 +94,9 @@ main(void) {
 		We'll start with the most significant protection: by constraining our application after the context has been parsed.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint linenums">if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+		<pre class="prettyprint linenums">if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
     return 0;
-if (-1 == pledge("stdio", NULL))
+if (pledge("stdio", NULL) == -1)
     return 0;</pre>
 	</figure>
 	<p>
@@ -113,22 +113,22 @@ if (-1 == pledge("stdio", NULL))
 			href="https://man.openbsd.org/fork.2">fork(2)</a> its internal handlers.
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint linenums">if (-1 == pledge("stdio proc", NULL))
+		<pre class="prettyprint linenums">if (pledge("stdio proc", NULL) == -1)
     return 0;
-if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
     return 0;
-if (-1 == pledge("stdio", NULL))
+if (pledge("stdio", NULL) == -1)
     return 0;</pre>
 	</figure>
 	<p>
 		Or if one is using <a href="khttp_template.3.html">khttp_template(3)</a> to marshall a response:
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint linenums">if (-1 == pledge("stdio rpath proc", NULL))
+		<pre class="prettyprint linenums">if (pledge("stdio rpath proc", NULL) == -1)
     return 0;
-if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
     return 0;
-if (-1 == pledge("stdio rpath", NULL))
+if (pledge("stdio rpath", NULL) == -1)
     return 0;</pre>
 	</figure>
 	<p>
@@ -149,11 +149,11 @@ main(void) {
     struct kreq r;
     const char *const pages[1] = { "index" };
 
-    if (-1 == pledge("stdio proc", NULL))
+    if (pledge("stdio proc", NULL) == -1)
         return 0;
-    if (KCGI_OK != khttp_parse(&amp;r, NULL, 0, pages, 1, 0))
+    if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
         return 0;
-    if (-1 == pledge("stdio", NULL))
+    if (pledge("stdio", NULL) == -1)
         return 0;
     khttp_head(&amp;r, kresps[KRESP_STATUS], 
         "%s", khttps[KHTTP_200]);
@@ -189,10 +189,10 @@ main(void) {
     struct kfcgi *fcgi;
     enum kcgi_err er;
 
-    if (KCGI_OK != khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0))
+    if (khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0) != KCGI_OK)
         return 0;
     for (;;) {
-        if (KCGI_OK != khttp_fcgi_parse(fcgi, &amp;req))
+        if (khttp_fcgi_parse(fcgi, &amp;req) != KCGI_OK)
             break;
         khttp_head(&amp;r, kresps[KRESP_STATUS], 
             "%s", khttps[KHTTP_200]);
@@ -220,14 +220,14 @@ main(void) {
     struct kfcgi *fcgi;
     enum kcgi_err er;
 
-    if (-1 == pledge("unix sendfd recvfd proc stdio", NULL))
+    if (pledge("unix sendfd recvfd proc stdio", NULL) == -1)
         return 0;
-    if (KCGI_OK != khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0))
+    if (khttp_fcgi_init(&amp;fcgi, NULL, 0, pages, 1, 0) != KCGI_OK)
         return 0;
-    if (-1 == pledge("stdio recvfd", NULL))
+    if (pledge("stdio recvfd", NULL) == -1)
         return 0;
     for (;;) {
-        if (KCGI_OK != khttp_fcgi_parse(fcgi, &amp;req))
+        if (khttp_fcgi_parse(fcgi, &amp;req) != KCGI_OK)
             break;
         khttp_head(&amp;r, kresps[KRESP_STATUS], 
             "%s", khttps[KHTTP_200]);
