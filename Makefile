@@ -26,7 +26,11 @@ TXMLS		 = tutorial0.xml \
 		   tutorial4.xml \
 		   tutorial5.xml \
 		   tutorial6.xml
-PCS		 = kcgi.pc
+PCS		 = kcgi.pc \
+		   kcgi-html.pc \
+		   kcgi-json.pc \
+		   kcgi-regress.pc \
+		   kcgi-xml.pc
 THTMLS		 = tutorial0.html \
 		   tutorial1.html \
 		   tutorial2.html \
