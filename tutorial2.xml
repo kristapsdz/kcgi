@@ -41,11 +41,11 @@ main(void)
   struct kreq req;
   struct kfcgi *fcgi;
 
-  if (KCGI_OK != khttp_fcgi_init
-     (&amp;fcgi, NULL, 0, NULL, 0, 0))
+  if (khttp_fcgi_init
+     (&amp;fcgi, NULL, 0, NULL, 0, 0) != KCGI_OK)
     return 0;
 
-  while (KCGI_OK == khttp_fcgi_parse(fcgi, &amp;req)) {
+  while (khttp_fcgi_parse(fcgi, &amp;req) == KCGI_OK) {
     khttp_head(&amp;req, kresps[KRESP_STATUS], 
       "%s", khttps[KHTTP_200]);
     khttp_head(&amp;req, kresps[KRESP_CONTENT_TYPE], 
@@ -76,8 +76,8 @@ main(void)
 		(This is not covered by this tutorial.)
 	</p>
 	<figure class="sample">
-		<pre class="prettyprint lang-sh linenums">% cc -I/usr/local/include -c -o tutorial2.o tutorial2.c
-% cc -static -L/usr/local/lib -o tutorial2 tutorial2.o -lkcgi -lz</pre>
+		<pre class="prettyprint lang-sh linenums">% cc `pkg-config --cflags kcgi` -c -o tutorial2.o tutorial2.c
+% cc -static -o tutorial2 tutorial2.o `pkg-config --libs kcgi`</pre>
 	</figure>
 	<h3>
 		Install
