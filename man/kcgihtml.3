@@ -135,14 +135,12 @@ and
 may be called before
 .Xr khttp_body 3 .
 .Pp
-To use these functions, you must include the
-.In kcgihtml.h
-header and compile with
-.Lb kcgihtml ,
-for example,
+To compile and link, use
+.Xr pkg-config 1
+as follows:
 .Bd -literal
-% cc -I/usr/local/include -c -o sample.o sample.c
-% cc -L/usr/local/lib -o sample -lkcgihtml -lkcgi -lz
+% cc `pkg-config --cflags kcgi-html` -c -o sample.o sample.c
+% cc -o sample sample.o `pkg-config --libs kcgi-html`
 .Ed
 .Pp
 All of the

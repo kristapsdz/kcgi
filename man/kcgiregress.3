@@ -50,6 +50,17 @@ functions are used for automated testing of
 systems, both as CGI and FastCGI scripts.
 It is the mechanism used for internal regression tests as well.
 .Pp
+To compile and link, use
+.Xr pkg-config 1
+as follows:
+.Bd -literal
+% cc `pkg-config --cflags kcgi libcurl` -c -o sample.o sample.c
+% cc -o sample sample.o `pkg-config --libs kcgi libcurl`
+.Ed
+.Pp
+Some systems use a distinct
+.Xr curl-config 1 .
+.Pp
 Applications wishing to use this framework provide callback functions to
 .Fn kcgi_regress_cgi
 and
