@@ -240,6 +240,39 @@ int main(void) {
 				other non-Microsoft functions.
 			</p>
 		</section>
+		<section id="deploying" class="text">
+			<h2>
+				deployment
+			</h2>
+			<p>
+				Applications using <span class="nm">kcgi</span> behave just like any other application.
+				To compile <span class="nm">kcgi</span> applications, just include the <span class="nm">kcgi.h</span>
+				header file and make sure it appears in the compiler inclusion path.
+				(You'll need to include <span class="file">stdint.h</span> before it for the
+				<code>int64_t</code> type,
+				<span class="file">sys/types.h</span> for <code>size_t</code> and <code>ssize_t</code>, and
+				<span class="file">stdarg.h</span> for the <code>va_list</code> type).
+			</p>
+			<pre class="prettyprint">% cc `pkg-config --cflags kcgi` -c yourprog.c</pre>
+			<p>
+				Linking is similarly normative.
+			</p>
+			<pre class="prettyprint">% cc yourprog.o `pkg-config --libs kcgi`</pre>
+			<p>
+				Well-deployed web servers, such as the default <a href="https://www.openbsd.org">OpenBSD</a> server, by
+				default are deployed within a <a
+					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
+				this is the case, you'll need to statically link your binary.
+			</p>
+			<pre class="prettyprint">% cc -static yourprog.o `pkg-config --libs kcgi`</pre>
+			<p>
+				FastCGI applications may either be started directly by the web server (which is popular with <a
+					href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
+					href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
+					href="https://man.openbsd.org/httpd.8">httpd(8)</a> and
+				suggested for the security precautions taken by the wrapper).
+			</p>
+		</section>
 		<section id="usage" class="text">
 			<h2>
 				documentation
@@ -293,36 +326,6 @@ int main(void) {
 					2016.
 				</li>
 			</ul>
-		</section>
-		<section id="deploying" class="text">
-			<h2>
-				deployment
-			</h2>
-			<p>
-				Applications using <span class="nm">kcgi</span> behave just like any other application.
-				To compile <span class="nm">kcgi</span> applications, just include the <span class="nm">kcgi.h</span>
-				header file and make sure it appears in the compiler inclusion path.
-				(You'll need to include <span class="file">stdint.h</span> before it for the
-				<code>int64_t</code> type,
-				<span class="file">sys/types.h</span> for <code>size_t</code> and <code>ssize_t</code>, and
-				<span class="file">stdarg.h</span> for the <code>va_list</code> type).
-				Linking is similarly normative: link to <span class="file">libkcgi</span> and, if your system has
-				compression support, <span class="file">libz</span>.
-				Linux systems using <a href="kcgijson.3.html">kcgijson(3)</a> will need to link with <span class="file">libm</span>.
-			</p>
-			<p>
-				Well-deployed web servers, such as the default <a href="https://www.openbsd.org">OpenBSD</a> server, by
-				default are deployed within a <a
-					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
-				this is the case, you'll need to statically link your binary.
-			</p>
-			<p>
-				FastCGI applications may either be started directly by the web server (which is popular with <a
-					href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
-					href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
-					href="https://man.openbsd.org/httpd.8">httpd(8)</a> and
-				suggested for the security precautions taken by the wrapper).
-			</p>
 		</section>
 		<section id="features" class="text">
 			<h2>
