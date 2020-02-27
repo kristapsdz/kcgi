@@ -244,7 +244,7 @@ installcgi: sample samplepp sample-fcgi sample-cgi
 	$(INSTALL_DATA) template.xml $(PREFIX)
 
 install: all
-	mkdir -p $(DESTDIR)$(LIBDIR)
+	mkdir -p $(DESTDIR)$(LIBDIR)/pkgconfig
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(DATADIR)
 	mkdir -p $(DESTDIR)$(MAN3DIR)
