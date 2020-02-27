@@ -51,7 +51,7 @@ kvalid_png(struct kpair *kp)
   gdImagePtr im;
   int rc;
   im = gdImageCreateFromPngPtr(kp->valsz, kp->val);
-  if (0 != (rc = (NULL != im)))
+  if ((rc = (im != NULL)))
     gdImageDestroy(im);
   kp->type = KPAIR__MAX;
   return rc;
@@ -63,7 +63,7 @@ kvalid_jpeg(struct kpair *kp)
   gdImagePtr im;
   int rc;
   im = gdImageCreateFromJpegPtr(kp->valsz, kp->val);
-  if (0 != (rc = (NULL != im)))
+  if ((rc = (im != NULL)))
     gdImageDestroy(im);
   kp->type = KPAIR__MAX;
   return rc;
