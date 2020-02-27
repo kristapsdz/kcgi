@@ -437,7 +437,7 @@ kcgi.tgz:
 	mkdir -p .dist/kcgi-$(VERSION)/man
 	mkdir -p .dist/kcgi-$(VERSION)/regress
 	mkdir -p .dist/kcgi-$(VERSION)/afl
-	install -m 0644 $(SRCS) .dist/kcgi-$(VERSION)
+	install -m 0644 $(SRCS) *.in.pc .dist/kcgi-$(VERSION)
 	install -m 0644 regress/*.c regress/*.h .dist/kcgi-$(VERSION)/regress
 	install -m 0644 afl/*.c .dist/kcgi-$(VERSION)/afl
 	install -m 0644 Makefile template.xml .dist/kcgi-$(VERSION)
