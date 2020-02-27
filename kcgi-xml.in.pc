@@ -1,0 +1,13 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: kcgi
+Description: minimal CGI and FastCGI library
+URL: https://kristaps.bsd.lv/kcgi
+Version: @VERSION@
+Requires:
+Libs.private: 
+Libs: -L${libdir} -lkcgi @LDADD@
+Cflags: -I${includedir}
