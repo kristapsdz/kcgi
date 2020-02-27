@@ -1,4 +1,4 @@
-.SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html
+.SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html .in.pc .pc
 .PHONY: regress afl
 
 include Makefile.configure
@@ -7,12 +7,9 @@ include Makefile.configure
 # This is only for the sample program!
 STATIC 		 = -static
 
-# Linux's fpclassify needs -lm and turn on seccomp debugging.
+# Linux apps might one seccomp debugging.
 #LDADD		+= -lm
 #CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
-
-# FreeBSD requires -lmd for MD5.
-#LDADD		+= -lmd
 
 # Mac OS X doesn't support static linking and depcrecates daemon(3).
 #STATIC 	 = 
@@ -29,6 +26,7 @@ TXMLS		 = tutorial0.xml \
 		   tutorial4.xml \
 		   tutorial5.xml \
 		   tutorial6.xml
+PCS		 = kcgi.pc
 THTMLS		 = tutorial0.html \
 		   tutorial1.html \
 		   tutorial2.html \
@@ -221,7 +219,7 @@ LIBS		 = libkcgi.a \
 		   libkcgixml.a \
 		   libkcgiregress.a
 
-all: kfcgi $(LIBS)
+all: kfcgi $(LIBS) $(PCS)
 
 afl: $(AFL)
 
@@ -250,18 +248,11 @@ install: all
 	mkdir -p $(DESTDIR)$(SBINDIR)
 	$(INSTALL_LIB) $(LIBS) $(DESTDIR)$(LIBDIR)
 	$(INSTALL_DATA) kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
+	$(INSTALL_DATA) $(PCS) $(DESTDIR)$(LIBDIR)/pkgconfig
 	$(INSTALL_MAN) $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	$(INSTALL_MAN) $(MAN8S) $(DESTDIR)$(MAN8DIR)
 	$(INSTALL_PROGRAM) kfcgi $(DESTDIR)$(SBINDIR)
 	$(INSTALL_DATA) template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
-
-#uninstall:
-#	$(foreach $@_LIB, $(LIBS), rm -f $(DESTDIR)$(LIBDIR)/$($@_LIB);)
-#	$(foreach $@_INC, kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h, rm -f $(DESTDIR)$(INCLUDEDIR)/$($@_INC);)
-#	$(foreach $@_MAN, $(MAN3S), rm -f $(DESTDIR)$(MAN3DIR)/$(notdir $($@_MAN));)
-#	$(foreach $@_MAN, $(MAN8S), rm -f $(DESTDIR)$(MAN8DIR)/$(notdir $($@_MAN));)
-#	rm -f $(DESTDIR)$(SBINDIR)/kfcgi
-#	$(foreach $@_TMP, template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c, rm -f $(DESTDIR)$(DATADIR)/$($@_TMP);)
 
 www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(THTMLS) extending01.html atom.xml
 
@@ -298,6 +289,7 @@ clean:
 	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o regress/regress.o
 	rm -f *.core
 	rm -f $(REGRESS) $(AFL) regress/*.o
+	rm -f $(PCS)
 
 distclean: clean
 	rm -f config.h config.log Makefile.configure
@@ -326,7 +318,7 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
 		regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` -lz $(LDADD)
+		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5) $(LDADD)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
@@ -341,7 +333,7 @@ regress/regress.o: regress/regress.c
 $(BIN).o: $(BIN).c config.h kcgi.h extern.h
 	$(CC) $(CFLAGS) -c -o $@ $(BIN).c
 $(BIN): $(BIN).o libkcgi.a
-	$(CC) $(CFLAGS) -o $@ $(BIN).o libkcgi.a -lz
+	$(CC) $(CFLAGS) -o $@ $(BIN).o libkcgi.a $(LDADD_ZLIB) $(LDADD_MD5)
 .endfor
 
 # The main kcgi library.
@@ -379,13 +371,13 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a -lz
+	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB) -lm
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
-	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a -lz
+	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB) -lm
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
-	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a -lz
+	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a $(LDADD_ZLIB)
 
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(STATIC) sample-cgi.o 
@@ -449,3 +441,15 @@ kcgi.tgz:
 	install -m 0755 configure .dist/kcgi-$(VERSION)
 	(cd .dist && tar zcf ../$@ kcgi-$(VERSION))
 	rm -rf .dist
+
+# Catch version updates.
+
+$(PCS): kcgi.h
+
+.in.pc.pc:
+	sed -e "s!@PREFIX@!$(PREFIX)!g" \
+	    -e "s!@LDADD_ZLIB@!$(LDADD_ZLIB)!g" \
+	    -e "s!@LDADD_MD5@!$(LDADD_MD5)!g" \
+	    -e "s!@LIBDIR@!$(LIBDIR)!g" \
+	    -e "s!@INCLUDEDIR@!$(INCLUDEDIR)!g" \
+	    -e "s!@VERSION@!$(VERSION)!g" $< >$@

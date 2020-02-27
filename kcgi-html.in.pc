@@ -1,0 +1,13 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: kcgi HTML output library
+Description: HTML output for kcgi
+URL: https://kristaps.bsd.lv/kcgi
+Version: @VERSION@
+Requires: kcgi-@VERSION@
+Libs.private: 
+Libs: -L${libdir} -lkcgihtml
+Cflags: -I${includedir}
