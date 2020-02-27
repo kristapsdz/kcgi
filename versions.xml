@@ -3,6 +3,23 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.14</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-02-27">2020-02-27</time>
+		</header>
+		<aside>
+			<div>
+				Start using 
+				<a href="https://man.openbsd.org/pkg-config">pkg-config</a> for all
+				<span class="nm">kcgi</span> libraries.
+				This makes it much easier to use the system without knowing
+				installation details.
+				All documentation has been upgraded to note the fact.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.13</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-02-17">2020-02-17</time>
