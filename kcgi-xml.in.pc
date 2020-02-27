@@ -3,11 +3,11 @@ exec_prefix=${prefix}
 libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
-Name: kcgi
-Description: minimal CGI and FastCGI library
+Name: kcgi XML output library
+Description: XML output for kcgi
 URL: https://kristaps.bsd.lv/kcgi
 Version: @VERSION@
-Requires:
+Requires: kcgi = @VERSION@
 Libs.private: 
-Libs: -L${libdir} -lkcgi @LDADD@
+Libs: -L${libdir} -lkcgixml
 Cflags: -I${includedir}

@@ -7,7 +7,7 @@ Name: kcgi JSON output library
 Description: JSON output for kcgi
 URL: https://kristaps.bsd.lv/kcgi
 Version: @VERSION@
-Requires: kcgi-@VERSION@
+Requires: kcgi = @VERSION@
 Libs.private: 
 Libs: -L${libdir} -lkcgijson -lm
 Cflags: -I${includedir}
