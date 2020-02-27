@@ -67,9 +67,9 @@
 	</p>
 	<figure class="sample">
 		<pre class="prettyprint linenums">static enum khttp sanitise(const struct kreq *r) {
-  if (KMIME_TEXT_HTML != r->mime)
+  if (r->mime != KMIME_TEXT_HTML)
     return KHTTP_404;
-  else if (KMETHOD_GET != r->method)
+  else if (r->method != KMETHOD_GET)
     return KHTTP_405;
   else
     return KHTTP_200;
@@ -98,7 +98,7 @@
     "%s", khttps[KHTTP_200]);
   khttp_head(r, kresps[KRESP_CONTENT_TYPE],
     "%s", kmimetypes[r->mime]);
-  if (NULL == r->cookiemap[COOKIE_STRING])
+  if (r->cookiemap[COOKIE_STRING] == NULL)
     khttp_head(r, kresps[KRESP_SET_COOKIE],
       "%s=%s; Path=/; expires=%s", 
       cookies[COOKIE_STRING].name, 
@@ -109,7 +109,7 @@
   khttp_puts(r, 
     "&lt;!DOCTYPE html&gt;"
     "&lt;title&gt;Foo&lt;/title&gt;");
-  if (NULL != r->cookiemap[COOKIE_STRING])
+  if (r->cookiemap[COOKIE_STRING] != NULL)
     khttp_puts(r, "Cookie found!");
   else
     khttp_puts(r, "Cookie set.");
@@ -132,15 +132,15 @@
 		<pre class="prettyprint linenums">int main(void) {
   struct kreq r;
   enum khttp er;
-  if (KCGI_OK != khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0))  
+  if (khttp_parse(&amp;r, cookies, COOKIE__MAX, NULL, 0, 0) != KCGI_OK)
     return 0;
-  if (KHTTP_200 != (er = sanitise(&amp;r))) {
+  if ((er = sanitise(&amp;r)) != KHTTP_200) {
     khttp_head(&amp;r, kresps[KRESP_STATUS],
       "%s", khttps[er]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE],
       "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_body(&amp;r);
-    if (KMIME_TEXT_HTML == r.mime)
+    if (r.mime == KMIME_TEXT_HTML)
       khttp_puts(&amp;r, "Could not service request.");
   } else
     process(&amp;r);
