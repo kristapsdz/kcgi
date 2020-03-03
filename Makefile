@@ -317,11 +317,13 @@ kfcgi.o: config.h
 $(REGRESS): config.h kcgi.h regress/regress.h
 $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 
+# -lm required by kcgi-json (on some systems---better safe than sorry)
+
 .for BIN in $(REGRESS)
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
 		regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5)
+		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5) -lm
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
