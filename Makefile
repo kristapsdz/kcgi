@@ -8,7 +8,6 @@ include Makefile.configure
 STATIC 		 = -static
 
 # Linux apps might one seccomp debugging.
-#LDADD		+= -lm
 #CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
 # Mac OS X doesn't support static linking and depcrecates daemon(3).
@@ -322,7 +321,7 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) `curl-config --cflags` -o $@ $(BIN).c \
 		regress/regress.o libkcgiregress.a libkcgijson.a \
-		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5) -lm
+		libkcgi.a `curl-config --libs` $(LDADD_ZLIB) $(LDADD_MD5)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
@@ -375,10 +374,10 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB) -lm
+	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB)
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
-	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB) -lm
+	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB)
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
 	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a $(LDADD_ZLIB)
