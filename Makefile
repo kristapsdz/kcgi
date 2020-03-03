@@ -274,7 +274,8 @@ distcheck: kcgi.tgz.sha512
 	       [ "$$newest" == "<h1>$(VERSION)</h1>" ] || \
 		{ echo "Version $(VERSION) not newest in versions.xml" 1>&2 ; exit 1 ; }
 	rm -rf .distcheck
-	sha512 -C kcgi.tgz.sha512 kcgi.tgz
+	[ "`sha512 kcgi.tgz`" = "`cat kcgi.tgz.sha512`" ] || \
+ 		{ echo "Checksum does not match." 1>&2 ; exit 1 ; }
 	mkdir -p .distcheck
 	tar -zvxpf kcgi.tgz -C .distcheck
 	( cd .distcheck/kcgi-$(VERSION) && ./configure PREFIX=prefix )
