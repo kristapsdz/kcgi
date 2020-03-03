@@ -279,9 +279,9 @@ distcheck: kcgi.tgz.sha512
 	mkdir -p .distcheck
 	tar -zvxpf kcgi.tgz -C .distcheck
 	( cd .distcheck/kcgi-$(VERSION) && ./configure PREFIX=prefix )
-	( cd .distcheck/kcgi-$(VERSION) && make )
-	( cd .distcheck/kcgi-$(VERSION) && make regress )
-	( cd .distcheck/kcgi-$(VERSION) && make install )
+	( cd .distcheck/kcgi-$(VERSION) && $(MAKE) )
+	( cd .distcheck/kcgi-$(VERSION) && $(MAKE) regress )
+	( cd .distcheck/kcgi-$(VERSION) && $(MAKE) install )
 	rm -rf .distcheck
 
 clean:
