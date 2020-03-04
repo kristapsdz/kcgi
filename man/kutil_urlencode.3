@@ -212,6 +212,52 @@ Malformed or
 .Dv NULL
 input data.
 .El
+.Sh EXAMPLES
+The following creates a relative URL with path, page, suffix, and query string
+parts.
+.Bd -literal -offset indent
+url = kutil_urlpart
+	(NULL, "/path", "html", "page",
+	 "foo", "bar", "baz", "xyzzy", NULL);
+puts(url);
+.Ed
+.Pp
+This will output the following URL:
+.Pp
+.Dl /path/page.html?foo=bar&baz=xyzzy
+.Pp
+For typed arguments, the extended form may be used.
+Integer and real literals must have the
+.Vt int64_t
+and
+.Vt double
+types, respectively.
+.Bd -literal -offset indent
+url = kutil_urlpartx
+	(NULL, "/path", "html", "page",
+	 "foo", KATTRX_INT, (int64_t)0, NULL);
+puts(url);
+.Ed
+.Pp
+This outputs the following
+.Pp
+.Dl /path/page.html?foo=0
+.Pp
+These may be made relative to the current page by omitting the leading
+slash or passing
+.Dv NULL
+for the path component entirely, such as:
+.Bd -literal -offset indent
+url1 = kutil_urlpart(NULL, "rel/path", "html", "page", NULL);
+puts(url1);
+url2 = kutil_urlpart(NULL, NULL, "html", "page", NULL);
+puts(url2);
+.Ed
+.Pp
+These output the following:
+.Pp
+.Dl rel/path/page.html
+.Dl page.html
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
