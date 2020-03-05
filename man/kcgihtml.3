@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2015, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -280,6 +280,58 @@ The
 function returns
 .Dv KCGI_FORM
 if the requested number of scopes exceeds available scopes.
+.Sh EXAMPLES
+The following outputs a simple HTML page.
+It assumes
+.Va r
+is a
+.Vt struct kreq
+pointer.
+Begin with the HTTP document.
+.Bd -literal -offset indent
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_HTML]);
+khttp_body(r);
+.Ed
+.Pp
+Following that, the HTML5 document.
+Let
+.Va req
+be a
+.Vt struct khtmlreq
+object.
+This simply outputs an HTML5 document with title and content being
+.Qq Hello, world .
+It also links to a style sheet
+.Pa /style.css .
+.Bd -literal -offset indent
+khtml_open(&req, r, 0);
+khtml_elem(&req, KELEM_HTML);
+
+khtml_elem(&req, KELEM_HEAD);
+khtml_elem(&req, KELEM_TITLE);
+khtml_puts(&req, "Hello, world");
+khtml_closeelem(&req, 1); /* title */
+khtml_attr(&req, KELEM_LINK,
+  KATTR_REL, "stylesheet",
+  KATTR_HREF, "/style.css", KATTR__MAX);
+khtml_closeelem(&req, 1); /* head */
+
+khtml_elem(&req, KELEM_BODY);
+khtml_elem(&req, KELEM_P);
+khtml_puts(&req, "Hello, world.");
+khtml_closeelem(&req, 1); /* p */
+khtml_closeelem(&req, 1); /* body */
+
+khtml_closeelem(&req, 1); /* html */
+khtml_close(&req);
+.Ed
+.Pp
+The element name comment alongside
+.Fn html_closeelem
+hints as to which scope is being closed.
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.
 .Sh AUTHORS
