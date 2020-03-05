@@ -308,6 +308,7 @@ It also links to a style sheet
 .Pa /style.css .
 .Bd -literal -offset indent
 khtml_open(&req, r, 0);
+khtml_elem(&req, KELEM_DOCTYPE);
 khtml_elem(&req, KELEM_HTML);
 
 khtml_elem(&req, KELEM_HEAD);
