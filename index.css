@@ -11,10 +11,6 @@ body > header				{ background-color: #333;
 					  color: #fff; }
 body > header a				{ color: #dd5; }
 body > header a:hover			{ color: #ff0; }
-body > header nav .version		{ border-right: thin solid silver; 
-					  color: #abc;
-					  padding-right: 0.5rem;
-					  margin-right: 0.5rem; }
 #breadcrumbs				{ font-size: 90%; }
 #version ul				{ margin: auto 0; 
 					  padding: 0;
@@ -23,8 +19,25 @@ body > header nav .version		{ border-right: thin solid silver;
 #usage nav ul				{ list-style-type: none; 
 					  padding: 0; }
 #header					{ padding-top: 2em; }
-#header nav				{ padding: 0.5rem 0;
-				 	  font-size: 90%; }
+#header nav				{ font-size: 90%;
+					  padding: 2pt 0; 
+					  display: -webkit-box;
+					  display: -ms-flexbox;
+				 	  display: flex; }
+#header nav > *				{ padding: 4pt 0; }
+#header nav > :last-child		{ -webkit-box-flex: 1;
+				          -ms-flex: 1;
+				              flex: 1;
+					  text-align: right; }
+#header nav > :last-child a		{ border: 3px solid rgba(255, 255, 50, 0.5);
+					  border-radius: 4pt;
+					  transition: border linear 0.2s;
+					  padding: 4pt 8pt; }
+#header nav > :last-child a:hover	{ border: 3px solid rgba(255, 255, 50, 0.9); }
+#header nav .version			{ border-right: thin solid silver; 
+					  color: #abc;
+					  padding-right: 0.5rem;
+					  margin-right: 0.5rem; }
 #header nav .fa				{ font-size: 80%; }
 #version				{ background-color: #eee; }
 #version a, 
