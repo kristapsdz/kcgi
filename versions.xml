@@ -3,6 +3,20 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.15</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-03-11">2020-03-11</time>
+		</header>
+		<aside>
+			<div>
+				Portability updates to the build system.
+				Bring in the newest 
+				<a href="https://github.com/kristapsdz/oconfigure">oconfigure</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.14</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-02-27">2020-02-27</time>
