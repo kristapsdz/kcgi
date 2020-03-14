@@ -1685,23 +1685,23 @@ static enum kcgi_err
 kworker_fcgi_header(struct fcgi_buf *b, struct fcgi_hdr *hdr)
 {
 	enum kcgi_err	 er;
-	const struct fcgi_hdr *ptr;
-	const char	*buf;
+	const char	*cp;
+	struct fcgi_hdr	 buf;
 
-	if (NULL == (buf = kworker_fcgi_read(b, 8, &er)))
+	if ((cp = kworker_fcgi_read(b, 8, &er)) == NULL)
 		return er;
+
+	memcpy(&buf, cp, 8);
 
 	/* Translate from network-byte order. */
 
-	ptr = (const struct fcgi_hdr *)buf;
+	hdr->version = buf.version;
+	hdr->type = buf.type;
+	hdr->requestId = ntohs(buf.requestId);
+	hdr->contentLength = ntohs(buf.contentLength);
+	hdr->paddingLength = buf.paddingLength;
 
-	hdr->version = ptr->version;
-	hdr->type = ptr->type;
-	hdr->requestId = ntohs(ptr->requestId);
-	hdr->contentLength = ntohs(ptr->contentLength);
-	hdr->paddingLength = ptr->paddingLength;
-
-	if (1 == hdr->version)
+	if (hdr->version == 1)
 		return KCGI_OK;
 
 	XWARNX("FastCGI: bad header version: "
