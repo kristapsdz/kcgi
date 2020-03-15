@@ -32,7 +32,7 @@
 #include "extern.h"
 
 #define MD5Updatec(_ctx, _b, _sz) \
-	MD5Update((_ctx), (const u_int8_t *)(_b), (_sz))
+	MD5Update((_ctx), (const uint8_t *)(_b), (_sz))
 
 static const char b64[] = 
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"

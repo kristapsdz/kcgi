@@ -641,7 +641,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	int			 in, rc = 0, fd;
 	size_t			 sz, len, vecsz = 0, headsz;
 	pid_t			 pid;
-	struct sockaddr_un	 sun;
+	struct sockaddr_un	 un;
 	struct sockaddr		*ss;
 	ssize_t			 ssz;
 	extern char		*__progname;
@@ -673,22 +673,22 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 
 	/* Do the usual dance to set up UNIX sockets. */
 
-	ss = (struct sockaddr *)&sun;
-	memset(&sun, 0, sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	sz = strlcpy(sun.sun_path, sfn, sizeof(sun.sun_path));
-	if (sz >= sizeof(sun.sun_path)) {
+	ss = (struct sockaddr *)&un;
+	memset(&un, 0, sizeof(un));
+	un.sun_family = AF_UNIX;
+	sz = strlcpy(un.sun_path, sfn, sizeof(un.sun_path));
+	if (sz >= sizeof(un.sun_path)) {
 		fprintf(stderr, "socket path to long\n");
 		return 0;
 	}
-#ifndef __linux__
-	sun.sun_len = sz;
+#if !defined(__linux__) && !defined(__sun)
+	un.sun_len = sz;
 #endif
 
 	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		perror("socket");
 		return 0;
-	} else if (bind(fd, ss, sizeof(sun)) == -1) {
+	} else if (bind(fd, ss, sizeof(un)) == -1) {
 		perror(sfn);
 		close(fd);
 		return 0;
@@ -740,7 +740,7 @@ dochild_fcgi(kcgi_regress_server child, void *carg)
 	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		perror(sfn);
 		goto out;
-	} else if (connect(fd, ss, sizeof(sun)) == -1) {
+	} else if (connect(fd, ss, sizeof(un)) == -1) {
 		perror(sfn);
 		goto out;
 	} else if (unlink(sfn) == -1) {

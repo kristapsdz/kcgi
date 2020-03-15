@@ -878,13 +878,13 @@ out:
 int
 main(int argc, char *argv[])
 {
-	int			  c, fd, varp, usemax, useq, nod;
+	int			  c, fd, varp, usemax, useq, nod, logop;
 	struct passwd		 *pw;
 	size_t			  i, wsz, sz, lsz, maxwsz;
 	time_t			  waittime;
 	const char		 *pname, *sockpath, *chpath,
 	      			 *sockuser, *procuser, *errstr;
-	struct sockaddr_un	  sun;
+	struct sockaddr_un	  un;
 	mode_t			  old_umask;
 	uid_t		 	  sockuid, procuid;
 	gid_t			  sockgid, procgid;
@@ -1006,15 +1006,15 @@ main(int argc, char *argv[])
 	}
 
 	/* Do the usual dance to set up UNIX sockets. */
-	memset(&sun, 0, sizeof(sun));
-	sun.sun_family = AF_UNIX;
-	sz = strlcpy(sun.sun_path, sockpath, sizeof(sun.sun_path));
-	if (sz >= sizeof(sun.sun_path)) {
+	memset(&un, 0, sizeof(un));
+	un.sun_family = AF_UNIX;
+	sz = strlcpy(un.sun_path, sockpath, sizeof(un.sun_path));
+	if (sz >= sizeof(un.sun_path)) {
 		fprintf(stderr, "socket path to long\n");
 		return(EXIT_FAILURE);
 	}
-#ifndef __linux__
-	sun.sun_len = sz;
+#if !defined(__linux__) && !defined(__sun)
+	un.sun_len = sz;
 #endif
 
 	/*
@@ -1040,7 +1040,7 @@ main(int argc, char *argv[])
 	 * If necessary, change the file's ownership.
 	 * We buffer up to the number of available workers.
 	 */
-	if (-1 == bind(fd, (struct sockaddr *)&sun, sizeof(sun))) {
+	if (-1 == bind(fd, (struct sockaddr *)&un, sizeof(un))) {
 		perror("bind");
 		close(fd);
 		return(EXIT_FAILURE);
@@ -1108,11 +1108,13 @@ main(int argc, char *argv[])
 		free(nargv);
 		return(EXIT_FAILURE);
 	} 
-	
+
+	logop = LOG_PID;
+#ifdef LOG_PERROR
 	if (nod)
-		openlog(pname, LOG_PERROR | LOG_PID, LOG_DAEMON);
-	else
-		openlog(pname, LOG_PID, LOG_DAEMON);
+		logop |= LOG_PERROR;
+#endif
+	openlog(pname, logop, LOG_DAEMON);
 
 	c = varp ?
 		varpool(wsz, maxwsz, waittime, fd, sockpath, nargv) :
