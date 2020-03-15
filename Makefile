@@ -231,9 +231,9 @@ samples: sample samplepp sample-fcgi sample-cgi
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
-		/bin/echo -n "./$${f}... " ; \
-		./$$f >/dev/null 2>/dev/null || { /bin/echo "fail" ; exit 1 ; } ; \
-		/bin/echo "ok" ; \
+		printf "%s" "./$${f}... " ; \
+		./$$f >/dev/null 2>/dev/null || { echo "fail" ; exit 1 ; } ; \
+		echo "ok" ; \
 	done
 
 installcgi: sample samplepp sample-fcgi sample-cgi
@@ -271,14 +271,14 @@ installwww: www
 
 distcheck: kcgi.tgz.sha512
 	mandoc -Tlint -Werror $(MANS)
-	newest=`grep "<h1>" versions.xml | head -n1 | sed 's![ 	]*!!g'` ; \
+	newest=`grep "<h1>" versions.xml | head -1 | sed 's![ 	]*!!g'` ; \
 	       [ "$$newest" = "<h1>$(VERSION)</h1>" ] || \
 		{ echo "Version $(VERSION) not newest in versions.xml" 1>&2 ; exit 1 ; }
 	rm -rf .distcheck
 	[ "`openssl dgst -sha512 -hex kcgi.tgz`" = "`cat kcgi.tgz.sha512`" ] || \
  		{ echo "Checksum does not match." 1>&2 ; exit 1 ; }
 	mkdir -p .distcheck
-	tar -zvxpf kcgi.tgz -C .distcheck
+	( cd .distcheck && tar -zvxpf ../kcgi.tgz )
 	( cd .distcheck/kcgi-$(VERSION) && ./configure PREFIX=prefix )
 	( cd .distcheck/kcgi-$(VERSION) && $(MAKE) )
 	( cd .distcheck/kcgi-$(VERSION) && $(MAKE) regress )
