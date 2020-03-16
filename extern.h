@@ -76,17 +76,17 @@ void		 fullwriteword(int, const char *);
 int		 fullwritefd(int, int, void *, size_t);
 
 int		 ksandbox_init_child(enum sandtype, int, int, int, int);
-#ifdef HAVE_CAPSICUM
+#if HAVE_CAPSICUM
 int	 	 ksandbox_capsicum_init_child
 			(enum sandtype, int, int, int, int);
 #endif
-#ifdef HAVE_PLEDGE
+#if HAVE_PLEDGE
 int	 	 ksandbox_pledge_init_child(enum sandtype);
 #endif
-#ifdef HAVE_SANDBOX_INIT
+#if HAVE_SANDBOX_INIT
 int	 	 ksandbox_darwin_init_child(enum sandtype);
 #endif
-#ifdef HAVE_SECCOMP_FILTER
+#if HAVE_SECCOMP_FILTER
 int	 	 ksandbox_seccomp_init_child(enum sandtype);
 #endif
 void		 kreq_free(struct kreq *);
