@@ -9,5 +9,5 @@ URL: https://kristaps.bsd.lv/kcgi
 Version: @VERSION@
 Requires:
 Libs.private: 
-Libs: -L${libdir} -lkcgiregress
+Libs: -L${libdir} -lkcgiregress @LDADD_LIB_SOCKET@
 Cflags: -I${includedir}

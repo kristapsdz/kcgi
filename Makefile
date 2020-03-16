@@ -305,7 +305,7 @@ compats.o: config.h
 # The FastCGI manager is pretty standalone.
 
 kfcgi: kfcgi.o compats.o
-	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o
+	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o $(LDADD_LIB_SOCKET)
 
 kfcgi.o: config.h
 
@@ -455,6 +455,7 @@ $(PCS): kcgi.h
 .in.pc.pc:
 	sed -e "s!@PREFIX@!$(PREFIX)!g" \
 	    -e "s!@LDADD_ZLIB@!$(LDADD_ZLIB)!g" \
+	    -e "s!@LDADD_LIB_SOCKET@!$(LDADD_LIB_SOCKET)!g" \
 	    -e "s!@LDADD_MD5@!$(LDADD_MD5)!g" \
 	    -e "s!@LIBDIR@!$(LIBDIR)!g" \
 	    -e "s!@INCLUDEDIR@!$(INCLUDEDIR)!g" \
