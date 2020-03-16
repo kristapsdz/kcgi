@@ -9,5 +9,5 @@ URL: https://kristaps.bsd.lv/kcgi
 Version: @VERSION@
 Requires:
 Libs.private: 
-Libs: -L${libdir} -lkcgi @LDADD_ZLIB@ @LDADD_MD5@
+Libs: -L${libdir} -lkcgi @LDADD_ZLIB@ @LDADD_MD5@ @LDADD_LIB_SOCKET@
 Cflags: -I${includedir}
