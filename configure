@@ -379,6 +379,11 @@ cat << __HEREDOC__
 #if defined(__NetBSD__)
 #define _OPENBSD_SOURCE /* reallocarray, etc. */
 #endif
+#if defined(__sun) /* really illumos */
+#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1 /* XP4v2 */
+#define __EXTENSIONS__ /* reallocarray, etc. */
+#endif
 #if !defined(__BEGIN_DECLS)
 # define __BEGIN_DECLS
 #endif
