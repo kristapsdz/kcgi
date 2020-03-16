@@ -27,7 +27,7 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-#ifdef HAVE_ZLIB
+#if HAVE_ZLIB
 
 struct	buf {
 	char	  buf[BUFSIZ];

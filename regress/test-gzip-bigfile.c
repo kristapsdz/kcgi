@@ -27,6 +27,8 @@
 #include "../kcgi.h"
 #include "regress.h"
 
+#if HAVE_ZLIB
+
 #define	BUFSZ	(1024 * 1024)
 #ifdef __linux__
 #define arc4random random
@@ -102,3 +104,12 @@ main(int argc, char *argv[])
 
 	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
+
+#else
+int
+main(int argc, char *argv[])
+{
+
+	return(EXIT_SUCCESS);
+}
+#endif
