@@ -214,8 +214,6 @@ SVGS		 = figure1.svg \
 		   tutorial6.svg
 CSSS	         = archive.css \
 	           index.css \
-		   prettify.css \
-		   prettify.js \
 		   tutorial.css
 LIBS		 = libkcgi.a \
 		   libkcgihtml.a \
