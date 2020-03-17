@@ -3,6 +3,7 @@ html, body				{ margin: 0;
 body					{ color: #222; 
 					  font-family: "Alegreya sans", sans-serif;  }
 code, pre				{ font-size: 65%; }
+pre					{ margin: 0; }
 a					{ text-decoration: none; 
 					  color: blue; }
 strong, b				{ font-weight: 700; }
@@ -57,8 +58,9 @@ h1 .nm					{ text-shadow: 1px 1px #666;
 					  font-style: inherit; }
 h1 .nd					{ text-shadow: 1px 1px #333; }
 #intro					{ font-size: 125%; }
-#sample					{ margin: 3rem 0; 
-					  color: #666; }
+#sample					{ color: #666; 
+				  	  padding: 1rem 0;
+					  background-color: #f6f6f6; }
 #sample > input				{ display: none; }
 #sample > input ~ nav label,
 #sample > input ~ pre			{ max-height: 0;
@@ -69,7 +71,7 @@ h1 .nd					{ text-shadow: 1px 1px #333; }
 #sample > input ~ nav label		{ cursor: pointer; }
 #sample					{ text-align: left; }
 #sample nav label			{ color: #44b; }
-#sample nav				{ margin: 1ex 0; }
+#sample nav				{ margin-bottom: 0.5rem; }
 #sample .fa				{ font-size: 80%; }
 #show-comments:checked ~ nav #label-nocomments,
 #show-nocomments:checked ~ nav #label-comments,
@@ -102,10 +104,12 @@ figure					{ margin: 0;
 dd					{ margin: 0 0 1em 0; }
 pre.prettyprint				{ border: none; 
 					  line-height: 180%;
-					  margin: 0; 
+					  color: #333;
 					  overflow: hidden;
 					  width: auto; }
-pre.prettyprint a			{ font-weight: bold; }
+pre.prettyprint .cpp			{ color: rgb(150, 150, 255); }
+pre.prettyprint .ident			{ color: rgb(0, 100, 0); }
+pre.prettyprint .literal		{ color: rgb(100, 0, 0); }
 footer					{ padding: 1ex;
 					  margin-top: 1em;
 					  margin-bottom: 1em; }

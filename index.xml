@@ -8,14 +8,7 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans:400,400italic,500,700" />
 		<link rel="stylesheet" href="https://bsd.lv/css/style.css" />
-		<link rel="stylesheet" href="prettify.css" />
 		<link rel="stylesheet" href="index.css" />
-		<script src="prettify.js"></script>
-		<script>
-			window.addEventListener('load', function() {
-				PR.prettyPrint();
-			});
-		</script>
 		<meta property="og:title" content="kcgi: minimal CGI and FastCGI library for C/C++" />
 		<meta property="og:description" 
 		 content="A C/C++ library for security-oriented web applications." />
@@ -41,17 +34,29 @@
 				<nav>
 					<span class="version">
 						Version 
-						<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navxml="1">
+						<nav data-sblg-nav="1" data-sblg-navtag="version" 
+						 data-sblg-navsz="1" data-sblg-navxml="1">
 							${sblg-titletext}
 						</nav>
 					</span>
-					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
-					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
-					<a title="Source archive" href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
-					<a title="Source repository" href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-					<a title="Version feed" href="atom.xml"><i class="fa fa-fw fa-rss"></i></a>
+					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz">
+						<i class="fa fa-fw fa-gears"></i>
+					</a>
+					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512">
+						<i class="fa fa-fw fa-lock"></i>
+					</a>
+					<a title="Source archive" href="snapshots">
+						<i class="fa fa-fw fa-archive"></i>
+					</a>
+					<a title="Source repository" href="https://www.github.com/kristapsdz/kcgi">
+						<i class="fa fa-fw fa-github"></i>
+					</a>
+					<a title="Version feed" href="atom.xml">
+						<i class="fa fa-fw fa-rss"></i>
+					</a>
 					<span id="build-status">
-						<a title="Build status" href="https://kristaps.bsd.lv/cgi-bin/minci.cgi/index.html?project-name=kcgi">
+						<a title="Build status" 
+						 href="https://kristaps.bsd.lv/cgi-bin/minci.cgi/index.html?project-name=kcgi">
 							<i class="fa fa-fw fa-tachometer"></i>
 							Build status
 						</a>
@@ -72,50 +77,50 @@
 				Use the <a href="https://github.com/kristapsdz/kcgi">GitHub</a> tracker for questions or comments,
 				or find contact information there for direct contact.
 			</p>
-			<figure id="sample">
-				<input type="radio" name="sample-show" value="0" id="show-nocomments" checked="checked" />
-				<input type="radio" name="sample-show" value="1" id="show-comments" />
-				<nav>
-					<label id="label-nocomments" for="show-nocomments">
-						<i class="fa fa-fw fa-comments-o"></i> Hide source comments
-					</label>
-					<label id="label-comments" for="show-comments">
-						<i class="fa fa-fw fa-comments"></i> Show source comments
-					</label>
-				</nav>
-				<figcaption>
-					The following echoes <q>Hello, World!</q> as an HTTP response to a CGI request.
-					Click on any <strong>bold</strong> fields to link to the documentation.
-				</figcaption>
-				<pre id="nocomments" class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
-#include &lt;stdarg.h&gt; /* va_list */
-#include &lt;stddef.h&gt; /* NULL */
-#include &lt;stdint.h&gt; /* int64_t */
-#include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
+		</section>
+		<figure id="sample">
+			<input type="radio" name="sample-show" value="0" id="show-nocomments" checked="checked" />
+			<input type="radio" name="sample-show" value="1" id="show-comments" />
+			<nav class="text">
+				<label id="label-nocomments" for="show-nocomments">
+					<i class="fa fa-fw fa-comments-o"></i> Hide source comments
+				</label>
+				<label id="label-comments" for="show-comments">
+					<i class="fa fa-fw fa-comments"></i> Show source comments
+				</label>
+			</nav>
+			<figcaption class="text">
+				The following echoes <q>Hello, World!</q> as an HTTP response to a CGI request.
+			</figcaption>
+			<pre id="nocomments" class="text prettyprint"><span class="cpp">#include</span> <span class="literal">&lt;sys/types.h&gt;</span> /* size_t, ssize_t */
+<span class="cpp">#include</span> <span class="literal">&lt;stdarg.h&gt;</span> /* va_list */
+<span class="cpp">#include</span> <span class="literal">&lt;stddef.h&gt;</span> /* NULL */
+<span class="cpp">#include</span> <span class="literal">&lt;stdint.h&gt;</span> /* int64_t */
+<span class="cpp">#include</span> <span class="literal">&lt;<a href="kcgi.3.html">kcgi.h</a>&gt;</span>
 
-int main(void) {
+<span class="ident">int</span> main(<span class="ident">void</span>) {
     struct kreq r;
-    const char *page = "index";
+    const char *page = <span class="literal">"index"</span>;
     if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
-        return 0;
+        return 1;
     <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
-        "%s", khttps[KHTTP_200]);
+        <span class="literal">"%s"</span>, khttps[KHTTP_200]);
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        <span class="literal">"%s"</span>, kmimetypes[KMIME_TEXT_PLAIN]);
     <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
-    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, <span class="literal">"Hello, world!"</span>);
     <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
     return 0;
 }</pre>
-				<pre id="comments" class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
-#include &lt;stdarg.h&gt; /* va_list */
-#include &lt;stddef.h&gt; /* NULL */
-#include &lt;stdint.h&gt; /* int64_t */
-#include &lt;<a href="kcgi.3.html">kcgi.h</a>&gt;
+				<pre id="comments" class="text prettyprint"><span class="cpp">#include</span> <span class="literal">&lt;sys/types.h&gt;</span> /* size_t, ssize_t */
+<span class="cpp">#include</span> <span class="literal">&lt;stdarg.h&gt;</span> /* va_list */
+<span class="cpp">#include</span> <span class="literal">&lt;stddef.h&gt;</span> /* NULL */
+<span class="cpp">#include</span> <span class="literal">&lt;stdint.h&gt;</span> /* int64_t */
+<span class="cpp">#include</span> <span class="literal">&lt;<a href="kcgi.3.html">kcgi.h</a>&gt;</span>
 
-int main(void) {
+<span class="ident">int</span> main(<span class="ident">void</span>) {
     struct kreq r;
-    const char *page = "index";
+    const char *page = <span class="literal">"index"</span>;
   
     /*
      * Parse the HTTP environment.
@@ -125,7 +130,7 @@ int main(void) {
      */
   
     if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
-        return 0;
+        return 1;
   
     /* 
      * Ordinarily, here I'd switch on the method (OPTIONS, etc.,
@@ -135,7 +140,7 @@ int main(void) {
      */
   
     <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
-        "%s", khttps[KHTTP_200]);
+        <span class="literal">"%s"</span>, khttps[KHTTP_200]);
   
     /* 
      * Show content-type unilaterally as text/plain.
@@ -143,7 +148,7 @@ int main(void) {
      */
   
     khttp_head(&amp;r, kresps[KRESP_CONTENT_TYPE], 
-        "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        <span class="literal">"%s"</span>, kmimetypes[KMIME_TEXT_PLAIN]);
   
     /* No more HTTP headers: start the HTTP document body. */
   
@@ -155,14 +160,15 @@ int main(void) {
      * However, we're just going to put the literal string as noted&#8230;
      */
   
-    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, &quot;Hello, world!&quot;);
+    <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, <span class="literal">"Hello, world!"</span>);
   
     /* Flush the document and free resources. */
   
     <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
     return 0;
 }</pre>
-			</figure>
+		</figure>
+		<section class="text">
 			<p>
 				For a fuller example, see <a href="sample.c.html">sample.c</a>, or jump to the <a href="#usage">Documentation</a> section.
 				(Want a C++ version?  See <a href="samplepp.cc.html">samplepp.cc</a>.)
@@ -208,11 +214,16 @@ int main(void) {
 			</p>
 			<p>
 				If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
-				To date, <span class="nm">kcgi</span> has been built and run on GNU/<a href="https://www.linux.org"
-					itemprop="operatingSystem">Linux</a> machines (musl and glibc), BSD (<a href="https://www.openbsd.org"
-					itemprop="operatingSystem">OpenBSD</a>, <a href="https://www.freebsd.org"
-					itemprop="operatingSystem">FreeBSD</a>), and <a href="https://www.apple.com/osx"
-					itemprop="operatingSystem">Mac OSX</a> (only Mojave and newer!) on i386 and AMD64.
+				To date, <span class="nm">kcgi</span> has been built and run on 
+				GNU/<a href="https://www.linux.org" itemprop="operatingSystem">Linux</a> machines 
+				(musl and glibc), BSD 
+				(<a href="https://www.openbsd.org" itemprop="operatingSystem">OpenBSD</a>, 
+				<a href="https://www.netbsd.org" itemprop="operatingSystem">NetBSD</a>, 
+				<a href="https://www.freebsd.org" itemprop="operatingSystem">FreeBSD</a>),
+				<a href="https://www.oracle.com/solaris/solaris11" itemprop="operatingSystem">Solaris</a>,
+				<a href="https://omniosce.org" itemprop="operatingSystem">OmniOS</a>, and 
+				<a href="https://www.apple.com/osx" itemprop="operatingSystem">Mac OS X</a> 
+				(only Mojave and newer!) on i386, AMD64, and SPARC64.
 				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 					href="https://nginx.org">nginx</a>, and OpenBSD's <a
 					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
@@ -227,9 +238,9 @@ int main(void) {
 				Configure with <code>./configure</code>, compile with <code>make</code> (or <code>bmake</code>
 				on Linux systems).
 				Finally, install the software using <code>make install</code>. 
-				Optionally override default paths with a <code>configure.local</code> file (see the <a
-					href="https://github.com/kristapsdz/kcgi/blob/master/configure">configure</a> script for details) prior
-				to configuration.
+				Optionally override default paths with a <code>configure.local</code> file (see the 
+				<a href="https://github.com/kristapsdz/kcgi/blob/master/configure">configure</a> script 
+				for details) prior to configuration.
 			</p>
 			<p>
 				If <span class="nm">kcgi</span> doesn't compile, please send me the <span class="file">config.log</span>
