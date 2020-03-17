@@ -3,6 +3,19 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.10.16</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-03-17">2020-03-17</time>
+		</header>
+		<aside>
+			<div>
+				System now works out-of-the-box on OpenBSD, FreeBSD, NetBSD, Linux, 
+				SunOS, OmniOS (IllumOS), Darwin.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.15</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-03-11">2020-03-11</time>
