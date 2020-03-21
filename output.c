@@ -374,7 +374,7 @@ khttp_puts(struct kreq *req, const char *cp)
 enum kcgi_err
 khttp_putc(struct kreq *req, int c)
 {
-	char		cc = c;
+	unsigned char	cc = c;
 
 	return khttp_write(req, &cc, 1);
 }

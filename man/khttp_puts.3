@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,11 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KHTTP_WRITE 3
+.Dt KHTTP_PUTS 3
 .Os
 .Sh NAME
-.Nm khttp_write
-.Nd write HTTP content data for kcgi
+.Nm khttp_puts
+.Nd put string content for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -28,26 +28,25 @@
 .In stdint.h
 .In kcgi.h
 .Ft enum kcgi_err
-.Fo khttp_write
+.Fo khttp_puts
 .Fa "struct kreq *req"
-.Fa "const char *buf"
-.Fa "size_t sz"
+.Fa "const char *cp"
 .Fc
 .Sh DESCRIPTION
-Write binary data
-.Fa buf
-of length
-.Fa sz
+Writes a NUL-terminated string
+.Fa cp
 to a
 .Xr kcgi 3
 context
 .Fa req
-allocated with
+as allocated with
 .Xr khttp_parse 3
 or
 .Xr khttp_fcgi_parse 3 .
-It should only be invoked after
+It should only be called after
 .Xr khttp_body 3 .
+It does not append a newline like
+.Xr puts 3 .
 .Pp
 If
 .Xr kcgi_writer_disable 3

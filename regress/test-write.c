@@ -49,6 +49,9 @@ parent(CURL *curl)
 		'a', 'b', 'c',
 		'-', '1', '2',
 		'a', 'b', 'c',
+		0, 10, 
+		/* We'll lose bits, but that's the point. */
+		(unsigned char)256, (unsigned char)257
 	};
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
@@ -95,6 +98,9 @@ child(void)
 	if (khttp_puts(&r, "abc") != KCGI_OK) {
 		warnx("khttp_puts");
 		goto out;
+	} else if (khttp_puts(&r, "") != KCGI_OK) {
+		warnx("khttp_puts");
+		goto out;
 	} else if (khttp_printf(&r, "%d", -12) != KCGI_OK) {
 		warnx("khttp_printf");
 		goto out;
@@ -102,6 +108,18 @@ child(void)
 		warnx("khttp_printf");
 		goto out;
 	} else if (khttp_printf(&r, "%s", "abc") != KCGI_OK) {
+		warnx("khttp_printf");
+		goto out;
+	} else if (khttp_putc(&r, 0) != KCGI_OK) {
+		warnx("khttp_printf");
+		goto out;
+	} else if (khttp_putc(&r, 10) != KCGI_OK) {
+		warnx("khttp_printf");
+		goto out;
+	} else if (khttp_putc(&r, 256) != KCGI_OK) {
+		warnx("khttp_printf");
+		goto out;
+	} else if (khttp_putc(&r, 257) != KCGI_OK) {
 		warnx("khttp_printf");
 		goto out;
 	}
