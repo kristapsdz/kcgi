@@ -79,6 +79,9 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_free.3 \
 		   man/khttp_head.3 \
 		   man/khttp_parse.3 \
+		   man/khttp_printf.3 \
+		   man/khttp_putc.3 \
+		   man/khttp_puts.3 \
 		   man/khttp_template.3 \
 		   man/khttp_write.3 \
 		   man/khttpbasic_validate.3 \
