@@ -183,6 +183,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-gzip-bigfile \
 		   regress/test-header \
 		   regress/test-header-bad \
+		   regress/test-header-builtin \
 		   regress/test-httpdate \
 		   regress/test-invalidate \
 		   regress/test-json-controlchars \
