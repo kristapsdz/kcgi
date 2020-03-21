@@ -97,10 +97,10 @@ void		 kreq_free(struct kreq *);
  * They do nothing else and return the normal values.
  */
 int		 kxasprintf(const char *, int, 
-			char **, const char *, ...);
+			char **, const char *, ...)
+			__attribute__((format(printf, 4, 5)));
 int		 kxvasprintf(const char *, int, 
 			char **, const char *, va_list);
-
 void		*kxcalloc(const char *, int, size_t, size_t);
 void		*kxmalloc(const char *, int, size_t);
 void		*kxrealloc(const char *, int, void *, size_t);
@@ -110,8 +110,10 @@ enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
 enum kcgi_err	 kxsocketprep(int);
 char		*kxstrdup(const char *, int, const char *);
 enum kcgi_err	 kxwaitpid(pid_t);
-void		 kxwarn(const char *, int, const char *, ...);
-void		 kxwarnx(const char *, int, const char *, ...);
+void		 kxwarn(const char *, int, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
+void		 kxwarnx(const char *, int, const char *, ...)
+			__attribute__((format(printf, 3, 4)));
 #define		 XASPRINTF(_p, ...) \
 		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \
