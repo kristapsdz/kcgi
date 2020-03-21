@@ -336,18 +336,39 @@ enum kcgi_err
 khttp_write(struct kreq *req, const char *buf, size_t sz)
 {
 
-	assert(NULL != req->kdata);
-	if (KSTATE_BODY != req->kdata->state) 
+	assert(req->kdata != NULL);
+	if (req->kdata->state != KSTATE_BODY)
 		return KCGI_FORM;
-	assert( ! req->kdata->disabled);
-	return(kdata_write(req->kdata, buf, sz));
+	assert(!req->kdata->disabled);
+	return kdata_write(req->kdata, buf, sz);
+}
+
+enum kcgi_err
+khttp_printf(struct kreq *req, const char *fmt, ...)
+{
+	char		*buf;
+	int		 len;
+	va_list		 ap;
+	enum kcgi_err	 er;
+
+	if (fmt == NULL)
+		return KCGI_OK;
+
+	va_start(ap, fmt);
+	len = XVASPRINTF(&buf, fmt, ap);
+	va_end(ap);
+	if (len == -1)
+		return KCGI_ENOMEM;
+	er = khttp_write(req, buf, (size_t)len);
+	free(buf);
+	return er;
 }
 
 enum kcgi_err
 khttp_puts(struct kreq *req, const char *cp)
 {
 
-	return(khttp_write(req, cp, strlen(cp)));
+	return khttp_write(req, cp, strlen(cp));
 }
 
 enum kcgi_err
@@ -355,7 +376,7 @@ khttp_putc(struct kreq *req, int c)
 {
 	char		cc = c;
 
-	return(khttp_write(req, &cc, 1));
+	return khttp_write(req, &cc, 1);
 }
 
 enum kcgi_err

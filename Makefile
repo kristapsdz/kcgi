@@ -63,34 +63,6 @@ LIBOBJS 	 = auth.o \
 		   sandbox-seccomp-filter.o \
 		   template.o \
 		   wrappers.o
-HTMLS		 = man/kcgi.3.html \
-		   man/kcgihtml.3.html \
-		   man/kcgijson.3.html \
-		   man/kcgiregress.3.html \
-		   man/kcgixml.3.html \
-		   man/kcgi_buf_write.3.html \
-		   man/kcgi_writer_disable.3.html \
-		   man/kcgi_strerror.3.html \
-		   man/khttp_body.3.html \
-		   man/khttp_fcgi_free.3.html \
-		   man/khttp_fcgi_init.3.html \
-		   man/khttp_fcgi_parse.3.html \
-		   man/khttp_fcgi_test.3.html \
-		   man/khttp_free.3.html \
-		   man/khttp_head.3.html \
-		   man/khttp_parse.3.html \
-		   man/khttp_template.3.html \
-		   man/khttp_write.3.html \
-		   man/khttpbasic_validate.3.html \
-		   man/khttpdigest_validate.3.html \
-		   man/kmalloc.3.html \
-		   man/kutil_epoch2str.3.html \
-		   man/kutil_invalidate.3.html \
-		   man/kutil_log.3.html \
-		   man/kutil_openlog.3.html \
-		   man/kutil_urlencode.3.html \
-		   man/kvalid_string.3.html \
-		   man/kfcgi.8.html
 MAN3S		 = man/kcgi.3 \
 		   man/kcgihtml.3 \
 		   man/kcgijson.3 \
@@ -119,6 +91,9 @@ MAN3S		 = man/kcgi.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
 MAN8S		 = man/kfcgi.8 
+.for f in $(MAN3S) $(MAN8S)
+HTMLS		+= ${f}.html
+.endfor
 MANS		 = $(MAN3S) \
 		   $(MAN8S)
 SRCS 		 = auth.c \
@@ -204,7 +179,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-urlpartx \
 		   regress/test-valid-date \
 		   regress/test-valid-double \
-		   regress/test-valid-email 
+		   regress/test-valid-email \
+		   regress/test-write
 SVGS		 = figure1.svg \
 		   figure2.png \
 		   figure4.svg \
