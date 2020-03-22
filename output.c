@@ -340,6 +340,9 @@ khttp_write(struct kreq *req, const char *buf, size_t sz)
 	if (req->kdata->state != KSTATE_BODY)
 		return KCGI_FORM;
 	assert(!req->kdata->disabled);
+
+	/* This protects against buf == NULL or sz == 0. */
+
 	return kdata_write(req->kdata, buf, sz);
 }
 
@@ -368,6 +371,8 @@ enum kcgi_err
 khttp_puts(struct kreq *req, const char *cp)
 {
 
+	if (cp == NULL)
+		return KCGI_OK;
 	return khttp_write(req, cp, strlen(cp));
 }
 

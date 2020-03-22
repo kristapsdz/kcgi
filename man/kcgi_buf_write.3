@@ -46,6 +46,13 @@ Buffers must be initialised to zero with
 .Xr memset 3
 prior to first use.
 The buffer will always be NUL-terminated.
+Does nothing if
+.Fa buf
+is
+.Dv NULL
+or
+.Fa sz
+is zero.
 .Pp
 The
 .Vt "struct kcgi_buf"

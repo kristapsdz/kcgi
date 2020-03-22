@@ -40,6 +40,10 @@ to a buffer
 Buffers must be initialised to zero with
 .Xr memset 3
 prior to first use.
+Does nothing if
+.Fa cp
+is
+.Dv NULL .
 It does not append a newline like
 .Xr puts 3 .
 .Sh RETURN VALUES

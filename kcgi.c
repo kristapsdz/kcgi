@@ -1268,5 +1268,7 @@ enum kcgi_err
 kcgi_buf_puts(struct kcgi_buf *buf, const char *cp)
 {
 
+	if (cp == NULL)
+		return KCGI_OK;
 	return kcgi_buf_write(cp, strlen(cp), buf);
 }
