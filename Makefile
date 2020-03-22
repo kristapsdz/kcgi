@@ -204,8 +204,11 @@ LIBS		 = libkcgi.a \
 		   libkcgiregress.a
 CURL_LIBS_PKG	 != curl-config --libs 2>/dev/null || echo "-lcurl"
 CURL_CFLAGS_PKG	 != curl-config --cflags 2>/dev/null || echo ""
-CURL_LIBS	  = $(CURL_LIBS_PKG) $(LDADD_ZLIB) $(LDADD_MD5) -lm
-CURL_CFLAGS	  = $(CURL_CFLAGS_PKG)
+LIBS_PKG	 != pkg-config --libs zlib 2>/dev/null || echo "-lz"
+CFLAGS_PKG	 != pkg-config --cflags zlib 2>/dev/null || echo ""
+
+REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
+REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG)
 
 all: kfcgi $(LIBS) $(PCS)
 
@@ -306,14 +309,14 @@ $(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
 
 .for BIN in $(REGRESS)
 $(BIN): $(BIN).c
-	$(CC) $(CFLAGS) $(CURL_CFLAGS) -o $@ $(BIN).c regress/regress.o \
-		libkcgiregress.a libkcgijson.a libkcgi.a $(CURL_LIBS)
+	$(CC) $(CFLAGS) $(REGRESS_CFLAGS) -o $@ $(BIN).c regress/regress.o \
+		libkcgiregress.a libkcgijson.a libkcgi.a $(REGRESS_LIBS)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
 
 regress/regress.o: regress/regress.c
-	$(CC) $(CFLAGS) $(CURL_CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(REGRESS_CFLAGS) -c -o $@ $<
 
 # The AFL programs call directly into libkcgi.a.
 # So require that and our configuration.

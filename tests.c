@@ -78,21 +78,6 @@ main(void)
 	return 1;
 }
 #endif /* TEST_ERR */
-#if TEST_EXPAT
-#include <expat.h>
-
-int
-main(void)
-{
-	XML_Parser	p;
-
-	if ((p = XML_ParserCreate(NULL)) == NULL)
-		return 1;
-
-	XML_ParserFree(p);
-	return 0;
-}
-#endif /* TEST_EXPAT */
 #if TEST_EXPLICIT_BZERO
 #include <string.h>
 
@@ -589,19 +574,3 @@ main(void)
 	return waitpid(WAIT_ANY, &st, WNOHANG) != -1;
 }
 #endif /* TEST_WAIT_ANY */
-#if TEST_ZLIB
-#include <stddef.h>
-#include <zlib.h>
-
-int
-main(void)
-{
-	gzFile		 gz;
-
-	if (NULL == (gz = gzopen("/dev/null", "w")))
-		return(1);
-	gzputs(gz, "foo");
-	gzclose(gz);
-	return(0);
-}
-#endif /* TEST_ZLIB */
