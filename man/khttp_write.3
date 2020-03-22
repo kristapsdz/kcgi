@@ -48,6 +48,13 @@ or
 .Xr khttp_fcgi_parse 3 .
 It should only be invoked after
 .Xr khttp_body 3 .
+Does nothing if
+.Fa buf
+is
+.Dv NULL
+or
+.Fa sz
+is zero.
 .Pp
 If
 .Xr kcgi_writer_disable 3

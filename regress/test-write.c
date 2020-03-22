@@ -51,7 +51,8 @@ parent(CURL *curl)
 		'a', 'b', 'c',
 		0, 10, 
 		/* We'll lose bits, but that's the point. */
-		(unsigned char)256, (unsigned char)257
+		(unsigned char)256, (unsigned char)257,
+		0, 1, 2
 	};
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
@@ -78,6 +79,7 @@ child(void)
 {
 	struct kreq	 r;
 	const char 	*page[] = { "index" };
+	char		 bbuf[3] = { 0, 1, 2 };
 	int		 rc = 0;
 
 	if (khttp_parse(&r, NULL, 0, page, 1, 0) != KCGI_OK) {
@@ -102,6 +104,9 @@ child(void)
 	if (khttp_puts(&r, "abc") != KCGI_OK) {
 		warnx("khttp_puts");
 		goto out;
+	} else if (khttp_puts(&r, NULL) != KCGI_OK) {
+		warnx("khttp_puts");
+		goto out;
 	} else if (khttp_puts(&r, "") != KCGI_OK) {
 		warnx("khttp_puts");
 		goto out;
@@ -124,6 +129,15 @@ child(void)
 		warnx("khttp_putc");
 		goto out;
 	} else if (khttp_putc(&r, 257) != KCGI_OK) {
+		warnx("khttp_putc");
+		goto out;
+	} else if (khttp_write(&r, bbuf, sizeof(bbuf)) != KCGI_OK) {
+		warnx("khttp_putc");
+		goto out;
+	} else if (khttp_write(&r, NULL, sizeof(bbuf)) != KCGI_OK) {
+		warnx("khttp_putc");
+		goto out;
+	} else if (khttp_write(&r, bbuf, 0) != KCGI_OK) {
 		warnx("khttp_putc");
 		goto out;
 	}

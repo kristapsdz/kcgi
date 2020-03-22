@@ -43,6 +43,10 @@ as allocated with
 .Xr khttp_parse 3
 or
 .Xr khttp_fcgi_parse 3 .
+Does nothing if
+.Fa cp
+is
+.Dv NULL .
 It should only be called after
 .Xr khttp_body 3 .
 It does not append a newline like
