@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,11 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KCGI_BUF_WRITE 3
+.Dt KCGI_BUF_PRINTF 3
 .Os
 .Sh NAME
-.Nm kcgi_buf_write
-.Nd put binary data into a kcgi buffer
+.Nm kcgi_buf_printf
+.Nd put variable content into a kcgi buffer
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -28,68 +28,63 @@
 .In stdint.h
 .In kcgi.h
 .Ft enum kcgi_err
-.Fo kcgi_buf_write
-.Fa "const void *buf"
-.Fa "size_t sz"
-.Fa "void *arg"
+.Fo kcgi_buf_puts
+.Fa "struct kcgi_buf *buf"
+.Fa "const char *fmt"
+.Fa "..."
 .Fc
 .Sh DESCRIPTION
-Appends binary data
-.Fa buf
-of size
-.Fa sz
-to
-.Fa arg ,
-which is cast to a 
-.Vt "struct kcgi_buf *" .
+Appends output according to the given
+.Fa fmt
+to a buffer
+.Fa buf .
+The format is as for
+.Xr printf 3 .
 Buffers must be initialised to zero with
 .Xr memset 3
 prior to first use.
-The buffer will always be NUL-terminated.
-.Pp
-The
-.Vt "struct kcgi_buf"
-structure has the following fields:
-.Bl -tag -width Ds
-.It Va "char *buf"
-Buffer contents.
-This is always NUL-terminated, even if the data is binary.
-This buffer must be passed to
-.Xr free 3
-after use.
-.It Va "size_t maxsz"
-Allocated buffer size.
-.It Va "size_t sz"
-Buffer current length not including the NUL terminator.
-.It Va "size_t growsz"
-Amount of
-.Qq slop
-space in the buffer if it's reallocated.
-If set to zero, defaults to 1 KB.
-.El
 .Sh RETURN VALUES
-These functions return an
+Returns an
 .Ft enum kcgi_err
-indicating the error state:
-.Dv KCGI_OK
-for no error,
-.Dv KCGI_ENOMEM
-for an internal memory allocation failure.
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.El
 .Sh EXAMPLES
-The following creates a simple NUL-terminated buffer.
+The following creates a simple NUL-terminated buffer and outputs its
+contents.
 It does not perform any error checking.
 .Bd -literal -offset indent
 struct kcgi_buf buf;
 
 memset(&buf, 0, sizeof(struct kcgi_buf));
-kcgi_buf_write("xyzzy", 5, &buf);
-puts(buf.buf); /* Emits "xyzzy" */
+kcgi_buf_printf(&buf, "number %d", 1);
+puts(buf.buf); /* Emits "number 1" */
 free(buf.buf);
 .Ed
 .Sh SEE ALSO
-.Xr kcgi_buf_printf 3 ,
 .Xr kcgi_buf_putc 3 ,
-.Xr kcgi_buf_puts 3
+.Xr kcgi_buf_puts 3 ,
+.Xr kcgi_buf_write 3
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
