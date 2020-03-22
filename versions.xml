@@ -9,11 +9,6 @@
 		</header>
 		<aside>
 			<div>
-				Minor API change:
-				<a href="kcgi_buf_write.3.html">kcgi_buf_write(3)</a>
-				accepts a <code>const void *</code> instead of <code>const char *</code>.
-			</div>
-			<div>
 				Add 
 				<a href="khttp_printf.3.html">khttp_printf(3)</a> and
 				<a href="kcgi_buf_printf.3.html">kcgi_buf_printf(3)</a>.
