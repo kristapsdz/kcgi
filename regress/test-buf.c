@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,9 @@
  */
 #include "../config.h"
 
+#if HAVE_ERR
+# include <err.h>
+#endif
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -32,7 +35,7 @@ bufcb(void *contents, size_t sz, size_t nm, void *dat)
 {
 	struct kcgi_buf	*buf = dat;
 
-	if (KCGI_OK != kcgi_buf_write(contents, nm * sz, buf))
+	if (kcgi_buf_write(contents, nm * sz, buf) != KCGI_OK)
 		return 0;
 	return nm * sz;
 }
@@ -42,17 +45,30 @@ parent(CURL *curl)
 {
 	struct kcgi_buf	 buf;
 	int		 rc;
+	unsigned char	 want[] = {
+		'a', 'b', 'c',
+		'-', '1', '2',
+		'a', 'b', 'c',
+		0, 10, 
+		/* We'll lose bits, but that's the point. */
+		(unsigned char)256, (unsigned char)257
+	};
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
 
 	curl_easy_setopt(curl, CURLOPT_URL, 
-		"http://localhost:17123/index.html");
+		"http://localhost:17123/index");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, bufcb);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
-	if (CURLE_OK != curl_easy_perform(curl))
+	if (curl_easy_perform(curl) != CURLE_OK)
 		return 0;
 
-	rc = 0 == strcmp(buf.buf, "Hello, world!");
+	/* Check same string and NUL terminated. */
+
+	rc = buf.sz == sizeof(want) &&
+   	     memcmp(buf.buf, want, buf.sz) == 0 &&
+	     buf.buf[buf.sz] == '\0';
+
 	free(buf.buf);
 	return rc;
 }
@@ -65,34 +81,68 @@ child(void)
 	int		 rc = 0;
 	struct kcgi_buf	 buf;
 
-	if (KCGI_OK != khttp_parse(&r, NULL, 0, page, 1, 0))
-		return(0);
-	if (r.page)
+	if (khttp_parse(&r, NULL, 0, page, 1, 0) != KCGI_OK) {
+		warnx("khttp_parse");
+		return 0;
+	} else if (r.page != 0)
 		goto out;
 
-	rc = 1;
-	khttp_head(&r, kresps[KRESP_STATUS], 
-		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[r.mime]);
-	khttp_body(&r);
+	/* Setup */
+
+	if (khttp_head(&r, kresps[KRESP_STATUS],
+	    "%s", khttps[KHTTP_200]) != KCGI_OK) {
+		warnx("khttp_head");
+		goto out;
+	} else if (khttp_body(&r) != KCGI_OK) {
+		warnx("khttp_body");
+		goto out;
+	}
+
+	/* Tests. */
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
-	kcgi_buf_puts(&buf, "Hello,");
-	kcgi_buf_putc(&buf, ' ');
-	kcgi_buf_puts(&buf, "world!");
 
-	khttp_puts(&r, buf.buf);
+	if (kcgi_buf_puts(&buf, "abc") != KCGI_OK) {
+		warnx("kcgi_buf_puts");
+		goto out;
+	} else if (kcgi_buf_puts(&buf, "") != KCGI_OK) {
+		warnx("kcgi_buf_puts");
+		goto out;
+	} else if (kcgi_buf_printf(&buf, "%d", -12) != KCGI_OK) {
+		warnx("kcgi_buf_printf");
+		goto out;
+	} else if (kcgi_buf_printf(&buf, NULL) != KCGI_OK) {
+		warnx("kcgi_buf_printf");
+		goto out;
+	} else if (kcgi_buf_printf(&buf, "%s", "abc") != KCGI_OK) {
+		warnx("kcgi_buf_printf");
+		goto out;
+	} else if (kcgi_buf_putc(&buf, 0) != KCGI_OK) {
+		warnx("kcgi_buf_putc");
+		goto out;
+	} else if (kcgi_buf_putc(&buf, 10) != KCGI_OK) {
+		warnx("kcgi_buf_putc");
+		goto out;
+	} else if (kcgi_buf_putc(&buf, 256) != KCGI_OK) {
+		warnx("kcgi_buf_putc");
+		goto out;
+	} else if (kcgi_buf_putc(&buf, 257) != KCGI_OK) {
+		warnx("kcgi_buf_putc");
+		goto out;
+	}
+
+	khttp_write(&r, buf.buf, buf.sz);
 	free(buf.buf);
+	rc = 1;
 out:
 	khttp_free(&r);
-	return(rc);
+	return rc;
 }
 
 int
 main(int argc, char *argv[])
 {
 
-	return(regress_cgi(parent, child) ? 
-		EXIT_SUCCESS : EXIT_FAILURE);
+	return regress_cgi(parent, child) ? 
+		EXIT_SUCCESS : EXIT_FAILURE;
 }

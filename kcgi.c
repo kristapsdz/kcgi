@@ -1205,22 +1205,56 @@ kcgi_buf_write(const char *s, size_t sz, void *arg)
 	struct kcgi_buf	*b = arg;
 	void		*pp;
 
-	if (s == NULL)
+	/* Let empty/NULL pass through. */
+
+	if (s == NULL || sz == 0)
 		return KCGI_OK;
+
+	/* Grow the buffer and leave some slop space. */
 
 	if (b->sz + sz + 1 > b->maxsz) {
 		b->maxsz = b->sz + sz + 1 + 
-			(0 == b->growsz ? 1024 : b->growsz);
-		pp = realloc(b->buf, b->maxsz);
+			(b->growsz == 0 ? 1024 : b->growsz);
+		pp = XREALLOC(b->buf, b->maxsz);
 		if (pp == NULL)
 			return KCGI_ENOMEM;
 		b->buf = pp;
 	}
+	
+	/* Always NUL-terminate even though we accept binary data. */
 
 	memcpy(&b->buf[b->sz], s, sz);
 	b->sz += sz;
 	b->buf[b->sz] = '\0';
 	return KCGI_OK;
+}
+
+enum kcgi_err
+kcgi_buf_printf(struct kcgi_buf *buf, const char *fmt, ...)
+{
+	char		*nbuf;
+	int		 len;
+	va_list		 ap;
+	enum kcgi_err	 er;
+
+	/* Let this bogus case pass through. */
+
+	if (fmt == NULL)
+		return KCGI_OK;
+
+	/* Allocate temporary buffer. */
+
+	va_start(ap, fmt);
+	len = XVASPRINTF(&nbuf, fmt, ap);
+	va_end(ap);
+	if (len == -1)
+		return KCGI_ENOMEM;
+
+	/* Write and free. */
+
+	er = kcgi_buf_write(nbuf, (size_t)len, buf);
+	free(nbuf);
+	return er;
 }
 
 enum kcgi_err
