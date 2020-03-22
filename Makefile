@@ -325,7 +325,7 @@ regress/regress.o: regress/regress.c
 $(BIN).o: $(BIN).c config.h kcgi.h extern.h
 	$(CC) $(CFLAGS) -c -o $@ $(BIN).c
 $(BIN): $(BIN).o libkcgi.a
-	$(CC) $(CFLAGS) -o $@ $(BIN).o libkcgi.a $(LDADD_ZLIB) $(LDADD_MD5)
+	$(CC) $(CFLAGS) $(CFLAGS_PKG) -o $@ $(BIN).o libkcgi.a $(LIBS_PKG) $(LDADD_MD5)
 .endfor
 
 # The main kcgi library.
@@ -363,13 +363,13 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) $(LDADD_STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB)
+	c++ $(CFLAGS) $(CFLAGS_PKG) $(LDADD_STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LIBS_PKG)
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
-	$(CC) -o $@ $(LDADD_STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB)
+	$(CC) -o $@ $(LDADD_STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LIBS_PKG)
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
-	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LDADD_ZLIB)
+	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LIBS_PKG)
 
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(LDADD_STATIC) sample-cgi.o 
@@ -440,7 +440,7 @@ $(PCS): kcgi.h
 
 .in.pc.pc:
 	sed -e "s!@PREFIX@!$(PREFIX)!g" \
-	    -e "s!@LDADD_ZLIB@!$(LDADD_ZLIB)!g" \
+	    -e "s!@LDADD_ZLIB@!$(LIBS_PKG)!g" \
 	    -e "s!@LDADD_LIB_SOCKET@!$(LDADD_LIB_SOCKET)!g" \
 	    -e "s!@LDADD_MD5@!$(LDADD_MD5)!g" \
 	    -e "s!@LIBDIR@!$(LIBDIR)!g" \
