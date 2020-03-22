@@ -1200,7 +1200,7 @@ kvalid_uint(struct kpair *p)
 }
 
 enum kcgi_err
-kcgi_buf_write(const void *s, size_t sz, void *arg)
+kcgi_buf_write(const char *s, size_t sz, void *arg)
 {
 	struct kcgi_buf	*b = arg;
 	void		*pp;
