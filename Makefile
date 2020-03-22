@@ -3,16 +3,15 @@
 
 include Makefile.configure
 
-# Comment if you don't need statically linked.
+# Uncomment this to disable -static linking.
+# This is set to -static only for supporting systems.
 # This is only for the sample program!
-STATIC 		 = -static
+
+#LDADD_STATIC	 =
 
 # Linux apps might one seccomp debugging.
-#CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
-# Mac OS X doesn't support static linking and depcrecates daemon(3).
-#STATIC 	 = 
-#CFLAGS		+= -Wno-deprecated-declarations
+#CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
 
 # You probably don't need to change anything else...
 
@@ -361,16 +360,16 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) $(STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB)
+	c++ $(CFLAGS) $(LDADD_STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LDADD_ZLIB)
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
-	$(CC) -o $@ $(STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB)
+	$(CC) -o $@ $(LDADD_STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LDADD_ZLIB)
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
-	$(CC) -o $@ $(STATIC) sample-fcgi.o -L. libkcgi.a $(LDADD_ZLIB)
+	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LDADD_ZLIB)
 
 sample-cgi: sample-cgi.o 
-	$(CC) -o $@ $(STATIC) sample-cgi.o 
+	$(CC) -o $@ $(LDADD_STATIC) sample-cgi.o 
 
 # Now a lot of HTML and web media files.
 # These are only used with the `www' target, so we can assume
