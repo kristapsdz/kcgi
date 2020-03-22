@@ -51,7 +51,7 @@ parent(CURL *curl)
 		'a', 'b', 'c',
 		0, 10, 
 		/* We'll lose bits, but that's the point. */
-		(unsigned char)256, (unsigned char)257
+		(char)256, (char)257
 	};
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
@@ -123,10 +123,10 @@ child(void)
 	} else if (kcgi_buf_putc(&buf, 10) != KCGI_OK) {
 		warnx("kcgi_buf_putc");
 		goto out;
-	} else if (kcgi_buf_putc(&buf, 256) != KCGI_OK) {
+	} else if (kcgi_buf_putc(&buf, (char)256) != KCGI_OK) {
 		warnx("kcgi_buf_putc");
 		goto out;
-	} else if (kcgi_buf_putc(&buf, 257) != KCGI_OK) {
+	} else if (kcgi_buf_putc(&buf, (char)257) != KCGI_OK) {
 		warnx("kcgi_buf_putc");
 		goto out;
 	}

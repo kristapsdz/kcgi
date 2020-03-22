@@ -68,6 +68,9 @@ MAN3S		 = man/kcgi.3 \
 		   man/kcgijson.3 \
 		   man/kcgiregress.3 \
 		   man/kcgixml.3 \
+		   man/kcgi_buf_printf.3 \
+		   man/kcgi_buf_putc.3 \
+		   man/kcgi_buf_puts.3 \
 		   man/kcgi_buf_write.3 \
 		   man/kcgi_writer_disable.3 \
 		   man/kcgi_strerror.3 \
