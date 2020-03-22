@@ -63,8 +63,12 @@ parent(CURL *curl)
 	if (curl_easy_perform(curl) != CURLE_OK)
 		return 0;
 
+	/* Check same string and NUL terminated. */
+
 	rc = buf.sz == sizeof(want) &&
-   	     memcmp(buf.buf, want, buf.sz) == 0;
+   	     memcmp(buf.buf, want, buf.sz) == 0 &&
+	     buf.buf[buf.sz] == '\0';
+
 	free(buf.buf);
 	return rc;
 }
@@ -111,16 +115,16 @@ child(void)
 		warnx("khttp_printf");
 		goto out;
 	} else if (khttp_putc(&r, 0) != KCGI_OK) {
-		warnx("khttp_printf");
+		warnx("khttp_putc");
 		goto out;
 	} else if (khttp_putc(&r, 10) != KCGI_OK) {
-		warnx("khttp_printf");
+		warnx("khttp_putc");
 		goto out;
 	} else if (khttp_putc(&r, 256) != KCGI_OK) {
-		warnx("khttp_printf");
+		warnx("khttp_putc");
 		goto out;
 	} else if (khttp_putc(&r, 257) != KCGI_OK) {
-		warnx("khttp_printf");
+		warnx("khttp_putc");
 		goto out;
 	}
 
