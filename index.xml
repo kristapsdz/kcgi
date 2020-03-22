@@ -269,7 +269,7 @@
 					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
 				this is the case, you'll need to statically link your binary.
 			</p>
-			<pre class="prettyprint">% cc -static yourprog.o `pkg-config --libs kcgi`</pre>
+			<pre class="prettyprint">% cc -static yourprog.o `pkg-config --static --libs kcgi`</pre>
 			<p>
 				FastCGI applications may either be started directly by the web server (which is popular with <a
 					href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
