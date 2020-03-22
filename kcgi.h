@@ -555,7 +555,7 @@ enum kcgi_err	 kcgi_buf_printf(struct kcgi_buf *, const char *, ...)
 			__attribute__((format(printf, 2, 3)));
 enum kcgi_err	 kcgi_buf_putc(struct kcgi_buf *, char);
 enum kcgi_err	 kcgi_buf_puts(struct kcgi_buf *, const char *);
-enum kcgi_err	 kcgi_buf_write(const char *, size_t, void *);
+enum kcgi_err	 kcgi_buf_write(const void *, size_t, void *);
 
 int		 khttpdigest_validate(const struct kreq *, 
 			const char *);
