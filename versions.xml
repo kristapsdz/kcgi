@@ -3,7 +3,7 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
-			<h1>0.10.17</h1>
+			<h1>0.10.18</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-03-22">2020-03-22</time>
 		</header>
@@ -12,6 +12,16 @@
 				Add 
 				<a href="khttp_printf.3.html">khttp_printf(3)</a> and
 				<a href="kcgi_buf_printf.3.html">kcgi_buf_printf(3)</a>.
+				Split out manual pages for
+				<a href="khttp_putc.3.html">khttp_putc(3)</a>,
+				<a href="khttp_puts.3.html">khttp_puts(3)</a>,
+				<a href="khttp_printf.3.html">khttp_printf(3)</a>, and
+				<a href="khttp_write.3.html">khttp_write(3)</a>; and also
+				<a href="kcgi_buf_putc.3.html">kcgi_buf_putc(3)</a>,
+				<a href="kcgi_buf_puts.3.html">kcgi_buf_puts(3)</a>,
+				<a href="kcgi_buf_printf.3.html">kcgi_buf_printf(3)</a>, and
+				<a href="kcgi_buf_write.3.html">kcgi_buf_write(3)</a>.
+				Add many more regression tests for the behaviour of these functions.
 			</div>
 		</aside>
 	</article>
