@@ -40,7 +40,9 @@ main(void)
 }
 #endif /* TEST_CAPSICUM */
 #if TEST_ENDIAN_H
-#define _BSD_SOURCE
+#ifdef __linux__
+# define _DEFAULT_SOURCE
+#endif
 #include <endian.h>
 
 int
