@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.2.2"
+OCONFIGURE_VERSION="0.2.3"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -380,8 +380,8 @@ cat << __HEREDOC__
 # define __attribute__(x)
 #endif
 #if defined(__linux__) || defined(__MINT__)
-# define _GNU_SOURCE /* memmem, memrchr, ... */
-# define _BSD_SOURCE /* le32toh and friends */
+# define _GNU_SOURCE /* memmem, memrchr... */
+# define _DEFAULT_SOURCE /* le32toh */
 #endif
 #if defined(__NetBSD__)
 # define _OPENBSD_SOURCE /* reallocarray, etc. */
