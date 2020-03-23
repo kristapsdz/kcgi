@@ -27,9 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#if HAVE_ZLIB
-# include <zlib.h>
-#endif
+#include <zlib.h>
 
 #include "kcgi.h"
 #include "extern.h"
@@ -60,9 +58,7 @@ struct	kdata {
 	uint64_t	 bytes; /* total bytes written */
 	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
-#if HAVE_ZLIB
 	gzFile		 gz;
-#endif
 	char		*outbuf;
 	size_t		 outbufpos;
 	size_t		 outbufsz;
@@ -200,7 +196,6 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 	if (0 == sz || NULL == buf)
 		return(er);
 
-#if HAVE_ZLIB
 	if (NULL != p->gz && KSTATE_HEAD != p->state) {
 		/*
 		 * FIXME: make this work properly on all systems.
@@ -215,7 +210,7 @@ kdata_flush(struct kdata *p, const char *buf, size_t sz)
 		}
 		return(er);
 	}
-#endif
+
 	if (-1 == p->fcgi)
 		er = fullwritenoerr(STDOUT_FILENO, buf, sz);
 	else 
@@ -485,10 +480,9 @@ kdata_free(struct kdata *p, int flush)
 		close(STDIN_FILENO);
 	}
 
-#if HAVE_ZLIB
 	if (NULL != p->gz)
 		gzclose(p->gz);
-#endif
+
 	if (-1 == p->fcgi) {
 		free(p);
 		return;
@@ -521,7 +515,6 @@ kdata_free(struct kdata *p, int flush)
 	free(p);
 }
 
-#if HAVE_ZLIB
 /*
  * Try to enable compression on the output stream itself.
  * This function is only available with zlib.
@@ -551,7 +544,6 @@ kdata_compress(struct kdata *p, int *ret)
 	*ret = 1;
 	return(1);
 }
-#endif
 
 /*
  * Begin the body sequence by draining the headers to the wire and
@@ -598,7 +590,6 @@ khttp_body(struct kreq *req)
 	 * compression regardless, so most of this function is moot and
 	 * we pass directly into the underlying kdata_body() function.
 	 */
-#if HAVE_ZLIB
 	int	 	 hasreq = 0;
 	enum kcgi_err	 er;
 	const char	*cp;
@@ -644,16 +635,14 @@ khttp_body(struct kreq *req)
 				return(er);
 		}
 	}
-#endif
+
 	return(kdata_body(req->kdata));
 }
 
 enum kcgi_err
 khttp_body_compress(struct kreq *req, int comp)
 {
-#if HAVE_ZLIB
 	int	 didcomp;
-#endif
 
 	/* 
 	 * First, if we didn't request compression, go directly into the
@@ -663,7 +652,6 @@ khttp_body_compress(struct kreq *req, int comp)
 	if ( ! comp)
 		return(kdata_body(req->kdata));
 
-#if HAVE_ZLIB
 	/*
 	 * If we do have compression requested, try enabling it on the
 	 * output stream.
@@ -675,9 +663,6 @@ khttp_body_compress(struct kreq *req, int comp)
 		return(KCGI_FORM);
 
 	return(kdata_body(req->kdata));
-#else
-	return(KCGI_FORM);
-#endif
 }
 
 /*
