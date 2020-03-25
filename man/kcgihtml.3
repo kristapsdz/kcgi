@@ -31,6 +31,7 @@
 .Nm khtml_int ,
 .Nm khtml_ncr ,
 .Nm khtml_open ,
+.Nm khtml_printf ,
 .Nm khtml_putc ,
 .Nm khtml_puts ,
 .Nm khtml_write
@@ -103,6 +104,12 @@
 .Fa "struct khtmlreq *req"
 .Fa "struct kreq *r"
 .Fa "int opts"
+.Fc
+.Ft enum kcgi_err
+.Fo khtml_printf
+.Fa "struct khtmlreq *req"
+.Fa "const char *fmt"
+.Fa "..."
 .Fc
 .Ft enum kcgi_err
 .Fo khtml_putc
@@ -260,6 +267,18 @@ in which case the output is lightly
 .Dq pretty-printed
 with newlines and indentation spaces.
 By default, output is all on one line.
+.It Fn khtml_printf
+Like
+.Fn khtml_puts ,
+but writes output according to the given
+.Fa fmt .
+The format is as for
+.Xr printf 3 .
+If
+.Fa fmt
+is
+.Dv NULL ,
+it does nothing and returns success.
 .It Fn khtml_puts
 Invokes
 .Fn khtml_putc

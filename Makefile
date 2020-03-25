@@ -164,6 +164,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header \
 		   regress/test-header-bad \
 		   regress/test-header-builtin \
+		   regress/test-html-simple \
 		   regress/test-httpdate \
 		   regress/test-invalidate \
 		   regress/test-json-controlchars \
@@ -303,14 +304,15 @@ kfcgi.o: config.h
 # Of course, all need the config.h and headers.
 
 $(REGRESS): config.h kcgi.h regress/regress.h
-$(REGRESS): regress/regress.o libkcgi.a libkcgiregress.a libkcgijson.a
+$(REGRESS): regress/regress.o 
+$(REGRESS): libkcgi.a libkcgiregress.a libkcgijson.a libkcgihtml.a
 
 # -lm required by kcgi-json (on some systems---better safe than sorry)
 
 .for BIN in $(REGRESS)
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) $(REGRESS_CFLAGS) -o $@ $(BIN).c regress/regress.o \
-		libkcgiregress.a libkcgijson.a libkcgi.a $(REGRESS_LIBS)
+		libkcgiregress.a libkcgijson.a libkcgihtml.a libkcgi.a $(REGRESS_LIBS)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
