@@ -763,11 +763,14 @@ khtml_write(const char *cp, size_t sz, void *arg)
 	size_t		 i;
 	enum kcgi_err	 er;
 
-	for (i = 0; i < sz; i++) 
-		if (KCGI_OK != (er = khtml_putc(r, cp[i])))
-			return(er);
+	if (cp == NULL || sz == 0)
+		return KCGI_OK;
 
-	return(KCGI_OK);
+	for (i = 0; i < sz; i++) 
+		if ((er = khtml_putc(r, cp[i])) != KCGI_OK)
+			return er;
+
+	return KCGI_OK;
 }
 
 enum kcgi_err
