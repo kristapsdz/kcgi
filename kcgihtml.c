@@ -683,8 +683,8 @@ khtml_closeto(struct khtmlreq *req, size_t pos)
 {
 
 	if (pos > req->elemsz)
-		return(KCGI_FORM);
-	return(khtml_closeelem(req, req->elemsz - pos));
+		return KCGI_OK;
+	return khtml_closeelem(req, req->elemsz - pos);
 }
 
 enum kcgi_err
