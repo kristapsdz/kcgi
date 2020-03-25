@@ -471,10 +471,10 @@ static	const char *const attrs[KATTR__MAX] = {
 };
 
 size_t
-khtml_elemat(struct khtmlreq *req)
+khtml_elemat(const struct khtmlreq *req)
 {
 
-	return(req->elemsz);
+	return req->elemsz;
 }
 
 enum kcgi_err
@@ -692,7 +692,7 @@ khtml_entity(struct khtmlreq *req, enum kentity entity)
 {
 
 	assert(entity < KENTITY__MAX);
-	return(khtml_ncr(req, entities[entity]));
+	return khtml_ncr(req, entities[entity]);
 }
 
 enum kcgi_err
