@@ -31,6 +31,7 @@
 .Nm khtml_int ,
 .Nm khtml_ncr ,
 .Nm khtml_open ,
+.Nm khtml_printf ,
 .Nm khtml_putc ,
 .Nm khtml_puts ,
 .Nm khtml_write
@@ -103,6 +104,12 @@
 .Fa "struct khtmlreq *req"
 .Fa "struct kreq *r"
 .Fa "int opts"
+.Fc
+.Ft enum kcgi_err
+.Fo khtml_printf
+.Fa "struct khtmlreq *req"
+.Fa "const char *fmt"
+.Fa "const char *cp"
 .Fc
 .Ft enum kcgi_err
 .Fo khtml_putc
@@ -260,6 +267,11 @@ in which case the output is lightly
 .Dq pretty-printed
 with newlines and indentation spaces.
 By default, output is all on one line.
+.It Fn khtml_printf
+Like
+.Fn khtml_puts ,
+but writes output according to the given
+.Fa fmt .
 .It Fn khtml_puts
 Invokes
 .Fn khtml_putc
@@ -322,7 +334,7 @@ khtml_closeelem(&req, 1); /* head */
 
 khtml_elem(&req, KELEM_BODY);
 khtml_elem(&req, KELEM_P);
-khtml_puts(&req, "Hello, world.");
+khtml_printf(&req, "%s", "Hello, world.");
 khtml_closeelem(&req, 1); /* p */
 khtml_closeelem(&req, 1); /* body */
 

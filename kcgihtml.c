@@ -771,6 +771,27 @@ khtml_write(const char *cp, size_t sz, void *arg)
 }
 
 enum kcgi_err
+khtml_printf(struct khtmlreq *req, const char *fmt, ...)
+{
+	char		*buf;
+	int		 len;
+	va_list		 ap;
+	enum kcgi_err	 er;
+
+	if (fmt == NULL)
+		return KCGI_OK;
+
+	va_start(ap, fmt);
+	len = XVASPRINTF(&buf, fmt, ap);
+	va_end(ap);
+	if (len == -1)
+		return KCGI_ENOMEM;
+	er = khtml_write(buf, (size_t)len, req);
+	free(buf);
+	return er;
+}
+
+enum kcgi_err
 khtml_puts(struct khtmlreq *req, const char *cp)
 {
 
