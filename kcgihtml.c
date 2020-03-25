@@ -696,17 +696,22 @@ khtml_entity(struct khtmlreq *req, enum kentity entity)
 }
 
 enum kcgi_err
-khtml_ncr(struct khtmlreq *req, uint16_t ncr)
+khtml_ncr(struct khtmlreq *req, uint32_t ncr)
 {
 	char	 	 buf[INT_MAXSZ];
 	enum kcgi_err	 er;
 
-	(void)snprintf(buf, sizeof(buf), "%" PRIx16, ncr);
-	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "&#x")))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, buf)))
-		return(er);
-	return(kcgi_writer_putc(req->arg, ';'));
+	/* 
+	 * Don't check whether ncr is a valid unicode entity.
+	 * Right now these only go up to 150 000 or so.
+	 */
+
+	snprintf(buf, sizeof(buf), "%" PRIx32, ncr);
+	if ((er = kcgi_writer_puts(req->arg, "&#x")) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(req->arg, buf)) != KCGI_OK)
+		return er;
+	return kcgi_writer_putc(req->arg, ';');
 }
 
 enum kcgi_err

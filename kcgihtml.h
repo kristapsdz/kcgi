@@ -474,7 +474,7 @@ enum kcgi_err	 khtml_elem(struct khtmlreq *, enum kelem);
 size_t		 khtml_elemat(struct khtmlreq *);
 enum kcgi_err	 khtml_entity(struct khtmlreq *, enum kentity);
 enum kcgi_err	 khtml_int(struct khtmlreq *, int64_t);
-enum kcgi_err	 khtml_ncr(struct khtmlreq *, uint16_t);
+enum kcgi_err	 khtml_ncr(struct khtmlreq *, uint32_t);
 enum kcgi_err 	 khtml_open(struct khtmlreq *, struct kreq *, int);
 enum kcgi_err	 khtml_putc(struct khtmlreq *, char);
 enum kcgi_err	 khtml_printf(struct khtmlreq *, const char *, ...)
