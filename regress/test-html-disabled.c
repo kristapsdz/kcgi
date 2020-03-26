@@ -31,11 +31,6 @@
 #include "../kcgihtml.h"
 #include "regress.h"
 
-#define	EXPECT \
-	"<!DOCTYPE html><html><body>" \
-	"Hi&#x2014;5 minutes til midnight!&#x1f601;" \
-	"</body></html>"
-
 static size_t
 bufcb(void *contents, size_t sz, size_t nm, void *dat)
 {
@@ -50,7 +45,7 @@ static int
 parent(CURL *curl)
 {
 	struct kcgi_buf	 buf;
-	int		 rc;
+	size_t		 sz;
 
 	memset(&buf, 0, sizeof(struct kcgi_buf));
 
@@ -62,10 +57,10 @@ parent(CURL *curl)
 		warnx("curl_easy_perform");
 		return 0;
 	}
-	if (!(rc = strcmp(buf.buf, EXPECT) == 0))
-		warnx("content test: %s", buf.buf);
+	if ((sz = buf.sz) > 0)
+		warnx("unexpected content");
 	free(buf.buf);
-	return rc;
+	return sz == 0;
 }
 
 static int
@@ -74,7 +69,6 @@ child(void)
 	struct kreq	 r;
 	struct khtmlreq	 req;
 	const char 	*page[] = { "index" };
-	int		 rc = 0;
 
 	if (khttp_parse(&r, NULL, 0, page, 1, 0) != KCGI_OK) {
 		warnx("khttp_parse");
@@ -97,39 +91,18 @@ child(void)
 		goto out;
 	}
 
-	if (khtml_open(&req, &r, 0) != KCGI_OK) {
-		warnx("khtml_open");
-		goto out;
-	}
+	/* 
+	 * This will cause khtml_open() to abort.
+	 * The result: zero-length content.
+	 */
 
 	kcgi_writer_disable(&r);
 	
-	if (khtml_elem(&req, KELEM_DOCTYPE) != KCGI_OK ||
-	    khtml_elem(&req, KELEM_HTML) != KCGI_OK ||
-	    khtml_elem(&req, KELEM_BODY) != KCGI_OK) {
-		warnx("khtml_elem");
-		goto out;
-	}
-
-	if (khtml_puts(&req, "Hi") != KCGI_OK ||
-	    khtml_entity(&req, KENTITY_mdash) != KCGI_OK ||
-	    khtml_int(&req, 5) != KCGI_OK ||
-	    khtml_write(" minutes xxx", 9, &req) != KCGI_OK ||
-	    khtml_printf(&req, "til %s!", "midnight") != KCGI_OK ||
-	    khtml_ncr(&req, 0x1F601) != KCGI_OK) {
-		warnx("khtml_puts");
-		goto out;
-	}
-	
-	if (khtml_close(&req) != KCGI_OK) {
-		warnx("khtml_close");
-		goto out;
-	}
-
-	rc = 1;
+	if (khtml_open(&req, &r, 0) == KCGI_OK)
+		warnx("khtml_open should not complete");
 out:
 	khttp_free(&r);
-	return rc;
+	return 0;
 }
 
 int
