@@ -652,7 +652,7 @@ khtml_closeelem(struct khtmlreq *req, size_t sz)
 	size_t		 i;
 	enum kcgi_err	 er;
 
-	if (0 == sz)
+	if (sz == 0)
 		sz = req->elemsz;
 	if (sz > req->elemsz)
 		sz = req->elemsz;
@@ -660,29 +660,32 @@ khtml_closeelem(struct khtmlreq *req, size_t sz)
 	for (i = 0; i < sz; i++) {
 		assert(req->elemsz);
 		req->elemsz--;
-		if (KCGI_OK != (er = khtml_flow_open
-		    (req, req->elems[req->elemsz])))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "</")))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts
-		    (req->arg, tags[req->elems[req->elemsz]].name)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
-			return(er);
-		if (KCGI_OK != (er = khtml_flow_close
-	    	    (req, req->elems[req->elemsz])))
-			return(er);
+		er = khtml_flow_open(req, req->elems[req->elemsz]);
+		if (er != KCGI_OK)
+			return er;
+		er = kcgi_writer_puts(req->arg, "</");
+		if (er != KCGI_OK)
+			return er;
+		er = kcgi_writer_puts(req->arg,
+			tags[req->elems[req->elemsz]].name);
+		if (er != KCGI_OK)
+			return er;
+		er = kcgi_writer_putc(req->arg, '>');
+		if (er != KCGI_OK)
+			return er;
+		er = khtml_flow_close(req, req->elems[req->elemsz]);
+		if (er != KCGI_OK)
+			return er;
 	}
 
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
 khtml_closeto(struct khtmlreq *req, size_t pos)
 {
 
-	if (pos > req->elemsz)
+	if (pos >= req->elemsz)
 		return KCGI_OK;
 	return khtml_closeelem(req, req->elemsz - pos);
 }
