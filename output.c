@@ -676,7 +676,7 @@ kcgi_writer_get(struct kreq *r, int type)
 {
 	struct kcgi_writer	*p;
 
-	if (!r->kdata->disabled) {
+	if (r->kdata->disabled) {
 		XWARNX("kcgi_writer_get after kcgi_writer_disable");
 		abort();
 	}
