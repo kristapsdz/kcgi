@@ -676,12 +676,15 @@ kcgi_writer_get(struct kreq *r, int type)
 {
 	struct kcgi_writer	*p;
 
-	assert( ! r->kdata->disabled);
+	if (!r->kdata->disabled) {
+		XWARNX("kcgi_writer_get after kcgi_writer_disable");
+		abort();
+	}
 
-	p = XMALLOC(sizeof(struct kcgi_writer));
-	if (NULL != p)
+	if ((p = XMALLOC(sizeof(struct kcgi_writer))) != NULL)
 		p->kdata = r->kdata;
-	return(p);
+
+	return p;
 }
 
 /*
