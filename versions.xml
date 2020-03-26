@@ -3,6 +3,50 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.11.0</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-03-22">2020-03-22</time>
+		</header>
+		<aside>
+			<div>
+				Bumping minor number due to some API and behaviour changes.
+			</div>
+			<div>
+				<strong>API change</strong>: previously,
+				<a href="khtml_ncr.3.html">khtml_ncr(3)</a> accepted a 
+				<code>uint16_t</code> for its entity value.
+				However, these values can legitimately be 32 bits.
+				It has been changed to <code>uint32_t</code>.
+			</div>
+			<div>
+				<strong>API change</strong>: the <code>struct khtmlreq</code>
+				pointer passed into
+				<a href="khtml_elemat.3.html">khtml_elemat(3)</a> is now
+				<code>const</code>.
+			</div>
+			<div>
+				<strong>Behaviour change</strong>: previously,
+				<a href="khtml_closeto.3.html">khtml_closeto(3)</a> would return
+				<code>KCGI_FORM</code> if given a stack position greater than the
+				current stack.
+				This is inconsistent with other functions, so such values are now
+				simply ignored.
+				It also masks other problems that cause <code>KCGI_FORM</code> to
+				return.
+				Furthermore, if this function was invoked at the current depth, it
+				would close all scopes instead of none.
+				This has also been fixed.
+			</div>
+			<div>
+				Add 
+				<a href="khtml_printf.3.html">khtml_printf(3)</a>.
+				Split apart
+				<a href="kcgihtml.3.html">kcgihtml(3)</a> into one manpage per function.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.10.18</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-03-22">2020-03-22</time>
