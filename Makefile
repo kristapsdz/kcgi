@@ -73,6 +73,21 @@ MAN3S		 = man/kcgi.3 \
 		   man/kcgi_buf_write.3 \
 		   man/kcgi_writer_disable.3 \
 		   man/kcgi_strerror.3 \
+		   man/khtml_attr.3 \
+		   man/khtml_close.3 \
+		   man/khtml_closeelem.3 \
+		   man/khtml_closeto.3 \
+		   man/khtml_double.3 \
+		   man/khtml_elem.3 \
+		   man/khtml_elemat.3 \
+		   man/khtml_entity.3 \
+		   man/khtml_int.3 \
+		   man/khtml_ncr.3 \
+		   man/khtml_open.3 \
+		   man/khtml_printf.3 \
+		   man/khtml_putc.3 \
+		   man/khtml_puts.3 \
+		   man/khtml_write.3 \
 		   man/khttp_body.3 \
 		   man/khttp_fcgi_free.3 \
 		   man/khttp_fcgi_init.3 \

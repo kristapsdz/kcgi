@@ -1,0 +1,85 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTML_ELEMAT 3
+.Os
+.Sh NAME
+.Nm khtml_elemat
+.Nd get element stack depth of kcgihtml
+.Sh LIBRARY
+.Lb libkcgihtml
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.In kcgihtml.h
+.Ft size_t
+.Fo khtml_elemat
+.Fa "const struct khtmlreq *req"
+.Fc
+.Sh DESCRIPTION
+Gets the current depth of the element stack of
+.Fa req ,
+initialised with
+.Xr khtml_open 3 .
+This is usually used with
+.Xr khtml_closeto 3 .
+.Pp
+If called before opening any element contexts (i.e., a depth
+of zero), a subsequent
+.Xr khtml_closeto 3
+will close all open scopes.
+.Sh EXAMPLES
+The following outputs a simple HTML page.
+It assumes
+.Va r
+is a
+.Vt struct kreq
+pointer.
+For brevity, it does not do any error checking.
+.Bd -literal -offset indent
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_HTML]);
+khttp_body(r);
+khtml_open(&req, r, 0);
+khtml_elem(&req, KELEM_DOCTYPE);
+khtml_elem(&req, KELEM_HTML);
+pos = khtml_elemat(&req); /* save at html */
+khtml_elem(&req, KELEM_HEAD);
+khtml_elem(&req, KELEM_TITLE);
+khtml_puts(&req, "Hello, world.");
+khtml_closeto(&req, pos); /* to html */
+khtml_closeelem(&req, 1); /* head */
+khtml_elem(&req, KELEM_BODY);
+khtml_puts(&req, "Hello, world");
+khtml_close(&req);
+.Ed
+.Sh SEE ALSO
+.Xr kcgihtml 3
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+If called in a scope that's subsequently closed, then a new scope
+reopened and filled in, a corresponding
+.Xr khtml_closeto 3
+will unwind the stack to the new scope.
+In other words this does not identify a savepoint: it's merely the scope
+depth.

@@ -18,23 +18,7 @@
 .Dt KCGIHTML 3
 .Os
 .Sh NAME
-.Nm kcgihtml ,
-.Nm khtml_attr ,
-.Nm khtml_attrx ,
-.Nm khtml_close ,
-.Nm khtml_closeelem ,
-.Nm khtml_closeto ,
-.Nm khtml_double ,
-.Nm khtml_elem ,
-.Nm khtml_elemat ,
-.Nm khtml_entity ,
-.Nm khtml_int ,
-.Nm khtml_ncr ,
-.Nm khtml_open ,
-.Nm khtml_printf ,
-.Nm khtml_putc ,
-.Nm khtml_puts ,
-.Nm khtml_write
+.Nm kcgihtml
 .Nd HTML output for kcgi
 .Sh LIBRARY
 .Lb libkcgihtml
@@ -44,103 +28,12 @@
 .In stdint.h
 .In kcgi.h
 .In kcgihtml.h
-.Ft enum kcgi_err
-.Fo khtml_attr
-.Fa "struct khtmlreq *req"
-.Fa "enum kelem elem"
-.Fa "..."
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_attrx
-.Fa "struct khtmlreq *req"
-.Fa "enum kelem elem"
-.Fa "..."
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_close
-.Fa "struct khtmlreq *req"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_closeelem
-.Fa "struct khtmlreq *req"
-.Fa "size_t count"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_closeto
-.Fa "struct khtmlreq *req"
-.Fa "size_t pos"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_double
-.Fa "struct khtmlreq *req"
-.Fa "double val"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_elem
-.Fa "struct khtmlreq *req"
-.Fa "enum kelem elem"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_elemat
-.Fa "struct khtmlreq *req"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_entity
-.Fa "struct khtmlreq *req"
-.Fa "enum entity entity"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_int
-.Fa "struct khtmlreq *req"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_ncr
-.Fa "struct khtmlreq *req"
-.Fa "uint16_t ncr"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_open
-.Fa "struct khtmlreq *req"
-.Fa "struct kreq *r"
-.Fa "int opts"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_printf
-.Fa "struct khtmlreq *req"
-.Fa "const char *fmt"
-.Fa "..."
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_putc
-.Fa "struct khtmlreq *req"
-.Fa "char c"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_puts
-.Fa "struct khtmlreq *req"
-.Fa "const char *cp"
-.Fc
-.Ft enum kcgi_err
-.Fo khtml_write
-.Fa "const char *cp"
-.Fa "size_t sz"
-.Fa "void *arg"
-.Fc
 .Sh DESCRIPTION
-The
-.Nm kcgihtml
-functions support output of HTML5 nodes in a
+Produce output of XML-formed HTML5 content in a
 .Xr kcgi 3
 .Fa req
 allocated with
 .Xr khttp_parse 3 .
-Only
-.Fn khtml_open
-and
-.Fn khtml_close
-may be called before
-.Xr khttp_body 3 .
 .Pp
 To compile and link, use
 .Xr pkg-config 1
@@ -159,146 +52,6 @@ To use this properly, open a context with
 .Fn khtml_open ,
 then use whichever functions you wish, then close the context with
 .Fn khtml_close .
-.Bl -tag -width Ds
-.It Fn khtml_attr
-Open the scope of element
-.Fa elem
-with matching key-value pairs in the varargs for its attributes.
-The maximum number of nested scopes is fixed at 128.
-The terminating attribute key must be
-.Dv ATTR__MAX .
-.It Fn khtml_attrx
-Like
-.Fn khtml_attr ,
-but accepts an addition parameter
-.Ft "enum attrx"
-following the
-.Ft "enum attr"
-that specifies the attribute type.
-This is useful for non-string attributes, for example, invoking with
-.Dv KATTR_WIDTH ,
-.Dv KATTRX_INT ,
-and
-.Li 100
-will properly render the integer type.
-The types route through to
-.Fn khtml_puts
-for
-.Dv KATTRX_STRING ,
-.Fn khtml_int
-for
-.Dv KATTRX_INT ,
-.Fn khtml_double
-for
-.Dv KATTRX_DOUBLE .
-.It Fn khtml_close
-Close an HTML context as opened with
-.Fn khtml_open .
-This will also close any open elements.
-You should not use the object after invoking this function.
-.It Fn khtml_closeelem
-Close the last
-.Fa count
-scopes.
-This will call
-.Xr abort 3
-if
-.Fa count
-exceeds the number of open scopes.
-If
-.Fa count
-is zero, this will close all scopes.
-.Em \&Do not
-close HTML
-.Qq void
-elements such as
-.Aq meta .
-.It Fn khtml_closeto
-Close until a certain level
-.Fa pos
-in the HTML tree, which must be at or above the current level.
-Usually used with
-.Fn khtml_elemat .
-If there are fewer open contexts than the requested, this will only
-close the available open contexts.
-.It Fn khtml_double
-Wrapper over
-.Fn khtml_puts
-for formatting a double-precision floating point.
-This uses a buffer of size
-.Li 256
-and the
-.Li %g
-to
-.Xr snprintf 3 ,
-which may not be what you want.
-.It Fn khtml_elem
-Invokes
-.Fn khtml_attr
-with no attributes.
-.It Fn khtml_elemat
-Save the current point in the HTML tree.
-Useful for saving a
-.Fn khtml_closeto
-rollback point.
-.It Fn khtml_entity
-Emit the numeric character reference for
-.Fa entity .
-.It Fn khtml_int
-Wrapper over
-.Fn khtml_puts
-for formatting a 64-bit signed integer.
-.It Fn khtml_ncr
-Emit the numeric character reference
-.Fa ncr .
-.It Fn khtml_putc
-Emit the text
-.Fa c ,
-escaping it (e.g.,
-.Sq \&> )
-for HTML if necessary.
-.It Fn khtml_open
-Initialise an HTML output context.
-This accepts the underlying request as well as a bit-mask of options
-.Fa opts .
-This can be set to
-.Dv KHTML_PRETTY ,
-in which case the output is lightly
-.Dq pretty-printed
-with newlines and indentation spaces.
-By default, output is all on one line.
-.It Fn khtml_printf
-Like
-.Fn khtml_puts ,
-but writes output according to the given
-.Fa fmt .
-The format is as for
-.Xr printf 3 .
-If
-.Fa fmt
-is
-.Dv NULL ,
-it does nothing and returns success.
-.It Fn khtml_puts
-Invokes
-.Fn khtml_putc
-for each character of the NUL-terminated string
-.Fa cp .
-.It Fn khtml_write
-Like
-.Fn khtml_puts ,
-but working with a sized buffer.
-This is generally for use with
-.Xr khttp_template 3 .
-.El
-.Sh RETURN VALUES
-All functions inherit return values from
-.Xr khttp_write 3 .
-The
-.Fn kkhtml_closeto
-function returns
-.Dv KCGI_FORM
-if the requested number of scopes exceeds available scopes.
 .Sh EXAMPLES
 The following outputs a simple HTML page.
 It assumes
@@ -306,27 +59,17 @@ It assumes
 is a
 .Vt struct kreq
 pointer.
-Begin with the HTTP document.
+For completeness, this restricts all future writes to HTML.
 .Bd -literal -offset indent
 khttp_head(r, kresps[KRESP_STATUS],
   "%s", khttps[KHTTP_200]);
 khttp_head(r, kresps[KRESP_CONTENT_TYPE],
   "%s", kmimetypes[KMIME_TEXT_HTML]);
 khttp_body(r);
-.Ed
-.Pp
-Following that, the HTML5 document.
-Let
-.Va req
-be a
-.Vt struct khtmlreq
-object.
-This simply outputs an HTML5 document with title and content being
-.Qq Hello, world .
-It also links to a style sheet
-.Pa /style.css .
-.Bd -literal -offset indent
+
 khtml_open(&req, r, 0);
+kcgi_writer_disable(r);
+
 khtml_elem(&req, KELEM_DOCTYPE);
 khtml_elem(&req, KELEM_HTML);
 
@@ -341,12 +84,13 @@ khtml_closeelem(&req, 1); /* head */
 
 khtml_elem(&req, KELEM_BODY);
 khtml_elem(&req, KELEM_P);
-khtml_puts(&req, "Hello, world.");
-khtml_closeelem(&req, 1); /* p */
-khtml_closeelem(&req, 1); /* body */
+khtml_puts(&req, "Hello, world");
+khtml_entity(&req, KENTITY_mdash);
+khtml_printf(&req, "%s", "how are you?");
+khtml_putc(&req, ' ');
+khtml_ncr(&req, 0x1F601); /* smiley */
 
-khtml_closeelem(&req, 1); /* html */
-khtml_close(&req);
+khtml_close(&req); /* close all scopes */
 .Ed
 .Pp
 The element name comment alongside
@@ -354,6 +98,22 @@ The element name comment alongside
 hints as to which scope is being closed.
 .Sh STANDARDS
 HTML5 compatible with the draft standard of February 2014.
+.Sh SEE ALSO
+.Xr khtml_attr 3 ,
+.Xr khtml_close 3 ,
+.Xr khtml_closeelem 3 ,
+.Xr khtml_closeto 3 ,
+.Xr khtml_double 3 ,
+.Xr khtml_elem 3 ,
+.Xr khtml_elemat 3 ,
+.Xr khtml_entity 3 ,
+.Xr khtml_int 3 ,
+.Xr khtml_ncr 3 ,
+.Xr khtml_open 3 ,
+.Xr khtml_printf 3 ,
+.Xr khtml_putc 3 ,
+.Xr khtml_puts 3 ,
+.Xr khtml_write 3
 .Sh AUTHORS
 The
 .Nm kcgihtml
