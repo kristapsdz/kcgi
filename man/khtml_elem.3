@@ -63,7 +63,8 @@ indicating the error state.
 .It Dv KCGI_OK
 Success (not an error).
 .It Dv KCGI_ENOMEM
-Internal memory allocation failure.
+Internal memory allocation failure, including reaching the maximum
+number of possible HTML scopes.
 .It Dv KCGI_HUP
 The output connection has been terminated.
 For FastCGI connections, the current connection should be released with
