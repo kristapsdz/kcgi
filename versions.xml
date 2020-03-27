@@ -38,10 +38,31 @@
 				This has also been fixed.
 			</div>
 			<div>
+				<strong>Behaviour change</strong>: previously, many
+				<a href="kcgijson.3.html">kcgijson(3)</a> functions would return
+				<code>KCGI_FORM</code> if used out-of-context, for example, trying
+				to open a named object in an array context.
+				To prevent other <code>KCGI_FORM</code> errors from being masked,
+				introduce a new error code <code>KCGI_WRITER</code> to handle these
+				situations.
+			</div>
+			<div>
+				Passing a
+				<code>NULL</code> pointer value to the string writing functions of
+				<a href="khttp_puts.3.html">khttp_puts(3)</a>,
+				<a href="khttp_write.3.html">khttp_write(3)</a>,
+				<a href="kcgihtml.3.html">kcgihtml(3)</a> or
+				<a href="kcgijson.3.html">kcgijson(3)</a> would cause undefined
+				behaviour.
+				Now these are noops.
+			</div>
+			<div>
 				Add 
 				<a href="khtml_printf.3.html">khtml_printf(3)</a>.
 				Split apart
 				<a href="kcgihtml.3.html">kcgihtml(3)</a> into one manpage per function.
+				Split apart
+				<a href="kcgijson.3.html">kcgijson(3)</a> into one manpage per function.
 			</div>
 		</aside>
 	</article>
