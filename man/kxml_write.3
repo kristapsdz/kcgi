@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -15,40 +15,71 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KCGIXML 3
+.Dt KXML_PUTS 3
 .Os
 .Sh NAME
-.Nm kcgixml ,
-.Nm kxml_close ,
-.Nd XML output for kcgi
+.Nm kxml_write
+.Nd put content data for kcgixml
 .Sh LIBRARY
 .Lb libkcgixml
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.In kcgixml.h
+.Ft enum kcgi_err
+.Fo kxml_write
+.Fa "const char *buf"
+.Fa "size_t sz"
+.Fa "void *arg"
+.Fc
 .Sh DESCRIPTION
-Produce output of XML content in a
-.Xr kcgi 3
-context allocated with
-.Xr khttp_parse 3 .
-.Pp
-To compile and link, use
-.Xr pkg-config 1
-as follows:
-.Bd -literal
-% cc `pkg-config --cflags kcgi-xml` -c sample.c
-% cc -o sample sample.o `pkg-config --libs kcgi-xml`
-.Ed
-.Pp
-All
-.Nm kcgixml
-sequences begin with
-.Xr kxml_open 3 ,
-emit the standard XML prologue with
-.Xr kxml_prologue 3 ,
-create XML nodes, and end with
-.Xr kxml_close 3 .
-.Sh STANDARDS
-The
-.Nm kcgixml
-functions conform to the XML 1.0 mark-up specification.
+Writes binary data
+.Fa buf
+of length
+.Fa sz
+to a context
+.Fa arg ,
+a
+.Vt struct kxmlreq
+initialised with
+.Xr kxml_open 3
+and passed as an opaque pointer.
+If
+.Fa buf
+is
+.Dv NULL
+or
+.Fa sz
+is zero, does nothing and returns success.
+All of the content is XML escaped.
+.Sh RETURN VALUES
+Returns an
+.Ft enum kcgi_err
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.El
 .Sh EXAMPLES
 The following outputs a simple XML page.
 It assumes
@@ -68,23 +99,10 @@ khttp_body(r);
 kxml_open(&req, r, elems, 3);
 kxml_push(&req, 0); /* foo */
 kxml_puts(&req, "Hello, world");
-kxml_pop(&req);
-kxml_pushattrs(&req, 1, "baz", "xyzzy", NULL); /* bar */
-kxml_puts(&req, "Hello, world");
-kxml_pop(&req);
 kxml_close(&req);
 .Ed
 .Sh SEE ALSO
-.Xr kxml_close 3 ,
-.Xr kxml_open 3 ,
-.Xr kxml_pop 3 ,
-.Xr kxml_popall 3 ,
-.Xr kxml_prologue 3 ,
-.Xr kxml_push 3 ,
-.Xr kxml_pushnull 3 ,
-.Xr kxml_putc 3 ,
-.Xr kxml_puts 3 ,
-.Xr kxml_write 3
+.Xr kcgixml 3
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

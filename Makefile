@@ -123,7 +123,17 @@ MAN3S		 = man/kcgi.3 \
 		   man/kutil_log.3 \
 		   man/kutil_openlog.3 \
 		   man/kutil_urlencode.3 \
-		   man/kvalid_string.3
+		   man/kvalid_string.3 \
+		   man/kxml_close.3 \
+		   man/kxml_open.3 \
+		   man/kxml_pop.3 \
+		   man/kxml_popall.3 \
+		   man/kxml_prologue.3 \
+		   man/kxml_push.3 \
+		   man/kxml_pushnull.3 \
+		   man/kxml_putc.3 \
+		   man/kxml_puts.3 \
+		   man/kxml_write.3
 MAN8S		 = man/kfcgi.8 
 MANHTMLS	 =
 .for f in $(MAN3S) $(MAN8S)

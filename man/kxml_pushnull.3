@@ -1,0 +1,122 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KXML_PUSHNULL 3
+.Os
+.Sh NAME
+.Nm kxml_pushnull ,
+.Nm kxml_pushnullattrs
+.Nd write a null element for kcgixml
+.Sh LIBRARY
+.Lb libkcgixml
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.In kcgixml.h
+.Ft enum kcgi_err
+.Fo kxml_pushnull
+.Fa "struct kxmlreq *req"
+.Fa "size_t elem"
+.Fc
+.Ft enum kcgi_err
+.Fo kxml_pushnullattrs
+.Fa "struct kxmlreq *req"
+.Fa "size_t elem"
+.Fa "..."
+.Fc
+.Sh DESCRIPTION
+Write a null
+.Pq self-closing
+element
+.Fa elem
+on the current element stack of
+.Fa req ,
+initialised with
+.Xr kxml_open 3 .
+The element must be in the element array passed to
+.Xr kxml_open 3 .
+.Pp
+The
+.Fn kxml_pushnullattrs
+form accepts pairs of character string arguments, the first being an
+attribute name, the second its value.
+This list must be terminated by a
+.Dv NULL
+pointer.
+Attribute names are left as-is: the caller must make sure that keys are
+valid XML.
+Attribute values are XML escaped to prevent content from breaking out of
+the attribute string.
+.Sh RETURN VALUES
+Returns an
+.Ft enum kcgi_err
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure, including reaching the maximum
+number of possible JSON scopes.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.It Dv KCGI_WRITER
+The
+.Fa elem
+is not a valid element index.
+.El
+.Sh EXAMPLES
+The following outputs a simple XML page.
+It assumes
+.Va r
+is a
+.Vt struct kreq
+pointer.
+For brevity, it does not do any error checking.
+.Bd -literal -offset indent
+const char *const elems[] =
+  { "foo", "bar", "baz" };
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_XML]);
+khttp_body(r);
+kxml_open(&req, r, elems, 3);
+kxml_pushnull(&req, 0); /* foo */
+kxml_pushnullattrs(&req, 1, "key", "val", NULL); /* bar */
+kxml_close(&req);
+.Ed
+.Sh SEE ALSO
+.Xr kcgixml 3
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

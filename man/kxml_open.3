@@ -1,0 +1,111 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KXML_OPEN 3
+.Os
+.Sh NAME
+.Nm kxml_open
+.Nd open kcgixml context
+.Sh LIBRARY
+.Lb libkcgixml
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.In kcgixml.h
+.Ft enum kcgi_err
+.Fo kxml_open
+.Fa "struct kxmlreq *xml"
+.Fa "struct kreq *req"
+.Fa "const char *const *elems"
+.Fa "size_t elemsz"
+.Fc
+.Sh DESCRIPTION
+Zeroes and initialises a new context
+.Fa req
+with the underlying
+.Xr kcgi 3
+context
+.Fa r
+as allocated with
+.Xr khttp_parse 3
+or
+.Xr khttp_fcgi_parse 3 .
+It should only be called after
+.Xr khttp_body 3 .
+The context is initialised with
+.Fa elemsz
+possible elements having names
+.Fa elems .
+It is the caller's responsibility that these be valid XML element names.
+.Pp
+If
+.Xr kcgi_writer_disable 3
+has been called, the process will be killed with an uncatchable signal.
+.Sh RETURN VALUES
+Returns an
+.Ft enum kcgi_err
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.El
+.Sh EXAMPLES
+The following outputs a simple XML page.
+It assumes
+.Va r
+is a
+.Vt struct kreq
+pointer.
+For brevity, it does not do any error checking.
+.Bd -literal -offset indent
+const char *const elems[] =
+  { "foo", "bar", "baz" };
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_TEXT_XML]);
+khttp_body(r);
+kxml_open(&req, r, elems, 3);
+kxml_push(&req, 0); /* foo */
+kxml_puts(&req, "Hello, world");
+kxml_close(&req);
+.Ed
+.Sh SEE ALSO
+.Xr kcgixml 3
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
