@@ -103,6 +103,20 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_write.3 \
 		   man/khttpbasic_validate.3 \
 		   man/khttpdigest_validate.3 \
+		   man/kjson_array_close.3 \
+		   man/kjson_array_open.3 \
+		   man/kjson_close.3 \
+		   man/kjson_obj_close.3 \
+		   man/kjson_obj_open.3 \
+		   man/kjson_open.3 \
+		   man/kjson_putbool.3 \
+		   man/kjson_putdouble.3 \
+		   man/kjson_putint.3 \
+		   man/kjson_putnull.3 \
+		   man/kjson_putstring.3 \
+		   man/kjson_string_close.3 \
+		   man/kjson_string_open.3 \
+		   man/kjson_string_write.3 \
 		   man/kmalloc.3 \
 		   man/kutil_epoch2str.3 \
 		   man/kutil_invalidate.3 \
