@@ -45,9 +45,9 @@ enum kcgi_err
 kxml_prologue(struct kxmlreq *r)
 {
 
-	return(kcgi_writer_puts(r->arg, 
+	return kcgi_writer_puts(r->arg, 
 		"<?xml version=\"1.0\" "
-		"encoding=\"utf-8\" ?>"));
+		"encoding=\"utf-8\" ?>");
 }
 
 enum kcgi_err
@@ -58,7 +58,7 @@ kxml_close(struct kxmlreq *r)
 	er = kxml_popall(r);
 	kcgi_writer_free(r->arg);
 	r->arg = NULL;
-	return(er);
+	return er;
 }
 
 enum kcgi_err

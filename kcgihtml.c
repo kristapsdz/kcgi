@@ -581,7 +581,7 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 			er = khtml_double(req, va_arg(ap, double));
 			break;
 		}
-		if (KCGI_OK != er)
+		if (er != KCGI_OK)
 			goto out;
 		if ((er = kcgi_writer_putc(req->arg, '"')) != KCGI_OK)
 			goto out;
@@ -856,5 +856,5 @@ khtml_close(struct khtmlreq *r)
 	er = khtml_closeelem(r, 0);
 	kcgi_writer_free(r->arg);
 	r->arg = NULL;
-	return(er);
+	return er;
 }
