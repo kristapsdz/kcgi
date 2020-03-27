@@ -452,6 +452,10 @@ enum	kelem {
 	KELEM__MAX
 };
 
+/*
+ * The maximum number of HTML scopes allowed.
+ * Once this has been reached, new scopes will return KCGI_ENOMEM.
+ */
 #define	KHTML_STACK_MAX	128
 
 struct	khtmlreq {

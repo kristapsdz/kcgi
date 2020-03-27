@@ -32,6 +32,10 @@
 #  endif
 #endif
 
+/*
+ * The maximum number of XML scopes allowed.
+ * Once this has been reached, new scopes will return KCGI_ENOMEM.
+ */
 #define	KXML_STACK_MAX	128
 
 struct	kxmlreq {
