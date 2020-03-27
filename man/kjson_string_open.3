@@ -1,0 +1,121 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KJSON_STRING_OPEN 3
+.Os
+.Sh NAME
+.Nm kjson_string_open ,
+.Nm kjson_stringp_open
+.Nd open string scope for kcgijson
+.Sh LIBRARY
+.Lb libkcgijson
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.In kcgijson.h
+.Ft enum kcgi_err
+.Fo kjson_string_open
+.Fa "struct kjsonreq *req"
+.Fc
+.Ft enum kcgi_err
+.Fo kjson_stringp_open
+.Fa "struct kjsonreq *req"
+.Fa "const char *name"
+.Fc
+.Sh DESCRIPTION
+Open an string scope in a context
+.Fa req
+initialised with
+.Xr khtml_open 3 .
+Scopes are closed with
+.Xr kjson_string_close 3
+or
+.Xr kjson_close 3 .
+String scopes are open strings that may be filled in with further
+.Xr kjson_string_puts 3
+and family functions.
+.Pp
+The
+.Fn kjson_string_open
+form is for array scopes, while
+.Fn kjson_stringp_open
+for objects.
+.Pp
+Passing a
+.Dv NULL
+value to
+.Fa name
+for
+.Fn kjson_stringp_open ,
+is equivalent to calling
+.Fn kjson_string_open .
+.Sh RETURN VALUES
+Returns an
+.Ft enum kcgi_err
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.It Dv KCGI_WRITER
+The incorrect form was used for the current scope, for example, an
+array-type write within an object.
+.El
+.Sh EXAMPLES
+The following outputs a simple JSON document.
+It assumes
+.Va r
+is a
+.Vt struct kreq
+pointer.
+For brevity, it does not do any error checking.
+.Bd -literal -offset indent
+khttp_head(r, kresps[KRESP_STATUS],
+  "%s", khttps[KHTTP_200]);
+khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+  "%s", kmimetypes[KMIME_APP_JSON]);
+khttp_body(r);
+kjson_open(&req, r);
+kjson_string_open(&req);
+kjson_string_puts(&req, "Hello, ");
+kjson_string_puts(&req, "world.");
+kjson_close(&req);
+.Ed
+.Sh SEE ALSO
+.Xr kcgijson 3
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

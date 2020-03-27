@@ -18,34 +18,7 @@
 .Dt KCGIJSON 3
 .Os
 .Sh NAME
-.Nm kcgijson ,
-.Nm kjson_open ,
-.Nm kjson_close ,
-.Nm kjson_putbool ,
-.Nm kjson_putboolp ,
-.Nm kjson_putdouble ,
-.Nm kjson_putdoublep ,
-.Nm kjson_putint ,
-.Nm kjson_putintp ,
-.Nm kjson_putintstr ,
-.Nm kjson_putintstrp ,
-.Nm kjson_putnull ,
-.Nm kjson_putnullp ,
-.Nm kjson_putstring ,
-.Nm kjson_putstringp ,
-.Nm kjson_obj_open ,
-.Nm kjson_objp_open ,
-.Nm kjson_obj_close ,
-.Nm kjson_array_open ,
-.Nm kjson_arrayp_open ,
-.Nm kjson_array_close ,
-.Nm kjson_string_open ,
-.Nm kjson_stringp_open ,
-.Nm kjson_string_close ,
-.Nm kjson_string_putdouble ,
-.Nm kjson_string_putint ,
-.Nm kjson_string_puts ,
-.Nm kjson_string_write
+.Nm kcgijson
 .Nd JSON output for kcgi
 .Sh LIBRARY
 .Lb libkcgijson
@@ -55,276 +28,29 @@
 .In stdint.h
 .In kcgi.h
 .In kcgijson.h
-.Ft enum kcgi_err
-.Fo kjson_open
-.Fa "struct kjsonreq *r"
-.Fa "struct kreq *req"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_close
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putbool
-.Fa "struct kjsonreq *r"
-.Fa "int val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putboolp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "int val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putdouble
-.Fa "struct kjsonreq *r"
-.Fa "double val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putdoublep
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "double val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putint
-.Fa "struct kjsonreq *r"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putintp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putintstr
-.Fa "struct kjsonreq *r"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putintstrp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putnull
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putnullp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putstring
-.Fa "struct kjsonreq *r"
-.Fa "const char *val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_putstringp
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fa "const char *val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_obj_open
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_objp_open
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_obj_close
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_array_open
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_arrayp_open
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_array_close
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_open
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_stringp_open
-.Fa "struct kjsonreq *r"
-.Fa "const char *key"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_close
-.Fa "struct kjsonreq *r"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_putdouble
-.Fa "struct kjsonreq *r"
-.Fa "double val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_putint
-.Fa "struct kjsonreq *r"
-.Fa "int64_t val"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_puts
-.Fa "struct kjsonreq *r"
-.Fa "const char *cp"
-.Fc
-.Ft enum kcgi_err
-.Fo kjson_string_write
-.Fa "const char *cp"
-.Fa "size_t sz"
-.Fa "void *arg"
-.Fc
 .Sh DESCRIPTION
-The
-.Nm kcgijson
-functions support output of JSON objects and arrays in a
+Produce output of JSON objects and arrays in a
 .Xr kcgi 3
-context
-.Fa req
-allocated with
+context allocated with
 .Xr khttp_parse 3 .
-Only
-.Fn kjson_open
-and
-.Fn kjson_close
-may be called before
-.Xr khttp_body 3 .
-.Pp
-All
-.Nm kcgijson
-sequences begin with
-.Fn kjson_open ,
-create the root document context as either an array or object with
-.Fn kjson_array_open
-or
-.Fn kjson_obj_open ,
-and end with
-.Fn kjson_close .
-.Pp
-In general,
-.Nm kcgijson
-functions follow the convention of writing either pair-type (ending in
-.Qq p )
-or standalone-type data.
-Standalone values are used in arrays; key-value pairs are used in
-objects.
-Passing a
-.Dv NULL
-value as the key for any key-value pair function is the same as calling
-the standalone version.
 .Pp
 To compile and link, use
 .Xr pkg-config 1
 as follows:
 .Bd -literal
-% cc `pkg-config --cflags kcgi-json` -c -o sample.o sample.c
+% cc `pkg-config --cflags kcgi-json` -c sample.c
 % cc -o sample sample.o `pkg-config --libs kcgi-json`
 .Ed
 .Pp
-On some systems (e.g., Linux), you may also need
-.Fl l Ns Ar m
-as a linker flag.
-.Bl -tag -width Ds
-.It Fn kjson_open
-Initialise the JSON context
-.Fa r .
-.It Fn kjson_close
-Close the context opened by
-.Fn kjson_open ,
-closing out any open arrays, strings, and objects.
-After this,
-.Fa r
-may no longer be used.
-.It Fn kjson_arrayp_open , Fn kjson_array_open
-Start an array context with or without a name.
-.It Fn kjson_array_close
-Close an array context with or without a name.
-.It Fn kjson_string_open , Fn kjson_stringp_open
-Start a string context with or without a name.
-This is usually used for complex values, or those created dynamically
-with
-.Xr khttp_template 3 .
-The
-.Fn kjson_string_putdouble ,
-.Fn kjson_string_putint ,
-.Fn kjson_string_putintstr ,
-.Fn kjson_string_puts ,
-and
-.Fn kjson_string_write
-functions may be used for serialising value data.
-See the documentation for
-.Fn kjson_putdoublep
-for caveats on floating-point classes and
-.Fn kjson_putstringp
-for character encoding.
-.It Fn kjson_string_close
-Close a string context with or without a name.
-.It Fn kjson_obj_open , Fn kjson_objp_open
-Start an object context with or without a name.
-.It Fn kjson_obj_close
-Close an object context with or without a name.
-.It Fn kjson_putstringp , Fn kjson_putstring
-Emit a string value with or without a name.
-Note that it is
-.Em not
-checked for character encoding (assumed to be ASCII or UTF-8), but
-control characters, the solidus and reverse solidus, and quotes are
-escaped.
-.It Fn kjson_putboolp , Fn kjson_putbool
-Emit a Boolean value with or without a name.
-In the usual way, 0 evalutes to FALSE, non-zero to TRUE.
-.It Fn kjson_putnullp , Fn kjson_putnull
-Emit a null value with or without a name.
-.It Fn kjson_putintp , Fn kjson_putint
-Emit a 64-bit signed integer value with or without a name.
-.Em Important note :
-while JSON supports arbitrary number lengths, JavaScript is limited to
-53 bits of integer precision.
-Thus, use of this function should be avoided for JavaScript
-applications.
-Use
-.Fn kjson_putintstr
-or
-.Fn kjson_putintstrp
-instead, which emit a 64-bit signed integer value in a string
-context, with or without a name.
-This function is generally used for passing integers to JavaScript
-applications, which are limited in integer precision.
-.It Fn kjson_putdoublep , Fn kjson_putdouble
-Emit a double-precision floating point value with or without a name.
-This is formatted as with the
-.Li %g
-argument to
-.Xr printf 3 .
-Only normal, subnormal, or zero-classified numbers are allowed (see
-.Xr fpclassify 3 ) ;
-otherwise this returns
-.Dv KCGI_FORM .
-.El
-.Sh RETURN VALUES
-All functions inherit return values from
-.Xr khttp_write 3 .
-Some functions additionally return the
-.Dv KCGI_FORM
-code to indicate that the given operation is not allowed in the current
-context, such as invoking
-.Fn kjson_obj_close
-without a previous invocation of
-.Fn kjson_array_open .
+All
+.Nm kcgijson
+functions accept a
+.Vt "struct kjsonreq"
+object.
+To use this properly, open a context with
+.Xr kjson_open 3 ,
+add content, then end with
+.Xr kjson_close 3 .
 .Sh EXAMPLES
 Let
 .Vt struct kreq *r
@@ -332,17 +58,28 @@ already be initialised, and the request be for
 .Dv KMIME_APP_JSON .
 The following fragment prints out a simple JSON object.
 Error checking is omitted for brevity.
-.Bd -literal
+.Bd -literal -offset indent
 kjson_open(&req, r);
 kcgi_writer_disable(r);
 khttp_head(r, kresps[KRESP_STATUS],
   "%s", khttps[KHTTP_200]);
 khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-  "%s", kmimetypes[r->mime]);
+  "%s", kmimetypes[KMIME_APP_JSON]);
 khttp_body(r);
-kjson_objp_open(&req, "foo");
-kjson_putstringp(&req, "bar", "baz");
-kjson_obj_close(&req);
+kjson_open(&req);
+kjson_objp_open(&req, "anobj");
+kjson_putstringp(&req, "astring", "baz");
+kjson_putintp(&req, "anint", 12345);
+kjson_stringp_open(&req, "alongstring");
+kjson_string_puts(&req, "hello, ");
+kjson_string_puts(&req, "world.");
+kjson_string_close(&req); /* alongstring */
+kjson_arrayp_open(&req, "anarray");
+kjson_putint(&req, 1);
+kjson_putint(&req, 2);
+kjson_putdouble(&req, 3.0);
+kjson_array_close(&req); /* anarray */
+kjson_obj_close(&req); /* anobj */
 kjson_close(&req);
 .Ed
 .Pp
@@ -350,9 +87,20 @@ Following the
 .Xr kcgi_writer_disable 3
 call, no further writers may be allocated.
 .Sh SEE ALSO
-.Xr kcgi_writer_disable 3 ,
-.Xr khttp_body 3 ,
-.Xr khttp_head 3
+.Xr kjson_array_close 3 ,
+.Xr kjson_array_open 3 ,
+.Xr kjson_close 3 ,
+.Xr kjson_obj_close 3 ,
+.Xr kjson_obj_open 3 ,
+.Xr kjson_open 3 ,
+.Xr kjson_putbool 3 ,
+.Xr kjson_putdouble 3 ,
+.Xr kjson_putint 3 ,
+.Xr kjson_putnull 3 ,
+.Xr kjson_putstring 3 ,
+.Xr kjson_string_close 3 ,
+.Xr kjson_string_open 3 ,
+.Xr kjson_string_write 3
 .Sh STANDARDS
 The
 .Nm kcgijson
@@ -361,9 +109,7 @@ documented as RFC 7159.
 Parts of this document reference ECMAScript 5, commonly known as
 JavaScript.
 .Sh AUTHORS
-The
-.Nm
-library was written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
 The current hard-coded limit of nested objects is 128 levels.

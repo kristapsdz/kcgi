@@ -31,15 +31,14 @@
 .Sh DESCRIPTION
 Produce output of XML-formed HTML5 content in a
 .Xr kcgi 3
-.Fa req
-allocated with
+context allocated with
 .Xr khttp_parse 3 .
 .Pp
 To compile and link, use
 .Xr pkg-config 1
 as follows:
 .Bd -literal
-% cc `pkg-config --cflags kcgi-html` -c -o sample.o sample.c
+% cc `pkg-config --cflags kcgi-html` -c sample.c
 % cc -o sample sample.o `pkg-config --libs kcgi-html`
 .Ed
 .Pp
@@ -115,7 +114,5 @@ HTML5 compatible with the draft standard of February 2014.
 .Xr khtml_puts 3 ,
 .Xr khtml_write 3
 .Sh AUTHORS
-The
-.Nm kcgihtml
-library was written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
