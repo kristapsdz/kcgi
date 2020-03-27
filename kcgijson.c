@@ -34,10 +34,11 @@ kjson_open(struct kjsonreq *r, struct kreq *req)
 {
 
 	memset(r, 0, sizeof(struct kjsonreq));
-	if (NULL == (r->arg = kcgi_writer_get(req, 0)))
-		return(KCGI_ENOMEM);
+	if ((r->arg = kcgi_writer_get(req, 0)) == NULL)
+		return KCGI_ENOMEM;
+
 	r->stack[0].type = KJSON_ROOT;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -47,26 +48,26 @@ kjson_close(struct kjsonreq *r)
 
 	while (r->stackpos) {
 		switch (r->stack[r->stackpos].type) {
-		case (KJSON_ARRAY):
+		case KJSON_ARRAY:
 			er = kcgi_writer_putc(r->arg, ']');
 			break;
-		case (KJSON_STRING):
+		case KJSON_STRING:
 			er = kcgi_writer_putc(r->arg, '"');
 			break;
-		case (KJSON_OBJECT):
+		case KJSON_OBJECT:
 			er = kcgi_writer_putc(r->arg, '}');
 			break;
 		default:
 			abort();
 		}
-		if (KCGI_OK != er)
+		if (er != KCGI_OK)
 			break;
 		r->stackpos--;
 	}
 
 	kcgi_writer_free(r->arg);
 	r->arg = NULL;
-	return(er);
+	return er;
 }
 
 /*
@@ -81,8 +82,8 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz, int quot)
 	unsigned char	c;
 	size_t		i;
 
-	if (quot && KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
-		return(e);
+	if (quot && (e = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
+		return e;
 
 	for (i = 0; i < sz; i++) {
 		/* Make sure we're looking at the unsigned value. */
@@ -91,37 +92,39 @@ kjson_write(struct kjsonreq *r, const char *cp, size_t sz, int quot)
 		if (c <= 0x1f) {
 			snprintf(enc, sizeof(enc), "\\u%.4X", c);
 			e = kcgi_writer_puts(r->arg, enc);
-			if (KCGI_OK != e)
-				return(e);
+			if (e != KCGI_OK)
+				return e;
 			continue;
 		}
 		/* Quote, solidus, reverse solidus. */
 		switch (c) {
-		case ('"'):
-		case ('\\'):
-		case ('/'):
+		case '"':
+		case '\\':
+		case '/':
 			e = kcgi_writer_putc(r->arg, '\\');
-			if (KCGI_OK != e)
-				return(e);
+			if (e != KCGI_OK)
+				return e;
 			break;
 		default:
 			break;
 		}
-		if (KCGI_OK != (e = kcgi_writer_putc(r->arg, cp[i])))
-			return(e);
+		if ((e = kcgi_writer_putc(r->arg, cp[i])) != KCGI_OK)
+			return e;
 	}
 
-	if (quot && KCGI_OK != (e = kcgi_writer_putc(r->arg, '"')))
-		return(e);
+	if (quot && (e = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
+		return e;
 
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 static enum kcgi_err
 kjson_puts(struct kjsonreq *r, const char *cp)
 {
 
-	return(kjson_write(r, cp, strlen(cp), 1));
+	if (cp == NULL)
+		return KCGI_OK;
+	return kjson_write(r, cp, strlen(cp), 1);
 }
 
 /*
@@ -135,7 +138,8 @@ kjson_puts(struct kjsonreq *r, const char *cp)
  * We must have a key, however, if our parent is an object, that is,
  * don't accept {4} and so on.
  * Moreover, we should never be in a string context.
- * Returns the value of kcgi_writer_puts() or KCGI_FORM on check violation.
+ * Returns the value of kcgi_writer_puts() or KCGI_WRITE on check
+ * violation.
  */
 static enum kcgi_err
 kjson_check(struct kjsonreq *r, const char *key)
@@ -143,31 +147,30 @@ kjson_check(struct kjsonreq *r, const char *key)
 	enum kcgi_err	 er;
 
 	switch (r->stack[r->stackpos].type) {
-	case (KJSON_STRING):
-		return(KCGI_FORM);
-	case (KJSON_OBJECT):
-		if (NULL == key)
-			return(KCGI_FORM);
+	case KJSON_STRING:
+		return KCGI_WRITE;
+	case KJSON_OBJECT:
+		if (key == NULL)
+			return KCGI_WRITE;
 		break;
-	case (KJSON_ROOT):
-		/* FALLTHROUGH */
-	case (KJSON_ARRAY):
-		if (NULL != key)
-			return(KCGI_FORM);
+	case KJSON_ROOT:
+	case KJSON_ARRAY:
+		if (key != NULL)
+			return KCGI_WRITE;
 		break;
 	}
 
 	if (r->stack[r->stackpos].elements++ > 0) 
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, ", ")))
-			return(er);
+		if ((er = kcgi_writer_puts(r->arg, ", ")) != KCGI_OK)
+			return er;
 
-	if (NULL != key) {
-		if (KCGI_OK != (er = kjson_puts(r, key)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, ": ")))
-			return(er);
+	if (key != NULL) {
+		if ((er = kjson_puts(r, key)) != KCGI_OK)
+			return er;
+		if ((er = kcgi_writer_puts(r->arg, ": ")) != KCGI_OK)
+			return er;
 	}
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 /* 
@@ -179,17 +182,15 @@ kjson_check_fp(double val)
 {
 
 	switch (fpclassify(val)) {
-	case (FP_ZERO):
-		/* FALLTHROUGH */
-	case (FP_SUBNORMAL):
-		/* FALLTHROUGH */
-	case (FP_NORMAL):
+	case FP_ZERO:
+	case FP_SUBNORMAL:
+	case FP_NORMAL:
 		break;
 	default:
-		return(0);
+		return 0;
 	}
 
-	return(1);
+	return 1;
 }
 
 /*
@@ -204,16 +205,16 @@ kjson_puttrustedp(struct kjsonreq *r, const char *key, const char *val)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	return(kcgi_writer_puts(r->arg, val));
+	if ((er = kjson_check(r, key)) != KCGI_OK)
+		return er;
+	return kcgi_writer_puts(r->arg, val);
 }
 
 enum kcgi_err
 kjson_putstring(struct kjsonreq *r, const char *val)
 {
 
-	return(kjson_putstringp(r, NULL, val));
+	return kjson_putstringp(r, NULL, val);
 }
 
 enum kcgi_err
@@ -221,16 +222,18 @@ kjson_putstringp(struct kjsonreq *r, const char *key, const char *val)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	return(kjson_puts(r, val));
+	if (val == NULL)
+		return KCGI_OK;
+	if ((er = kjson_check(r, key)) != KCGI_OK)
+		return er;
+	return kjson_puts(r, val);
 }
 
 enum kcgi_err
 kjson_putdouble(struct kjsonreq *r, double val)
 {
 
-	return(kjson_putdoublep(r, NULL, val));
+	return kjson_putdoublep(r, NULL, val);
 }
 
 enum kcgi_err
@@ -238,52 +241,53 @@ kjson_putdoublep(struct kjsonreq *r, const char *key, double val)
 {
 	char		 buf[256];
 
-	if ( ! kjson_check_fp(val))
-		return(KCGI_FORM);
+	if (!kjson_check_fp(val))
+		return kjson_puttrustedp(r, key, "null");
+
 	(void)snprintf(buf, sizeof(buf), "%g", val);
-	return(kjson_puttrustedp(r, key, buf));
+	return kjson_puttrustedp(r, key, buf);
 }
 
 enum kcgi_err
 kjson_putint(struct kjsonreq *r, int64_t val)
 {
 
-	return(kjson_putintp(r, NULL, val));
+	return kjson_putintp(r, NULL, val);
 }
 
 enum kcgi_err
 kjson_putintstr(struct kjsonreq *r, int64_t val)
 {
 
-	return(kjson_putintstrp(r, NULL, val));
+	return kjson_putintstrp(r, NULL, val);
 }
 
 enum kcgi_err
 kjson_putnullp(struct kjsonreq *r, const char *key)
 {
 
-	return(kjson_puttrustedp(r, key, "null"));
+	return kjson_puttrustedp(r, key, "null");
 }
 
 enum kcgi_err
 kjson_putboolp(struct kjsonreq *r, const char *key, int val)
 {
 
-	return(kjson_puttrustedp(r, key, val ? "true" : "false"));
+	return kjson_puttrustedp(r, key, val ? "true" : "false");
 }
 
 enum kcgi_err
 kjson_putnull(struct kjsonreq *r)
 {
 
-	return(kjson_putnullp(r, NULL));
+	return kjson_putnullp(r, NULL);
 }
 
 enum kcgi_err
 kjson_putbool(struct kjsonreq *r, int val)
 {
 
-	return(kjson_putboolp(r, NULL, val));
+	return kjson_putboolp(r, NULL, val);
 }
 
 enum kcgi_err
@@ -292,7 +296,7 @@ kjson_putintstrp(struct kjsonreq *r, const char *key, int64_t val)
 	char	buf[22];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	return(kjson_putstringp(r, key, buf));
+	return kjson_putstringp(r, key, buf);
 }
 
 
@@ -302,14 +306,14 @@ kjson_putintp(struct kjsonreq *r, const char *key, int64_t val)
 	char	buf[22];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	return(kjson_puttrustedp(r, key, buf));
+	return kjson_puttrustedp(r, key, buf);
 }
 
 enum kcgi_err
 kjson_array_open(struct kjsonreq *r)
 {
 
-	return(kjson_arrayp_open(r, NULL));
+	return kjson_arrayp_open(r, NULL);
 }
 
 enum kcgi_err
@@ -317,15 +321,15 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '[')))
-		return(er);
+	if ((er = kjson_check(r, key)) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(r->arg, '[')) != KCGI_OK)
+		return er;
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_ARRAY;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -333,14 +337,14 @@ kjson_array_close(struct kjsonreq *r)
 {
 	enum kcgi_err	 er;
 
-	if (0 == r->stackpos)
-		return(KCGI_FORM);
-	if (KJSON_ARRAY != r->stack[r->stackpos].type)
-		return(KCGI_FORM);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, ']')))
-		return(er);
+	if (r->stackpos == 0)
+		return KCGI_WRITE;
+	if (r->stack[r->stackpos].type != KJSON_ARRAY)
+		return KCGI_WRITE;
+	if ((er = kcgi_writer_putc(r->arg, ']')) != KCGI_OK)
+		return er;
 	r->stackpos--;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -348,17 +352,23 @@ kjson_string_write(const char *p, size_t sz, void *arg)
 {
 	struct kjsonreq	*r = arg;
 
-	if (KJSON_STRING != r->stack[r->stackpos].type)
-		return(KCGI_FORM);
+	if (r->stack[r->stackpos].type != KJSON_STRING)
+		return KCGI_WRITE;
 
-	return(kjson_write(r, p, sz, 0));
+	if (p == NULL || sz == 0)
+		return KCGI_OK;
+
+	return kjson_write(r, p, sz, 0);
 }
 
 enum kcgi_err
 kjson_string_puts(struct kjsonreq *r, const char *cp)
 {
 
-	return(kjson_string_write(cp, strlen(cp), r));
+	if (cp == NULL)
+		return KCGI_OK;
+
+	return kjson_string_write(cp, strlen(cp), r);
 }
 
 enum kcgi_err
@@ -366,10 +376,11 @@ kjson_string_putdouble(struct kjsonreq *r, double val)
 {
 	char	buf[256];
 
-	if ( ! kjson_check_fp(val))
-		return(KCGI_FORM);
+	if (!kjson_check_fp(val))
+		return kjson_string_write("null", 4, r);
+
 	(void)snprintf(buf, sizeof(buf), "%g", val);
-	return(kjson_string_write(buf, strlen(buf), r));
+	return kjson_string_write(buf, strlen(buf), r);
 }
 
 enum kcgi_err
@@ -378,14 +389,14 @@ kjson_string_putint(struct kjsonreq *r, int64_t val)
 	char	buf[22];
 
 	(void)snprintf(buf, sizeof(buf), "%" PRId64, val);
-	return(kjson_string_write(buf, strlen(buf), r));
+	return kjson_string_write(buf, strlen(buf), r);
 }
 
 enum kcgi_err
 kjson_string_open(struct kjsonreq *r)
 {
 
-	return(kjson_stringp_open(r, NULL));
+	return kjson_stringp_open(r, NULL);
 }
 
 enum kcgi_err
@@ -393,15 +404,15 @@ kjson_stringp_open(struct kjsonreq *r, const char *key)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
-		return(er);
+	if ((er = kjson_check(r, key)) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
+		return er;
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_STRING;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -423,7 +434,7 @@ enum kcgi_err
 kjson_obj_open(struct kjsonreq *r)
 {
 
-	return(kjson_objp_open(r, NULL));
+	return kjson_objp_open(r, NULL);
 }
 
 enum kcgi_err
@@ -431,15 +442,15 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kjson_check(r, key)))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '{')))
-		return(er);
+	if ((er = kjson_check(r, key)) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(r->arg, '{')) != KCGI_OK)
+		return er;
 
 	assert(r->stackpos < KJSON_STACK_MAX - 1);
 	r->stack[++r->stackpos].elements = 0;
 	r->stack[r->stackpos].type = KJSON_OBJECT;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -447,12 +458,13 @@ kjson_obj_close(struct kjsonreq *r)
 {
 	enum kcgi_err	 er;
 
-	if (0 == r->stackpos)
-		return(KCGI_FORM);
-	if (KJSON_OBJECT != r->stack[r->stackpos].type)
-		return(KCGI_FORM);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '}')))
-		return(er);
+	if (r->stackpos == 0 ||
+	    r->stack[r->stackpos].type != KJSON_OBJECT)
+		return KCGI_WRITE;
+
+	if ((er = kcgi_writer_putc(r->arg, '}')) != KCGI_OK)
+		return er;
+
 	r->stackpos--;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
