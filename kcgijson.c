@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012, 2014, 2015, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -138,7 +138,7 @@ kjson_puts(struct kjsonreq *r, const char *cp)
  * We must have a key, however, if our parent is an object, that is,
  * don't accept {4} and so on.
  * Moreover, we should never be in a string context.
- * Returns the value of kcgi_writer_puts() or KCGI_WRITE on check
+ * Returns the value of kcgi_writer_puts() or KCGI_WRITER on check
  * violation.
  */
 static enum kcgi_err
@@ -148,15 +148,15 @@ kjson_check(struct kjsonreq *r, const char *key)
 
 	switch (r->stack[r->stackpos].type) {
 	case KJSON_STRING:
-		return KCGI_WRITE;
+		return KCGI_WRITER;
 	case KJSON_OBJECT:
 		if (key == NULL)
-			return KCGI_WRITE;
+			return KCGI_WRITER;
 		break;
 	case KJSON_ROOT:
 	case KJSON_ARRAY:
 		if (key != NULL)
-			return KCGI_WRITE;
+			return KCGI_WRITER;
 		break;
 	}
 
@@ -338,9 +338,9 @@ kjson_array_close(struct kjsonreq *r)
 	enum kcgi_err	 er;
 
 	if (r->stackpos == 0)
-		return KCGI_WRITE;
+		return KCGI_WRITER;
 	if (r->stack[r->stackpos].type != KJSON_ARRAY)
-		return KCGI_WRITE;
+		return KCGI_WRITER;
 	if ((er = kcgi_writer_putc(r->arg, ']')) != KCGI_OK)
 		return er;
 	r->stackpos--;
@@ -353,7 +353,7 @@ kjson_string_write(const char *p, size_t sz, void *arg)
 	struct kjsonreq	*r = arg;
 
 	if (r->stack[r->stackpos].type != KJSON_STRING)
-		return KCGI_WRITE;
+		return KCGI_WRITER;
 
 	if (p == NULL || sz == 0)
 		return KCGI_OK;
@@ -420,14 +420,13 @@ kjson_string_close(struct kjsonreq *r)
 {
 	enum kcgi_err	 er;
 
-	if (0 == r->stackpos)
-		return(KCGI_FORM);
-	if (KJSON_STRING != r->stack[r->stackpos].type)
-		return(KCGI_FORM);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
+	if (r->stackpos == 0 ||
+	    r->stack[r->stackpos].type != KJSON_STRING)
+		return KCGI_WRITER;
+	if ((er = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
 		return(er);
 	r->stackpos--;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -460,7 +459,7 @@ kjson_obj_close(struct kjsonreq *r)
 
 	if (r->stackpos == 0 ||
 	    r->stack[r->stackpos].type != KJSON_OBJECT)
-		return KCGI_WRITE;
+		return KCGI_WRITER;
 
 	if ((er = kcgi_writer_putc(r->arg, '}')) != KCGI_OK)
 		return er;
