@@ -206,6 +206,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header-bad \
 		   regress/test-header-builtin \
 		   regress/test-html-disabled \
+		   regress/test-html-noscope \
 		   regress/test-html-null-strings \
 		   regress/test-html-simple \
 		   regress/test-html-void-elems \
