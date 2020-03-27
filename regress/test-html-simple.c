@@ -63,7 +63,7 @@ parent(CURL *curl)
 		return 0;
 	}
 	if (!(rc = strcmp(buf.buf, EXPECT) == 0))
-		warnx("content test: %s", buf.buf);
+		warnx("content test failure: %s", buf.buf);
 	free(buf.buf);
 	return rc;
 }
