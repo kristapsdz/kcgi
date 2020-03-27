@@ -66,17 +66,18 @@ kxml_push(struct kxmlreq *r, size_t elem)
 {
 	enum kcgi_err	 er;
 
-	if (r->stackpos >= KXML_STACK_MAX) 
-		return(KCGI_FORM);
+	if (r->stackpos >= KXML_STACK_MAX || elem >= r->elemsz)
+		return KCGI_WRITER;
 
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '>')))
-		return(er);
+	if ((er = kcgi_writer_putc(r->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(r->arg, r->elems[elem])) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(r->arg, '>')) != KCGI_OK)
+		return er;
+
 	r->stack[r->stackpos++] = elem;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
@@ -84,11 +85,15 @@ kxml_pushnull(struct kxmlreq *r, size_t elem)
 {
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
-		return(er);
-	return(kcgi_writer_puts(r->arg, " />"));
+	if (r->stackpos >= KXML_STACK_MAX || elem >= r->elemsz)
+		return KCGI_WRITER;
+
+	if ((er = kcgi_writer_putc(r->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(r->arg, r->elems[elem])) != KCGI_OK)
+		return er;
+
+	return kcgi_writer_puts(r->arg, " />");
 }
 
 enum kcgi_err
@@ -124,18 +129,23 @@ kxml_write(const char *p, size_t sz, void *arg)
 	size_t	 	 i;
 	enum kcgi_err	 er;
 
-	for (i = 0; i < sz; i++)
-		if (KCGI_OK != (er = kxml_putc(r, p[i])))
-			return(er);
+	if (p == NULL || sz == 0)
+		return KCGI_OK;
 
-	return(KCGI_OK);
+	for (i = 0; i < sz; i++)
+		if ((er = kxml_putc(r, p[i])) != KCGI_OK)
+			return er;
+
+	return KCGI_OK;
 }
 
 enum kcgi_err
 kxml_puts(struct kxmlreq *r, const char *p)
 {
 
-	return(kxml_write(p, strlen(p), r));
+	if (p == NULL)
+		return KCGI_OK;
+	return kxml_write(p, strlen(p), r);
 }
 
 enum kcgi_err
@@ -143,34 +153,37 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 {
 	va_list	 	 ap;
 	const char	*key, *val;
-	enum kcgi_err	 er;
+	enum kcgi_err	 er = KCGI_OK;
 
-	if (r->stackpos >= KXML_STACK_MAX) 
-		return(KCGI_FORM);
+	if (r->stackpos >= KXML_STACK_MAX || elem >= r->elemsz)
+		return KCGI_WRITER;
 
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
-		return(er);
+	if ((er = kcgi_writer_putc(r->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(r->arg, r->elems[elem])) != KCGI_OK)
+		return er;
 	va_start(ap, elem);
 	for (;;) {
-		if (NULL == (key = va_arg(ap, char *)))
+		if ((key = va_arg(ap, char *)) == NULL)
 			break;
 		val = va_arg(ap, char *);
-		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, ' ')))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, key)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "=\"")))
-			return(er);
-		if (KCGI_OK != (er = kxml_puts(r, val)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
-			return(er);
+		if ((er = kcgi_writer_putc(r->arg, ' ')) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(r->arg, key)) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(r->arg, "=\"")) != KCGI_OK)
+			goto out;
+		if ((er = kxml_puts(r, val)) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
+			goto out;
 	}
 	va_end(ap);
 	r->stack[r->stackpos++] = elem;
-	return(kcgi_writer_putc(r->arg, '>'));
+	return kcgi_writer_putc(r->arg, '>');
+out:
+	va_end(ap);
+	return er;
 }
 
 enum kcgi_err
@@ -180,53 +193,79 @@ kxml_pushnullattrs(struct kxmlreq *r, size_t elem, ...)
 	const char	*key, *val;
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, r->elems[elem])))
-		return(er);
+	if (r->stackpos >= KXML_STACK_MAX || elem >= r->elemsz)
+		return KCGI_WRITER;
 
+	if ((er = kcgi_writer_putc(r->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(r->arg, r->elems[elem])) != KCGI_OK)
+		return er;
 	va_start(ap, elem);
 	for (;;) {
-		if (NULL == (key = va_arg(ap, char *)))
+		if ((key = va_arg(ap, char *)) == NULL)
 			break;
 		val = va_arg(ap, char *);
-		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, ' ')))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, key)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "=\"")))
-			return(er);
-		if (KCGI_OK != (er = kxml_puts(r, val)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_putc(r->arg, '"')))
-			return(er);
+		if ((er = kcgi_writer_putc(r->arg, ' ')) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(r->arg, key)) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(r->arg, "=\"")) != KCGI_OK)
+			goto out;
+		if ((er = kxml_puts(r, val)) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_putc(r->arg, '"')) != KCGI_OK)
+			goto out;
 	}
 	va_end(ap);
-	return(kcgi_writer_puts(r->arg, " />"));
+	return kcgi_writer_puts(r->arg, " />");
+out:
+	va_end(ap);
+	return er;
 }
+
+static int
+kxml_pop_inner(struct kxmlreq *r, enum kcgi_err *er)
+{
+
+	if (r->stackpos == 0)
+		return 0;
+
+	*er = kcgi_writer_puts(r->arg, "</");
+	if (*er != KCGI_OK)
+		return (-1);
+
+	*er = kcgi_writer_puts(r->arg,
+		r->elems[r->stack[--r->stackpos]]);
+	if (*er != KCGI_OK)
+		return (-1);
+
+	*er = kcgi_writer_putc(r->arg, '>');
+	if (*er != KCGI_OK)
+		return (-1);
+
+	return 1;
 
 enum kcgi_err
 kxml_popall(struct kxmlreq *r)
 {
-	enum kcgi_err	 er;
+	enum kcgi_err	 er = KCGI_OK;
 
-	while (KCGI_OK == (er = kxml_pop(r)))
+	while (kxml_pop_inner(r, &er) > 0)
 		/* Spin. */ ;
-	return(KCGI_FORM == er ? KCGI_OK : er);
+
+	return *er;
 }
 
 enum kcgi_err
 kxml_pop(struct kxmlreq *r)
 {
 	enum kcgi_err	 er;
+	int		 c;
 
-	if (0 == r->stackpos)
-		return(KCGI_FORM);
+	if ((c = kxml_pop_inner(r, &er)) < 0)
+		return er;
+	else if (c == 0)
+		return KCGI_WRITER;
 
-	if (KCGI_OK != (er = kcgi_writer_puts(r->arg, "</")))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts
-	    (r->arg, r->elems[r->stack[--r->stackpos]])))
-		return(er);
-	return(kcgi_writer_putc(r->arg, '>'));
+	return KCGI_OK;
 }
