@@ -287,7 +287,7 @@
 				canonical source of documentation.  
 				The following is a list of all manpages:
 			</p>
-			<nav id="mannav" data-sblg-nav="1" data-sblg-navtag="man" data-sblg-navcontent="1">
+			<nav id="mannav" data-sblg-nav="1" data-sblg-navtag="man" data-sblg-navcontent="1" data-sblg-navsort="title">
 				<a href="${sblg-stripbase}.html">${sblg-title}</a>
 			</nav>
 			<p>
