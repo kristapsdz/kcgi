@@ -44,9 +44,12 @@ into a string scope opened with
 or
 .Xr kjson_stringp_open 3
 to a context
-.Fa req
+.Fa arg ,
+a
+.Vt struct kjsonreq
 initialised with
-.Xr khtml_open 3 .
+.Xr khtml_open 3
+and passed as an opaque pointer.
 If
 .Fa buf
 is

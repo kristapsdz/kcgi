@@ -30,9 +30,9 @@
 .In kcgihtml.h
 .Ft enum kcgi_err
 .Fo khtml_write
-.Fa "struct khtmlreq *req"
 .Fa "const char *buf"
 .Fa "size_t sz"
+.Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
 Writes binary data
@@ -40,9 +40,12 @@ Writes binary data
 of length
 .Fa sz
 to a context
-.Fa req
+.Fa arg ,
+a
+.Vt struct khtmlreq
 initialised with
-.Xr khtml_open 3 .
+.Xr khtml_open 3
+and passed as an opaque pointer.
 If
 .Fa buf
 is
@@ -54,8 +57,6 @@ All of the content is HTML escaped, for example, the left-angle bracket
 .Qq <
 is rendered as
 .Qq &lt; .
-It does not append a newline like
-.Xr puts 3 .
 .Sh RETURN VALUES
 Returns an
 .Ft enum kcgi_err
