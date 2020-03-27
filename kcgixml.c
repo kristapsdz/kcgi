@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2015, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -244,6 +244,7 @@ kxml_pop_inner(struct kxmlreq *r, enum kcgi_err *er)
 		return (-1);
 
 	return 1;
+}
 
 enum kcgi_err
 kxml_popall(struct kxmlreq *r)
@@ -253,7 +254,7 @@ kxml_popall(struct kxmlreq *r)
 	while (kxml_pop_inner(r, &er) > 0)
 		/* Spin. */ ;
 
-	return *er;
+	return er;
 }
 
 enum kcgi_err
