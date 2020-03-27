@@ -815,10 +815,11 @@ khtml_open(struct khtmlreq *r, struct kreq *req, int opts)
 {
 
 	memset(r, 0, sizeof(struct khtmlreq));
-	if (NULL == (r->arg = kcgi_writer_get(req, 0)))
-		return(KCGI_ENOMEM);
+	if ((r->arg = kcgi_writer_get(req, 0)) == NULL)
+		return KCGI_ENOMEM;
+
 	r->opts = opts;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
