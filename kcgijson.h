@@ -39,6 +39,10 @@ enum	kjsontype {
 	KJSON_STRING
 };
 
+/*
+ * The maximum number of JSON scopes allowed.
+ * Once this has been reached, new scopes will return KCGI_ENOMEM.
+ */
 #define	KJSON_STACK_MAX	128
 
 struct	kjsonscope {
