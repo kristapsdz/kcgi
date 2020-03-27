@@ -452,10 +452,11 @@ enum	kelem {
 	KELEM__MAX
 };
 
+#define	KHTML_STACK_MAX	128
+
 struct	khtmlreq {
 	void		*arg;
-#define	KDATA_MAXELEMSZ	 128
-	enum kelem	 elems[KDATA_MAXELEMSZ];
+	enum kelem	 elems[KHTML_STACK_MAX];
 	size_t		 elemsz;
 	int		 newln;
 	int		 opts;

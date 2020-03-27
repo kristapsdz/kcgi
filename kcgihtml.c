@@ -481,7 +481,7 @@ enum kcgi_err
 khtml_elem(struct khtmlreq *req, enum kelem elem)
 {
 
-	return(khtml_attr(req, elem, KATTR__MAX));
+	return khtml_attr(req, elem, KATTR__MAX);
 }
 
 /*
@@ -545,56 +545,65 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 {
 	va_list		 ap;
 	enum kattr	 at;
-	enum kcgi_err	 er;
+	enum kcgi_err	 er = KCGI_OK;
 
-	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, tags[elem].name)))
-		return(er);
+	if (tags[elem].flags != TAG_VOID &&
+	    tags[elem].flags != TAG_INSTRUCTION &&
+	    req->elemsz >= KHTML_STACK_MAX) {
+		XWARNX("maximum html stack size exceeded");
+		return KCGI_ENOMEM;
+	}
+
+	if ((er = khtml_flow_open(req, elem)) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(req->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(req->arg, tags[elem].name)) != KCGI_OK)
+		return er;
 
 	va_start(ap, elem);
-	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, ' ')))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, attrs[at])))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "=\"")))
-			return(er);
+	while ((at = va_arg(ap, enum kattr)) != KATTR__MAX) {
+		if ((er = kcgi_writer_putc(req->arg, ' ')) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(req->arg, attrs[at])) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(req->arg, "=\"")) != KCGI_OK)
+			goto out;
 
 		switch (va_arg(ap, enum kattrx)) {
-		case (KATTRX_STRING):
+		case KATTRX_STRING:
 			er = khtml_puts(req, va_arg(ap, char *));
 			break;
-		case (KATTRX_INT):
+		case KATTRX_INT:
 			er = khtml_int(req, va_arg(ap, int64_t));
 			break;
-		case (KATTRX_DOUBLE):
+		case KATTRX_DOUBLE:
 			er = khtml_double(req, va_arg(ap, double));
 			break;
 		}
 		if (KCGI_OK != er)
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '"')))
-			return(er);
+			goto out;
+		if ((er = kcgi_writer_putc(req->arg, '"')) != KCGI_OK)
+			goto out;
 	}
 	va_end(ap);
 
-	if (TAG_VOID == tags[elem].flags)
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '/')))
-			return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
-		return(er);
-	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
-		return(er);
+	if (tags[elem].flags == TAG_VOID &&
+	    (er = kcgi_writer_putc(req->arg, '/')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(req->arg, '>')) != KCGI_OK)
+		return er;
+	if ((er = khtml_flow_close(req, elem)) != KCGI_OK)
+		return er;
 
-	if (TAG_VOID != tags[elem].flags &&
-	    TAG_INSTRUCTION != tags[elem].flags)
+	if (tags[elem].flags != TAG_VOID &&
+	    tags[elem].flags != TAG_INSTRUCTION)
 		req->elems[req->elemsz++] = elem;
-	assert(req->elemsz < KDATA_MAXELEMSZ);
 
-	return(KCGI_OK);
+	return KCGI_OK;
+out:
+	va_end(ap);
+	return er;
 }
 
 enum kcgi_err
@@ -605,45 +614,62 @@ khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 	const char	*cp;
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != (er = khtml_flow_open(req, elem)))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '<')))
-		return(er);
-	if (KCGI_OK != (er = kcgi_writer_puts(req->arg, tags[elem].name)))
-		return(er);
+	if (tags[elem].flags != TAG_VOID &&
+	    tags[elem].flags != TAG_INSTRUCTION &&
+	    req->elemsz >= KHTML_STACK_MAX) {
+		XWARNX("maximum html stack size exceeded");
+		return KCGI_ENOMEM;
+	}
+
+	if ((er = khtml_flow_open(req, elem)) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(req->arg, '<')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_puts(req->arg, tags[elem].name)) != KCGI_OK)
+		return er;
 
 	va_start(ap, elem);
-	while (KATTR__MAX != (at = va_arg(ap, enum kattr))) {
+	while ((at = va_arg(ap, enum kattr)) != KATTR__MAX) {
 		cp = va_arg(ap, char *);
-		assert(NULL != cp);
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, ' ')))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, attrs[at])))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_puts(req->arg, "=\"")))
-			return(er);
-		if (KCGI_OK != (er = khtml_puts(req, cp)))
-			return(er);
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '"')))
-			return(er);
+
+		/*
+		 * FIXME: shouldn't we allow situations where there's no
+		 * value, like <option selected>?
+		 * I don't know if this is valid XML.
+		 * Meanwhile, don't let it happen.
+		 */
+
+		assert(cp != NULL);
+		if ((er = kcgi_writer_putc(req->arg, ' ')) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(req->arg, attrs[at])) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_puts(req->arg, "=\"")) != KCGI_OK)
+			goto out;
+		if ((er = khtml_puts(req, cp)) != KCGI_OK)
+			goto out;
+		if ((er = kcgi_writer_putc(req->arg, '"')) != KCGI_OK)
+			goto out;
 
 	}
 	va_end(ap);
 
-	if (TAG_VOID == tags[elem].flags)
-		if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '/')))
-			return(er);
-	if (KCGI_OK != (er = kcgi_writer_putc(req->arg, '>')))
-		return(er);
-	if (KCGI_OK != (er = khtml_flow_close(req, elem)))
-		return(er);
+	if (tags[elem].flags == TAG_VOID &&
+	    (er = kcgi_writer_putc(req->arg, '/')) != KCGI_OK)
+		return er;
+	if ((er = kcgi_writer_putc(req->arg, '>')) != KCGI_OK)
+		return er;
+	if ((er = khtml_flow_close(req, elem)) != KCGI_OK)
+		return er;
 
-	if (TAG_VOID != tags[elem].flags &&
-	    TAG_INSTRUCTION != tags[elem].flags)
+	if (tags[elem].flags != TAG_VOID &&
+	    tags[elem].flags != TAG_INSTRUCTION)
 		req->elems[req->elemsz++] = elem;
-	assert(req->elemsz < KDATA_MAXELEMSZ);
 
-	return(KCGI_OK);
+	return KCGI_OK;
+out:
+	va_end(ap);
+	return er;
 }
 
 enum kcgi_err
