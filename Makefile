@@ -125,7 +125,9 @@ MAN3S		 = man/kcgi.3 \
 		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3
 MAN8S		 = man/kfcgi.8 
+MANHTMLS	 =
 .for f in $(MAN3S) $(MAN8S)
+MANHTMLS	+= ${f}.html
 HTMLS		+= ${f}.html
 .endfor
 MANS		 = $(MAN3S) \
@@ -410,8 +412,8 @@ sample-cgi: sample-cgi.o
 # These are only used with the `www' target, so we can assume
 # that they're running in-house for releases.
 
-index.html: index.xml versions.xml $(THTMLS)
-	sblg -t index.xml -s date -o- versions.xml $(THTMLS) >$@
+index.html: index.xml versions.xml $(THTMLS) $(MANHTMLS)
+	sblg -t index.xml -s date -o- versions.xml $(THTMLS) $(MANHTMLS) >$@
 
 sample.c.html: sample.c
 	highlight -o $@ --inline-css --doc sample.c
@@ -431,11 +433,23 @@ extending01.html: extending01.xml tutorial.xml
 	sblg -t tutorial.xml -s date -o- -C $< versions.xml $(TXMLS) | \
 		sed "s!@VERSION@!$(VERSION)!g" >$@
 
-.3.3.html:
-	mandoc -Ostyle=https://bsd.lv/css/mandoc.css -Thtml $< >$@
-
-.8.8.html:
-	mandoc -Ostyle=https://bsd.lv/css/mandoc.css -Thtml $< >$@
+.3.3.html .8.8.html:
+	( echo "<!DOCTYPE html>" ; \
+	  echo "<html lang=\"en\">" ; \
+	  echo "<head>" ; \
+	  echo "<meta charset=\"utf-8\"/>" ; \
+	  echo "<link rel=\"stylesheet\" " \
+	  	"href=\"https://bsd.lv/css/mandoc.css\" />" ; \
+          echo "<title>`basename $<`</title>" ; \
+	  echo "</head>" ; \
+	  echo "<body>" ; \
+	  echo "<article data-sblg-article=\"1\"" \
+	  	"data-sblg-tags=\"man\" " \
+		"data-sblg-title=\"`basename $<`\">" ; \
+ 	  mandoc -Ofragment -Thtml $< ; \
+	  echo "</article>" ; \
+	  echo "</body>" ; \
+	  echo "</html>" ; ) >$@
 
 atom.xml: versions.xml
 	sblg -s date -a versions.xml >$@

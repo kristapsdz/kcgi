@@ -285,6 +285,12 @@
 			<p>
 				The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
 				canonical source of documentation.  
+				The following is a list of all manpages:
+			</p>
+			<nav id="mannav" data-sblg-nav="1" data-sblg-navtag="man" data-sblg-navcontent="1">
+				<a href="${sblg-stripbase}.html">${sblg-title}</a>
+			</nav>
+			<p>
 				If it's easier to start by example, you can use 
 				<a href="https://github.com/kristapsdz/kcgi-framework">kcgi-framework</a> as an initial boilerplate to
 				start your project.

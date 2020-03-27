@@ -114,6 +114,10 @@ footer					{ padding: 1ex;
 					  margin-top: 1em;
 					  margin-bottom: 1em; }
 .flag					{ font-weight: 500; }
+#mannav ul				{ display: grid;
+					  font-size: 90%;
+					  line-height: 1.3em;
+					  grid-template-columns: auto auto auto; }
 
 @media only screen and (max-width: 768px), only screen and (max-device-width: 768px) {
    h1					{ font-size: 125%;
@@ -124,4 +128,5 @@ footer					{ padding: 1ex;
   					  margin-left: auto;
   					  margin-right: auto;
   					  width: 100%; }
+#mannav ul				{ grid-template-columns: auto auto; }
 }
