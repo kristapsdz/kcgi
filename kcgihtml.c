@@ -832,7 +832,9 @@ enum kcgi_err
 khtml_puts(struct khtmlreq *req, const char *cp)
 {
 
-	return(khtml_write(cp, strlen(cp), req));
+	if (cp == NULL)
+		return KCGI_OK;
+	return khtml_write(cp, strlen(cp), req);
 }
 
 
