@@ -302,13 +302,14 @@ const char *const kerrors[] = {
 	"failed to fork child",		/* KCGI_EAGAIN */
 	"internal error",		/* KCGI_FORM */
 	"system error",			/* KCGI_SYSTEM */
+	"writer error",			/* KCGI_WRITER */
 };
 
 const char *
 kcgi_strerror(enum kcgi_err er)
 {
 
-	assert(er <= KCGI_SYSTEM);
+	assert(er <= KCGI_WRITER);
 	return kerrors[er];
 }
 

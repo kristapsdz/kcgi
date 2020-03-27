@@ -499,7 +499,9 @@ enum	kcgi_err {
 	/* Internal system error (malformed data). */
 	KCGI_FORM,
 	/* Opaque operating-system error. */
-	KCGI_SYSTEM
+	KCGI_SYSTEM,
+	/* Writer error. */
+	KCGI_WRITER
 };
 
 typedef enum kcgi_err (*ktemplate_writef)(const char *, size_t, void *);
