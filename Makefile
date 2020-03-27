@@ -207,6 +207,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-header-builtin \
 		   regress/test-html-disabled \
 		   regress/test-html-simple \
+		   regress/test-html-void-elems \
 		   regress/test-httpdate \
 		   regress/test-invalidate \
 		   regress/test-json-controlchars \
