@@ -3,6 +3,70 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.11.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-04-08">2020-04-08</time>
+		</header>
+		<aside>
+			<div>
+				Add the <a href="khttp_urlpart.3.html">khttp_urlpart(3)</a> family
+				to replace the now-deprecated <code>kutil_urlpart</code> functions.
+				These are for the most part a re-name of the old functions that
+				remove the unused <code>struct kreq</code> argument.
+				There are some small behaviour changes in corner case usage: they
+				have an empty suffix (not just <code>NULL</code>) inhibit printing
+				the dot-suffix, allow a <code>NULL</code> page, and have an empty or
+				<code>NULL</code> page also inhibit the suffix.
+				This way, these functions only produce valid URLs, and also allow
+				for some previously-disallowed forms such as <code>/?foo=bar</code>.
+			</div>
+			<div>
+				The previous functions have been retained with the original
+				behaviour with one exception: before, an empty suffix would still
+				print the period separator.  Now, this is suppressed.
+			</div>
+			<div>
+				The <code>khttp_vurlpart</code> and <code>khttp_vurlpartx</code>
+				forms, which accept a variable-length type, are also now exposed for
+				use.
+			</div>
+			<div>
+				Have <a href="kxml_puts.3.html">kxml_puts(3)</a>
+				and <a href="kxml_write.3.html">kxml_write(3)</a>
+				handle <code>NULL</code> pointers as content.
+			</div>
+			<div>
+				Verify and fix that all scope-opening functions in
+				<a href="kcgixml.3.html">kcgixml(3)</a> and
+				<a href="kcgihtml.3.html">kcgihtml(3)</a>
+				properly close variable arguments contexts on error.
+			</div>
+			<div>
+				Instead of aborting when the maximum number of scopes in
+				<a href="kcgijson.3.html">kcgijson(3)</a>,
+				<a href="kcgihtml.3.html">kcgihtml(3)</a>, or
+				<a href="kcgixml.3.html">kcgixml(3)</a>
+				has been reached, return <code>KCGI_ENOMEM</code>.
+			</div>
+			<div>
+				Check that the element index passed to
+				<a href="kxml_pushnull.3.html">kxml_pushnull(3)</a> is valid.
+			</div>
+			<div>
+				<strong>Behaviour change</strong>: previously, several
+				<a href="kcgixml.3.html">kcgixml(3)</a> functions would return 
+				<code>KCGI_FORM</code>, such as when popping from an empty stack.
+				To prevent other <code>KCGI_FORM</code> errors from being masked,
+				use <code>KCGI_WRITER</code> to handle these situations.
+			</div>
+			<div>
+				Split apart <a href="kcgixml.3.html">kcgixml(3)</a> into one manpage
+				per function.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.11.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-03-27">2020-03-27</time>
