@@ -1,0 +1,200 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_URLPART 3
+.Os
+.Sh NAME
+.Nm khttp_urlpart ,
+.Nm khttp_urlpartx ,
+.Nm khttp_vurlpart ,
+.Nm khttp_vurlpartx
+.Nd URL formatting for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft "char *"
+.Fo khttp_urlpart
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fo khttp_urlpartx
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fo khttp_vurlpart
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "va_list ap"
+.Fc
+.Ft "char *"
+.Fo khttp_vurlpartx
+.Fa "const char *path"
+.Fa "const char *suffix"
+.Fa "const char *page"
+.Fa "va_list ap"
+.Fc
+.Sh DESCRIPTION
+Format a URL given the components following the domain.
+If the variable arguments are provided, append them as query string
+pairs.
+.Pp
+.Dl Fa path Ns / Ns Fa page . Ns Fa suffix
+.Dl Fa path Ns / Ns Fa page . Ns Fa suffix Ns Pf ? Fa key Ns Pf = Fa val...
+.Pp
+If
+.Fa path
+is
+.Dv NULL ,
+the URL will be relative to
+.Fa page ;
+otherwise,
+.Fa path
+will be followed by a path separator.
+An empty
+.Fa path
+signifies the root directory.
+.Pp
+If the
+.Fa suffix
+is
+.Dv NULL
+or
+empty, or the corresponding
+.Fa page
+is
+.Dv NULL
+or empty, the URL is formatted without a suffix.
+.Pp
+The variable key-value arguments must be terminated with
+.Dv NULL .
+.Fn khttp_urlpart
+and
+.Fn khttp_vurlpart
+accept pairs of variable arguments, the first being the query string
+key, the second being the value.
+.Fn khttp_urlpartx
+and
+.Fn khttp_vurlpartx
+accept triplets.
+In each group, the first argument is a
+.Vt char *
+giving the key.
+The second argument is an
+.Vt enum kattrx
+specifying the type of the third argument:
+.Dv KATTRX_STRING
+followed by a
+.Vt char *
+string,
+.Dv KATTRX_INT
+followed by an
+.Vt int64_t
+signed integer, or
+.Dv KATTRX_DOUBLE
+followed by a
+.Vt double
+floating-point number.
+If all types are
+.Dv KATTRX_STRING ,
+the invocation can be shortened to
+.Fn khttp_urlpart .
+.Pp
+The
+.Fa page ,
+query string keys, and query string values are URL-encoded, but the
+.Fa path
+and the
+.Fa suffix
+are not.
+.Pp
+There are two deprecated forms of these functions:
+.Fn kutil_urlpart
+and
+.Fn kutil_urlpartx .
+These should no longer be used.
+.Sh RETURN VALUES
+Return newly-allocated strings that must be freed with
+.Xr free 3
+or
+.Dv NULL
+if allocation fails.
+.Sh EXAMPLES
+The following creates a relative URL with path, page, suffix, and query string
+parts.
+.Bd -literal -offset indent
+url = khttp_urlpart("/path", "html", "page",
+	 "foo", "bar", "baz", "xyzzy", NULL);
+.Ed
+.Pp
+This will assign the following URL:
+.Pp
+.Dl /path/page.html?foo=bar&baz=xyzzy
+.Pp
+For typed arguments, the extended form may be used.
+Integer and real literals must have the
+.Vt int64_t
+and
+.Vt double
+types, respectively.
+.Bd -literal -offset indent
+url = khttp_urlpartx("/path", "html", "page",
+	 "foo", KATTRX_INT, (int64_t)0, NULL);
+.Ed
+.Pp
+This assigns the following
+.Pp
+.Dl /path/page.html?foo=0
+.Pp
+These may be made relative to the current page by omitting the leading
+slash or passing
+.Dv NULL
+for the path component entirely, such as:
+.Bd -literal -offset indent
+url1 = khttp_urlpart("rel/path", "html", "page", NULL);
+url2 = khttp_urlpart(NULL, "html", "page", NULL);
+.Ed
+.Pp
+These assign the following, respectively:
+.Pp
+.Dl rel/path/page.html
+.Dl page.html
+.Pp
+Lastly, pages and their suffixes may be omitted entirely:
+.Bd -literal -offset indent
+url3 = khttp_urlpart("", "", "", "foo", "bar", NULL);
+url4 = khttp_urlpart(NULL, "", "", "foo", "bar", NULL);
+.Ed
+.Pp
+These assign the following:
+.Pp
+.Dl /?foo=bar
+.Dl ?foo=bar
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

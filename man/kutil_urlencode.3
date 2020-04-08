@@ -20,8 +20,6 @@
 .Os
 .Sh NAME
 .Nm kutil_urlabs ,
-.Nm kutil_urlpart ,
-.Nm kutil_urlpartx ,
 .Nm kutil_urlencode ,
 .Nm kutil_urldecode ,
 .Nm kutil_urldecode_inplace
@@ -41,22 +39,6 @@
 .Fa "const char *path"
 .Fc
 .Ft "char *"
-.Fo kutil_urlpart
-.Fa "struct kreq *req"
-.Fa "const char *path"
-.Fa "const char *suffix"
-.Fa "const char *page"
-.Fa "..."
-.Fc
-.Ft "char *"
-.Fo kutil_urlpartx
-.Fa "struct kreq *req"
-.Fa "const char *path"
-.Fa "const char *suffix"
-.Fa "const char *page"
-.Fa "..."
-.Fc
-.Ft "char *"
 .Fo kutil_urlencode
 .Fa "const char *cp"
 .Fc
@@ -71,76 +53,6 @@
 .Fc
 .Sh DESCRIPTION
 These functions format or manipulate various parts of a URL.
-.Pp
-The
-.Fn kutil_urlpart
-and
-.Fn kutil_urlpartx
-functions format the
-.Fa path Ns / Ns Fa page . Ns Fa suffix
-part of an HTTP URL,
-appending a variable number of query string key-value pairs.
-If
-.Pa page
-is
-.Dv NULL ,
-these return
-.Dv NULL .
-If
-.Fa path
-is
-.Dv NULL ,
-the URL will be relative to
-.Fa page ;
-otherwise,
-.Fa path
-will be followed by a path separator.
-The last argument must be
-.Dv NULL .
-If the
-.Fa suffix
-is
-.Dv NULL ,
-it is omitted from the URL.
-The
-.Fa page ,
-the keys, and the values are URL-encoded, but the
-.Fa path
-and the
-.Fa suffix
-are not.
-.Pp
-.Fn kutil_urlpart
-accepts a variable number of pairs of
-.Vt char *
-arguments.
-In each pair, the first argument is the key and the second one the
-corresponding value.
-.Pp
-.Fn kutil_urlpartx
-accepts a variable number of groups of three arguments each.
-In each group, the first argument is a
-.Vt char *
-giving the key.
-The second argument is an
-.Vt enum kattrx
-specifying the type of the third argument:
-.Dv KATTRX_STRING
-followed by a
-.Vt char *
-string,
-.Dv KATTRX_INT
-followed by an
-.Vt int64_t
-signed integer, or
-.Dv KATTRX_DOUBLE
-followed by a
-.Vt double
-floating-point number.
-If all types are
-.Dv KATTRX_STRING ,
-the invocation can be shortened to
-.Fn kutil_urlpart .
 .Pp
 The
 .Fn kutil_urlencode
@@ -170,16 +82,11 @@ Unless the
 .Fa path
 is an empty string, it needs to begin with a slash.
 None of this is URL-encoded, so make sure to use
-.Fn kutil_urlpart ,
-.Fn kutil_urlpartx ,
-or just
 .Fn kutil_urlencode
 for the sensitive parts.
 .Sh RETURN VALUES
 The
-.Fn kutil_urlabs ,
-.Fn kutil_urlpart ,
-.Fn kutil_urlpartx
+.Fn kutil_urlabs
 and
 .Fn kutil_urlencode
 functions return newly-allocated strings that must be freed with
@@ -212,52 +119,7 @@ Malformed or
 .Dv NULL
 input data.
 .El
-.Sh EXAMPLES
-The following creates a relative URL with path, page, suffix, and query string
-parts.
-.Bd -literal -offset indent
-url = kutil_urlpart
-	(NULL, "/path", "html", "page",
-	 "foo", "bar", "baz", "xyzzy", NULL);
-puts(url);
-.Ed
-.Pp
-This will output the following URL:
-.Pp
-.Dl /path/page.html?foo=bar&baz=xyzzy
-.Pp
-For typed arguments, the extended form may be used.
-Integer and real literals must have the
-.Vt int64_t
-and
-.Vt double
-types, respectively.
-.Bd -literal -offset indent
-url = kutil_urlpartx
-	(NULL, "/path", "html", "page",
-	 "foo", KATTRX_INT, (int64_t)0, NULL);
-puts(url);
-.Ed
-.Pp
-This outputs the following
-.Pp
-.Dl /path/page.html?foo=0
-.Pp
-These may be made relative to the current page by omitting the leading
-slash or passing
-.Dv NULL
-for the path component entirely, such as:
-.Bd -literal -offset indent
-url1 = kutil_urlpart(NULL, "rel/path", "html", "page", NULL);
-puts(url1);
-url2 = kutil_urlpart(NULL, NULL, "html", "page", NULL);
-puts(url2);
-.Ed
-.Pp
-These output the following:
-.Pp
-.Dl rel/path/page.html
-.Dl page.html
+.\" .Sh EXAMPLES
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
@@ -267,7 +129,3 @@ The
 function accepts
 .Fa scheme
 arguments that aren't valid in URLs.
-.Pp
-The
-.Fa req
-argument is not used and should be removed.

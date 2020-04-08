@@ -92,6 +92,14 @@ main(int argc, char *argv[])
 	free(url);
 
 	expect = "/?bar=baz";
+	url = khttp_urlpart("", "", "", "bar", "baz", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
+	expect = "/?bar=baz";
 	url = khttp_urlpart("", "html", "", "bar", "baz", NULL);
 	if (url == NULL)
 		errx(EXIT_FAILURE, "failed expect");
