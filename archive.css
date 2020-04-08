@@ -49,8 +49,7 @@ footer					{ padding: 1ex;
 					  margin-bottom: 3rem; }
 #archive li + li			{ margin-top: 2rem;
 					  opacity: 0.6; }
-#archive div.content > div + div		
-					{ margin-top: 1rem; }
+#archive div.content > div + div	{ margin-top: 1rem; }
 #archive ul				{ list-style-type: none;
 					  padding: 0;
 					  margin: 2em 0; }

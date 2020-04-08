@@ -44,7 +44,7 @@ body > header a:hover			{ color: #ff0; }
 #version a, 
 #version time, 
 #version span.version			{ font-style: normal; }
-#version .content > div + div		{ margin-top: 0.5em; }
+#version div.content > div + div	{ margin-top: 1rem; }
 #version nav .title			{ font-weight: 500; 
 					  margin-bottom: 1em; }
 #version .archive			{ text-align: center; }
@@ -52,7 +52,6 @@ h1					{ font-size: 175%;
 					  margin: 0;
 					  line-height: 34pt;
 					  font-weight: 400; }
-p					{ line-height: 1.3em; }
 .nm, .file				{ font-style: italic; }
 h1 .nm					{ text-shadow: 1px 1px #666; 
 					  font-style: inherit; }
@@ -103,7 +102,7 @@ figure					{ margin: 0;
 					  color: #444; }
 dd					{ margin: 0 0 1em 0; }
 pre.prettyprint				{ border: none; 
-					  line-height: 180%;
+					  line-height: 1.4em;
 					  color: #333;
 					  overflow: hidden;
 					  width: auto; }
