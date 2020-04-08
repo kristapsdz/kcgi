@@ -616,10 +616,23 @@ int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *);
+
+char		*khttp_urlpart(const char *,
+			const char *, const char *, ...);
+char		*khttp_urlpartx(const char *,
+			const char *, const char *, ...);
+char		*khttp_vurlpart(const char *,
+			const char *, const char *, va_list);
+char		*khttp_vurlpartx(const char *,
+			const char *, const char *, va_list);
+
 char		*kutil_urlpart(struct kreq *, const char *,
-			const char *, const char *, ...);
+			const char *, const char *, ...)
+			__attribute((__deprecated__));
 char		*kutil_urlpartx(struct kreq *, const char *,
-			const char *, const char *, ...);
+			const char *, const char *, ...)
+			__attribute((__deprecated__));
+
 char		*kutil_urlencode(const char *);
 enum kcgi_err	 kutil_urldecode(const char *, char **);
 enum kcgi_err	 kutil_urldecode_inplace(char *);

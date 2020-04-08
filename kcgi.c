@@ -526,37 +526,69 @@ char *
 kutil_urlpartx(struct kreq *req, const char *path,
 	const char *mime, const char *page, ...)
 {
-	va_list		 ap;
-	int		 rc;
-	char		*p, *pp, *keyp, *valp, *valpp;
+	char	*ret;
+	va_list	 ap;
+
+	if (page == NULL)
+		return NULL;
+
+	va_start(ap, page);
+	ret = khttp_vurlpartx(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_urlpartx(const char *path,
+	const char *mime, const char *page, ...)
+{
+	char	*ret;
+	va_list	 ap;
+
+	va_start(ap, page);
+	ret = khttp_vurlpartx(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_vurlpartx(const char *path,
+	const char *mime, const char *page, va_list ap)
+{
+	int		 len;
+	char		*p, *pp, *pageenc = NULL, *keyp, *valp, *valpp;
 	size_t		 total, count = 0;
 	char	 	 buf[256]; /* max double/int64_t */
 
-	if ((pp = kutil_urlencode(page)) == NULL)
+	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
 		return NULL;
 
 	/* If we have a MIME type, append it. */
 
-	rc = mime != NULL ?
-		XASPRINTF(&p, "%s%s%s.%s", 
-			NULL != path ? path : "",
-			NULL != path ? "/" : "", pp, mime) :
-		XASPRINTF(&p, "%s%s%s", 
-			NULL != path ? path : "",
-			NULL != path ? "/" : "", pp);
+	if ((mime == NULL || mime[0] == '\0') || 
+	    (page == NULL || page[0] == '\0'))
+		len = XASPRINTF(&p, "%s%s%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", 
+			pageenc != NULL ? pageenc : "");
+	else {
+		assert(pageenc != NULL);
+		len = XASPRINTF(&p, "%s%s%s.%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", pageenc, mime);
+	}
 
-	free(pp);
+	free(pageenc);
+	pageenc = NULL;
 
-	if (rc == -1)
+	if (len == -1)
 		return NULL;
 
 	total = strlen(p) + 1;
 
-	va_start(ap, page);
 	while ((pp = va_arg(ap, char *)) != NULL) {
 		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
-			va_end(ap);
 			return NULL;
 		}
 
@@ -580,14 +612,12 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		default:
 			free(p);
 			free(keyp);
-			va_end(ap);
 			return NULL;
 		}
 
 		if (valp == NULL) {
 			free(p);
 			free(keyp);
-			va_end(ap);
 			return NULL;
 		}
 
@@ -600,7 +630,6 @@ kutil_urlpartx(struct kreq *req, const char *path,
 			free(p);
 			free(keyp);
 			free(valpp);
-			va_end(ap);
 			return NULL;
 		}
 		p = pp;
@@ -618,7 +647,6 @@ kutil_urlpartx(struct kreq *req, const char *path,
 		free(valpp);
 		count++;
 	}
-	va_end(ap);
 
 	return p;
 }
@@ -627,35 +655,70 @@ char *
 kutil_urlpart(struct kreq *req, const char *path,
 	const char *mime, const char *page, ...)
 {
-	va_list		 ap;
-	char		*p, *pp, *keyp, *valp;
+	char	*ret;
+	va_list	 ap;
+
+	if (page == NULL)
+		return NULL;
+	va_start(ap, page);
+	ret = khttp_vurlpart(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_urlpart(const char *path,
+	const char *mime, const char *page, ...)
+{
+	char	*ret;
+	va_list	 ap;
+
+	va_start(ap, page);
+	ret = khttp_vurlpart(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_vurlpart(const char *path,
+	const char *mime, const char *page, va_list ap)
+{
+	char		*pp, *p, *pageenc = NULL, *keyp, *valp;
 	size_t		 total, count = 0;
 	int		 len;
 
-	if ((pp = kutil_urlencode(page)) == NULL)
+	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
 		return NULL;
 
-	/* If we have a MIME type, append it. */
+	/* 
+	 * Only append the MIME suffix if we have it AND if the page is
+	 * non-NULL and non-empty.
+	 */
 
-	len = mime != NULL ?
-		XASPRINTF(&p, "%s%s%s.%s", 
-			NULL != path ? path : "",
-			NULL != path ? "/" : "", pp, mime) :
-		XASPRINTF(&p, "%s%s%s", 
-			NULL != path ? path : "",
-			NULL != path ? "/" : "", pp);
-	free(pp);
+	if ((mime == NULL || mime[0] == '\0') || 
+	    (page == NULL || page[0] == '\0'))
+		len = XASPRINTF(&p, "%s%s%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", 
+			pageenc != NULL ? pageenc : "");
+	else {
+		assert(pageenc != NULL);
+		len = XASPRINTF(&p, "%s%s%s.%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", pageenc, mime);
+	}
+
+	free(pageenc);
+	pageenc = NULL;
 
 	if (len < 0)
 		return NULL;
 
 	total = strlen(p) + 1;
 
-	va_start(ap, page);
-	while (NULL != (pp = va_arg(ap, char *))) {
+	while ((pp = va_arg(ap, char *)) != NULL) {
 		if ((keyp = kutil_urlencode(pp)) == NULL) {
 			free(p);
-			va_end(ap);
 			return NULL;
 		}
 
@@ -663,7 +726,6 @@ kutil_urlpart(struct kreq *req, const char *path,
 		if (valp == NULL) {
 			free(p);
 			free(keyp);
-			va_end(ap);
 			return NULL;
 		}
 
@@ -676,7 +738,6 @@ kutil_urlpart(struct kreq *req, const char *path,
 			free(p);
 			free(keyp);
 			free(valp);
-			va_end(ap);
 			return NULL;
 		}
 		p = pp;
@@ -694,7 +755,6 @@ kutil_urlpart(struct kreq *req, const char *path,
 		free(valp);
 		count++;
 	}
-	va_end(ap);
 
 	return p;
 }

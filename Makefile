@@ -228,6 +228,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-urldecode \
 		   regress/test-urlpart \
 		   regress/test-urlpartx \
+		   regress/test-urlpart-deprecated \
+		   regress/test-urlpartx-deprecated \
 		   regress/test-valid-date \
 		   regress/test-valid-double \
 		   regress/test-valid-email \
@@ -254,7 +256,11 @@ LIBS_PKG	 != pkg-config --libs zlib 2>/dev/null || echo "-lz"
 CFLAGS_PKG	 != pkg-config --cflags zlib 2>/dev/null || echo ""
 
 REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
-REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG)
+
+# The -Wno-deprecated is because the regression tests still check
+# functions that have been since deprecated.
+
+REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG) -Wno-deprecated
 
 all: kfcgi $(LIBS) $(PCS)
 

@@ -35,121 +35,71 @@ main(int argc, char *argv[])
 	char		*url;
 	const char	*expect;
 
-	expect = "/foo/";
-	url = khttp_urlpart("/foo", "html", NULL, NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
+	/* Should fail: no filename. */
 
-	expect = "/foo/";
-	url = khttp_urlpart("/foo", "html", "", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/foo", "html", NULL, NULL);
+	if (NULL != url)
 		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
 
-	expect = "/";
-	url = khttp_urlpart("", "html", "", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
-
-	expect = "";
-	url = khttp_urlpart(NULL, "html", "", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
-
-	expect = "/foo/?bar=baz";
-	url = khttp_urlpart("/foo", "html", "", "bar", "baz", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
-
-	expect = "foo/?bar=baz";
-	url = khttp_urlpart("foo", "html", "", "bar", "baz", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
-
-	expect = "?bar=baz";
-	url = khttp_urlpart(NULL, "html", "", "bar", "baz", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
-
-	expect = "/?bar=baz";
-	url = khttp_urlpart("", "html", "", "bar", "baz", NULL);
-	if (url == NULL)
-		errx(EXIT_FAILURE, "failed expect");
-	if (strcmp(url, expect))
-		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
-	free(url);
+	/* All of these should succeed... */
 
 	expect = "/path/to/foo.html";
-	url = khttp_urlpart("/path/to", "html", "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", "html", "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "relpath/to/foo";
-	url = khttp_urlpart("relpath/to", NULL, "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "relpath/to", NULL, "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "/path/to/foo";
-	url = khttp_urlpart("/path/to", NULL, "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", NULL, "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
-	expect = "/path/to/foo";
-	url = khttp_urlpart("/path/to", "", "foo", NULL);
-	if (url == NULL)
+	/* 
+	 * This behaviour has been changed, but was never explicitly
+	 * documented.
+	 */
+#if 0
+	expect = "/path/to/foo.";
+	url = kutil_urlpart(NULL, "/path/to", "", "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
+#endif
 
 	expect = "/foo.html";
-	url = khttp_urlpart("", "html", "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "", "html", "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "foo.html";
-	url = khttp_urlpart(NULL, "html", "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, NULL, "html", "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "foo";
-	url = khttp_urlpart(NULL, NULL, "foo", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, NULL, NULL, "foo", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
@@ -159,47 +109,47 @@ main(int argc, char *argv[])
 	/* This should fail. */
 	/* It's the only failure case here. */
 
-	url = khttp_urlpart("", "html", "foo", "fail", NULL);
-	if (url != NULL)
+	url = kutil_urlpart(NULL, "", "html", "foo", "fail", NULL);
+	if (NULL != url)
 		errx(EXIT_FAILURE, "failed expect");
 
 	/* These should all succeed. */
 
 	expect = "/pat h/to/foo.html?foo=bar";
-	url = khttp_urlpart("/pat h/to", "html", "foo", "foo", "bar", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/pat h/to", "html", "foo", "foo", "bar", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "/path/to/fo+o.html?foo=bar";
-	url = khttp_urlpart("/path/to", "html", "fo o", "foo", "bar", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", "html", "fo o", "foo", "bar", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "/path/to/foo.html?foo=bar";
-	url = khttp_urlpart("/path/to", "html", "foo", "foo", "bar", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", "html", "foo", "foo", "bar", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "/path/to/foo.html?fo+o=bar";
-	url = khttp_urlpart("/path/to", "html", "foo", "fo o", "bar", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", "html", "foo", "fo o", "bar", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
 	expect = "/path/to/foo.html?fo+o=bar+o";
-	url = khttp_urlpart("/path/to", "html", "foo", "fo o", "bar o", NULL);
-	if (url == NULL)
+	url = kutil_urlpart(NULL, "/path/to", "html", "foo", "fo o", "bar o", NULL);
+	if (NULL == url)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
