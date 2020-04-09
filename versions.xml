@@ -18,7 +18,8 @@
 				the dot-suffix, allow a <code>NULL</code> page, and have an empty or
 				<code>NULL</code> page also inhibit the suffix.
 				This way, these functions only produce valid URLs, and also allow
-				for some previously-disallowed forms such as <code>/?foo=bar</code>.
+				for some previously-disallowed (but valid) forms such as
+				<code>/?foo=bar</code>.
 			</div>
 			<div>
 				The previous functions have been retained with the original
@@ -29,6 +30,12 @@
 				The <code>khttp_vurlpart</code> and <code>khttp_vurlpartx</code>
 				forms, which accept a variable-length type, are also now exposed for
 				use.
+			</div>
+			<div>
+				Add the <a href="khttp_urlabs.3.html">khttp_urlabs(3)</a> function,
+				which is vaguely similar to the earlier <code>kutil_urlabs</code>
+				but significantly more robust.
+				The earlier <code>kutil_urlabs</code> is retained, but deprecated.
 			</div>
 			<div>
 				Have <a href="kxml_puts.3.html">kxml_puts(3)</a>
