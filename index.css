@@ -108,6 +108,7 @@ pre.prettyprint				{ border: none;
 					  width: auto; }
 pre.prettyprint .cpp			{ color: rgb(150, 150, 255); }
 pre.prettyprint .ident			{ color: rgb(0, 100, 0); }
+pre.prettyprint .flow			{ color: rgb(200, 100, 0); }
 pre.prettyprint .literal		{ color: rgb(100, 0, 0); }
 footer					{ padding: 1ex;
 					  margin-top: 1em;

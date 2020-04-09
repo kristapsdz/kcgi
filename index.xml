@@ -99,9 +99,9 @@
 <span class="cpp">#include</span> <span class="literal">&lt;<a href="kcgi.3.html">kcgi.h</a>&gt;</span>
 
 <span class="ident">int</span> main(<span class="ident">void</span>) {
-    struct kreq r;
-    const char *page = <span class="literal">"index"</span>;
-    if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
+    <span class="ident">struct</span> kreq r;
+    <span class="ident">const char</span> *page = <span class="literal">"index"</span>;
+    <span class="flow">if</span> (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
         return 1;
     <a href="khttp_head.3.html">khttp_head</a>(&amp;r, kresps[KRESP_STATUS], 
         <span class="literal">"%s"</span>, khttps[KHTTP_200]);
@@ -110,7 +110,7 @@
     <a href="khttp_body.3.html">khttp_body</a>(&amp;r);
     <a href="khttp_write.3.html">khttp_puts</a>(&amp;r, <span class="literal">"Hello, world!"</span>);
     <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
-    return 0;
+    <span class="flow">return</span> 0;
 }</pre>
 				<pre id="comments" class="text prettyprint"><span class="cpp">#include</span> <span class="literal">&lt;sys/types.h&gt;</span> /* size_t, ssize_t */
 <span class="cpp">#include</span> <span class="literal">&lt;stdarg.h&gt;</span> /* va_list */
@@ -119,8 +119,8 @@
 <span class="cpp">#include</span> <span class="literal">&lt;<a href="kcgi.3.html">kcgi.h</a>&gt;</span>
 
 <span class="ident">int</span> main(<span class="ident">void</span>) {
-    struct kreq r;
-    const char *page = <span class="literal">"index"</span>;
+    <span class="ident">struct</span> kreq r;
+    <span class="ident">const char</span> *page = <span class="literal">"index"</span>;
   
     /*
      * Parse the HTTP environment.
@@ -129,7 +129,7 @@
      * (We don't validate any input fields.)
      */
   
-    if (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
+    <span class="flow">if</span> (<a href="khttp_parse.3.html">khttp_parse</a>(&amp;r, NULL, 0, &amp;page, 1, 0) != KCGI_OK)
         return 1;
   
     /* 
@@ -165,7 +165,7 @@
     /* Flush the document and free resources. */
   
     <a href="khttp_free.3.html">khttp_free</a>(&amp;r);
-    return 0;
+    <span class="flow">return</span> 0;
 }</pre>
 		</figure>
 		<section class="text">
