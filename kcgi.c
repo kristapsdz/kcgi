@@ -511,78 +511,75 @@ kutil_urldecode(const char *src, char **dst)
 	return er;
 }
 
-char *
-kutil_urlabs(enum kscheme scheme, 
-	const char *host, uint16_t port, const char *path)
+/*
+ * Append key-value triplets in "ap" to "p".
+ * Reallocate as necessary.
+ * A NULL key signifies termination of the list.
+ * Returns the URL string or NULL on memory failure.
+ */
+static char *
+khttp_url_query_string(char *p, va_list ap)
 {
-	char	*p;
+	char	*pp, *keyp, *valp;
+	size_t	 total, count = 0;
 
-	XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
-	    kschemes[scheme], host, port, path);
+	total = strlen(p) + 1;
+
+	while ((pp = va_arg(ap, char *)) != NULL) {
+		if ((keyp = kutil_urlencode(pp)) == NULL) {
+			free(p);
+			return NULL;
+		}
+
+		valp = kutil_urlencode(va_arg(ap, char *));
+		if (valp == NULL) {
+			free(p);
+			free(keyp);
+			return NULL;
+		}
+
+		/* Size for key, value, ? or &, and =. */
+		/* FIXME: check for overflow! */
+
+		total += strlen(keyp) + strlen(valp) + 2;
+
+		if ((pp = XREALLOC(p, total)) == NULL) {
+			free(p);
+			free(keyp);
+			free(valp);
+			return NULL;
+		}
+		p = pp;
+
+		if (count > 0)
+			(void)strlcat(p, "&", total);
+		else
+			(void)strlcat(p, "?", total);
+
+		(void)strlcat(p, keyp, total);
+		(void)strlcat(p, "=", total);
+		(void)strlcat(p, valp, total);
+
+		free(keyp);
+		free(valp);
+		count++;
+	}
+
 	return p;
 }
 
-char *
-kutil_urlpartx(struct kreq *req, const char *path,
-	const char *mime, const char *page, ...)
+/*
+ * Append key-type-value triplets in "ap" to "p".
+ * Reallocate as necessary.
+ * A NULL key signifies termination of the list.
+ * Returns the URL string or NULL on memory failure.
+ */
+static char *
+khttp_url_query_stringx(char *p, va_list ap)
 {
-	char	*ret;
-	va_list	 ap;
-
-	if (page == NULL)
-		return NULL;
-
-	va_start(ap, page);
-	ret = khttp_vurlpartx(path, mime, page, ap);
-	va_end(ap);
-	return ret;
-}
-
-char *
-khttp_urlpartx(const char *path,
-	const char *mime, const char *page, ...)
-{
-	char	*ret;
-	va_list	 ap;
-
-	va_start(ap, page);
-	ret = khttp_vurlpartx(path, mime, page, ap);
-	va_end(ap);
-	return ret;
-}
-
-char *
-khttp_vurlpartx(const char *path,
-	const char *mime, const char *page, va_list ap)
-{
-	int		 len;
-	char		*p, *pp, *pageenc = NULL, *keyp, *valp, *valpp;
-	size_t		 total, count = 0;
-	char	 	 buf[256]; /* max double/int64_t */
-
-	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
-		return NULL;
-
-	/* If we have a MIME type, append it. */
-
-	if ((mime == NULL || mime[0] == '\0') || 
-	    (page == NULL || page[0] == '\0'))
-		len = XASPRINTF(&p, "%s%s%s", 
-			path != NULL ? path : "",
-			path != NULL ? "/" : "", 
-			pageenc != NULL ? pageenc : "");
-	else {
-		assert(pageenc != NULL);
-		len = XASPRINTF(&p, "%s%s%s.%s", 
-			path != NULL ? path : "",
-			path != NULL ? "/" : "", pageenc, mime);
-	}
-
-	free(pageenc);
-	pageenc = NULL;
-
-	if (len == -1)
-		return NULL;
+	char	*pp, *keyp, *valp, *valpp;
+	size_t	 total, count = 0;
+	char 	 buf[256]; /* max double/int64_t */
 
 	total = strlen(p) + 1;
 
@@ -651,6 +648,128 @@ khttp_vurlpartx(const char *path,
 	return p;
 }
 
+/*
+ * Deprecated form.
+ */
+char *
+kutil_urlabs(enum kscheme scheme, 
+	const char *host, uint16_t port, const char *path)
+{
+	char	*p;
+
+	XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
+	    kschemes[scheme], host, port, path);
+	return p;
+}
+
+char *
+khttp_urlabs(enum kscheme scheme, const char *host,
+	uint16_t port, const char *path, ...)
+{
+	char	*p;
+	va_list	 ap;
+
+	va_start(ap, path);
+	p = khttp_vurlabs(scheme, host, port, path, ap);
+	va_end(ap);
+	return p;
+}
+
+char *
+khttp_vurlabs(enum kscheme scheme, const char *host,
+	uint16_t port, const char *path, va_list ap)
+{
+	char	*p;
+	int	 len;
+
+	if (host == NULL || host[0] == '\0') {
+		len = XASPRINTF(&p, "%s:%s", kschemes[scheme], 
+			path == NULL ? "" : path);
+	} else if (port == 0) {
+		len = XASPRINTF(&p, "%s://%s%s%s", 
+		    kschemes[scheme], host, 
+		    path != NULL && path[0] != '\0' && 
+		    	path[0] != '/' ? "/" : "", 
+		    path == NULL ? "" : path);
+	} else {
+		len = XASPRINTF(&p, "%s://%s:%" PRIu16 "%s%s", 
+		    kschemes[scheme], host, port, 
+		    path != NULL && path[0] != '\0' && 
+		    	path[0] != '/' ? "/" : "", 
+		    path == NULL ? "" : path);
+	}
+
+	if (len == -1)
+		return NULL;
+	return khttp_url_query_string(p, ap);
+}
+
+/*
+ * Deprecated form.
+ */
+char *
+kutil_urlpartx(struct kreq *req, const char *path,
+	const char *mime, const char *page, ...)
+{
+	char	*ret;
+	va_list	 ap;
+
+	if (page == NULL)
+		return NULL;
+
+	va_start(ap, page);
+	ret = khttp_vurlpartx(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_urlpartx(const char *path,
+	const char *mime, const char *page, ...)
+{
+	char	*ret;
+	va_list	 ap;
+
+	va_start(ap, page);
+	ret = khttp_vurlpartx(path, mime, page, ap);
+	va_end(ap);
+	return ret;
+}
+
+char *
+khttp_vurlpartx(const char *path,
+	const char *mime, const char *page, va_list ap)
+{
+	int	 len;
+	char	*p, *pageenc = NULL;
+
+	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
+		return NULL;
+
+	if ((mime == NULL || mime[0] == '\0') || 
+	    (page == NULL || page[0] == '\0'))
+		len = XASPRINTF(&p, "%s%s%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", 
+			pageenc != NULL ? pageenc : "");
+	else {
+		assert(pageenc != NULL);
+		len = XASPRINTF(&p, "%s%s%s.%s", 
+			path != NULL ? path : "",
+			path != NULL ? "/" : "", pageenc, mime);
+	}
+
+	free(pageenc);
+	pageenc = NULL;
+
+	if (len == -1)
+		return NULL;
+	return khttp_url_query_stringx(p, ap);
+}
+
+/*
+ * Deprecated form.
+ */
 char *
 kutil_urlpart(struct kreq *req, const char *path,
 	const char *mime, const char *page, ...)
@@ -683,9 +802,8 @@ char *
 khttp_vurlpart(const char *path,
 	const char *mime, const char *page, va_list ap)
 {
-	char		*pp, *p, *pageenc = NULL, *keyp, *valp;
-	size_t		 total, count = 0;
-	int		 len;
+	char	*p, *pageenc = NULL;
+	int	 len;
 
 	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
 		return NULL;
@@ -711,52 +829,9 @@ khttp_vurlpart(const char *path,
 	free(pageenc);
 	pageenc = NULL;
 
-	if (len < 0)
+	if (len == -1)
 		return NULL;
-
-	total = strlen(p) + 1;
-
-	while ((pp = va_arg(ap, char *)) != NULL) {
-		if ((keyp = kutil_urlencode(pp)) == NULL) {
-			free(p);
-			return NULL;
-		}
-
-		valp = kutil_urlencode(va_arg(ap, char *));
-		if (valp == NULL) {
-			free(p);
-			free(keyp);
-			return NULL;
-		}
-
-		/* Size for key, value, ? or &, and =. */
-		/* FIXME: check for overflow! */
-
-		total += strlen(keyp) + strlen(valp) + 2;
-
-		if ((pp = XREALLOC(p, total)) == NULL) {
-			free(p);
-			free(keyp);
-			free(valp);
-			return NULL;
-		}
-		p = pp;
-
-		if (count > 0)
-			(void)strlcat(p, "&", total);
-		else
-			(void)strlcat(p, "?", total);
-
-		(void)strlcat(p, keyp, total);
-		(void)strlcat(p, "=", total);
-		(void)strlcat(p, valp, total);
-
-		free(keyp);
-		free(valp);
-		count++;
-	}
-
-	return p;
+	return khttp_url_query_string(p, ap);
 }
 
 static void
