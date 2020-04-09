@@ -19,7 +19,6 @@
 .Dt KUTIL_URLENCODE 3
 .Os
 .Sh NAME
-.Nm kutil_urlabs ,
 .Nm kutil_urlencode ,
 .Nm kutil_urldecode ,
 .Nm kutil_urldecode_inplace
@@ -31,13 +30,6 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft "char *"
-.Fo kutil_urlabs
-.Fa "enum kscheme scheme"
-.Fa "const char *host"
-.Fa "uint16_t port"
-.Fa "const char *path"
-.Fc
 .Ft "char *"
 .Fo kutil_urlencode
 .Fa "const char *cp"
@@ -73,23 +65,10 @@ The
 .Fn kutil_urldecode_inplace
 function decodes the given string in-place.
 If the string is malformed, the string may be only partially decoded.
-.Pp
-The
-.Fn kutil_urlabs
-function assembles the URL
-.Fa schema Ns :// Ns Fa host : Ns Fa port Ns Fa path .
-Unless the
-.Fa path
-is an empty string, it needs to begin with a slash.
-None of this is URL-encoded, so make sure to use
-.Fn kutil_urlencode
-for the sensitive parts.
 .Sh RETURN VALUES
 The
-.Fn kutil_urlabs
-and
 .Fn kutil_urlencode
-functions return newly-allocated strings that must be freed with
+function returns a newly-allocated string that must be freed with
 .Xr free 3 .
 They return
 .Dv NULL
@@ -123,9 +102,3 @@ input data.
 .Sh AUTHORS
 These functions were written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh BUGS
-The
-.Fn kutil_urlabs
-function accepts
-.Fa scheme
-arguments that aren't valid in URLs.
