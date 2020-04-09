@@ -43,6 +43,14 @@ main(int argc, char *argv[])
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
+	expect = "https://a:8080?c=d&e=f";
+	url = khttp_urlabs(KSCHEME_HTTPS, "a", 8080, "", "c", "d", "e", "f", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
 	expect = "https://a:8080/b";
 	url = khttp_urlabs(KSCHEME_HTTPS, "a", 8080, "b", NULL);
 	if (url == NULL)
@@ -85,6 +93,14 @@ main(int argc, char *argv[])
 
 	expect = "https://a/b";
 	url = khttp_urlabs(KSCHEME_HTTPS, "a", 0, "b", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
+	expect = "mailto:b";
+	url = khttp_urlabs(KSCHEME_MAILTO, NULL, 0, "b", NULL);
 	if (url == NULL)
 		errx(EXIT_FAILURE, "failed expect");
 	if (strcmp(url, expect))

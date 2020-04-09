@@ -47,10 +47,14 @@
 .Fc
 .Sh DESCRIPTION
 Format an absolute (full) URL.
+The
+.Fa host
+is in some standards called the
+.Qq authority .
 .Pp
-.Dl Fa schema Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path Ns ?key=val
-.Dl Fa schema Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path
-.Dl Fa schema : Ns Fa path
+.Dl Fa scheme Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path Ns ?key=val
+.Dl Fa scheme Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path
+.Dl Fa scheme : Ns Fa path
 .Pp
 Passing a
 .Dv NULL
@@ -106,7 +110,44 @@ Return newly-allocated strings that must be freed with
 or
 .Dv NULL
 if allocation fails.
-.\" .Sh EXAMPLES
+.Sh EXAMPLES
+To print a full URL:
+.Pp
+.Dl khttp_urlabs(KSCHEME_HTTPS, "foo.com", 80, "b", "c", "d", NULL);
+.Pp
+This assigns
+.Li https://foo.com:80/b?c=d .
+.Pp
+Setting the port to zero eliminates the port:
+.Pp
+.Dl khttp_urlabs(KSCHEME_HTTPS, "foo.com", 0, "b", "c", "d", NULL);
+.Pp
+This assigns
+.Li https://foo.com/b?c=d .
+.Pp
+An empty path component ends with the domain (or query string).
+.Pp
+.Dl khttp_urlabs(KSCHEME_HTTPS, "foo.com", 0, "", "c", "d", NULL);
+.Pp
+This assigns
+.Li https://foo.com?c=d .
+.Pp
+To use a host-less scheme, specify a
+.Dv NULL
+or empty host:
+.Pp
+.Dl khttp_urlabs(KSCHEME_MAILTO, NULL, 0, "k@b.com", NULL);
+.Pp
+This assigns
+.Li mailto:k@b.com .
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+These functions can currently be used to create semantically invalid
+URLs such as
+.Li https:?foo=bar
+by omitting components required for the scheme.
+Semantically-correct URLs are the responsibility of the caller.
+This behaviour may be verified for correctness in later versions of the
+software.
