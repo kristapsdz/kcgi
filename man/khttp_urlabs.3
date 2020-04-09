@@ -1,0 +1,112 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_URLABS 3
+.Os
+.Sh NAME
+.Nm khttp_urlabs ,
+.Nm khttp_vurlabs
+.Nd URL formatting for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft "char *"
+.Fo khttp_urlabs
+.Fa "enum kscheme scheme"
+.Fa "const char *host"
+.Fa "uint16_t port"
+.Fa "const char *path"
+.Fa "..."
+.Fc
+.Ft "char *"
+.Fo khttp_vurlabs
+.Fa "enum kscheme scheme"
+.Fa "const char *host"
+.Fa "uint16_t port"
+.Fa "const char *path"
+.Fa "va_list ap"
+.Fc
+.Sh DESCRIPTION
+Format an absolute (full) URL.
+.Pp
+.Dl Fa schema Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path Ns ?key=val
+.Dl Fa schema Ns :// Ns Fa host : Ns Fa port Ns / Ns Fa path
+.Dl Fa schema : Ns Fa path
+.Pp
+Passing a
+.Dv NULL
+or empty
+.Fa host
+will omit the
+.Qq // ,
+.Fa host ,
+.Fa port
+component.
+.Pp
+If the
+.Fa host
+is non-empty and not
+.Dv NULL
+and the
+.Fa path
+is also non-empty and not
+.Dv NULL ,
+the
+.Fa path
+is prepended with a mandatory slash.
+.Pp
+If the
+.Fa port
+is zero, it is omitted.
+The
+.Fa port
+is only used if
+.Fa host
+is non-empty and not
+.Dv NULL .
+.Pp
+The variable arguments are arranged in pairs terminated by a single
+.Dv NULL .
+The first of each pair is the query string key, the second is the value.
+Both are
+.Vt "char *" .
+.Pp
+Only the query string pairs are URL-encoded, so the caller must make
+sure that the characters in
+.Fa host
+and
+.Fa path
+are valid.
+.Pp
+The deprecated form of these functions,
+.Fn kutil_urlabs ,
+should no longer be used.
+.Sh RETURN VALUES
+Return newly-allocated strings that must be freed with
+.Xr free 3
+or
+.Dv NULL
+if allocation fails.
+.\" .Sh EXAMPLES
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
