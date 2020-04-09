@@ -18,8 +18,7 @@
 .Dt KCGIXML 3
 .Os
 .Sh NAME
-.Nm kcgixml ,
-.Nm kxml_close ,
+.Nm kcgixml
 .Nd XML output for kcgi
 .Sh LIBRARY
 .Lb libkcgixml
@@ -45,10 +44,6 @@ emit the standard XML prologue with
 .Xr kxml_prologue 3 ,
 create XML nodes, and end with
 .Xr kxml_close 3 .
-.Sh STANDARDS
-The
-.Nm kcgixml
-functions conform to the XML 1.0 mark-up specification.
 .Sh EXAMPLES
 The following outputs a simple XML page.
 It assumes
@@ -85,6 +80,10 @@ kxml_close(&req);
 .Xr kxml_putc 3 ,
 .Xr kxml_puts 3 ,
 .Xr kxml_write 3
+.Sh STANDARDS
+The
+.Nm kcgixml
+functions conform to the XML 1.0 mark-up specification.
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
