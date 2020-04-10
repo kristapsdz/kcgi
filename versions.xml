@@ -3,9 +3,9 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
-			<h1>0.11.1</h1>
+			<h1>0.12.0</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2020-04-08">2020-04-08</time>
+			<time datetime="2020-04-10">2020-04-10</time>
 		</header>
 		<aside>
 			<div>
@@ -36,6 +36,17 @@
 				which is vaguely similar to the earlier <code>kutil_urlabs</code>
 				but significantly more robust.
 				The earlier <code>kutil_urlabs</code> is retained, but deprecated.
+			</div>
+			<div>
+				Add <a href="khttp_urlencode.3.html">khttp_urlencode(3)</a> and
+				<a href="khttp_urldecode.3.html">khttp_urldecode(3)</a>,
+				replacing the legacy <code>kutil_urlencode</code> and
+				<code>kutil_urldecode</code>.  They're identical
+				except in how <code>NULL</code> values are handled, in the first
+				case returning them as empty strings instead of <code>NULL</code>,
+				in the second regarding them as errors.
+				For the encoder, this allows all URL formatting tools to pass
+				<code>NULL</code> values as query string values without errors.
 			</div>
 			<div>
 				Have <a href="kxml_puts.3.html">kxml_puts(3)</a>
