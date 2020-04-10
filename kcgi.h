@@ -632,20 +632,20 @@ char		*khttp_vurlpartx(const char *,
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *)
-			__attribute((deprecated));
+			__attribute((deprecated("use khttp_urlabs")));
+enum kcgi_err	 kutil_urldecode(const char *, char **)
+			__attribute((deprecated("use khttp_urldecode")));
+enum kcgi_err	 kutil_urldecode_inplace(char *)
+			__attribute((deprecated("use khttp_urldecode_inplace")));
+char		*kutil_urlencode(const char *)
+			__attribute((deprecated("use khttp_urlencode")));
 char		*kutil_urlpart(struct kreq *, const char *,
 			const char *, const char *, ...)
-			__attribute((deprecated));
+			__attribute((deprecated("use khttp_urlpart")));
 char		*kutil_urlpartx(struct kreq *, const char *,
 			const char *, const char *, ...)
-			__attribute((deprecated));
+			__attribute((deprecated("use khttp_urlpartx")));
 
-char		*kutil_urlencode(const char *)
-			__attribute((deprecated));
-enum kcgi_err	 kutil_urldecode(const char *, char **)
-			__attribute((deprecated));
-enum kcgi_err	 kutil_urldecode_inplace(char *)
-			__attribute((deprecated));
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
 int		 kutil_openlog(const char *);
