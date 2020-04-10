@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -16,12 +16,11 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KUTIL_URLENCODE 3
+.Dt KHTTP_URLENCODE 3
 .Os
 .Sh NAME
-.Nm kutil_urldecode ,
-.Nm kutil_urldecode_inplace
-.Nd URL formatting for kcgi
+.Nm khttp_urlencode
+.Nd URL encoding for kcgi
 .Sh LIBRARY
 .Lb libkcgi
 .Sh SYNOPSIS
@@ -29,51 +28,37 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft "enum kcgi_err"
-.Fo kutil_urldecode
-.Fa "const char *src"
-.Fa "char **dst"
-.Fc
-.Ft "enum kcgi_err"
-.Fo kutil_urldecode_inplace
-.Fa "char *cp"
+.Ft "char *"
+.Fo kutil_urlencode
+.Fa "const char *cp"
 .Fc
 .Sh DESCRIPTION
-These functions format or manipulate various parts of a URL.
+Percent-encodes a string
+.Fa cp ,
+usually for embedding in a URL, and returns the allocated result.
+If passed a
+.Dv NULL ,
+returns an allocated empty string.
 .Pp
-The
-.Fn kutil_urldecode
-function decodes the given string
-.Fa src
-and stores the result in the allocated string
-.Fa dst .
-If the return code is not
-.Dv KCGI_OK ,
-the result is set to
-.Dv NULL .
-.Pp
-The
-.Fn kutil_urldecode_inplace
-function decodes the given string in-place.
-If the string is malformed, the string may be only partially decoded.
+The encoding uses capital-letter hex encoding.
 .Sh RETURN VALUES
-The
-.Fn kutil_urldecode
-and
-.Fn kutil_urldecode_inplace
-functions return an error code:
-.Bl -tag -width -Ds
-.It Dv KCGI_OK
-Success (not an error).
-.It Dv KCGI_ENOMEM
-Memory failure (only
-.Fn kutil_urldecode ) .
-.It Dv KCGI_FORM
-Malformed or
+Returns a newly-allocated string that must be freed with
+.Xr free 3
+or
 .Dv NULL
-input data.
-.El
-.\" .Sh EXAMPLES
+if allocation fails.
+.Pp
+The deprecated form of this function,
+.Fn kutil_urlencode ,
+should no longer be used.
+.Sh EXAMPLES
+The following table shows strings pre- and post-encoding.
+.Pp
+.TS
+l l.
+foo bar	foo+bar
+foo+bar	foo%2Bbar
+.TE
 .Sh AUTHORS
-These functions were written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

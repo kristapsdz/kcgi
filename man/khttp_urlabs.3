@@ -93,6 +93,9 @@ The variable arguments are arranged in pairs terminated by a single
 The first of each pair is the query string key, the second is the value.
 Both are
 .Vt "char *" .
+A
+.Dv NULL
+query string value is rendered as an empty string.
 .Pp
 Only the query string pairs are URL-encoded, so the caller must make
 sure that the characters in

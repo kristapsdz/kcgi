@@ -100,6 +100,9 @@ accept pairs of variable arguments, the first being the query string
 key, the second being the value.
 Both are
 .Vt "char *" .
+A
+.Dv NULL
+query string value is rendered as an empty string.
 .Fn khttp_urlpartx
 and
 .Fn khttp_vurlpartx
@@ -113,7 +116,9 @@ specifying the type of the third argument:
 .Dv KATTRX_STRING
 followed by a
 .Vt char *
-string,
+string (where a
+.Dv NULL
+query string value is rendered as an empty string),
 .Dv KATTRX_INT
 followed by an
 .Vt int64_t

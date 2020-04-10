@@ -101,6 +101,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_puts.3 \
 		   man/khttp_template.3 \
 		   man/khttp_urlabs.3 \
+		   man/khttp_urlencode.3 \
 		   man/khttp_urlpart.3 \
 		   man/khttp_write.3 \
 		   man/khttpbasic_validate.3 \
