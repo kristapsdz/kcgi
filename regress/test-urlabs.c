@@ -43,6 +43,22 @@ main(int argc, char *argv[])
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
+	expect = "https://a:8080/b?c=&e=f";
+	url = khttp_urlabs(KSCHEME_HTTPS, "a", 8080, "b", "c", NULL, "e", "f", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
+	expect = "https://a:8080/b?c=&e=f";
+	url = khttp_urlabs(KSCHEME_HTTPS, "a", 8080, "b", "c", "", "e", "f", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
 	expect = "https://a:8080?c=d&e=f";
 	url = khttp_urlabs(KSCHEME_HTTPS, "a", 8080, "", "c", "d", "e", "f", NULL);
 	if (url == NULL)
