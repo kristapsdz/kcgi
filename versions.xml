@@ -13,18 +13,19 @@
 				to replace the now-deprecated <code>kutil_urlpart</code> functions.
 				These are for the most part a re-name of the old functions that
 				remove the unused <code>struct kreq</code> argument.
-				There are some small behaviour changes in corner case usage: they
-				have an empty suffix (not just <code>NULL</code>) inhibit printing
-				the dot-suffix, allow a <code>NULL</code> page, and have an empty or
-				<code>NULL</code> page also inhibit the suffix.
+				There are some small behaviour changes from the original in corner
+				case usage: they have an empty suffix (not just <code>NULL</code>)
+				inhibit printing the dot-suffix, allow a <code>NULL</code> page, and
+				have an empty or <code>NULL</code> page also inhibit the suffix.
 				This way, these functions only produce valid URLs, and also allow
 				for some previously-disallowed (but valid) forms such as
 				<code>/?foo=bar</code>.
 			</div>
 			<div>
 				The previous functions have been retained with the original
-				behaviour with one exception: before, an empty suffix would still
-				print the period separator.  Now, this is suppressed.
+				behaviour <strong>with one exception</strong>: before, an empty
+				suffix would still print the period separator.  Now, this is
+				suppressed.
 			</div>
 			<div>
 				The <code>khttp_vurlpart</code> and <code>khttp_vurlpartx</code>
@@ -33,8 +34,8 @@
 			</div>
 			<div>
 				Add the <a href="khttp_urlabs.3.html">khttp_urlabs(3)</a> function,
-				which is vaguely similar to the earlier <code>kutil_urlabs</code>
-				but significantly more robust.
+				which is similar to the earlier <code>kutil_urlabs</code> but
+				significantly more robust and accepts query string arguments.
 				The earlier <code>kutil_urlabs</code> is retained, but deprecated.
 			</div>
 			<div>
@@ -47,6 +48,10 @@
 				in the second regarding them as errors.
 				For the encoder, this allows all URL formatting tools to pass
 				<code>NULL</code> values as query string values without errors.
+				The earlier functions have been retained with the original behaviour
+				<strong>with one exception</strong>, in that a <code>NULL</code>
+				destination argument for <code>kutil_urldecode</code> triggers a
+				<code>KCGI_FORM</code> return.
 			</div>
 			<div>
 				Have <a href="kxml_puts.3.html">kxml_puts(3)</a>
