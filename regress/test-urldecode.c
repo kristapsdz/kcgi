@@ -51,12 +51,14 @@ static	const struct test tests[] = {
 	{ KCGI_OK, "foo.bar.", "foo.bar." },
 	{ KCGI_OK, "foo.bar.-", "foo.bar.-" },
 	{ KCGI_OK, "-_foo.bar.-", "-_foo.bar.-" },
+	{ KCGI_OK, "-_foo%2Bbar.-", "-_foo+bar.-" },
 	{ KCGI_OK, "-_foo%2bbar.-", "-_foo+bar.-" },
 	{ KCGI_OK, "-_foo%09bar.-", "-_foo\tbar.-" },
 	{ KCGI_OK, "%09-_foo%09bar.-", "\t-_foo\tbar.-" },
 	{ KCGI_OK, "%09-_foo%09bar.-%09", "\t-_foo\tbar.-\t" },
 	{ KCGI_OK, "%09-_foo%25%09bar.-%09", "\t-_foo%\tbar.-\t" },
 	{ KCGI_OK, "-_foo%2509%7dbar.-", "-_foo%09}bar.-" },
+	{ KCGI_OK, "-_foo%2509%7Dbar.-", "-_foo%09}bar.-" },
 	{ KCGI_OK, "%09%09%09%09", "\t\t\t\t" },
 	{ KCGI_OK, "%F8", "\xf8" },
 	{ KCGI_FORM, "%-9", NULL },
@@ -68,6 +70,11 @@ static	const struct test tests[] = {
 	{ KCGI_FORM, "foo%zubar", NULL },
 	{ KCGI_FORM, "foo%", NULL },
 	{ KCGI_FORM, "%%%%%%", NULL },
+	{ KCGI_OK, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+	{ KCGI_OK, "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz" },
+	{ KCGI_OK, "0123456789-_.~", "0123456789-_.~" },
+	{ KCGI_OK, "%21%23%24%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D",
+		"!#$%&'()*+,/:;=?@[]" },
 	{ KCGI_FORM, NULL, NULL }
 };
 
