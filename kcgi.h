@@ -48,12 +48,12 @@
 /*
  * Minor version.
  */
-#define	KCGI_VMINOR	11
+#define	KCGI_VMINOR	12
 
 /*
  * Build version.
  */
-#define	KCGI_VBUILD	1
+#define	KCGI_VBUILD	0
 
 /*
  * Version string of major.minor.build (as a literal string).
@@ -616,6 +616,8 @@ int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
 
 char 		*khttp_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *, ...);
+enum kcgi_err	 khttp_urldecode(const char *, char **);
+enum kcgi_err	 khttp_urldecode_inplace(char *);
 char		*khttp_urlencode(const char *);
 char		*khttp_urlpart(const char *,
 			const char *, const char *, ...);
@@ -640,8 +642,10 @@ char		*kutil_urlpartx(struct kreq *, const char *,
 
 char		*kutil_urlencode(const char *)
 			__attribute((deprecated));
-enum kcgi_err	 kutil_urldecode(const char *, char **);
-enum kcgi_err	 kutil_urldecode_inplace(char *);
+enum kcgi_err	 kutil_urldecode(const char *, char **)
+			__attribute((deprecated));
+enum kcgi_err	 kutil_urldecode_inplace(char *)
+			__attribute((deprecated));
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
 int		 kutil_openlog(const char *);

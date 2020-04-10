@@ -754,10 +754,10 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 		if ('\0' == *key)
 			XWARNX("RFC undefined behaviour: zero-length "
 				"URL-encoded form key (ignoring)");
-		else if (KCGI_FORM == kutil_urldecode_inplace(key))
+		else if (KCGI_FORM == khttp_urldecode_inplace(key))
 			XWARNX("RFC violation: invalid URL-encoding "
 				"for form key (ignoring)");
-		else if (KCGI_FORM == kutil_urldecode_inplace(val))
+		else if (KCGI_FORM == khttp_urldecode_inplace(val))
 			XWARNX("RFC violation: invalid URL-encoding "
 				"for form value (ignoring)");
 		else

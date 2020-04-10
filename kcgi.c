@@ -460,8 +460,18 @@ khttp_urlencode(const char *cp)
 	return p;
 }
 
+/*
+ * Deprecated form.
+ */
 enum kcgi_err
 kutil_urldecode_inplace(char *p)
+{
+
+	return khttp_urldecode_inplace(p);
+}
+
+enum kcgi_err
+khttp_urldecode_inplace(char *p)
 {
 	char	 	 c, d;
 	const char	*tail;
@@ -490,7 +500,8 @@ kutil_urldecode_inplace(char *p)
 
 		if (sscanf(tail + 1, "%1hhx%1hhx", &d, &c) != 2 ||
 		    (c |= d << 4) == '\0') {
-			XWARNX("urldecode: bad hex");
+			XWARNX("khttp_urldecode_inplace: "
+				"bad percent-encoded sequence");
 			return KCGI_FORM;
 		}
 		tail += 3;
@@ -500,18 +511,31 @@ kutil_urldecode_inplace(char *p)
 	return KCGI_OK;
 }
 
+/*
+ * Deprecated form.
+ */
 enum kcgi_err
 kutil_urldecode(const char *src, char **dst)
 {
+
+	return khttp_urldecode(src, dst);
+}
+
+enum kcgi_err
+khttp_urldecode(const char *src, char **dst)
+{
 	enum kcgi_err	 er;
 
-	*dst = NULL;
+	/* In case of error. */
 
-	if (src == NULL)
+	if (dst != NULL)
+		*dst = NULL;
+
+	if (src == NULL || dst == NULL)
 		return KCGI_FORM;
 	if ((*dst = XSTRDUP(src)) == NULL)
 		return KCGI_ENOMEM;
-	if ((er = kutil_urldecode_inplace(*dst)) == KCGI_OK)
+	if ((er = khttp_urldecode_inplace(*dst)) == KCGI_OK)
 		return KCGI_OK;
 
 	/* If we have decoding errors, clear the output. */
