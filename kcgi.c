@@ -409,15 +409,25 @@ kmalloc(size_t sz)
 	exit(EXIT_FAILURE);
 }
 
+/*
+ * Deprecated form.
+ */
 char *
 kutil_urlencode(const char *cp)
+{
+
+	return (cp == NULL) ? NULL : khttp_urlencode(cp);
+}
+
+char *
+khttp_urlencode(const char *cp)
 {
 	char	*p;
 	char	 ch;
 	size_t	 sz, cur;
 
 	if (cp == NULL)
-		return NULL;
+		return XSTRDUP("");
 
 	/* 
 	 * Leave three bytes per input byte for encoding. 
@@ -526,12 +536,12 @@ khttp_url_query_string(char *p, va_list ap)
 	total = strlen(p) + 1;
 
 	while ((pp = va_arg(ap, char *)) != NULL) {
-		if ((keyp = kutil_urlencode(pp)) == NULL) {
+		if ((keyp = khttp_urlencode(pp)) == NULL) {
 			free(p);
 			return NULL;
 		}
 
-		valp = kutil_urlencode(va_arg(ap, char *));
+		valp = khttp_urlencode(va_arg(ap, char *));
 		if (valp == NULL) {
 			free(p);
 			free(keyp);
@@ -584,7 +594,7 @@ khttp_url_query_stringx(char *p, va_list ap)
 	total = strlen(p) + 1;
 
 	while ((pp = va_arg(ap, char *)) != NULL) {
-		if ((keyp = kutil_urlencode(pp)) == NULL) {
+		if ((keyp = khttp_urlencode(pp)) == NULL) {
 			free(p);
 			return NULL;
 		}
@@ -593,7 +603,7 @@ khttp_url_query_stringx(char *p, va_list ap)
 
 		switch (va_arg(ap, enum kattrx)) {
 		case KATTRX_STRING:
-			valp = kutil_urlencode(va_arg(ap, char *));
+			valp = khttp_urlencode(va_arg(ap, char *));
 			valpp = valp;
 			break;
 		case KATTRX_INT:
@@ -743,7 +753,7 @@ khttp_vurlpartx(const char *path,
 	int	 len;
 	char	*p, *pageenc = NULL;
 
-	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
+	if (page != NULL && (pageenc = khttp_urlencode(page)) == NULL)
 		return NULL;
 
 	if ((mime == NULL || mime[0] == '\0') || 
@@ -805,7 +815,7 @@ khttp_vurlpart(const char *path,
 	char	*p, *pageenc = NULL;
 	int	 len;
 
-	if (page != NULL && (pageenc = kutil_urlencode(page)) == NULL)
+	if (page != NULL && (pageenc = khttp_urlencode(page)) == NULL)
 		return NULL;
 
 	/* 

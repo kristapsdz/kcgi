@@ -227,6 +227,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-template \
 		   regress/test-upload \
 		   regress/test-urlencode \
+		   regress/test-urlencode-deprecated \
 		   regress/test-urldecode \
 		   regress/test-urlabs \
 		   regress/test-urlpart \

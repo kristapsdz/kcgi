@@ -105,16 +105,6 @@ main(int argc, char *argv[])
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
-	/* Now encodings. */
-	/* This should fail. */
-	/* It's the only failure case here. */
-
-	url = kutil_urlpart(NULL, "", "html", "foo", "fail", NULL);
-	if (NULL != url)
-		errx(EXIT_FAILURE, "failed expect");
-
-	/* These should all succeed. */
-
 	expect = "/pat h/to/foo.html?foo=bar";
 	url = kutil_urlpart(NULL, "/pat h/to", "html", "foo", "foo", "bar", NULL);
 	if (NULL == url)

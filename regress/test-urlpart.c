@@ -83,6 +83,22 @@ main(int argc, char *argv[])
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
+	expect = "foo/?bar=&baz=foo";
+	url = khttp_urlpart("foo", "html", "", "bar", NULL, "baz", "foo", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
+	expect = "foo/?bar=&baz=foo";
+	url = khttp_urlpart("foo", "html", "", "bar", "", "baz", "foo", NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
 	expect = "?bar=baz";
 	url = khttp_urlpart(NULL, "html", "", "bar", "baz", NULL);
 	if (url == NULL)
@@ -162,16 +178,6 @@ main(int argc, char *argv[])
 	if (strcmp(url, expect))
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
-
-	/* Now encodings. */
-	/* This should fail. */
-	/* It's the only failure case here. */
-
-	url = khttp_urlpart("", "html", "foo", "fail", NULL);
-	if (url != NULL)
-		errx(EXIT_FAILURE, "failed expect");
-
-	/* These should all succeed. */
 
 	expect = "/pat h/to/foo.html?foo=bar";
 	url = khttp_urlpart("/pat h/to", "html", "foo", "foo", "bar", NULL);

@@ -85,6 +85,28 @@ main(int argc, char *argv[])
 		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
 	free(url);
 
+	expect = "foo/?bar=&baz=foo";
+	url = khttp_urlpartx("foo", "html", "", 
+		"bar", KATTRX_STRING, "", 
+		"baz", KATTRX_STRING, "foo", 
+		NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
+	expect = "foo/?bar=&baz=foo";
+	url = khttp_urlpartx("foo", "html", "", 
+		"bar", KATTRX_STRING, NULL, 
+		"baz", KATTRX_STRING, "foo", 
+		NULL);
+	if (url == NULL)
+		errx(EXIT_FAILURE, "failed expect");
+	if (strcmp(url, expect))
+		errx(EXIT_FAILURE, "%s: failed expect: %s", expect, url);
+	free(url);
+
 	expect = "?bar=baz";
 	url = khttp_urlpartx(NULL, "html", "", 
 		"bar", KATTRX_STRING, "baz", NULL);

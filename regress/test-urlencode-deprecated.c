@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -52,32 +52,26 @@ static	const struct test tests[] = {
 	{ "\t-_foo%\tbar.-\t", "%09-_foo%25%09bar.-%09" },
 	{ "-_foo%09}bar.-", "-_foo%2509%7Dbar.-" },
 	{ "\t\t\t\t", "%09%09%09%09" },
-	{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
-	{ "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz" },
-	{ "0123456789-_.~", "0123456789-_.~" },
-	{ "!#$%&'()*+,/:;=?@[]", "%21%23%24%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D" },
 	{ NULL, NULL }
 };
 
 int
 main(int argc, char *argv[])
 {
-	const struct test *t;
-	char	*url;
+	const struct test 	*t;
+	char			*url;
 
-	if ((url = khttp_urlencode(NULL)) == NULL)
-		err(1, "khttp_urlencode");
-	if (strcmp(url, ""))
-		errx(1, "khttp_urlencode: should have empty");
-	free(url);
+	if (kutil_urlencode(NULL) != NULL)
+		errx(EXIT_FAILURE, "kutil_urlencode should fail");
 
 	for (t = tests; t->input != NULL; t++) {
-		if ((url = khttp_urlencode(t->input)) == NULL)
-			err(1, "khttp_urlencode");
+		if ((url = kutil_urlencode(t->input)) == NULL)
+			err(EXIT_FAILURE, "kutil_urlencode");
 		if (strcmp(url, t->output))
-			errx(1, "khttp_urlencode: have %s, want %s", url, t->output);
+			errx(EXIT_FAILURE, "%s: fail (have %s, "
+				"want %s)", t->input, url, t->output);
 		free(url);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
