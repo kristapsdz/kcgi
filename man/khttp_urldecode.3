@@ -1,0 +1,98 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2014, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2017 Ingo Schwarze <schwarze@openbsd.org>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_URLDECODE 3
+.Os
+.Sh NAME
+.Nm khttp_urldecode ,
+.Nm khttp_urldecode_inplace
+.Nd URL decoding for kcgi
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft "enum kcgi_err"
+.Fo khttp_urldecode
+.Fa "const char *src"
+.Fa "char **dst"
+.Fc
+.Ft "enum kcgi_err"
+.Fo khttp_urldecode_inplace
+.Fa "char *src"
+.Fc
+.Sh DESCRIPTION
+Decode the percent-encoded string
+.Fa src .
+In
+.Fn khttp_urldecode ,
+the result is placed in
+.Fa dst .
+In
+.Fn khttp_urldecode_inplace ,
+the input string
+.Fa src
+is overwritten with the result, which will be the same or shorter in
+length.
+.Pp
+These accept uppercase and lowercase percent encoding, for example.
+.Qq %A0
+or
+.Qq %a0 ,
+respectively.
+.Pp
+The deprecated form of these functions,
+.Fn kutil_urldecode
+and
+.Fn kutil_urldecode_inplace ,
+should no longer be used.
+.Sh RETURN VALUES
+.Fn khttp_urldecode
+and
+.Fn khttp_urldecode_inplace
+return an error code:
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Memory failure (only
+.Fn khttp_urldecode ) .
+.It Dv KCGI_FORM
+Malformed input or
+.Dv NULL
+.Fa src
+or
+.Fa dst
+arguments.
+.El
+.Pp
+If
+.Fn khttp_urldecode
+returns an error, it always sets
+.Fa dst
+to
+.Dv NULL .
+.Fn khttp_urldecode_inplace ,
+however, may leave a partially-decoded string in
+.Fa src .
+.\" .Sh EXAMPLES
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

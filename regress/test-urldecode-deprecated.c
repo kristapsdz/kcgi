@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -31,7 +31,7 @@
 #include "../kcgi.h"
 
 #ifndef nitems
-# define nitems(_a) (sizeof((_a)) / sizeof((_a)[0]))
+#define nitems(_a) (sizeof((_a)) / sizeof((_a)[0]))
 #endif
 
 struct	test {
@@ -86,34 +86,35 @@ main(int argc, char *argv[])
 	enum kcgi_err 	 code;
 	size_t	 	 len, i;
 
-	if (khttp_urldecode(NULL, &url) != KCGI_FORM)
-		errx(1, "khttp_urldecode should fail");
-	if (khttp_urldecode("abcdef", NULL) != KCGI_FORM)
-		errx(1, "khttp_urldecode should fail");
-
 	len = nitems(tests);
 
 	url = NULL;
 	for (i = 0; i < len; i++) {
 		t = &tests[i];
-		code = khttp_urldecode(t->input, &url);
-		if (code == KCGI_ENOMEM)
-			err(1, NULL);
+		code = kutil_urldecode(t->input, &url);
+		if (KCGI_ENOMEM == code)
+			err(EXIT_FAILURE, NULL);
 		if (t->errorcode != code)
-			errx(1, "%s: have %i, want %i", 
+			errx(EXIT_FAILURE, "%s: fail "
+				"(returned %i, wanted %i)", 
 				t->input, code, t->errorcode);
-		if (code != KCGI_OK) {
-			if (url != NULL)
-				errx(1, "%s: want NULL", t->input);
+		if (KCGI_OK != code) {
+			if (NULL != url)
+				errx(EXIT_FAILURE, "%s: fail "
+					"(wanted NULL result)", 
+					t->input);
 		} else {
-			if (url == NULL)
-				errx(1, "%s: have NULL", t->input);
+			if (NULL == url)
+				errx(EXIT_FAILURE, "%s: fail "
+					"(have NULL result)", 
+					t->input);
 			if (strcmp(url, t->output))
-				errx(1, "%s: have %s, want %s", 
+				errx(EXIT_FAILURE, "%s: fail "
+					"(have %s, want %s)", 
 					t->input, url, t->output);
 		}
 		free(url);
 	}
 
-	return 0;
+	return(EXIT_SUCCESS);
 }

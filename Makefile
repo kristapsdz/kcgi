@@ -101,6 +101,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khttp_puts.3 \
 		   man/khttp_template.3 \
 		   man/khttp_urlabs.3 \
+		   man/khttp_urldecode.3 \
 		   man/khttp_urlencode.3 \
 		   man/khttp_urlpart.3 \
 		   man/khttp_write.3 \
@@ -125,7 +126,6 @@ MAN3S		 = man/kcgi.3 \
 		   man/kutil_invalidate.3 \
 		   man/kutil_log.3 \
 		   man/kutil_openlog.3 \
-		   man/kutil_urlencode.3 \
 		   man/kvalid_string.3 \
 		   man/kxml_close.3 \
 		   man/kxml_open.3 \
@@ -230,6 +230,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-urlencode \
 		   regress/test-urlencode-deprecated \
 		   regress/test-urldecode \
+		   regress/test-urldecode-deprecated \
 		   regress/test-urlabs \
 		   regress/test-urlpart \
 		   regress/test-urlpartx \
