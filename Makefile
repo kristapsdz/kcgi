@@ -188,10 +188,13 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic-curl \
 		   regress/test-bigfile \
 		   regress/test-buf \
-		   regress/test-datetime \
+		   regress/test-datetime-deprecated \
 		   regress/test-digest \
 		   regress/test-digest-auth-int \
 		   regress/test-digest-auth-int-bad \
+		   regress/test-epoch2str \
+		   regress/test-epoch2tms \
+		   regress/test-epoch2ustr \
 		   regress/test-fcgi-abort-validator \
 		   regress/test-fcgi-bigfile \
 		   regress/test-fcgi-file-get \
