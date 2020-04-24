@@ -593,8 +593,12 @@ enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
 int		 khttp_fcgi_test(void);
 
-#define		KUTIL_EPOCH2TM(_tt, _tm) \
-		kutil_epoch2tmvals((_tt), \
+char		*khttp_epoch2str(int64_t, char *, size_t);
+char		*khttp_epoch2ustr(int64_t, char *, size_t);
+int		 khttp_epoch2tms(int64_t, int *, int *, int *, 
+			int *, int *, int *, int *, int *);
+#define		 KHTTP_EPOCH2TM(_tt, _tm) \
+		 khttp_epoch2tms((_tt), \
 			&(_tm)->tm_sec, \
 			&(_tm)->tm_min, \
 			&(_tm)->tm_hour, \
@@ -602,11 +606,25 @@ int		 khttp_fcgi_test(void);
 			&(_tm)->tm_mon, \
 			&(_tm)->tm_year, \
 			&(_tm)->tm_wday, \
-			&(_tm)->tm_yday);
+			&(_tm)->tm_yday)
+
+#define		 KUTIL_EPOCH2TM(_tt, _tm) \
+		 kutil_epoch2tmvals((_tt), \
+			&(_tm)->tm_sec, \
+			&(_tm)->tm_min, \
+			&(_tm)->tm_hour, \
+			&(_tm)->tm_mday, \
+			&(_tm)->tm_mon, \
+			&(_tm)->tm_year, \
+			&(_tm)->tm_wday, \
+			&(_tm)->tm_yday)
 void		 kutil_epoch2tmvals(int64_t, int *, int *, int *, 
-			int *, int *, int *, int *, int *);
-char		*kutil_epoch2str(int64_t, char *, size_t);
-char		*kutil_epoch2utcstr(int64_t, char *, size_t);
+			int *, int *, int *, int *, int *)
+			__attribute__((deprecated));
+char		*kutil_epoch2str(int64_t, char *, size_t)
+			__attribute__((deprecated));
+char		*kutil_epoch2utcstr(int64_t, char *, size_t)
+			__attribute__((deprecated));
 int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t);
 int	 	 kutil_date_check(int64_t, int64_t, int64_t);
 int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,

@@ -60,7 +60,7 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	 * files will crash us (or at least not be applicable).
 	 */
 
-	kutil_epoch2str(time(NULL), date, sizeof(date));
+	khttp_epoch2str(time(NULL), date, sizeof(date));
 
 	/*
 	 * Format the variable args, then compose with the log prefix
