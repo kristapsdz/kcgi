@@ -1,0 +1,96 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016--2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_EPOCH2TMS 3
+.Os
+.Sh NAME
+.Nm KHTTP_EPOCH2TM ,
+.Nm khttp_epoch2tms
+.Nd convert time to components
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft int
+.Fo khttp_epoch2tms
+.Fa "int64_t epoch"
+.Fa "int *tm_sec"
+.Fa "int *tm_min"
+.Fa "int *tm_hour"
+.Fa "int *tm_mday"
+.Fa "int *tm_mon"
+.Fa "int *tm_year"
+.Fa "int *tm_wday"
+.Fa "int *tm_yday"
+.Fc
+.Ft int
+.Fo KHTTP_EPOCH2TM
+.Fa "int64_t epoch"
+.Fa "struct tm *tm"
+.Fc
+.Sh DESCRIPTION
+Format an
+.Fa epoch
+value
+.Pq seconds since Jan 1, 1970, 00:00:00 UTC
+into its broken-down time components.
+.Pp
+The
+.Fn khttp_epoch2tms
+function breaks down the epoch value as seconds 0\(en60
+.Pq Fa tm_sec ,
+minutes 0\(en59
+.Pq Fa tm_min ,
+hours 0\(en23
+.Pq Fa tm_hour ,
+day of month 1\(en31
+.Pq Fa tm_mday ,
+month 0\(en11
+.Pq Fa tm_mon ,
+year minus 1900,
+.Pq Fa tm_year ,
+day of week with Sunday at 0
+.Pq Fa tm_wday ,
+and day of year 0\(en365
+.Pq Fa tm_yday .
+If any of the pointers are
+.Dv NULL ,
+they are ignored.
+.Pp
+The
+.Fn KHTTP_EPOCH2TM
+macro fills in
+.Fa tm
+with the above values.
+Other fields in the
+.Vt "struct tm"
+structure, like
+.Va tm_gmtoff ,
+are not touched.
+.Sh RETURN VALUES
+These return zero on failure and non-zero on success.
+Failure indicates serious system problems.
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+Not all systems support 64-bit integer time, so the input might be
+silently truncated when casting to
+.Vt time_t .

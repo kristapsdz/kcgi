@@ -89,6 +89,8 @@ MAN3S		 = man/kcgi.3 \
 		   man/khtml_puts.3 \
 		   man/khtml_write.3 \
 		   man/khttp_body.3 \
+		   man/khttp_epoch2str.3 \
+		   man/khttp_epoch2tms.3 \
 		   man/khttp_fcgi_free.3 \
 		   man/khttp_fcgi_init.3 \
 		   man/khttp_fcgi_parse.3 \

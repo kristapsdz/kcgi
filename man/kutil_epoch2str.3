@@ -15,13 +15,9 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KUTIL_EPOCH2STR 3
+.Dt KUTIL_DATE2EPOCH 3
 .Os
 .Sh NAME
-.Nm kutil_epoch2str ,
-.Nm kutil_epoch2utcstr ,
-.Nm KUTIL_EPOCH2TM ,
-.Nm kutil_epoch2tmvals ,
 .Nm kutil_date2epoch ,
 .Nm kutil_date_check ,
 .Nm kutil_datetime2epoch ,
@@ -34,31 +30,6 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft void
-.Fo kutil_epoch2str
-.Fa "int64_t epoch"
-.Fa "char *buf"
-.Fa "size_t sz"
-.Fc
-.Ft void
-.Fo kutil_epoch2utcstr
-.Fa "int64_t epoch"
-.Fa "char *buf"
-.Fa "size_t sz"
-.Fc
-.Fd KUTIL_EPOCH2TM(_tt, _tm)
-.Ft void
-.Fo kutil_epoch2tmvals
-.Fa "int64_t epoch"
-.Fa "int *tm_sec"
-.Fa "int *tm_min"
-.Fa "int *tm_hour"
-.Fa "int *tm_mday"
-.Fa "int *tm_mon"
-.Fa "int *tm_year"
-.Fa "int *tm_wday"
-.Fa "int *tm_yday"
-.Fc
 .Ft int64_t
 .Fo kutil_date2epoch
 .Fa "int64_t day"
@@ -90,66 +61,6 @@
 .Fa "int64_t sec"
 .Fc
 .Sh DESCRIPTION
-The
-.Fn kutil_epoch2str
-function formats an
-.Fa epoch
-value
-.Pq seconds since Jan 1, 1970, 00:00:00 UTC
-into the buffer
-.Fa buf
-of size
-.Fa sz ,
-which should be greater than or equal to 30 bytes for the date and
-trailing NUL terminator.
-The format conforms to RFC 822, e.g.,
-.Li Wed, 02 Oct 2002 13:00:00 GMT .
-This will truncate all values before the zeroth epoch to zero (Jan 1 as
-given).
-This function is useful for properly setting date-time header values:
-.Dv KRESP_SET_COOKIE ,
-.Dv KRESP_LAST_MODIFIED ,
-.Dv KRESP_DATE ,
-etc.
-The
-.Fn kutil_epoch2utcstr
-function is similar, conforming to ISO 8601, e.g.,
-.Li 2002-10-02T13:00:00Z .
-.Pp
-The form
-.Fn kutil_epoch2tmvals
-breaks down the epoch value as seconds 0\(en60
-.Pq Fa tm_sec ,
-minutes 0\(en59
-.Pq Fa tm_min ,
-hours 0\(en23
-.Pq Fa tm_hour ,
-day of month 1\(en31
-.Pq Fa tm_mday ,
-month 0\(en11
-.Pq Fa tm_mon ,
-year minus 1900,
-.Pq Fa tm_year ,
-day of week with Sunday at 0
-.Pq Fa tm_wday ,
-and day of year 0\(en365
-.Pq Fa tm_yday .
-If any of the pointer values are
-.Dv NULL ,
-they are ignored.
-Negative input epoch values are bound to zero.
-.Pp
-You can use the convenience
-.Dv KUTIL_EPOCH2TM
-macro to convert into
-.Vt "struct tm" ,
-which is not provided directly to avoid pulling in the
-.Pa time.h
-header.
-The macro accepts an epoch and a
-.Va "struct tm" ,
-which the caller must have zeroed beforehand.
-.Pp
 The
 .Fn kutil_date2epoch
 function converts a day, month, and year into an epoch (at time 00:00:00).

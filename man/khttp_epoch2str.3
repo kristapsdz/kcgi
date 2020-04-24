@@ -1,0 +1,93 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2016--2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_EPOCH2STR 3
+.Os
+.Sh NAME
+.Nm khttp_epoch2str ,
+.Nm khttp_epoch2ustr
+.Nd convert time to a string
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft void
+.Fo khttp_epoch2str
+.Fa "int64_t epoch"
+.Fa "char *buf"
+.Fa "size_t sz"
+.Fc
+.Ft void
+.Fo khttp_epoch2ustr
+.Fa "int64_t epoch"
+.Fa "char *buf"
+.Fa "size_t sz"
+.Fc
+.Sh DESCRIPTION
+Format an
+.Fa epoch
+value
+.Pq seconds since Jan 1, 1970, 00:00:00 UTC
+into the buffer
+.Fa buf
+of size
+.Fa sz ,
+which should be greater than or equal to 32 bytes.
+For years greater than 4 digits, more space may be required, but callers
+should in practice limit themselves to 4 digit years.
+If not enough space is given for the formatted date, the buffer is
+truncated to the available size.
+It is always NUL-terminated.
+If
+.Fa buf
+is
+.Dv NULL ,
+.Fa sz
+is zero, or time conversion fails, these return
+.Dv NULL .
+.Pp
+The output of
+.Fn khttp_epoch2str
+conforms to RFC 5322:
+.Li Wed, 02 Oct 2002 13:00:00 GMT .
+However, the year may be greater than four digits or less than 1900,
+or even be negative, which is contrary to RFC 5322 section 3.3.
+.Pp
+.Fn khttp_epoch2ustr
+conforms to ISO 8601:
+.Li 2002-10-02T13:00:00Z ,
+again with the stipulation that the year may be greater than 4 digits or
+be less than zero.
+.Pp
+These deprecate the original
+.Fn kutil_epoch2str
+and
+.Fn kutil_epoch2utcstr
+functions, which had undefined behaviour in some corner cases.
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
+.Sh CAVEATS
+Not all systems support 64-bit integer time, so the input might be
+silently truncated when casting to
+.Vt time_t .
+.Pp
+A negative year or year with more than 4 digits will confuse most
+software.
