@@ -3,6 +3,28 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-04-24">2020-04-24</time>
+		</header>
+		<aside>
+			<div>
+				Rename and reconstitute <code>kutil_epoch2str</code>, 
+				<code>kutil_epoch2utcstr</code>, 
+				<code>kutil_epoch2tmvals</code>, and
+				<code>KUTIL_EPOCH2TM</code> as
+				<a href="khttp_epoch2str.3.html">khttp_epoch2str</code>, 
+				<a href="khttp_epoch2str.3.html">khttp_epoch2ustr</code>, 
+				<a href="khttp_epoch2tms.3.html">khttp_epoch2tms</code>, and
+				<a href="khttp_epoch2tms.3.html">KHTTP_EPOCH2TM</code>, respectively.
+				The new forms, besides having consistent naming, specifically
+				account for corner cases like negative dates, years with more than
+				four digits, etc.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-04-10">2020-04-10</time>
