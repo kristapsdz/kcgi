@@ -84,6 +84,12 @@ Other fields in the
 structure, like
 .Va tm_gmtoff ,
 are not touched.
+.Pp
+These deprecate the original
+.Fn kutil_epoch2tmvals
+function and
+.Fn KUTIL_EPOCH2TM
+macro, both of which had undefined behaviour in some corner cases.
 .Sh RETURN VALUES
 These return zero on failure and non-zero on success.
 Failure indicates serious system problems.
