@@ -16,6 +16,8 @@
  */
 #include "config.h"
 
+#include <sys/param.h>
+
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -188,83 +190,135 @@ kutil_epoch2tmvals(int64_t tt, int *tm_sec, int *tm_min,
 		*tm_yday = tm->tm_yday;
 }
 
-/*
- * http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_15
- */
-static int64_t
-mkdate(int64_t d, int64_t m, int64_t y)
+static int
+khttp_int_truncate(int64_t src, int *dst)
 {
-	int64_t	 v;
 
-	m = (m + 9) % 12;
-	y = y - m / 10;
-	v = 365 * y + y / 4 - y / 100 + 
-		y / 400 + (m * 306 + 5) / 10 + (d - 1);
-	return(v * 86400);
+	if (src > INT_MAX || src < INT_MIN) {
+		XWARNX("date conversion integer over/underflow");
+		return 0;
+	}
+	*dst = src;
+	return 1;
 }
 
 int
-kutil_date_check(int64_t mday, int64_t mon, int64_t year)
+khttp_datetime2epoch(int64_t *res, int64_t day, int64_t mon,
+	int64_t year, int64_t hour, int64_t min, int64_t sec)
 {
-	int	 leap = 0;
+	struct tm	 tm, test;
+	int64_t		 val;
+
+	if (res == NULL)
+		res = &val;
 
 	/* 
-	 * Basic boundary checks.
-	 * The 1582 check is for the simple Gregorian calendar rules of
-	 * leap date calculation.
-	 * This can be lifted to account for even more times, but it
-	 * seems unlikely that pre-1582 date input will be required.
+	 * Handle the case with a time_t of -1.
+	 * timegm(3) isn't able to properly account for this because
+	 * it's the error return value.
 	 */
 
-	if (year < 1582 || year > 9999 || 
-	    mon < 1 || mon > 12 || 
-	    mday < 1 || mday > 31)
-		return(0);
+	if (sec == 59 && min == 59 && hour == 23 &&
+	    year == 1969 && mon == 12 && day == 31) {
+		*res = -1;
+		return 1;
+	}
 
-	/* Check for 30 days. */
+	/* 
+	 * Now depend upon timegm(3).
+	 * We know that any return value of -1 is doing to legimately
+	 * be an error.
+	 */
 
-	if ((4 == mon || 6 == mon || 9 == mon || 11 == mon) &&
-	    mday > 30)
-		return(0);
+	memset(&tm, 0, sizeof(struct tm));
+	if (!khttp_int_truncate(sec, &tm.tm_sec))
+		return 0;
+	if (!khttp_int_truncate(min, &tm.tm_min))
+		return 0;
+	if (!khttp_int_truncate(hour, &tm.tm_hour))
+		return 0;
+	if (!khttp_int_truncate(day, &tm.tm_mday))
+		return 0;
+	if (!khttp_int_truncate(mon - 1, &tm.tm_mon))
+		return 0;
+	if (!khttp_int_truncate(year - 1900, &tm.tm_year))
+		return 0;
 
-	/* Check for leap year. */
+	test = tm;
 
-	if (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
-		leap = 1;
+	if ((*res = timegm(&tm)) == -1) {
+		XWARN("timegm");
+		return 0;
+	}
 
-	if (leap && 2 == mon && mday > 29)
-		return(0);
-	if ( ! leap && 2 == mon && mday > 28)
-		return(0);
+	/* If we normalised any values, this will catch them. */
 
-	return(1);
+	if (test.tm_sec != tm.tm_sec ||
+	    test.tm_min != tm.tm_min ||
+	    test.tm_hour != tm.tm_hour ||
+	    test.tm_mday != tm.tm_mday ||
+	    test.tm_mon != tm.tm_mon ||
+	    test.tm_year != tm.tm_year)
+		return 0;
+
+	return 1;
 }
 
+int
+khttp_date2epoch(int64_t *res, int64_t day, int64_t mon, int64_t year)
+{
+
+	return khttp_datetime2epoch(res, day, mon, year, 0, 0, 0);
+}
+
+/*
+ * Deprecated interface.
+ */
 int64_t
 kutil_date2epoch(int64_t day, int64_t mon, int64_t year)
 {
+	int64_t	 res;
 
-	return(mkdate(day, mon, year) -
-	       mkdate(1, 1, 1970));
+	if (!khttp_date2epoch(&res, day, mon, year))
+		return -1;
+
+	return res;
 }
 
+/*
+ * Deprecated interface.
+ */
 int
-kutil_datetime_check(int64_t mday, int64_t mon, int64_t year,
-	int64_t hour, int64_t minute, int64_t sec)
+kutil_datetime_check(int64_t day, int64_t mon, int64_t year,
+	int64_t hour, int64_t min, int64_t sec)
 {
 
-	if ( ! kutil_date_check(mday, mon, year))
-		return(0);
-	return(hour >= 0 && hour < 24 &&
-		minute >= 0 && minute < 60 &&
-		sec >= 0 && sec < 60);
+	return khttp_datetime2epoch
+		(NULL, day, mon, year, hour, min, sec);
 }
 
+/*
+ * Deprecated interface.
+ */
+int
+kutil_date_check(int64_t day, int64_t mon, int64_t year)
+{
+
+	return khttp_date2epoch(NULL, day, mon, year);
+}
+
+/*
+ * Deprecated interface.
+ */
 int64_t
 kutil_datetime2epoch(int64_t day, int64_t mon, int64_t year,
-	int64_t hour, int64_t minute, int64_t sec)
+	int64_t hour, int64_t min, int64_t sec)
 {
+	int64_t	 res;
 
-	return(kutil_date2epoch(day, mon, year) +
-		hour * (60 * 60) + minute * 60 + sec);
+	if (!khttp_datetime2epoch
+	    (&res, day, mon, year, hour, min, sec))
+		return -1;
+
+	return res;
 }

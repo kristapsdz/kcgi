@@ -1236,14 +1236,18 @@ kvalid_date(struct kpair *kp)
 	    !isdigit((unsigned char)kp->val[9]))
 		return 0;
 
+	/* 
+	 * We know these are all positive integer values, so no need to
+	 * use the more complicated interface for this.
+	 */
+
 	year = atoi(&kp->val[0]);
 	mon = atoi(&kp->val[5]);
 	mday = atoi(&kp->val[8]);
 
-	if (!kutil_date_check(mday, mon, year))
+	if (!khttp_date2epoch(&kp->parsed.i, mday, mon, year))
 		return 0;
 
-	kp->parsed.i = kutil_date2epoch(mday, mon, year);
 	kp->type = KPAIR_INTEGER;
 	return 1;
 }

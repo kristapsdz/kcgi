@@ -607,6 +607,10 @@ int		 khttp_epoch2tms(int64_t, int *, int *, int *,
 			&(_tm)->tm_year, \
 			&(_tm)->tm_wday, \
 			&(_tm)->tm_yday)
+int	 	 khttp_datetime2epoch(int64_t *, int64_t, int64_t,
+			int64_t, int64_t, int64_t, int64_t);
+int	 	 khttp_date2epoch(int64_t *, int64_t, int64_t,
+			int64_t);
 
 #define		 KUTIL_EPOCH2TM(_tt, _tm) \
 		 kutil_epoch2tmvals((_tt), \
@@ -625,12 +629,16 @@ char		*kutil_epoch2str(int64_t, char *, size_t)
 			__attribute__((deprecated));
 char		*kutil_epoch2utcstr(int64_t, char *, size_t)
 			__attribute__((deprecated));
-int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t);
-int	 	 kutil_date_check(int64_t, int64_t, int64_t);
+int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
+int	 	 kutil_date_check(int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
 int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
-			int64_t, int64_t, int64_t);
+			int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
 int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
-			int64_t, int64_t, int64_t);
+			int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
 
 char 		*khttp_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *, ...);
@@ -650,19 +658,19 @@ char		*khttp_vurlpartx(const char *,
 
 char		*kutil_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 enum kcgi_err	 kutil_urldecode(const char *, char **)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 enum kcgi_err	 kutil_urldecode_inplace(char *)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 char		*kutil_urlencode(const char *)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 char		*kutil_urlpart(struct kreq *, const char *,
 			const char *, const char *, ...)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 char		*kutil_urlpartx(struct kreq *, const char *,
 			const char *, const char *, ...)
-			__attribute((deprecated));
+			__attribute__((deprecated));
 
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
