@@ -3,6 +3,27 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-04-24">2020-04-24</time>
+		</header>
+		<aside>
+			<div>
+				Deprecate
+				<code>kutil_date2epoch</code>,
+				<code>kutil_date_check</code>,
+				<code>kutil_datetime2epoch</code>, and
+				<code>kutil_datetime_check</code>
+				in favour of
+				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch</code> and
+				<a href="khttp_datetime2epoch.3.html">khttp_date2epoch</code>.
+				These variants are safer and use underlying operating system
+				functions instead of hand-rolled implementations.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-04-24">2020-04-24</time>

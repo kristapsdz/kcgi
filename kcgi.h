@@ -53,7 +53,7 @@
 /*
  * Build version.
  */
-#define	KCGI_VBUILD	0
+#define	KCGI_VBUILD	1
 
 /*
  * Version string of major.minor.build (as a literal string).
@@ -612,34 +612,6 @@ int	 	 khttp_datetime2epoch(int64_t *, int64_t, int64_t,
 int	 	 khttp_date2epoch(int64_t *, int64_t, int64_t,
 			int64_t);
 
-#define		 KUTIL_EPOCH2TM(_tt, _tm) \
-		 kutil_epoch2tmvals((_tt), \
-			&(_tm)->tm_sec, \
-			&(_tm)->tm_min, \
-			&(_tm)->tm_hour, \
-			&(_tm)->tm_mday, \
-			&(_tm)->tm_mon, \
-			&(_tm)->tm_year, \
-			&(_tm)->tm_wday, \
-			&(_tm)->tm_yday)
-void		 kutil_epoch2tmvals(int64_t, int *, int *, int *, 
-			int *, int *, int *, int *, int *)
-			__attribute__((deprecated));
-char		*kutil_epoch2str(int64_t, char *, size_t)
-			__attribute__((deprecated));
-char		*kutil_epoch2utcstr(int64_t, char *, size_t)
-			__attribute__((deprecated));
-int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t)
-			__attribute__((deprecated));
-int	 	 kutil_date_check(int64_t, int64_t, int64_t)
-			__attribute__((deprecated));
-int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
-			int64_t, int64_t, int64_t)
-			__attribute__((deprecated));
-int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
-			int64_t, int64_t, int64_t)
-			__attribute__((deprecated));
-
 char 		*khttp_urlabs(enum kscheme, const char *, 
 			uint16_t, const char *, ...);
 enum kcgi_err	 khttp_urldecode(const char *, char **);
@@ -655,22 +627,6 @@ char		*khttp_vurlpart(const char *,
 			const char *, const char *, va_list);
 char		*khttp_vurlpartx(const char *,
 			const char *, const char *, va_list);
-
-char		*kutil_urlabs(enum kscheme, const char *, 
-			uint16_t, const char *)
-			__attribute__((deprecated));
-enum kcgi_err	 kutil_urldecode(const char *, char **)
-			__attribute__((deprecated));
-enum kcgi_err	 kutil_urldecode_inplace(char *)
-			__attribute__((deprecated));
-char		*kutil_urlencode(const char *)
-			__attribute__((deprecated));
-char		*kutil_urlpart(struct kreq *, const char *,
-			const char *, const char *, ...)
-			__attribute__((deprecated));
-char		*kutil_urlpartx(struct kreq *, const char *,
-			const char *, const char *, ...)
-			__attribute__((deprecated));
 
 void		 kutil_invalidate(struct kreq *, struct kpair *);
 
@@ -740,6 +696,50 @@ extern const char *const	 kmethods[KMETHOD__MAX];
 extern const struct kmimemap	 ksuffixmap[];
 extern const char *const	 ksuffixes[KMIME__MAX];
 
+/* DEPRECATED FUNCTIONS AND MACROS. */
+
+#define		 KUTIL_EPOCH2TM(_tt, _tm) \
+		 kutil_epoch2tmvals((_tt), \
+			&(_tm)->tm_sec, \
+			&(_tm)->tm_min, \
+			&(_tm)->tm_hour, \
+			&(_tm)->tm_mday, \
+			&(_tm)->tm_mon, \
+			&(_tm)->tm_year, \
+			&(_tm)->tm_wday, \
+			&(_tm)->tm_yday)
+void		 kutil_epoch2tmvals(int64_t, int *, int *, int *, 
+			int *, int *, int *, int *, int *)
+			__attribute__((deprecated));
+char		*kutil_epoch2str(int64_t, char *, size_t)
+			__attribute__((deprecated));
+char		*kutil_epoch2utcstr(int64_t, char *, size_t)
+			__attribute__((deprecated));
+int64_t	 	 kutil_date2epoch(int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
+int	 	 kutil_date_check(int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
+int64_t	 	 kutil_datetime2epoch(int64_t, int64_t, int64_t,
+			int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
+int	 	 kutil_datetime_check(int64_t, int64_t, int64_t,
+			int64_t, int64_t, int64_t)
+			__attribute__((deprecated));
+char		*kutil_urlabs(enum kscheme, const char *, 
+			uint16_t, const char *)
+			__attribute__((deprecated));
+enum kcgi_err	 kutil_urldecode(const char *, char **)
+			__attribute__((deprecated));
+enum kcgi_err	 kutil_urldecode_inplace(char *)
+			__attribute__((deprecated));
+char		*kutil_urlencode(const char *)
+			__attribute__((deprecated));
+char		*kutil_urlpart(struct kreq *, const char *,
+			const char *, const char *, ...)
+			__attribute__((deprecated));
+char		*kutil_urlpartx(struct kreq *, const char *,
+			const char *, const char *, ...)
+			__attribute__((deprecated));
 __END_DECLS
 
 #endif /*!KCGI_H*/
