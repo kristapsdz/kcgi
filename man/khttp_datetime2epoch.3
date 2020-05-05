@@ -1,0 +1,94 @@
+.\"	$Id$
+.\"
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_DATETIME2EPOCH 3
+.Os
+.Sh NAME
+.Nm khttp_date2epoch ,
+.Nm khttp_datetime2epoch
+.Nd validate and convert date and time
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft int
+.Fo khttp_date2epoch
+.Fa "int64_t *res"
+.Fa "int64_t day"
+.Fa "int64_t mon"
+.Fa "int64_t year"
+.Fa "int64_t hour"
+.Fa "int64_t min"
+.Fa "int64_t sec"
+.Fc
+.Ft int
+.Fo khttp_datetime2epoch
+.Fa "int64_t *res"
+.Fa "int64_t day"
+.Fa "int64_t mon"
+.Fa "int64_t year"
+.Fa "int64_t hour"
+.Fa "int64_t min"
+.Fa "int64_t sec"
+.Fc
+.Sh DESCRIPTION
+Convert broken-day date and time values into seconds since 00:00:00
+UTC, 1970-01-01.
+The date and time values are accepted as UTC.
+.Fn khttp_date2epoch
+is equivalent to
+.Fn khttp_datetime2epoch
+but with zero
+.Fa hour ,
+.Fa min ,
+and
+.Fa sec
+arguments.
+If
+.Fa res
+is
+.Dv NULL ,
+simply check the time values for correctness.
+Date correctness means valid time values, valid day of month value given
+month and leap year, and valid month value.
+.Pp
+The date and time arguments are as follows:
+.Bl -column hourx aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -offset indent
+.It Fa sec Ta seconds 0\(en59
+.It Fa min Ta minutes 0\(en59
+.It Fa hour Ta hours 0\(en23
+.It Fa day Ta day of month 1\(en31
+.It Fa mon Ta month 1\(en12
+.It Fa year Ta year (any)
+.El
+.Pp
+These deprecate
+.Fn kutil_date2epoch ,
+.Fn kutil_date_check ,
+.Fn kutil_datetime2epoch ,
+and
+.Fn kutil_datetime_check ,
+which should no longer be used.
+.Sh RETURN VALUES
+Return zero if the given values do not correspond to a valid date and time,
+non-zero otherwise.
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

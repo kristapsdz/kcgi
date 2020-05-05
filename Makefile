@@ -89,6 +89,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khtml_puts.3 \
 		   man/khtml_write.3 \
 		   man/khttp_body.3 \
+		   man/khttp_datetime2epoch.3 \
 		   man/khttp_epoch2str.3 \
 		   man/khttp_epoch2tms.3 \
 		   man/khttp_fcgi_free.3 \
@@ -124,7 +125,6 @@ MAN3S		 = man/kcgi.3 \
 		   man/kjson_string_open.3 \
 		   man/kjson_string_write.3 \
 		   man/kmalloc.3 \
-		   man/kutil_epoch2str.3 \
 		   man/kutil_invalidate.3 \
 		   man/kutil_log.3 \
 		   man/kutil_openlog.3 \
