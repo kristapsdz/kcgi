@@ -137,12 +137,10 @@ khttp_validate_time(struct tm *tim_p)
 /*
  * See khttp_validate_time().
  */
-static time_t 
+static int64_t 
 khttp_mktime(struct tm *tim_p)
 {
-	time_t	tim = 0;
-	long	days = 0;
-	int	year;
+	int64_t	tim = 0, days = 0, year;
 
 	/* Validate structure. */
 
@@ -183,7 +181,7 @@ khttp_mktime(struct tm *tim_p)
 
 	/* Compute total seconds. */
 
-	tim += (time_t)days * _SEC_IN_DAY;
+	tim += days * _SEC_IN_DAY;
 
 	/* Compute day of the week. */
 
