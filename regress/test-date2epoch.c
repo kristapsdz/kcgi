@@ -65,8 +65,10 @@ main(int argc, char *argv[])
 		ntest.tm_mday = test.tm_mday;
 		ntest.tm_mon = test.tm_mon;
 		ntest.tm_year = test.tm_year;
-		if ((vv = timegm(&ntest)) == -1)
-			errx(1, "timegm");
+		if ((vv = timegm(&ntest)) == -1) {
+			warnx("timegm");
+			continue;
+		}
 
 		if (!khttp_date2epoch(&res,
 		    test.tm_mday,
@@ -94,8 +96,10 @@ main(int argc, char *argv[])
 		ntest.tm_mday = test.tm_mday;
 		ntest.tm_mon = test.tm_mon;
 		ntest.tm_year = test.tm_year;
-		if ((vv = timegm(&ntest)) == -1)
-			errx(1, "timegm");
+		if ((vv = timegm(&ntest)) == -1) {
+			warnx("timegm");
+			continue;
+		}
 
 		if (!khttp_date2epoch(&res,
 		    test.tm_mday,
