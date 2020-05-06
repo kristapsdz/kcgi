@@ -410,8 +410,10 @@ khttp_datetime2epoch(int64_t *res, int64_t day, int64_t mon,
 
 	test = tm;
 
+	/* This shouldn't fail, but check anyway. */
+
 	if ((*res = khttp_mktime(&tm)) == -1) {
-		XWARN("timegm");
+		XWARNX("khttp_mktime");
 		return 0;
 	}
 

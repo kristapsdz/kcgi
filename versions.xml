@@ -17,8 +17,10 @@
 				in favour of
 				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch</code> and
 				<a href="khttp_datetime2epoch.3.html">khttp_date2epoch</code>.
-				These variants are safer and use underlying operating system
-				functions instead of hand-rolled implementations.
+				These variants use a portable implementation of
+				<a href="https://man.openbsd.org/mktime">mktime(3)</a> that is not
+				encumbered by per-system constraints such as FreeBSD not accepting
+				years prior to 1900.
 			</div>
 		</aside>
 	</article>
