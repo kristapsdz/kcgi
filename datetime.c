@@ -16,8 +16,7 @@
  */
 #include "config.h"
 
-#include <sys/param.h>
-
+#include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
