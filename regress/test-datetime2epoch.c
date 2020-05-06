@@ -152,5 +152,27 @@ main(int argc, char *argv[])
 	    0))
 		errx(1, "khttp_datetime2epoch should fail");
 
+	/* Zeroes everywhere fails (month, day). */
+
+	if (khttp_datetime2epoch(&res,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0))
+		errx(1, "khttp_datetime2epoch should fail");
+
+	/* Zero hour. */
+
+	if (!khttp_datetime2epoch(&res,
+	    1,
+	    1,
+	    0,
+	    0,
+	    0,
+	    0))
+		errx(1, "khttp_datetime2epoch");
+
 	return 0;
 }
