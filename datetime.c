@@ -425,9 +425,9 @@ khttp_epoch2datetime(int64_t tt, int64_t *tm_sec, int64_t *tm_min,
 	if (tm_mday != NULL)
 		*tm_mday = tm.tm_mday;
 	if (tm_mon != NULL)
-		*tm_mon = tm.tm_mon;
+		*tm_mon = tm.tm_mon + 1;
 	if (tm_year != NULL)
-		*tm_year = tm.tm_year;
+		*tm_year = tm.tm_year + 1900;
 	if (tm_wday != NULL)
 		*tm_wday = tm.tm_wday;
 	if (tm_yday != NULL)
