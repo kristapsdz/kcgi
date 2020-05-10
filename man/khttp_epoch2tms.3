@@ -97,6 +97,12 @@ Failure indicates serious system problems.
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
 .Sh CAVEATS
-Not all systems support 64-bit integer time, so the input might be
-silently truncated when casting to
-.Vt time_t .
+For an
+.Fa epoch
+in a year beyond
+.Dv INT_MAX
+or
+.Dv INT_MIN ,
+the
+.Fa tm_year
+value is undefined.

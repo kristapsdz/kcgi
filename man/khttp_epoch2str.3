@@ -49,9 +49,7 @@ into the buffer
 .Fa buf
 of size
 .Fa sz ,
-which should be greater than or equal to 32 bytes.
-For years greater than 4 digits, more space may be required, but callers
-should in practice limit themselves to 4 digit years.
+which should be greater than or equal to 64 bytes.
 If not enough space is given for the formatted date, the buffer is
 truncated to the available size.
 It is always NUL-terminated.
@@ -84,10 +82,3 @@ functions, which had undefined behaviour in some corner cases.
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
-.Sh CAVEATS
-Not all systems support 64-bit integer time, so the input might be
-silently truncated when casting to
-.Vt time_t .
-.Pp
-A negative year or year with more than 4 digits will confuse most
-software.
