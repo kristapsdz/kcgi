@@ -50,26 +50,24 @@ Format an
 .Fa epoch
 value
 .Pq seconds since Jan 1, 1970, 00:00:00 UTC
-into its broken-down time components.
+into its broken-down time components suitable for
+.Vt "struct tm"
+operations.
 .Pp
-The
+The components of
 .Fn khttp_epoch2tms
-function breaks down the epoch value as seconds 0\(en60
-.Pq Fa tm_sec ,
-minutes 0\(en59
-.Pq Fa tm_min ,
-hours 0\(en23
-.Pq Fa tm_hour ,
-day of month 1\(en31
-.Pq Fa tm_mday ,
-month 0\(en11
-.Pq Fa tm_mon ,
-year minus 1900,
-.Pq Fa tm_year ,
-day of week with Sunday at 0
-.Pq Fa tm_wday ,
-and day of year 0\(en365
-.Pq Fa tm_yday .
+are filled in as follows:
+.Bl -column tm_hourx aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -offset indent
+.It Fa tm_sec Ta seconds 0\(en59
+.It Fa tm_min Ta minutes 0\(en59
+.It Fa tm_hour Ta hours 0\(en23
+.It Fa tm_day Ta day of month 1\(en31
+.It Fa tm_mon Ta month 0\(en11
+.It Fa tm_year Ta year minus 1900
+.It Fa tm_yday Ta day in year 0\(en365
+.It Fa tm_wday Ta day in week 0\(en6 (Sunday = 0)
+.El
+.Pp
 If any of the pointers are
 .Dv NULL ,
 they are ignored.

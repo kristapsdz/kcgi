@@ -30,14 +30,14 @@
 .Ft void
 .Fo khttp_epoch2datetime
 .Fa "int64_t epoch"
-.Fa "int64_t *tm_sec"
-.Fa "int64_t *tm_min"
-.Fa "int64_t *tm_hour"
-.Fa "int64_t *tm_mday"
-.Fa "int64_t *tm_mon"
-.Fa "int64_t *tm_year"
-.Fa "int64_t *tm_wday"
-.Fa "int64_t *tm_yday"
+.Fa "int64_t *sec"
+.Fa "int64_t *min"
+.Fa "int64_t *hour"
+.Fa "int64_t *mday"
+.Fa "int64_t *mon"
+.Fa "int64_t *year"
+.Fa "int64_t *wday"
+.Fa "int64_t *yday"
 .Fc
 .Sh DESCRIPTION
 Format an
@@ -45,25 +45,26 @@ Format an
 value
 .Pq seconds since Jan 1, 1970, 00:00:00 UTC
 into its broken-down time components.
-The components are as follows:
-.Pq Fa tm_sec ,
-minutes 0\(en59
-.Pq Fa tm_min ,
-hours 0\(en23
-.Pq Fa tm_hour ,
-day of month 1\(en31
-.Pq Fa tm_mday ,
-month 0\(en11
-.Pq Fa tm_mon ,
-year minus 1900,
-.Pq Fa tm_year ,
-day of week with Sunday at 0
-.Pq Fa tm_wday ,
-and day of year 0\(en365
-.Pq Fa tm_yday .
+The components are filled in as follows:
+.Bl -column hourx aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -offset indent
+.It Fa sec Ta seconds 0\(en59
+.It Fa min Ta minutes 0\(en59
+.It Fa hour Ta hours 0\(en23
+.It Fa day Ta day of month 1\(en31
+.It Fa mon Ta month 1\(en12
+.It Fa year Ta year -2.9e11\(en2.9e11
+.It Fa yday Ta day in year 0\(en365
+.It Fa wday Ta day in week 0\(en6 (Sunday = 0)
+.El
+.Pp
 If any of the pointers are
 .Dv NULL ,
 they are ignored.
+.Pp
+For broken-down time values suitable for
+.Vt "struct tm" ,
+see
+.Xr khttp_epoch2tms 3 .
 .Sh SEE ALSO
 .Xr khttp_datetime2epoch 3 ,
 .Xr khttp_epoch2str 3 ,
