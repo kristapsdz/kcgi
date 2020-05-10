@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2016--2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,10 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KHTTP_EPOCH2TMS 3
+.Dt KHTTP_EPOCH2DATETIME 3
 .Os
 .Sh NAME
-.Nm KHTTP_EPOCH2TM ,
-.Nm khttp_epoch2tms
+.Nm khttp_epoch2datetime
 .Nd convert time to components
 .Sh LIBRARY
 .Lb libkcgi
@@ -28,22 +27,17 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft int
-.Fo khttp_epoch2tms
+.Ft void
+.Fo khttp_epoch2datetime
 .Fa "int64_t epoch"
-.Fa "int *tm_sec"
-.Fa "int *tm_min"
-.Fa "int *tm_hour"
-.Fa "int *tm_mday"
-.Fa "int *tm_mon"
-.Fa "int *tm_year"
-.Fa "int *tm_wday"
-.Fa "int *tm_yday"
-.Fc
-.Ft int
-.Fo KHTTP_EPOCH2TM
-.Fa "int64_t epoch"
-.Fa "struct tm *tm"
+.Fa "int64_t *tm_sec"
+.Fa "int64_t *tm_min"
+.Fa "int64_t *tm_hour"
+.Fa "int64_t *tm_mday"
+.Fa "int64_t *tm_mon"
+.Fa "int64_t *tm_year"
+.Fa "int64_t *tm_wday"
+.Fa "int64_t *tm_yday"
 .Fc
 .Sh DESCRIPTION
 Format an
@@ -51,10 +45,7 @@ Format an
 value
 .Pq seconds since Jan 1, 1970, 00:00:00 UTC
 into its broken-down time components.
-.Pp
-The
-.Fn khttp_epoch2tms
-function breaks down the epoch value as seconds 0\(en60
+The components are as follows:
 .Pq Fa tm_sec ,
 minutes 0\(en59
 .Pq Fa tm_min ,
@@ -73,34 +64,10 @@ and day of year 0\(en365
 If any of the pointers are
 .Dv NULL ,
 they are ignored.
-.Pp
-The
-.Fn KHTTP_EPOCH2TM
-macro fills in
-.Fa tm
-with the above values.
-Other fields in the
-.Vt "struct tm"
-structure, like
-.Va tm_gmtoff ,
-are not touched.
-.Pp
-These deprecate the original
-.Fn kutil_epoch2tmvals
-function and
-.Fn KUTIL_EPOCH2TM
-macro, both of which had undefined behaviour in some corner cases.
-.Pp
-For conversion without possible overflow or underflow, use
-.Xr khttp_epoch2datetime 3 .
-.Sh RETURN VALUES
-These return zero on failure and non-zero on success.
-Failure occurs if the computed year will overflow or underflow
-.Fa tm_year .
 .Sh SEE ALSO
 .Xr khttp_datetime2epoch 3 ,
-.Xr khttp_epoch2datetime 3 ,
-.Xr khttp_epoch2str 3
+.Xr khttp_epoch2str 3 ,
+.Xr khttp_epoch2tms 3
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

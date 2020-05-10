@@ -28,13 +28,13 @@
 .In stdarg.h
 .In stdint.h
 .In kcgi.h
-.Ft void
+.Ft "char *"
 .Fo khttp_epoch2str
 .Fa "int64_t epoch"
 .Fa "char *buf"
 .Fa "size_t sz"
 .Fc
-.Ft void
+.Ft "char *"
 .Fo khttp_epoch2ustr
 .Fa "int64_t epoch"
 .Fa "char *buf"
@@ -53,13 +53,6 @@ which should be greater than or equal to 64 bytes.
 If not enough space is given for the formatted date, the buffer is
 truncated to the available size.
 It is always NUL-terminated.
-If
-.Fa buf
-is
-.Dv NULL ,
-.Fa sz
-is zero, or time conversion fails, these return
-.Dv NULL .
 .Pp
 The output of
 .Fn khttp_epoch2str
@@ -79,6 +72,21 @@ These deprecate the original
 and
 .Fn kutil_epoch2utcstr
 functions, which had undefined behaviour in some corner cases.
+.Sh RETURN VALUES
+Returns a pointer to the input
+.Fa buf
+or
+.Dv NULL
+if
+.Fa buf
+is
+.Dv NULL ,
+.Fa sz
+is zero, or time conversion fails.
+.Sh SEE ALSO
+.Xr khttp_datetime2epoch 3 ,
+.Xr khttp_epoch2datetime 3 ,
+.Xr khttp_epoch2tms 3
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

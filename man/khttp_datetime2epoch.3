@@ -76,8 +76,11 @@ The date and time arguments are as follows:
 .It Fa hour Ta hours 0\(en23
 .It Fa day Ta day of month 1\(en31
 .It Fa mon Ta month 1\(en12
-.It Fa year Ta year (any)
+.It Fa year Ta year -2.9e11\(en2.9e11
 .El
+.Pp
+The year bound is the maximum year value that may be converted to
+seconds for a 64-bit integer.
 .Pp
 These deprecate
 .Fn kutil_date2epoch ,
@@ -89,6 +92,10 @@ which should no longer be used.
 .Sh RETURN VALUES
 Return zero if the given values do not correspond to a valid date and time,
 non-zero otherwise.
+.Sh SEE ALSO
+.Xr khttp_epoch2datetime 3 ,
+.Xr khttp_epoch2str 3 ,
+.Xr khttp_epoch2tms 3
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
