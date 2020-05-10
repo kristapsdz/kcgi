@@ -16,6 +16,7 @@
  */
 #include "config.h"
 
+#include <inttypes.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -33,8 +34,20 @@
  */
 #define MAX_TIME_STRING	64
 
+struct tm64 {
+	int64_t	tm_sec;		/* seconds after the minute [0-60] */
+	int64_t	tm_min;		/* minutes after the hour [0-59] */
+	int64_t	tm_hour;	/* hours since midnight [0-23] */
+	int64_t	tm_mday;	/* day of the month [1-31] */
+	int64_t	tm_mon;		/* months since January [0-11] */
+	int64_t	tm_year;	/* years since 1900 */
+	int64_t	tm_wday;	/* days since Sunday [0-6] */
+	int64_t	tm_yday;	/* days since January 1 [0-365] */
+};
+
 /* 
- * The following code is from newlib and is licensed as follows:
+ * The following code is modified from newlib, the relevant parts being
+ * licensed as follows:
  *
  * Copyright (c) 1994-2009  Red Hat, Inc. All rights reserved.
  *
@@ -70,91 +83,63 @@ static const int _DAYS_BEFORE_MONTH[12] =
 #define _DAYS_IN_YEAR(year) \
 	(_ISLEAP(year) ? 366 : 365)
 
-static void 
-khttp_validate_time(struct tm *tim_p)
+/*
+ * Make sure that all values are sane.
+ * Return zero on failure, non-zero on success.
+ */
+static int 
+khttp_validate_time(const struct tm64 *tim_p)
 {
-	div_t	 res;
-	int 	 days_in_feb = 28;
+	int64_t	 days_in_feb = 28;
 
-	if (tim_p->tm_sec < 0 || tim_p->tm_sec > 59) {
-		res = div (tim_p->tm_sec, 60);
-		tim_p->tm_min += res.quot;
-		if ((tim_p->tm_sec = res.rem) < 0) {
-			tim_p->tm_sec += 60;
-			--tim_p->tm_min;
-		}
-	}
+	if (tim_p->tm_sec < 0 || tim_p->tm_sec > 59)
+		return 0;
+	if (tim_p->tm_min < 0 || tim_p->tm_min > 59)
+		return 0;
+	if (tim_p->tm_hour < 0 || tim_p->tm_hour > 23)
+		return 0;
+	if (tim_p->tm_mon < 0 || tim_p->tm_mon > 11)
+		return 0;
 
-	if (tim_p->tm_min < 0 || tim_p->tm_min > 59) {
-		res = div (tim_p->tm_min, 60);
-		tim_p->tm_hour += res.quot;
-		if ((tim_p->tm_min = res.rem) < 0) {
-			tim_p->tm_min += 60;
-			--tim_p->tm_hour;
-		}
-	}
+	/*
+	 * This magic number is (more or less) the maximum number of
+	 * years that we can consider in a 64-bit year.
+	 * Outside of this we'll get overflow or underflow.
+	 */
 
-	if (tim_p->tm_hour < 0 || tim_p->tm_hour > 23) {
-		res = div (tim_p->tm_hour, 24);
-		tim_p->tm_mday += res.quot;
-		if ((tim_p->tm_hour = res.rem) < 0) {
-			tim_p->tm_hour += 24;
-			--tim_p->tm_mday;
-		}
-	}
+	if (tim_p->tm_year > 291672107014 ||
+	    tim_p->tm_year < -291672107014)
+		return 0;
 
-	if (tim_p->tm_mon < 0 || tim_p->tm_mon > 11) {
-		res = div (tim_p->tm_mon, 12);
-		tim_p->tm_year += res.quot;
-		if ((tim_p->tm_mon = res.rem) < 0) {
-			tim_p->tm_mon += 12;
-			--tim_p->tm_year;
-		}
-	}
-
-	if (_DAYS_IN_YEAR (tim_p->tm_year) == 366)
+	if (_DAYS_IN_YEAR(tim_p->tm_year) == 366)
 		days_in_feb = 29;
+	if (tim_p->tm_mday <= 0 || 
+	    tim_p->tm_mday > _DAYS_IN_MONTH(tim_p->tm_mon))
+		return 0;
 
-	if (tim_p->tm_mday <= 0) {
-		while (tim_p->tm_mday <= 0) {
-			if (--tim_p->tm_mon == -1) {
-				tim_p->tm_year--;
-				tim_p->tm_mon = 11;
-				days_in_feb =
-					((_DAYS_IN_YEAR (tim_p->tm_year) == 366) ?
-					 29 : 28);
-			}
-			tim_p->tm_mday += _DAYS_IN_MONTH (tim_p->tm_mon);
-		}
-	} else {
-		while (tim_p->tm_mday > _DAYS_IN_MONTH (tim_p->tm_mon)) {
-			tim_p->tm_mday -= _DAYS_IN_MONTH (tim_p->tm_mon);
-			if (++tim_p->tm_mon == 12) {
-				tim_p->tm_year++;
-				tim_p->tm_mon = 0;
-				days_in_feb =
-					((_DAYS_IN_YEAR (tim_p->tm_year) == 366) ?
-					 29 : 28);
-			}
-		}
-	}
+	return 1;
 }
 
 /*
+ * Convert broken-down time to the UNIX epoch.
+ * Returns zero if the broken-dwon values are not sane, non-zero
+ * otherwise.
  * See khttp_validate_time().
  */
-static int64_t 
-khttp_mktime(struct tm *tim_p)
+static int 
+khttp_mktime(int64_t *res, struct tm64 *tim_p)
 {
 	int64_t	tim = 0, days = 0, year;
 
 	/* Validate structure. */
 
-	khttp_validate_time(tim_p);
+	if (!khttp_validate_time(tim_p))
+		return 0;
 
 	/* Compute hours, minutes, seconds. */
 
-	tim += tim_p->tm_sec + (tim_p->tm_min * _SEC_IN_MINUTE) +
+	tim += tim_p->tm_sec + 
+		(tim_p->tm_min * _SEC_IN_MINUTE) +
 		(tim_p->tm_hour * _SEC_IN_HOUR);
 
 	/* Compute days in year. */
@@ -169,12 +154,8 @@ khttp_mktime(struct tm *tim_p)
 
 	tim_p->tm_yday = days;
 
-#if 0
-	if (tim_p->tm_year > 10000 || tim_p->tm_year < -10000)
-		return (time_t) -1;
-#endif
-
 	/* Compute days in other years. */
+	/* WARNING: THIS IS VERY SLOW. */
 
 	if ((year = tim_p->tm_year) > 70) {
 		for (year = 70; year < tim_p->tm_year; year++)
@@ -194,7 +175,8 @@ khttp_mktime(struct tm *tim_p)
 	if ((tim_p->tm_wday = (days + 4) % 7) < 0)
 		tim_p->tm_wday += 7;
 
-	return tim;
+	*res = tim;
+	return 1;
 }
 
 /* 
@@ -256,16 +238,14 @@ khttp_mktime(struct tm *tim_p)
 
 /*
  * Convert UNIX epoch to values in "res".
- * XXX: "tm_year" in "res" may underflow or overflow.
- * Never fails.
  */
 static void
-khttp_gmtime_r(int64_t lcltime, struct tm *res)
+khttp_gmtime_r(int64_t lcltime, struct tm64 *res)
 {
 	int64_t		days, rem, era, weekday, year;
 	uint64_t	erayear, yearday, month, day, eraday;
 
-	memset(res, 0, sizeof(struct tm));
+	memset(res, 0, sizeof(struct tm64));
 
 	days = lcltime / SECSPERDAY + EPOCH_ADJUSTMENT_DAYS;
 	rem = lcltime % SECSPERDAY;
@@ -277,10 +257,10 @@ khttp_gmtime_r(int64_t lcltime, struct tm *res)
 
 	/* Compute hour, min, and sec. */
 
-	res->tm_hour = (int)(rem / SECSPERHOUR);
+	res->tm_hour = (int64_t)(rem / SECSPERHOUR);
 	rem %= SECSPERHOUR;
-	res->tm_min = (int)(rem / SECSPERMIN);
-	res->tm_sec = (int)(rem % SECSPERMIN);
+	res->tm_min = (int64_t)(rem / SECSPERMIN);
+	res->tm_sec = (int64_t)(rem % SECSPERMIN);
 
 	/* Compute day of week. */
 
@@ -329,13 +309,12 @@ khttp_gmtime_r(int64_t lcltime, struct tm *res)
 	res->tm_year = year - YEAR_BASE;
 	res->tm_mon = month;
 	res->tm_mday = day;
-	res->tm_isdst = 0;
 }
 
 char *
 khttp_epoch2str(int64_t tt, char *buf, size_t sz)
 {
-	struct tm	 tm;
+	struct tm64	 tm;
 	char		 rbuf[MAX_TIME_STRING];
 	const char	*days[7] = {
 		"Sun",
@@ -367,7 +346,8 @@ khttp_epoch2str(int64_t tt, char *buf, size_t sz)
 	khttp_gmtime_r(tt, &tm);
 
 	if (snprintf(rbuf, sizeof(rbuf), 
-	    "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
+	    "%s, %.2" PRId64 " %s %.4" PRId64 " "
+	    "%.2" PRId64 ":%.2" PRId64 ":%.2" PRId64 " GMT",
 	    days[tm.tm_wday], tm.tm_mday,
 	    months[tm.tm_mon], tm.tm_year + 1900,
 	    tm.tm_hour, tm.tm_min, tm.tm_sec) == -1) {
@@ -396,7 +376,7 @@ char *
 khttp_epoch2ustr(int64_t tt, char *buf, size_t sz)
 {
 	char		 rbuf[MAX_TIME_STRING];
-	struct tm	 tm;
+	struct tm64	 tm;
 
 	if (buf == NULL || sz == 0)
 		return NULL;
@@ -404,7 +384,8 @@ khttp_epoch2ustr(int64_t tt, char *buf, size_t sz)
 	khttp_gmtime_r(tt, &tm);
 
 	if (snprintf(rbuf, sizeof(rbuf), 
-	    "%.4d-%.2d-%.2dT%.2d:%.2d:%.2dZ",
+	    "%.4" PRId64 "-%.2" PRId64 "-%.2" PRId64 
+	    "T%.2" PRId64 ":%.2" PRId64 ":%.2" PRId64 "Z",
 	    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
 	    tm.tm_hour, tm.tm_min, tm.tm_sec) == -1) {
 		XWARNX("snprintf");
@@ -426,15 +407,44 @@ kutil_epoch2utcstr(int64_t tt, char *buf, size_t sz)
 	return khttp_epoch2ustr(tt < 0 ? 0 : tt, buf, sz);
 }
 
+void
+khttp_epoch2datetime(int64_t tt, int64_t *tm_sec, int64_t *tm_min,
+	int64_t *tm_hour, int64_t *tm_mday, int64_t *tm_mon,
+	int64_t *tm_year, int64_t *tm_wday, int64_t *tm_yday)
+{
+	struct tm64	tm;
+
+	khttp_gmtime_r(tt, &tm);
+
+	if (tm_sec != NULL)
+		*tm_sec = tm.tm_sec;
+	if (tm_min != NULL)
+		*tm_min = tm.tm_min;
+	if (tm_hour != NULL)
+		*tm_hour = tm.tm_hour;
+	if (tm_mday != NULL)
+		*tm_mday = tm.tm_mday;
+	if (tm_mon != NULL)
+		*tm_mon = tm.tm_mon;
+	if (tm_year != NULL)
+		*tm_year = tm.tm_year;
+	if (tm_wday != NULL)
+		*tm_wday = tm.tm_wday;
+	if (tm_yday != NULL)
+		*tm_yday = tm.tm_yday;
+}
+
 int
 khttp_epoch2tms(int64_t tt, int *tm_sec, int *tm_min, 
 	int *tm_hour, int *tm_mday, int *tm_mon, 
 	int *tm_year, int *tm_wday, int *tm_yday)
 {
-	struct tm	tm;
+	struct tm64	tm;
 
 	khttp_gmtime_r(tt, &tm);
 
+	if (tm.tm_year > INT_MAX || tm.tm_year < -INT_MAX)
+		return 0;
 	if (tm_sec != NULL)
 		*tm_sec = tm.tm_sec;
 	if (tm_min != NULL)
@@ -472,66 +482,24 @@ kutil_epoch2tmvals(int64_t tt, int *tm_sec, int *tm_min,
 		tm_hour, tm_mday, tm_mon, tm_year, tm_wday, tm_yday);
 }
 
-static int
-khttp_int_truncate(int64_t src, int *dst)
-{
-
-	if (src > INT_MAX || src < INT_MIN) {
-		XWARNX("date conversion integer over/underflow");
-		return 0;
-	}
-	*dst = src;
-	return 1;
-}
-
 int
 khttp_datetime2epoch(int64_t *res, int64_t day, int64_t mon,
 	int64_t year, int64_t hour, int64_t min, int64_t sec)
 {
-	struct tm	 tm, test;
+	struct tm64	 tm;
 	int64_t		 val;
 
 	if (res == NULL)
 		res = &val;
 
-	memset(&tm, 0, sizeof(struct tm));
-
-	/* 
-	 * Narrow these to integers to make khttp_mktime() less diverged
-	 * from its origins.
-	 * This is fine, as all of these need to be sane to start with,
-	 * except we won't handle 64-bit years.
-	 * No loss there.
-	 */
-
-	if (!khttp_int_truncate(sec, &tm.tm_sec))
-		return 0;
-	if (!khttp_int_truncate(min, &tm.tm_min))
-		return 0;
-	if (!khttp_int_truncate(hour, &tm.tm_hour))
-		return 0;
-	if (!khttp_int_truncate(day, &tm.tm_mday))
-		return 0;
-	if (!khttp_int_truncate(mon - 1, &tm.tm_mon))
-		return 0;
-	if (!khttp_int_truncate(year - 1900, &tm.tm_year))
-		return 0;
-
-	test = tm;
-
-	*res = khttp_mktime(&tm);
-
-	/* If we normalised any values, this will catch them. */
-
-	if (test.tm_sec != tm.tm_sec ||
-	    test.tm_min != tm.tm_min ||
-	    test.tm_hour != tm.tm_hour ||
-	    test.tm_mday != tm.tm_mday ||
-	    test.tm_mon != tm.tm_mon ||
-	    test.tm_year != tm.tm_year)
-		return 0;
-
-	return 1;
+	memset(&tm, 0, sizeof(struct tm64));
+	tm.tm_sec = sec;
+	tm.tm_min = min;
+	tm.tm_hour = hour;
+	tm.tm_mday = day;
+	tm.tm_mon = mon - 1;
+	tm.tm_year = year - 1900;
+	return khttp_mktime(res, &tm);
 }
 
 int

@@ -593,6 +593,9 @@ enum kcgi_err	 khttp_fcgi_free(struct kfcgi *);
 void		 khttp_fcgi_child_free(struct kfcgi *);
 int		 khttp_fcgi_test(void);
 
+void		 khttp_epoch2datetime(int64_t, int64_t *, int64_t *,
+			int64_t *, int64_t *, int64_t *, int64_t *,
+			int64_t *, int64_t *);
 char		*khttp_epoch2str(int64_t, char *, size_t);
 char		*khttp_epoch2ustr(int64_t, char *, size_t);
 int		 khttp_epoch2tms(int64_t, int *, int *, int *, 
