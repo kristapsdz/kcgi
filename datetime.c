@@ -27,6 +27,12 @@
 #include "kcgi.h"
 #include "extern.h"
 
+/*
+ * We'll never have khttp_epoch2str or khttp_epoch2ustr larger than
+ * this, even with 64-bit time.
+ */
+#define MAX_TIME_STRING	64
+
 /* 
  * The following code is from newlib and is licensed as follows:
  *
@@ -250,6 +256,7 @@ khttp_mktime(struct tm *tim_p)
 
 /*
  * Convert UNIX epoch to values in "res".
+ * XXX: "tm_year" in "res" may underflow or overflow.
  * Never fails.
  */
 static void
@@ -289,18 +296,36 @@ khttp_gmtime_r(int64_t lcltime, struct tm *res)
 	 */
 
 	era = (days >= 0 ? days : days - (DAYS_PER_ERA - 1)) / DAYS_PER_ERA;
-	eraday = days - era * DAYS_PER_ERA;	/* [0, 146096] */
-	erayear = (eraday - eraday / (DAYS_PER_4_YEARS - 1) + eraday / DAYS_PER_CENTURY -
-			eraday / (DAYS_PER_ERA - 1)) / 365;	/* [0, 399] */
-	yearday = eraday - (DAYS_PER_YEAR * erayear + erayear / 4 - erayear / 100);	/* [0, 365] */
-	month = (5 * yearday + 2) / 153;	/* [0, 11] */
-	day = yearday - (153 * month + 2) / 5 + 1;	/* [1, 31] */
-	month += month < 10 ? 2 : -10;
-	year = ADJUSTED_EPOCH_YEAR + erayear + era * YEARS_PER_ERA + (month <= 1);
 
-	res->tm_yday = yearday >= DAYS_PER_YEAR - DAYS_IN_JANUARY - DAYS_IN_FEBRUARY ?
-		yearday - (DAYS_PER_YEAR - DAYS_IN_JANUARY - DAYS_IN_FEBRUARY) :
-		yearday + DAYS_IN_JANUARY + DAYS_IN_FEBRUARY + ISLEAP(erayear);
+	/* [0, 146096] */
+	eraday = days - era * DAYS_PER_ERA;
+
+	/* [0, 399] */
+	erayear = (eraday - eraday / (DAYS_PER_4_YEARS - 1) + 
+			eraday / DAYS_PER_CENTURY - eraday / 
+			(DAYS_PER_ERA - 1)) / 365;	
+
+	/* [0, 365] */
+	yearday = eraday - (DAYS_PER_YEAR * erayear + 
+			erayear / 4 - erayear / 100);
+
+	/* [0, 11] */
+	month = (5 * yearday + 2) / 153;
+
+	/* [1, 31] */
+	day = yearday - (153 * month + 2) / 5 + 1;
+
+	month += month < 10 ? 2 : -10;
+	year = ADJUSTED_EPOCH_YEAR + erayear + 
+		era * YEARS_PER_ERA + (month <= 1);
+
+	res->tm_yday = 
+		yearday >= DAYS_PER_YEAR - 
+			DAYS_IN_JANUARY - DAYS_IN_FEBRUARY ?
+		yearday - (DAYS_PER_YEAR - 
+			DAYS_IN_JANUARY - DAYS_IN_FEBRUARY) :
+		yearday + DAYS_IN_JANUARY + 
+			DAYS_IN_FEBRUARY + ISLEAP(erayear);
 	res->tm_year = year - YEAR_BASE;
 	res->tm_mon = month;
 	res->tm_mday = day;
@@ -311,16 +336,42 @@ char *
 khttp_epoch2str(int64_t tt, char *buf, size_t sz)
 {
 	struct tm	 tm;
-	char		 rbuf[64];
+	char		 rbuf[MAX_TIME_STRING];
+	const char	*days[7] = {
+		"Sun",
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat"
+	};
+	const char	*months[12] = {
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	};
 
 	if (buf == NULL || sz == 0)
 		return NULL;
 
 	khttp_gmtime_r(tt, &tm);
 
-	if (strftime(rbuf, sizeof(rbuf),
-	    "%a, %d %b %Y %T GMT", &tm) == 0) {
-		XWARNX("strftime");
+	if (snprintf(rbuf, sizeof(rbuf), 
+	    "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
+	    days[tm.tm_wday], tm.tm_mday,
+	    months[tm.tm_mon], tm.tm_year + 1900,
+	    tm.tm_hour, tm.tm_min, tm.tm_sec) == -1) {
+		XWARNX("snprintf");
 		return NULL;
 	}
 
@@ -344,7 +395,7 @@ kutil_epoch2str(int64_t tt, char *buf, size_t sz)
 char *
 khttp_epoch2ustr(int64_t tt, char *buf, size_t sz)
 {
-	char		 rbuf[64];
+	char		 rbuf[MAX_TIME_STRING];
 	struct tm	 tm;
 
 	if (buf == NULL || sz == 0)
@@ -416,26 +467,9 @@ kutil_epoch2tmvals(int64_t tt, int *tm_sec, int *tm_min,
 	int *tm_hour, int *tm_mday, int *tm_mon, 
 	int *tm_year, int *tm_wday, int *tm_yday)
 {
-	struct tm	 tm;
 
-	khttp_gmtime_r(tt < 0 ? 0 : tt, &tm);
-
-	if (tm_sec != NULL)
-		*tm_sec = tm.tm_sec;
-	if (tm_min != NULL)
-		*tm_min = tm.tm_min;
-	if (tm_hour != NULL)
-		*tm_hour = tm.tm_hour;
-	if (tm_mday != NULL)
-		*tm_mday = tm.tm_mday;
-	if (tm_mon != NULL)
-		*tm_mon = tm.tm_mon;
-	if (tm_year != NULL)
-		*tm_year = tm.tm_year;
-	if (tm_wday != NULL)
-		*tm_wday = tm.tm_wday;
-	if (tm_yday != NULL)
-		*tm_yday = tm.tm_yday;
+	khttp_epoch2tms(tt < 0 ? 0 : tt, tm_sec, tm_min,
+		tm_hour, tm_mday, tm_mon, tm_year, tm_wday, tm_yday);
 }
 
 static int
