@@ -37,6 +37,7 @@ main(int argc, char *argv[])
 {
 	size_t	 	 i;
 	time_t	 	 v;
+	int64_t		 vv;
 	struct tm	*tm;
 	char	 	 buf[64], testbuf[64];
 
@@ -73,27 +74,27 @@ main(int argc, char *argv[])
 
 	/* Now test for time_t > int32_t. */
 
-	v = 100000000000;
+	vv = 100000000000;
 	strlcpy(buf, "5138-11-16T09:46:40Z", sizeof(buf));
-	khttp_epoch2ustr(v, testbuf, sizeof(testbuf));
+	khttp_epoch2ustr(vv, testbuf, sizeof(testbuf));
 	if (strcmp(buf, testbuf))
 		errx(1, "khttp_epoch2ustr: "
 			"have %s, want %s", testbuf, buf);
 
 	/* Similarly, but for >4 digit years. */
 
-	v = 1000000000000;
+	vv = 1000000000000;
 	strlcpy(buf, "33658-09-27T01:46:40Z", sizeof(buf));
-	khttp_epoch2ustr(v, testbuf, sizeof(testbuf));
+	khttp_epoch2ustr(vv, testbuf, sizeof(testbuf));
 	if (strcmp(buf, testbuf))
 		errx(1, "khttp_epoch2ustr: "
 			"have %s, want %s", testbuf, buf);
 
 	/* And time_t < int32_t (also tests for negative year). */
 
-	v = -100000000000;
+	vv = -100000000000;
 	strlcpy(buf, "-1199-02-15T14:13:20Z", sizeof(buf));
-	khttp_epoch2ustr(v, testbuf, sizeof(testbuf));
+	khttp_epoch2ustr(vv, testbuf, sizeof(testbuf));
 	if (strcmp(buf, testbuf))
 		errx(1, "khttp_epoch2ustr: "
 			"have %s, want %s", testbuf, buf);
