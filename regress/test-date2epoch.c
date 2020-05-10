@@ -138,5 +138,29 @@ main(int argc, char *argv[])
 	    2020))
 		errx(1, "khttp_date2epoch should fail");
 
+#if 0
+	/*
+	 * THESE ARE CURRENTLY TOO SLOW FOR RUNNING.
+	 * THE DATE FUNCTION NEEDS TO BE OPTIMISED FIRST.
+	 */
+	/* HUGE year. */
+
+	warnx("1");
+	if (!khttp_date2epoch(&res,
+	    15,
+	    2,
+	    291672107014))
+		errx(1, "khttp_date2epoch");
+
+	warnx("2");
+	/* HUGE negative year. */
+
+	if (!khttp_date2epoch(&res,
+	    15,
+	    2,
+	    -291672107014))
+		errx(1, "khttp_date2epoch");
+#endif
+
 	return 0;
 }
