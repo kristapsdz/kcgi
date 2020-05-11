@@ -16,6 +16,7 @@
  */
 #include "config.h"
 
+#include <assert.h> /* debug */
 #include <inttypes.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -83,6 +84,12 @@ static const int _DAYS_BEFORE_MONTH[12] =
 #define _DAYS_IN_YEAR(year) \
 	(_ISLEAP(year) ? 366 : 365)
 
+/* 
+ * There are 97 leap years in 400-year periods. ((400 - 97) * 365 + 97 *
+ * 366).
+ */
+#define DAYS_PER_ERA		146097L
+
 /*
  * Make sure that all values are sane.
  * Return zero on failure, non-zero on success.
@@ -107,8 +114,8 @@ khttp_validate_time(const struct tm64 *tim_p)
 	 * Outside of this we'll get overflow or underflow.
 	 */
 
-	if (tim_p->tm_year > 291672107014 ||
-	    tim_p->tm_year < -291672107014)
+	if (tim_p->tm_year > 292277026596 ||
+	    tim_p->tm_year < -292277024557)
 		return 0;
 
 	if (_DAYS_IN_YEAR(tim_p->tm_year) == 366)
@@ -129,7 +136,7 @@ khttp_validate_time(const struct tm64 *tim_p)
 static int 
 khttp_mktime(int64_t *res, struct tm64 *tim_p)
 {
-	int64_t	tim = 0, days = 0, year;
+	int64_t	tim = 0, days = 0, year, maxyear, era;
 
 	/* Validate structure. */
 
@@ -158,10 +165,23 @@ khttp_mktime(int64_t *res, struct tm64 *tim_p)
 	/* WARNING: THIS IS VERY SLOW. */
 
 	if ((year = tim_p->tm_year) > 70) {
-		for (year = 70; year < tim_p->tm_year; year++)
-			days += _DAYS_IN_YEAR (year);
+		maxyear = tim_p->tm_year > 400 ? 400 : tim_p->tm_year;
+		for (year = 70; year < maxyear; year++)
+			days += _DAYS_IN_YEAR(year);
+		era = (tim_p->tm_year - year) / 400;
+		days += era * DAYS_PER_ERA;
+		year += era * 400;
+		for ( ; year < tim_p->tm_year; year++)
+			days += _DAYS_IN_YEAR(year);
 	} else if (year < 70) {
-		for (year = 69; year > tim_p->tm_year; year--)
+		maxyear = tim_p->tm_year < -400 ? -400 : tim_p->tm_year;
+		for (year = 69; year > maxyear; year--)
+			days -= _DAYS_IN_YEAR(year);
+		era = (tim_p->tm_year - year) / 400;
+		assert(era <= 0);
+		days += era * DAYS_PER_ERA;
+		year += era * 400;
+		for ( ; year > tim_p->tm_year; year--)
 			days -= _DAYS_IN_YEAR(year);
 		days -= _DAYS_IN_YEAR(year);
 	}
@@ -196,12 +216,6 @@ khttp_mktime(int64_t *res, struct tm64 *tim_p)
 #define ADJUSTED_EPOCH_WDAY	3
 
 /* 
- * There are 97 leap years in 400-year periods. ((400 - 97) * 365 + 97 *
- * 366).
- */
-#define DAYS_PER_ERA		146097L
-
-/* 
  * There are 24 leap years in 100-year periods. ((100 - 24) * 365 + 24 *
  * 366).
  */
@@ -232,9 +246,12 @@ khttp_mktime(int64_t *res, struct tm64 *tim_p)
 #define DAYSPERWEEK	7
 #define MONSPERYEAR	12
 
-/* Self-explanatory. */
-#define ISLEAP(y) 	((((y) % 4) == 0 && ((y) % 100) != 0) || \
-			 ((y) % 400) == 0)
+/*
+ * This form of _ISLEAP doesn't adjust the year.
+ */
+#define _ISLEAP2(y) \
+	(((y) % 4) == 0 && \
+	 (((y) % 100) != 0 || ((y) % 400) == 0))
 
 /*
  * Convert UNIX epoch to values in "res".
@@ -305,7 +322,7 @@ khttp_gmtime_r(int64_t lcltime, struct tm64 *res)
 		yearday - (DAYS_PER_YEAR - 
 			DAYS_IN_JANUARY - DAYS_IN_FEBRUARY) :
 		yearday + DAYS_IN_JANUARY + 
-			DAYS_IN_FEBRUARY + ISLEAP(erayear);
+			DAYS_IN_FEBRUARY + _ISLEAP2(erayear);
 	res->tm_year = year - YEAR_BASE;
 	res->tm_mon = month;
 	res->tm_mday = day;
