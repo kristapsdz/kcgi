@@ -93,8 +93,11 @@ For conversion without possible overflow or underflow, use
 .Xr khttp_epoch2datetime 3 .
 .Sh RETURN VALUES
 These return zero on failure and non-zero on success.
-Failure occurs if the computed year will overflow or underflow
-.Fa tm_year .
+Failure occurs if
+.Fa epoch
+will overflow or underflow
+.Fa tm_year ,
+which occurs around the year \(+-6.7+16.
 .Sh SEE ALSO
 .Xr khttp_datetime2epoch 3 ,
 .Xr khttp_epoch2datetime 3 ,
