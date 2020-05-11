@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 		have = *tm;
 		c = KHTTP_EPOCH2TM(v, &test);
 		if (!c)
-			errx(1, "KHTP_EPOCH2TM");
+			errx(1, "KHTTP_EPOCH2TM");
 		if (have.tm_sec != test.tm_sec ||
 		    have.tm_min != test.tm_min ||
 		    have.tm_hour != test.tm_hour ||
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 		    have.tm_year != test.tm_year ||
 		    have.tm_wday != test.tm_wday ||
 		    have.tm_yday != test.tm_yday)
-			errx(1, "KHTP_EPOCH2TM: mismatch");
+			errx(1, "KHTTP_EPOCH2TM: mismatch");
 	}
 
 	return 0;
