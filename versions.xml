@@ -20,19 +20,10 @@
 				These variants use a portable implementation of
 				<a href="https://man.openbsd.org/mktime">mktime(3)</a> that is not
 				encumbered by per-system constraints such as FreeBSD not accepting
-				years prior to 1900.
+				years prior to 1900 or Solaris not printing &gt;4 digit years.
 			</div>
-		</aside>
-	</article>
-	<article data-sblg-article="1" data-sblg-tags="version">
-		<header>
-			<h1>0.12.0</h1>
-			<address>Kristaps Dzonsons</address>
-			<time datetime="2020-04-24">2020-04-24</time>
-		</header>
-		<aside>
 			<div>
-				Rename and reconstitute <code>kutil_epoch2str</code>, 
+				Deprecate <code>kutil_epoch2str</code>, 
 				<code>kutil_epoch2utcstr</code>, 
 				<code>kutil_epoch2tmvals</code>, and
 				<code>KUTIL_EPOCH2TM</code> as
