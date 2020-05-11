@@ -90,6 +90,7 @@ MAN3S		 = man/kcgi.3 \
 		   man/khtml_write.3 \
 		   man/khttp_body.3 \
 		   man/khttp_datetime2epoch.3 \
+		   man/khttp_epoch2datetime.3 \
 		   man/khttp_epoch2str.3 \
 		   man/khttp_epoch2tms.3 \
 		   man/khttp_fcgi_free.3 \
