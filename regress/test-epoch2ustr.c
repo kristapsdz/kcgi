@@ -83,8 +83,8 @@ main(int argc, char *argv[])
 
 	/* Similarly, but for >4 digit years. */
 
-	vv = 1000000000000;
-	strlcpy(buf, "33658-09-27T01:46:40Z", sizeof(buf));
+	vv = INT64_MAX;
+	strlcpy(buf, "292277026596-12-04T15:30:07Z", sizeof(buf));
 	khttp_epoch2ustr(vv, testbuf, sizeof(testbuf));
 	if (strcmp(buf, testbuf))
 		errx(1, "khttp_epoch2ustr: "
@@ -92,8 +92,8 @@ main(int argc, char *argv[])
 
 	/* And time_t < int32_t (also tests for negative year). */
 
-	vv = -100000000000;
-	strlcpy(buf, "-1199-02-15T14:13:20Z", sizeof(buf));
+	vv = INT64_MIN;
+	strlcpy(buf, "-292277022657-01-27T08:29:52Z", sizeof(buf));
 	khttp_epoch2ustr(vv, testbuf, sizeof(testbuf));
 	if (strcmp(buf, testbuf))
 		errx(1, "khttp_epoch2ustr: "

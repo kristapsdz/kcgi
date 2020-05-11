@@ -20,6 +20,7 @@
 # include <err.h>
 #endif
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -35,20 +36,72 @@
 int
 main(int argc, char *argv[])
 {
-	size_t	 	 i;
-	int64_t 	 v, vv, tm_sec, tm_min, tm_hour, tm_mday, 
-			 tm_mon, tm_year, tm_wday, tm_yday;
+	size_t	 i;
+	int64_t  v, vv, tm_sec, tm_min, tm_hour, tm_mday, 
+		 tm_mon, tm_year, tm_wday, tm_yday;
 
-	/* 
-	 * FIXME: test truly across all int64_t.
-	 * Right now the implementation is too slow for that.
-	 */
+	/* Test maximum possible input. */
+
+	v = INT64_MAX;
+	khttp_epoch2datetime(v,
+		&tm_sec,
+		&tm_min,
+		&tm_hour,
+		&tm_mday,
+		&tm_mon,
+		&tm_year,
+		&tm_wday,
+		&tm_yday);
+	if (!khttp_datetime2epoch(&vv, tm_mday,
+	    tm_mon, tm_year, tm_hour, tm_min, tm_sec))
+		errx(1, "khttp_datetime2epoch: have {"
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 "}",
+			tm_mday, tm_mon,
+			tm_year, tm_hour,
+			tm_min, tm_sec);
+	if (v != vv)
+		errx(1, "khttp_datetime2epoch: mismatch (max)");
+
+	v = INT64_MIN;
+	khttp_epoch2datetime(v,
+		&tm_sec,
+		&tm_min,
+		&tm_hour,
+		&tm_mday,
+		&tm_mon,
+		&tm_year,
+		&tm_wday,
+		&tm_yday);
+	if (!khttp_datetime2epoch(&vv, tm_mday,
+	    tm_mon, tm_year, tm_hour, tm_min, tm_sec))
+		errx(1, "khttp_datetime2epoch: have {"
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 ", "
+			"%" PRId64 "}",
+			tm_mday, tm_mon,
+			tm_year, tm_hour,
+			tm_min, tm_sec);
+	if (v != vv)
+		errx(1, "khttp_datetime2epoch: mismatch (min)");
+
+	/* Test across random values.  */
 
 	for (i = 0; i < 100000; i++) {
 #if HAVE_ARC4RANDOM
-		v = arc4random();
+		arc4random_buf(&v, sizeof(int64_t));
 #else
-		v = random();
+		vv = (int64_t)random() * (int64_t)random();
+		memcpy(&v, &vv, sizeof(uint32_t));
+		vv = (int64_t)random() * (int64_t)random();
+		memcpy(&v + sizeof(uint32_t), &vv, sizeof(uint32_t));
 #endif
 		khttp_epoch2datetime(v,
 			&tm_sec,
@@ -61,29 +114,16 @@ main(int argc, char *argv[])
 			&tm_yday);
 		if (!khttp_datetime2epoch(&vv, tm_mday,
 		    tm_mon, tm_year, tm_hour, tm_min, tm_sec))
-			errx(1, "khttp_datetime2epoch");
-		if (v != vv)
-			errx(1, "khttp_datetime2epoch: mismatch");
-	}
-
-	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
-		v = (int64_t)arc4random() * -1.0;
-#else
-		v = (int64_t)random() * -1.0;
-#endif
-		khttp_epoch2datetime(v,
-			&tm_sec,
-			&tm_min,
-			&tm_hour,
-			&tm_mday,
-			&tm_mon,
-			&tm_year,
-			&tm_wday,
-			&tm_yday);
-		if (!khttp_datetime2epoch(&vv, tm_mday,
-		    tm_mon, tm_year, tm_hour, tm_min, tm_sec))
-			errx(1, "khttp_datetime2epoch");
+			errx(1, "khttp_datetime2epoch: have {"
+				"%" PRId64 ", "
+				"%" PRId64 ", "
+				"%" PRId64 ", "
+				"%" PRId64 ", "
+				"%" PRId64 ", "
+				"%" PRId64 "}",
+				tm_mday, tm_mon,
+				tm_year, tm_hour,
+				tm_min, tm_sec);
 		if (v != vv)
 			errx(1, "khttp_datetime2epoch: mismatch");
 	}
