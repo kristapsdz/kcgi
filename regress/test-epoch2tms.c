@@ -74,7 +74,25 @@ main(int argc, char *argv[])
 		    have.tm_year != test.tm_year ||
 		    have.tm_wday != test.tm_wday ||
 		    have.tm_yday != test.tm_yday)
-			errx(1, "khttp_epoch2tms: mismatch");
+			errx(1, "khttp_epoch2tms: have "
+			    "{%d, %d, %d, %d, %d, %d, %d, %d}, want "
+			    "{%d, %d, %d, %d, %d, %d, %d, %d}",
+			    have.tm_sec,
+			    have.tm_min,
+			    have.tm_hour,
+			    have.tm_mday,
+			    have.tm_mon,
+			    have.tm_year,
+			    have.tm_wday,
+			    have.tm_yday,
+			    test.tm_sec,
+			    test.tm_min,
+			    test.tm_hour,
+			    test.tm_mday,
+			    test.tm_mon,
+			    test.tm_year,
+			    test.tm_wday,
+			    test.tm_yday);
 	}
 
 	/* Handle NULL values. */
