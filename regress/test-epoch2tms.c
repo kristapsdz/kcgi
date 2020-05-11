@@ -20,6 +20,7 @@
 # include <err.h>
 #endif
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -48,12 +49,14 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < 100000; i++) {
 #if HAVE_ARC4RANDOM
-		v = (int32_t)arc4random();
+		v = (time_t)arc4random() * (time_t)arc4random();
 #else
-		v = (int32_t)(random() + random());
+		v = (time_t)random() * (time_t)random();
 #endif
-		if ((tm = gmtime(&v)) == NULL)
-			err(1, "gmtime");
+		if ((tm = gmtime(&v)) == NULL) {
+			warnx("gmtime: %" PRId64, (int64_t)v);
+			continue;
+		}
 		have = *tm;
 		c = khttp_epoch2tms(v,
 			&test.tm_sec,
