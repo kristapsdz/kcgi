@@ -5,7 +5,7 @@
 		<header>
 			<h1>0.12.1</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2020-04-24">2020-04-24</time>
+			<time datetime="2020-05-11">2020-05-11</time>
 		</header>
 		<aside>
 			<div>
@@ -17,13 +17,21 @@
 				in favour of
 				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch</code> and
 				<a href="khttp_datetime2epoch.3.html">khttp_date2epoch</code>.
-				These variants use a portable implementation of
-				<a href="https://man.openbsd.org/mktime">mktime(3)</a> that is not
+				These variants use portable implementations of
+				<a href="https://man.openbsd.org/gmtime">gmtime(3)</a> and
+				<a href="https://man.openbsd.org/timegm">timegm(3)</a> 
+				that are not
 				encumbered by per-system constraints such as FreeBSD not accepting
-				years prior to 1900 or Solaris not printing &gt;4 digit years.
+				years prior to 1900 and of course the 32-bit problem.
 			</div>
 			<div>
-				Deprecate <code>kutil_epoch2str</code>, 
+				Add 
+				<a href="khttp_epoch2datetime.3.html">khttp_epoch2datetime(3)</code>
+				to symmetrise
+				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch(3)</code>.
+			</div>
+			<div>
+				Further deprecate <code>kutil_epoch2str</code>, 
 				<code>kutil_epoch2utcstr</code>, 
 				<code>kutil_epoch2tmvals</code>, and
 				<code>KUTIL_EPOCH2TM</code> as
@@ -34,6 +42,10 @@
 				The new forms, besides having consistent naming, specifically
 				account for corner cases like negative dates, years with more than
 				four digits, etc.
+				These no longer use the system
+				<a href="https://man.openbsd.org/strtime">strtime(3)</a>
+				due to inconsistencies between implementations (e.g., Oracle Solaris
+				not printing &gt;4 digit years) and the 32-bit problem.
 			</div>
 		</aside>
 	</article>
