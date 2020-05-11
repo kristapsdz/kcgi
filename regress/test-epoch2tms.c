@@ -42,16 +42,11 @@ main(int argc, char *argv[])
 	struct tm	 have, test;
 	int		 c;
 
-	/* 
-	 * Test a lot of positive and negative numbers.
-	 * We want the full range of time_t to work.
-	 */
-
 	for (i = 0; i < 100000; i++) {
 #if HAVE_ARC4RANDOM
-		v = (time_t)arc4random() * (time_t)arc4random();
+		v = (time_t)arc4random();
 #else
-		v = (time_t)random() * (time_t)random();
+		v = (time_t)random();
 #endif
 		if ((tm = gmtime(&v)) == NULL) {
 			warnx("gmtime: %" PRId64, (int64_t)v);
