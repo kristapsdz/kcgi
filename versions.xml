@@ -15,8 +15,8 @@
 				<code>kutil_datetime2epoch</code>, and
 				<code>kutil_datetime_check</code>
 				in favour of
-				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch</code> and
-				<a href="khttp_datetime2epoch.3.html">khttp_date2epoch</code>.
+				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch(3)</a> and
+				<a href="khttp_datetime2epoch.3.html">khttp_date2epoch(3)</a>.
 				These variants use portable implementations of
 				<a href="https://man.openbsd.org/gmtime">gmtime(3)</a> and
 				<a href="https://man.openbsd.org/timegm">timegm(3)</a> 
@@ -26,19 +26,19 @@
 			</div>
 			<div>
 				Add 
-				<a href="khttp_epoch2datetime.3.html">khttp_epoch2datetime(3)</code>
+				<a href="khttp_epoch2datetime.3.html">khttp_epoch2datetime(3)</a>
 				to symmetrise
-				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch(3)</code>.
+				<a href="khttp_datetime2epoch.3.html">khttp_datetime2epoch(3)</a>.
 			</div>
 			<div>
 				Further deprecate <code>kutil_epoch2str</code>, 
 				<code>kutil_epoch2utcstr</code>, 
 				<code>kutil_epoch2tmvals</code>, and
 				<code>KUTIL_EPOCH2TM</code> as
-				<a href="khttp_epoch2str.3.html">khttp_epoch2str</code>, 
-				<a href="khttp_epoch2str.3.html">khttp_epoch2ustr</code>, 
-				<a href="khttp_epoch2tms.3.html">khttp_epoch2tms</code>, and
-				<a href="khttp_epoch2tms.3.html">KHTTP_EPOCH2TM</code>, respectively.
+				<a href="khttp_epoch2str.3.html">khttp_epoch2str</a>, 
+				<a href="khttp_epoch2str.3.html">khttp_epoch2ustr</a>, 
+				<a href="khttp_epoch2tms.3.html">khttp_epoch2tms</a>, and
+				<a href="khttp_epoch2tms.3.html">KHTTP_EPOCH2TM</a>, respectively.
 				The new forms, besides having consistent naming, specifically
 				account for corner cases like negative dates, years with more than
 				four digits, etc.
