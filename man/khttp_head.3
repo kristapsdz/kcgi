@@ -107,7 +107,7 @@ successfully initialised by
 const char *ckey = "foo", *cval = "bar";
 char buf[64];
 
-kutil_epoch2str(time(NULL) + 31536000, buf, 64);
+khttp_epoch2str(time(NULL) + 31536000, buf, 64);
 
 khttp_head(r, kresps[KRESP_SET_COOKIE],
   "%s=%s; path=/; expires=%s", ckey, cval, buf);
