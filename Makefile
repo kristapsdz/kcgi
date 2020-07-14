@@ -228,6 +228,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-json-controlchars \
 		   regress/test-json-simple \
 		   regress/test-logging \
+		   regress/test-logging-errors \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
 		   regress/test-path-check \
