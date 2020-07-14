@@ -34,7 +34,7 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-#define	TEMPL "/tmp/test-logging.XXXXXXXXXX"
+#define	TEMPL "/tmp/test-logging-error.XXXXXXXXXX"
 
 /*
  * These are all the components from the log message.
@@ -55,7 +55,7 @@ struct line {
  * Return zero on failure, non-zero on success.
  */
 static int
-test_runner(int (*child)(void), int (*parent)(FILE *))
+test_runner(void (*child)(void), int (*parent)(FILE *))
 {
 	char	 sfn[32];
 	int	 fd, st, rc;
@@ -77,7 +77,9 @@ test_runner(int (*child)(void), int (*parent)(FILE *))
 		close(fd);
 		if (!kutil_openlog(sfn))
 			errx(EXIT_FAILURE, "kutil_openlog");
-		exit(child() ? EXIT_SUCCESS : EXIT_FAILURE);
+		child();
+		abort();
+		/* NOTREACHED */
 	}
 
 	/* Wait for child to do its printing, then cleanup. */
@@ -91,7 +93,7 @@ test_runner(int (*child)(void), int (*parent)(FILE *))
 
 	/* Make sure it exited properly. */
 
-	if (!WIFEXITED(st) || WEXITSTATUS(st) != EXIT_SUCCESS)
+	if (!WIFEXITED(st) || WEXITSTATUS(st) != EXIT_FAILURE)
 		errx(EXIT_FAILURE, "child failure (%d)", WIFEXITED(st));
 
 	/* Now run the parent test component. */
@@ -182,13 +184,12 @@ get_line(FILE *f)
 	   return line;
 }
 
-static int
+static void
 child4(void)
 {
 
 	errno = EINVAL;
-	kutil_warn(NULL, NULL, "%s", "foo");
-	return 1;
+	kutil_err(NULL, NULL, "%s", "foo");
 }
 
 static int
@@ -203,7 +204,7 @@ parent4(FILE *f)
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
-	    strcmp(line.level, "WARN") ||
+	    strcmp(line.level, "ERROR") ||
 	    strcmp(line.umsg, "foo") ||
 	    line.errmsg == NULL)
 		goto out;
@@ -213,12 +214,11 @@ out:
 	return rc;
 }
 
-static int
+static void
 child3(void)
 {
 
-	kutil_warnx(NULL, NULL, "%s", "foo");
-	return 1;
+	kutil_errx(NULL, NULL, "%s", "foo");
 }
 
 static int
@@ -233,7 +233,7 @@ parent3(FILE *f)
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
-	    strcmp(line.level, "WARN") ||
+	    strcmp(line.level, "ERROR") ||
 	    strcmp(line.umsg, "foo") ||
 	    line.errmsg != NULL)
 		goto out;
@@ -243,12 +243,11 @@ out:
 	return rc;
 }
 
-static int
+static void
 child2(void)
 {
 
-	kutil_warnx(NULL, "foo", NULL);
-	return 1;
+	kutil_errx(NULL, "foo", NULL);
 }
 
 static int
@@ -263,7 +262,7 @@ parent2(FILE *f)
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "foo") ||
-	    strcmp(line.level, "WARN") ||
+	    strcmp(line.level, "ERROR") ||
 	    strcmp(line.umsg, "-") ||
 	    line.errmsg != NULL)
 		goto out;
@@ -273,12 +272,11 @@ out:
 	return rc;
 }
 
-static int
+static void
 child1(void)
 {
 
-	kutil_warnx(NULL, NULL, NULL);
-	return 1;
+	kutil_errx(NULL, NULL, NULL);
 }
 
 static int
@@ -293,7 +291,7 @@ parent1(FILE *f)
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
-	    strcmp(line.level, "WARN") ||
+	    strcmp(line.level, "ERROR") ||
 	    strcmp(line.umsg, "-") ||
 	    line.errmsg != NULL)
 		goto out;
