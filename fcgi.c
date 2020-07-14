@@ -332,7 +332,7 @@ kfcgi_control(int work, int ctrl,
 		 * socket request identifier.
 		 */
 
-		if ( ! fullwritefd(ctrl, fd, &rid, sizeof(uint16_t))) {
+		if (!fullwritefd(ctrl, fd, &rid, sizeof(uint16_t))) {
 			XWARNX("FastCGI: failed to write end-point "
 				"descriptor to front-end processing");
 			goto out;

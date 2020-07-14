@@ -138,44 +138,56 @@ kxstrdup(const char *file, int line, const char *cp)
 	return NULL;
 }
 
+/*
+ * waitpid() and logging anything but a return with EXIT_SUCCESS.
+ * Returns KCGI_OK on EXIT_SUCCESS, KCGI_SYSTEM on waitpid() error,
+ * KCGI_FORM on child process failure.
+ */
 enum kcgi_err
 kxwaitpid(pid_t pid)
 {
-	int	 	 st;
-	enum kcgi_err	 ke;
+	int	st;
 
-	ke = KCGI_OK;
+	if (waitpid(pid, &st, 0) == -1) {
+		kutil_warn(NULL, NULL, "waitpid");
+		return KCGI_SYSTEM;
+	} else if (WIFEXITED(st) && WEXITSTATUS(st) == EXIT_SUCCESS)
+		return KCGI_OK;
 
-	if (-1 == waitpid(pid, &st, 0)) {
-		ke = KCGI_SYSTEM;
-		XWARN("waiting for child");
-	} else if (WIFEXITED(st) && EXIT_SUCCESS != WEXITSTATUS(st)) {
-		ke = KCGI_FORM;
-		XWARNX("child status %d", WEXITSTATUS(st));
-	} else if (WIFSIGNALED(st)) {
-		ke = KCGI_FORM;
-		XWARNX("child signal %d", WTERMSIG(st));
-	}
+	if (WIFEXITED(st))
+		kutil_warnx(NULL, NULL, "waitpid: child failure");
+	else 
+		kutil_warnx(NULL, NULL, "waitpid: child signal");
 
-	return(ke);
+	return KCGI_FORM;
 }
 
+/*
+ * Set a file-descriptor as being non-blocking.
+ * Returns KCGI_SYSTEM on error, KCGI_OK on success.
+ */
 enum kcgi_err
 kxsocketprep(int sock)
 {
 	int	 fl;
 
-	if (-1 == (fl = fcntl(sock, F_GETFL, 0))) {
-		XWARN("fcntl");
-		return(KCGI_SYSTEM);
-	} else if (-1 == fcntl(sock, F_SETFL, fl | O_NONBLOCK)) {
-		XWARN("fcntl");
-		return(KCGI_SYSTEM);
+	if ((fl = fcntl(sock, F_GETFL, 0)) == -1) {
+		kutil_warn(NULL, NULL, "fcntl");
+		return KCGI_SYSTEM;
+	} else if (fcntl(sock, F_SETFL, fl | O_NONBLOCK) == -1) {
+		kutil_warn(NULL, NULL, "fcntl");
+		return KCGI_SYSTEM;
 	}
 
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
+/*
+ * Create a non-blockin gsocketpair.
+ * Return KCGI_ENFILE on temporary failure, KCGI_SYSTEM on fatal error,
+ * KCGI_OK on success.
+ * Only sets "sock" on success.
+ */
 enum kcgi_err
 kxsocketpair(int domain, int type, int protocol, int *sock)
 {
@@ -527,9 +539,15 @@ fullreadword(int fd, char **cp)
 {
 	size_t sz;
 
-	return(fullreadwordsz(fd, cp, &sz));
+	return fullreadwordsz(fd, cp, &sz);
 }
 
+/*
+ * Write a file-descriptor "sendfd" and a buffer "b" of length "bsz",
+ * which must be 256 bytes or fewer, but not zero.
+ * See fullwritefd().
+ * Returns zero on failure (any kind), non-zero on success.
+ */
 int
 fullwritefd(int fd, int sendfd, void *b, size_t bsz)
 {
@@ -540,7 +558,7 @@ fullwritefd(int fd, int sendfd, void *b, size_t bsz)
 	struct cmsghdr	*cmsg;
 	struct pollfd	 pfd;
 
-	assert(bsz <= 256);
+	assert(bsz <= 256 && bsz > 0);
 
 	memset(buf, 0, sizeof(buf));
 	memset(&msg, 0, sizeof(struct msghdr));
@@ -565,23 +583,40 @@ fullwritefd(int fd, int sendfd, void *b, size_t bsz)
 
 	pfd.fd = fd;
 	pfd.events = POLLOUT;
+
 again:
 	if ((rc = poll(&pfd, 1, -1)) < 0) {
-		XWARN("poll");
-		return(-1);
-	} else if (0 == rc) {
-		XWARNX("poll: timeout!?");
+		kutil_warn(NULL, NULL, "poll");
+		return 0;
+	} else if (rc == 0) {
+		kutil_warnx(NULL, NULL, "poll: timeout!?");
 		goto again;
-	} else if ( ! (POLLOUT & pfd.revents)) {
-		XWARNX("poll: hangup");
-		return(-1);
-	} else if (sendmsg(fd, &msg, 0) < 0) {
-		XWARN("sendmsg");
-		return(0);
 	}
-	return(1);
+	
+	if (!(pfd.revents & POLLOUT)) {
+		kutil_warnx(NULL, NULL, "poll: no output");
+		return 0;
+	} 
+	
+	if ((rc = sendmsg(fd, &msg, 0)) < 0) {
+		kutil_warn(NULL, NULL, "sendmsg");
+		return 0;
+	} else if (rc == 0) {
+		kutil_warnx(NULL, NULL, "sendmsg: short write");
+		return 0;
+	}
+
+	return 1;
 }
 
+/*
+ * Read a file-descriptor into "recvfd" and a buffer "b" of length
+ * "bsz", which must be 256 bytes or fewer, but not zero.
+ * See fullwritefd().
+ * Returns <0 on system failure, 0 on hangup (remote end closed), and >0
+ * on success.
+ * The output pointers are only set on success.
+ */
 int 
 fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 {
@@ -593,7 +628,7 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 	int		 rc;
 	struct pollfd	 pfd;
 
-	assert(bsz <= 256);
+	assert(bsz <= 256 && bsz > 0);
 
 	memset(&msg, 0, sizeof(struct msghdr));
 	memset(&io, 0, sizeof(struct iovec));
@@ -608,32 +643,40 @@ fullreadfd(int fd, int *recvfd, void *b, size_t bsz)
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
+
 again:
-	if ((rc = poll(&pfd, 1, -1)) < 0) {
-		XWARN("poll");
-		return(-1);
-	} else if (0 == rc) {
-		XWARNX("poll: timeout!?");
+	if ((rc = poll(&pfd, 1, INFTIM)) < 0) {
+		kutil_warn(NULL, NULL, "poll");
+		return (-1);
+	} else if (rc == 0) {
+		kutil_warnx(NULL, NULL, "poll timeout!?!?");
 		goto again;
-	} else if ( ! (POLLIN & pfd.revents)) {
-		XWARNX("poll: hangup");
-		return(0);
-	} else if ((rc = recvmsg(fd, &msg, 0)) < 0) {
-		XWARN("recvmsg");
-		return(-1);
-	} else if (0 == rc)
-		return(0);
+	}
+	
+	if (!(pfd.revents & POLLIN)) {
+		kutil_warnx(NULL, NULL, "poll: no input");
+		return 0;
+	} 
+	
+	if ((rc = recvmsg(fd, &msg, 0)) < 0) {
+		kutil_warn(NULL, NULL, "recvmsg");
+		return (-1);
+	} else if (rc == 0) {
+		kutil_warnx(NULL, NULL, "recvmsg: short read");
+		return 0;
+	}
 
 	memcpy(b, m_buffer, bsz);
-	for (cmsg = CMSG_FIRSTHDR(&msg); NULL != cmsg;
+	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
 		 cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 		if (cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
 		    cmsg->cmsg_level == SOL_SOCKET &&
 		    cmsg->cmsg_type == SCM_RIGHTS) {
 			*recvfd = *(int *)CMSG_DATA(cmsg);
-			return(1);
+			return 1;
 		}
 	}
-	XWARNX("recvmsg: no SCM_RIGHTS!?");
-	return(-1);
+
+	kutil_warnx(NULL, NULL, "recvmsg: no SCM_RIGHTS");
+	return (-1);
 }
