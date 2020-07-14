@@ -91,11 +91,10 @@ int	 	 ksandbox_seccomp_init_child(enum sandtype);
 #endif
 void		 kreq_free(struct kreq *);
 
-/*
- * These are just wrappers over the native functions that report when
- * failure has occurred.
- * They do nothing else and return the normal values.
- */
+enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
+enum kcgi_err	 kxsocketprep(int);
+enum kcgi_err	 kxwaitpid(pid_t);
+
 int		 kxasprintf(const char *, int, 
 			char **, const char *, ...)
 			__attribute__((format(printf, 4, 5)));
@@ -106,14 +105,7 @@ void		*kxmalloc(const char *, int, size_t);
 void		*kxrealloc(const char *, int, void *, size_t);
 void		*kxreallocarray(const char *, 
 			int, void *, size_t, size_t);
-enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
-enum kcgi_err	 kxsocketprep(int);
 char		*kxstrdup(const char *, int, const char *);
-enum kcgi_err	 kxwaitpid(pid_t);
-void		 kxwarn(const char *, int, const char *, ...)
-			__attribute__((format(printf, 3, 4)));
-void		 kxwarnx(const char *, int, const char *, ...)
-			__attribute__((format(printf, 3, 4)));
 #define		 XASPRINTF(_p, ...) \
 		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \
@@ -128,10 +120,11 @@ void		 kxwarnx(const char *, int, const char *, ...)
 		 kxreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
 #define		 XSTRDUP(_p) \
 		 kxstrdup(__FILE__, __LINE__, (_p))
+
 #define		 XWARN(...) \
-		 kxwarn(__FILE__, __LINE__, __VA_ARGS__)
+		 kutil_warn(NULL, NULL, __VA_ARGS__)
 #define		 XWARNX(...) \
-		 kxwarnx(__FILE__, __LINE__, __VA_ARGS__)
+		 kutil_warnx(NULL, NULL, __VA_ARGS__)
 
 __END_DECLS
 

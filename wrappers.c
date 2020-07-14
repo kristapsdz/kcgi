@@ -43,11 +43,11 @@ kxvasprintf(const char *file, int line,
 	int	 len;
 
 	if ((len = vasprintf(p, fmt, ap)) >= 0)
-		return(len);
+		return len;
 
-	kxwarn(file, line, "vasprintf");
+	kutil_warn(NULL, NULL, "vasprintf");
 	*p = NULL;
-	return(len);
+	return -1;
 }
 
 int
@@ -59,7 +59,7 @@ kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
 	va_start(ap, fmt);
 	ret = kxvasprintf(file, line, p, fmt, ap);
 	va_end(ap);
-	return(ret);
+	return ret;
 }
 
 void *
@@ -67,13 +67,14 @@ kxcalloc(const char *file, int line, size_t nm, size_t sz)
 {
 	void	 *p;
 
-	if (0 == nm || 0 == sz)
-		kxwarnx(file, line, "calloc(%zu, %zu) "
-			"(non-portable zero-length)", nm, sz);
-	if (NULL != (p = calloc(nm, sz)))
-		return(p);
-	kxwarn(file, line, "calloc(%zu, %zu)", nm, sz);
-	return(p);
+	if (nm == 0 || sz == 0)  {
+		kutil_warnx(NULL, NULL, "calloc: zero length");
+		return NULL;
+	} else if ((p = calloc(nm, sz)) != NULL)
+		return p;
+
+	kutil_warn(NULL, NULL, "calloc: %zu, %zu", nm, sz);
+	return NULL;
 }
 
 void *
@@ -81,13 +82,14 @@ kxmalloc(const char *file, int line, size_t sz)
 {
 	void	 *p;
 
-	if (0 == sz)
-		kxwarnx(file, line, "malloc(0) "
-			"(non-portable zero-length)");
-	if (NULL != (p = malloc(sz)))
-		return(p);
-	kxwarn(file, line, "malloc(%zu)", sz);
-	return(p);
+	if (sz == 0) {
+		kutil_warnx(NULL, NULL, "malloc: zero length");
+		return NULL;
+	} else if ((p = malloc(sz)) != NULL)
+		return p;
+
+	kutil_warn(NULL, NULL, "malloc: %zu", sz);
+	return NULL;
 }
 
 void *
@@ -95,13 +97,14 @@ kxrealloc(const char *file, int line, void *pp, size_t sz)
 {
 	void	 *p;
 
-	if (0 == sz)
-		kxwarnx(file, line, "realloc(x, 0) "
-			"(non-portable zero-length)");
-	if (NULL != (p = realloc(pp, sz)))
-		return(p);
-	kxwarn(file, line, "realloc(-, %zu)", sz);
-	return(p);
+	if (sz == 0) {
+		kutil_warnx(NULL, NULL, "realloc: zero length");
+		return NULL;
+	} else if ((p = realloc(pp, sz)) != NULL)
+		return p;
+
+	kutil_warn(NULL, NULL, "realloc: %zu", sz);
+	return NULL;
 }
 
 void *
@@ -110,13 +113,14 @@ kxreallocarray(const char *file,
 {
 	void	 *p;
 
-	if (0 == sz || 0 == nm)
-		kxwarnx(file, line, "reallocarray(x, %zu, %zu) "
-			"(non-portable zero-length)", nm, sz);
-	if (NULL != (p = reallocarray(pp, nm, sz)))
-		return(p);
-	kxwarn(file, line, "reallocarray(%p, %zu, %zu)", pp, nm, sz);
-	return(p);
+	if (sz == 0 || nm == 0) {
+		kutil_warnx(NULL, NULL, "reallocarray: zero length");
+		return NULL;
+	} else if ((p = reallocarray(pp, nm, sz)) != NULL)
+		return p;
+
+	kutil_warn(NULL, NULL, "reallocarray: %zu, %zu", nm, sz);
+	return NULL;
 }
 
 char *
@@ -124,46 +128,14 @@ kxstrdup(const char *file, int line, const char *cp)
 {
 	char	*p;
 
-	if (NULL == cp)
-		kxwarnx(file, line, "strdup(NULL) "
-			"(non-portable null pointer)");
-	if (NULL != (p = strdup(cp)))
-		return(p);
+	if (cp == NULL) {
+		kutil_warnx(NULL, NULL, "strdup: NULL string");
+		return NULL;
+	} else if ((p = strdup(cp)) != NULL)
+		return p;
 
-	kxwarn(file, line, "strdup(%p)", cp);
-	return(p);
-}
-
-void
-kxwarnx(const char *file, int line, const char *fmt, ...)
-{
-	char		buf[1024];
-	va_list		ap;
-
-	va_start(ap, fmt);
-	(void)vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-
-	/* FIXME: filter bad characters. */
-
-	fprintf(stderr, "%s:%d: %s\n", file, line, buf);
-}
-
-void
-kxwarn(const char *file, int line, const char *fmt, ...)
-{
-	int		e = errno;
-	char		buf[1024];
-	va_list		ap;
-
-	va_start(ap, fmt);
-	(void)vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-
-	/* FIXME: filter bad characters. */
-
-	fprintf(stderr, "%s:%d: %s: %s\n", 
-		file, line, buf, strerror(e));
+	kutil_warn(NULL, NULL, "strdup");
+	return NULL;
 }
 
 enum kcgi_err
