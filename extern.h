@@ -65,7 +65,6 @@ void	 	 kworker_fcgi_child(int, int,
 			unsigned int);
 enum kcgi_err	 kworker_parent(int, struct kreq *, int, size_t);
 
-int		 fulldiscard(int, size_t, enum kcgi_err *);
 int		 fullread(int, void *, size_t, int, enum kcgi_err *);
 enum kcgi_err	 fullreadword(int, char **);
 enum kcgi_err	 fullreadwordsz(int, char **, size_t *);
