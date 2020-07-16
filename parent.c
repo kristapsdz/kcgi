@@ -208,6 +208,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 	size_t		 i, dgsz;
 
 	/* Pointers freed at "out" label. */
+
 	memset(&kp, 0, sizeof(struct kpair));
 
 	/*
@@ -215,28 +216,31 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 	 * Each parsed parameter is handled a little differently.
 	 * This list will end with META__MAX.
 	 */
+
 	if (fullread(fd, &r->reqsz, sizeof(size_t), 0, &ke) < 0) {
-		XWARNX("failed to read request header size");
+		kutil_warnx(NULL, NULL, "read request header size");
 		goto out;
 	}
+
 	if (r->reqsz) {
 		r->reqs = XCALLOC(r->reqsz, sizeof(struct khead));
-		if (NULL == r->reqs) {
+		if (r->reqs == NULL) {
 			ke = KCGI_ENOMEM;
 			goto out;
 		}
 	}
+
 	for (i = 0; i < r->reqsz; i++) {
 		if (fullread(fd, &requ, sizeof(enum krequ), 0, &ke) < 0) {
-			XWARNX("failed to read request identifier");
+			kutil_warnx(NULL, NULL, "read request identifier");
 			goto out;
 		}
-		if (KCGI_OK != (ke = fullreadword(fd, &r->reqs[i].key))) {
-			XWARNX("failed to read request key");
+		if ((ke = fullreadword(fd, &r->reqs[i].key)) != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "read request key");
 			goto out;
 		}
-		if (KCGI_OK != (ke = fullreadword(fd, &r->reqs[i].val))) {
-			XWARNX("failed to read request value");
+		if ((ke = fullreadword(fd, &r->reqs[i].val)) != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "read request value");
 			goto out;
 		}
 		if (requ != KREQU__MAX)
@@ -244,50 +248,50 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 	}
 
 	if (fullread(fd, &r->method, sizeof(enum kmethod), 0, &ke) < 0) {
-		XWARNX("failed to read request method");
+		kutil_warnx(NULL, NULL, "failed read request method");
 		goto out;
 	} else if (fullread(fd, &r->auth, sizeof(enum kauth), 0, &ke) < 0) {
-		XWARNX("failed to read authorisation type");
+		kutil_warnx(NULL, NULL, "failed read authorisation type");
 		goto out;
-	} else if (KCGI_OK != (ke = kworker_auth_parent(fd, &r->rawauth))) {
-		XWARNX("failed to read raw authorisation");
+	} else if ((ke = kworker_auth_parent(fd, &r->rawauth)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read raw authorisation");
 		goto out;
 	} else if (fullread(fd, &r->scheme, sizeof(enum kscheme), 0, &ke) < 0) {
-		XWARNX("failed to read scheme");
+		kutil_warnx(NULL, NULL, "failed read scheme");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->remote))) {
-		XWARNX("failed to read remote");
+	} else if ((ke = fullreadword(fd, &r->remote)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read remote");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->fullpath))) {
-		XWARNX("failed to read fullpath");
+	} else if ((ke = fullreadword(fd, &r->fullpath)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read fullpath");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->suffix))) {
-		XWARNX("failed to read suffix");
+	} else if ((ke = fullreadword(fd, &r->suffix)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read suffix");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->pagename))) {
-		XWARNX("failed to read page part");
+	} else if ((ke = fullreadword(fd, &r->pagename)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read page part");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->path))) {
-		XWARNX("failed to read path part");
+	} else if ((ke = fullreadword(fd, &r->path)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read path part");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->pname))) {
-		XWARNX("failed to read script name");
+	} else if ((ke = fullreadword(fd, &r->pname)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read script name");
 		goto out;
-	} else if (KCGI_OK != (ke = fullreadword(fd, &r->host))) {
-		XWARNX("failed to read host name");
+	} else if ((ke = fullreadword(fd, &r->host)) != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read host name");
 		goto out;
 	} else if (fullread(fd, &r->port, sizeof(uint16_t), 0, &ke) < 0) {
-		XWARNX("failed to read port");
+		kutil_warnx(NULL, NULL, "failed read port");
 		goto out;
 	} else if (fullread(fd, &dgsz, sizeof(size_t), 0, &ke) < 0) {
-		XWARNX("failed to read digest length");
+		kutil_warnx(NULL, NULL, "failed read digest length");
 		goto out;
-	} else if (MD5_DIGEST_LENGTH == dgsz) {
+	} else if (dgsz == MD5_DIGEST_LENGTH) {
 		/* This is a binary value. */
-		if (NULL == (r->rawauth.digest = XMALLOC(dgsz)))
+		if ((r->rawauth.digest = XMALLOC(dgsz)) == NULL)
 			goto out;
 		if (fullread(fd, r->rawauth.digest, dgsz, 0, &ke) < 0) {
-			XWARNX("failed to read digest");
+			kutil_warnx(NULL, NULL, "failed read digest");
 			goto out;
 		}
 	}
@@ -297,7 +301,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 			eofok, mimesz, r->keysz);
 		if (rc < 0)
 			goto out;
-		else if (0 == rc)
+		else if (rc == 0)
 			break;
 
 		/*
@@ -308,11 +312,11 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		 */
 
 		assert(type < IN__MAX);
-		kpp = IN_COOKIE == type ?
+		kpp = type == IN_COOKIE ?
 			kpair_expand(&r->cookies, &r->cookiesz) :
 			kpair_expand(&r->fields, &r->fieldsz);
 
-		if (NULL == kpp) {
+		if (kpp == NULL) {
 			ke = KCGI_ENOMEM;
 			goto out;
 		}
@@ -320,7 +324,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		*kpp = kp;
 	}
 
-	assert(0 == rc);
+	assert(rc == 0);
 
 	/*
 	 * Now that the field and cookie arrays are fixed and not going
@@ -335,7 +339,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 			continue;
 		assert(kpp->keypos < r->keysz);
 
-		if (KPAIR_INVALID != kpp->state) {
+		if (kpp->state != KPAIR_INVALID) {
 			kpp->next = r->fieldmap[kpp->keypos];
 			r->fieldmap[kpp->keypos] = kpp;
 		} else {
@@ -350,7 +354,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 			continue;
 		assert(kpp->keypos < r->keysz);
 
-		if (KPAIR_INVALID != kpp->state) {
+		if (kpp->state != KPAIR_INVALID) {
 			kpp->next = r->cookiemap[kpp->keypos];
 			r->cookiemap[kpp->keypos] = kpp;
 		} else {
@@ -359,13 +363,13 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		}
 	}
 
-	return(KCGI_OK);
+	return KCGI_OK;
 out:
-	assert(KCGI_OK != ke);
+	assert(ke != KCGI_OK);
 	free(kp.key);
 	free(kp.val);
 	free(kp.file);
 	free(kp.ctype);
 	free(kp.xcode);
-	return(ke);
+	return ke;
 }
