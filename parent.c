@@ -49,98 +49,93 @@ input(enum input *type, struct kpair *kp, int fd,
 	memset(kp, 0, sizeof(struct kpair));
 
 	rc = fullread(fd, type, sizeof(enum input), 1, ke);
-	if (0 == rc) {
+	if (rc == 0) {
 		if (eofok) 
-			return(0);
-		XWARNX("parent: unexpected eof from child");
+			return 0;
+		kutil_warnx(NULL, NULL, "unexpected EOF from child");
 		*ke = KCGI_FORM;
-		return(-1);
+		return (-1);
 	} else if (rc < 0) {
-		XWARNX("parent: failed read kpair input type");
-		return(-1);
+		kutil_warnx(NULL, NULL, "failed read kpair type");
+		return (-1);
 	}
 
 	if (*type == IN__MAX)
-		return(0);
+		return 0;
 
 	if (*type > IN__MAX) {
-		XWARNX("parent: invalid kpair input type");
+		kutil_warnx(NULL, NULL, "invalid kpair type");
 		*ke = KCGI_FORM;
-		return(-1);
+		return (-1);
 	}
 
 	*ke = fullreadword(fd, &kp->key);
-	if (KCGI_OK != *ke) {
-		XWARNX("parent: failed read kpair key");
-		return(-1);
+	if (*ke != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read kpair key");
+		return (-1);
 	}
 
 	*ke = fullreadwordsz(fd, &kp->val, &kp->valsz);
-	if (KCGI_OK != *ke) {
-		XWARNX("parent: failed read kpair val");
-		return(-1);
+	if (*ke != KCGI_OK) {
+		kutil_warnx(NULL, NULL, "failed read kpair value");
+		return (-1);
 	}
 
 	sz = sizeof(enum kpairstate);
 	if (fullread(fd, &kp->state, sz, 0, ke) < 0) {
-		XWARNX("parent: failed read kpair state");
-		return(-1);
+		kutil_warnx(NULL, NULL, "failed read kpair state");
+		return (-1);
 	} else if (kp->state > KPAIR_INVALID) {
-		XWARNX("parent: unknown kpair state");
-		return(-1);
+		kutil_warnx(NULL, NULL, "invalid kpair state");
+		return (-1);
 	}
 
 	sz = sizeof(enum kpairtype);
 	if (fullread(fd, &kp->type, sz, 0, ke) < 0) {
-		XWARNX("parent: failed read kpair type");
-		return(-1);
+		kutil_warnx(NULL, NULL, "failed read kpair type");
+		return (-1);
 	} else if (kp->type > KPAIR__MAX) {
-		XWARNX("parent: unknown kpair type");
-		return(-1);
+		kutil_warnx(NULL, NULL, "invalid kpair type");
+		return (-1);
 	}
 
 	sz = sizeof(size_t);
 	if (fullread(fd, &kp->keypos, sz, 0, ke) < 0) {
-		XWARNX("parent: failed read kpair pos");
-		return(-1);
+		kutil_warnx(NULL, NULL, "failed read kpair position");
+		return (-1);
 	} else if (kp->keypos > keysz) {
-		XWARNX("parent: invalid kpair keypos");
-		return(-1);
+		kutil_warnx(NULL, NULL, "invalid kpair position");
+		return (-1);
 	}
 
-	if (KPAIR_VALID == kp->state)
+	if (kp->state == KPAIR_VALID)
 		switch (kp->type) {
-		case (KPAIR_DOUBLE):
+		case KPAIR_DOUBLE:
 			sz = sizeof(double);
-			rc = fullread(fd, &kp->parsed.d, sz, 0, ke);
-			if (rc < 0) {
-				XWARNX("parent: failed "
-					"read kpair double");
-				return(-1);
-			}
-			break;
-		case (KPAIR_INTEGER):
+			if (fullread(fd, &kp->parsed.d, sz, 0, ke) > 0)
+				break;
+			kutil_warnx(NULL, NULL, 
+				"failed read kpair double");
+			return (-1);
+		case KPAIR_INTEGER:
 			sz = sizeof(int64_t);
-			rc = fullread(fd, &kp->parsed.i, sz, 0, ke);
-			if (rc < 0) {
-				XWARNX("parent: failed "
-					"read kpair integer");
-				return(-1);
-			}
-			break;
-		case (KPAIR_STRING):
+			if (fullread(fd, &kp->parsed.i, sz, 0, ke) > 0)
+				break;
+			kutil_warnx(NULL, NULL, 
+				"failed read kpair integer");
+			return (-1);
+		case KPAIR_STRING:
 			sz = sizeof(ptrdiff_t);
-			rc = fullread(fd, &diff, sz, 0, ke);
-			if (rc < 0) {
-				XWARNX("parent: failed "
-					"read kpair ptrdiff");
-				return(-1);
+			if (fullread(fd, &diff, sz, 0, ke) < 0) {
+				kutil_warnx(NULL, NULL, 
+					"failed read kpair ptrdiff");
+				return (-1);
 			}
 			if (diff > (ssize_t)kp->valsz) {
 				*ke = KCGI_FORM;
-				XWARNX("parent: kpair offset"
-					"exceeds value size");
-				return(-1);
+				kutil_warnx(NULL, NULL, 
+					"invalid kpair ptrdiff");
+				return (-1);
 			}
 			kp->parsed.s = kp->val + diff;
 			break;
@@ -149,33 +144,38 @@ input(enum input *type, struct kpair *kp, int fd,
 		}
 
 	*ke = fullreadword(fd, &kp->file);
-	if (KCGI_OK != *ke) {
-		XWARNX("parent: failed read kpair file");
-		return(-1);
+	if (*ke != KCGI_OK) {
+		kutil_warnx(NULL, NULL, 
+			"failed read kpair filename");
+		return (-1);
 	}
 
 	*ke = fullreadword(fd, &kp->ctype);
-	if (KCGI_OK != *ke) {
-		XWARNX("parent: failed read kpair ctype");
-		return(-1);
+	if (*ke != KCGI_OK) {
+		kutil_warnx(NULL, NULL, 
+			"failed read kpair content type");
+		return (-1);
 	}
 
 	sz = sizeof(size_t);
 	if (fullread(fd, &kp->ctypepos, sz, 0, ke) < 0) {
-		XWARNX("parent: failed read kpair ctypepos");
-		return(-1);
+		kutil_warnx(NULL, NULL, 
+			"failed read kpair MIME position");
+		return (-1);
 	} else if (kp->ctypepos > mimesz) {
-		XWARNX("parent: invalid kpair mimepos");
-		return(-1);
+		kutil_warnx(NULL, NULL, 
+			"invalid kpair MIME position");
+		return (-1);
 	}
 
 	*ke = fullreadword(fd, &kp->xcode);
-	if (KCGI_OK != *ke) {
-		XWARNX("parent: failed read kpair xcode");
-		return(-1);
+	if (*ke != KCGI_OK) {
+		kutil_warnx(NULL, NULL, 
+			"failed read kpair content transfer encoding");
+		return (-1);
 	}
 
-	return(1);
+	return 1;
 }
 
 static struct kpair *
