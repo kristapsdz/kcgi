@@ -42,6 +42,13 @@
 #define MD5Updatec(_ctx, _b, _sz) \
 	MD5Update((_ctx), (const uint8_t *)(_b), (_sz))
 
+enum	mimetype {
+	MIMETYPE_UNKNOWN,
+	MIMETYPE_TRANSFER_ENCODING,
+	MIMETYPE_DISPOSITION,
+	MIMETYPE_TYPE
+};
+
 /*
  * For handling HTTP multipart forms.
  * This consists of data for a single multipart form entry.
@@ -326,43 +333,47 @@ scanbuf(size_t len, size_t *szp)
 
 	/* Allocate the entire buffer here. */
 
-	if (NULL == (p = XMALLOC(len + 1)))
+	if ((p = XMALLOC(len + 1)) == NULL)
 		_exit(EXIT_FAILURE);
 
 	/* 
 	 * Keep reading til we get all the data or the sender stops
 	 * giving us data---whichever comes first.
+	 * Use kutil_warn[x] and _exit to avoid flushing buffers.
 	 */
 
 	for (sz = 0; sz < len; sz += (size_t)ssz) {
-		if ((rc = poll(&pfd, 1, -1)) < 0) {
-			XWARN("poll: POLLIN");
+		if ((rc = poll(&pfd, 1, INFTIM)) < 0) {
+			kutil_warn(NULL, NULL, "poll");
 			_exit(EXIT_FAILURE);
 		} else if (0 == rc) {
-			XWARNX("poll: timeout!?");
+			kutil_warnx(NULL, NULL, "poll: timeout!?");
 			ssz = 0;
 			continue;
-		} else if ( ! (POLLIN & pfd.revents))
+		}
+		
+		if (!(pfd.revents & POLLIN))
 			break;
 
 		if ((ssz = read(STDIN_FILENO, p + sz, len - sz)) < 0) {
-			XWARNX("read");
+			kutil_warn(NULL, NULL, "read");
 			_exit(EXIT_FAILURE);
-		} else if (0 == ssz)
+		} else if (ssz == 0)
 			break;
 	}
 
 	if (sz < len)
-		XWARNX("content size mismatch: have "
-			"%zu, wanted %zu\n", sz, len);
+		kutil_warnx(NULL, NULL, "content size mismatch: "
+			"have %zu while %zu specified", sz, len);
 
 	/* ALWAYS NUL-terminate. */
 
 	p[sz] = '\0';
-	if (NULL != szp)
+
+	if (szp != NULL)
 		*szp = sz;
 
-	return(p);
+	return p;
 }
 
 /*
@@ -408,13 +419,9 @@ static int
 mime_parse(const struct parms *pp, struct mime *mime, 
 	char *buf, size_t len, size_t *pos)
 {
-	char	*key, *val, *keyend, *end, *start, *line;
-	int	 type;
-#define MIMETYPE_UNKNOWN 0
-#define	MIMETYPE_TRANSFER_ENCODING 1
-#define	MIMETYPE_DISPOSITION 2
-#define	MIMETYPE_TYPE 3
-	int	 rc = 0;
+	char		*key, *val, *keyend, *end, *start, *line;
+	enum mimetype	 type;
+	int	 	 rc = 0;
 
 	mime_free(mime);
 
@@ -423,10 +430,10 @@ mime_parse(const struct parms *pp, struct mime *mime,
 
 		start = &buf[*pos];
 		end = memmem(start, len - *pos, "\r\n", 2);
-		if (NULL == end) {
-			XWARNX("RFC violation: MIME header "
-				"line without CRLF");
-			return(0);
+		if (end == NULL) {
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"MIME header line without CRLF");
+			return 0;
 		}
 
 		/* 
@@ -439,36 +446,36 @@ mime_parse(const struct parms *pp, struct mime *mime,
 
 		/* Empty CRLF line: we're done here! */
 
-		if ('\0' == *start) {
+		if (*start == '\0') {
 			rc = 1;
 			break;
 		}
 
-		/* Find end of MIME statement name. */
+		/* 
+		 * Find end of MIME statement name. 
+		 * The RFCs disagree on white-space before the colon,
+		 * but as it's allowed in the original RFC 822 and
+		 * obsolete syntax should be supported, we do so here.
+		 */
 
 		key = start;
-		if (NULL == (val = strchr(key, ':'))) {
-			XWARNX("RFC violation: MIME header "
-				"without key-value separator");
-			return(0);
+		if ((val = strchr(key, ':')) == NULL) {
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"MIME header without colon separator");
+			return 0;
 		} else if (key != val) {
-			/* 
-			 * The RFCs disagree on white-space before the
-			 * colon, but as it's allowed in the original
-			 * RFC 822 and obsolete syntax should be
-			 * supported, we do so here.
-			 */
 			keyend = val - 1;
-			while (keyend >= key && ' ' == *keyend)
+			while (keyend >= key && *keyend == ' ')
 				*keyend-- = '\0';
 		}
 
 		*val++ = '\0';
-		while (' ' == *val)
+		while (*val == ' ')
 			val++;
 
-		if ('\0' == *key) 
-			XWARNX("RFC warning: empty MIME header name");
+		if (*key == '\0') 
+			kutil_warnx(NULL, NULL, "RFC "
+				"warning: empty MIME header name");
 
 		/* 
 		 * Set "line" to be at the MIME value subpart, for
@@ -477,7 +484,7 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		 */
 
 		line = NULL;
-		if (NULL != (line = strchr(val, ';')))
+		if ((line = strchr(val, ';')) != NULL)
 			*line++ = '\0';
 
 		/* 
@@ -486,13 +493,13 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		 * the header values, so remember what we parsed.
 		 */
 
-		if (0 == strcasecmp(key, "content-transfer-encoding")) {
+		if (strcasecmp(key, "content-transfer-encoding") == 0) {
 			mime_reset(&mime->xcode, val);
 			type = MIMETYPE_TRANSFER_ENCODING;
-		} else if (0 == strcasecmp(key, "content-disposition")) {
+		} else if (strcasecmp(key, "content-disposition") == 0) {
 			mime_reset(&mime->disp, val);
 			type = MIMETYPE_DISPOSITION;
-		} else if (0 == strcasecmp(key, "content-type")) {
+		} else if (strcasecmp(key, "content-type") == 0) {
 			mime_reset(&mime->ctype, val);
 			type = MIMETYPE_TYPE;
 		} else
@@ -504,45 +511,50 @@ mime_parse(const struct parms *pp, struct mime *mime,
 		 * The rest have no information we want: silently ignore them.
 		 */
 
-		if (MIMETYPE_TYPE != type &&
-		    MIMETYPE_DISPOSITION != type)
+		if (type != MIMETYPE_TYPE &&
+		    type != MIMETYPE_DISPOSITION)
 			continue;
 
-		while (NULL != (key = line)) {
-			while (' ' == *key)
+		while ((key = line) != NULL) {
+			while (*key == ' ')
 				key++;
-			if ('\0' == *key)
+			if (*key == '\0')
 				break;
 
-			if (NULL == (val = strchr(key, '='))) {
-				XWARNX("RFC violation: MIME header "
-					"without subpart separator");
-				return(0);
+			/*
+			 * It's not clear whether we're allowed to have
+			 * OWS before the separator, but allow for it
+			 * anyway.
+			 */
+
+			if ((val = strchr(key, '=')) == NULL) {
+				kutil_warnx(NULL, NULL, "RFC error: "
+					"MIME header without sub-part "
+					"separator");
+				return 0;
 			} else if (key != val) {
-				/*
-				 * It's not clear whether we're allowed
-				 * to have OWS before the separator, but
-				 * allow for it anyway.
-				 */
 				keyend = val - 1;
-				while (keyend >= key && ' ' == *keyend)
+				while (keyend >= key && *keyend == ' ')
 					*keyend-- = '\0';
 			} 
 
 			*val++ = '\0';
 
-			if ('\0' == *key) 
-				XWARNX("RFC warning: empty "
-					"MIME subpart name");
+			if (*key == '\0')
+				kutil_warnx(NULL, NULL, "RFC warning: "
+					"empty MIME sub-part name");
 
 			/* Quoted string. */
 
-			if ('"' == *val) {
+			if (*val == '"') {
 				val++;
-				if (NULL == (line = strchr(val, '"'))) {
-					XWARNX("RFC violation: MIME header "
-						"subpart not terminated");
-					return(0);
+				line = strchr(val, '"');
+				if (line == NULL) {
+					kutil_warnx(NULL, NULL, "RFC "
+						"error: quoted MIME "
+						"header sub-part not "
+						"terminated");
+					return 0;
 				}
 				*line++ = '\0';
 
@@ -553,39 +565,34 @@ mime_parse(const struct parms *pp, struct mime *mime,
 				 * accommodate for it anyway.
 				 */
 
-				while (' ' == *line)
+				while (*line == ' ')
 					line++;
-				if (';' == *line)
+				if (*line == ';')
 					line++;
-			} else if (NULL != (line = strchr(val, ';')))
+			} else if ((line = strchr(val, ';')) != NULL)
 				*line++ = '\0';
 
 			/* White-listed sub-commands. */
 
-			switch (type) {
-			case (MIMETYPE_DISPOSITION):
-				if (0 == strcasecmp(key, "filename"))
+			if (type == MIMETYPE_DISPOSITION) {
+				if (strcasecmp(key, "filename") == 0)
 					mime_reset(&mime->file, val);
-				else if (0 == strcasecmp(key, "name"))
+				else if (strcasecmp(key, "name") == 0)
 					mime_reset(&mime->name, val);
-				break;
-			case (MIMETYPE_TYPE):
-				if (0 == strcasecmp(key, "boundary"))
+			} else if (type == MIMETYPE_TYPE) {
+				if (strcasecmp(key, "boundary") == 0)
 					mime_reset(&mime->bound, val);
-				break;
-			default:
-				break;
 			}
 		}
 	} 
 
 	mime->ctypepos = str2ctype(pp, mime->ctype);
 
-	if ( ! rc)
-		XWARNX("RFC violation: unexpected EOF "
-			"while parsing MIME headers");
+	if (!rc)
+		kutil_warnx(NULL, NULL, "RFC error: unexpected "
+			"end of file while parsing MIME headers");
 
-	return(rc);
+	return rc;
 }
 
 /*
@@ -597,42 +604,44 @@ mime_parse(const struct parms *pp, struct mime *mime,
 static void
 parse_pairs_text(const struct parms *pp, char *p)
 {
-	char            *key, *val;
+	char	*key, *val;
 
-	XWARNX("text/plain enctype is deprecated");
+	kutil_warnx(NULL, NULL, "RFC warning: "
+		"text/plain encoding is deprecated");
 
-	while (NULL != p && '\0' != *p) {
-		/* Skip leading whitespace. */
-		while (' ' == *p)
+	while (p != NULL && *p != '\0') {
+		while (*p == ' ')
 			p++;
+
+		/* 
+		 * Key/value pair.
+		 * No value is a warning (not processed).
+		 */
 
 		key = p;
 		val = NULL;
 		if (NULL != (p = strchr(p, '='))) {
-			/* Key/value pair. */
 			*p++ = '\0';
 			val = p;
-			p = strstr(val, "\r\n");
-			if (NULL != p) {
+			if ((p = strstr(val, "\r\n")) != NULL) {
 				*p = '\0';
 				p += 2;
 			}
 		} else {
-			/* No value--error. */
-			p = strstr(key, "\r\n");
-			if (NULL != p) {
+			if ((p = strstr(key, "\r\n")) != NULL) {
 				*p = '\0';
 				p += 2;
 			}
-			XWARNX("text key: no value");
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"key with no value");
 			continue;
 		}
 
-		if ('\0' == *key) {
-			XWARNX("text key: zero-length");
-			continue;
-		}
-		output(pp, key, val, strlen(val), NULL);
+		if (*key == '\0')
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"zero-length key");
+		else
+			output(pp, key, val, strlen(val), NULL);
 	}
 }
 
@@ -670,38 +679,39 @@ parse_body(const char *ct, const struct parms *pp, char *b, size_t bsz)
 static void
 parse_pairs(const struct parms *pp, char *p)
 {
-	char            *key, *val;
+	char	*key, *val;
 
-	while (NULL != p && '\0' != *p) {
-		/* Skip leading whitespace. */
-		while (' ' == *p)
+	while (p != NULL && *p != '\0') {
+		while (*p == ' ')
 			p++;
+
+		/* 
+		 * Don't allow key-pair without a value.
+		 * Keys shouldn't be zero-length.
+		 */
 
 		key = p;
 		val = NULL;
-		if (NULL != (p = strchr(p, '='))) {
-			/* Key/value pair. */
+		if ((p = strchr(p, '=')) != NULL) {
 			*p++ = '\0';
 			val = p;
-			p = strchr(p, ';');
-			if (NULL != p)
+			if ((p = strchr(p, ';')) != NULL)
 				*p++ = '\0';
 		} else {
-			/* No value--error. */
-			p = strchr(key, ';');
-			if (NULL != p)
+			if ((p = strchr(key, ';')) != NULL)
 				p++;
-			XWARNX("cookie key: no value");
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"cookie key pair without value");
 			continue;
 		}
 
-		if ('\0' == *key) {
-			/* This is sort-of allowed. */
-			XWARNX("cookie key: zero length");
-			continue;
-		}
+		/* This is sort-of allowed. */
 
-		output(pp, key, val, strlen(val), NULL);
+		if (*key == '\0')
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"cookie zero-length key");
+		else
+			output(pp, key, val, strlen(val), NULL);
 	}
 }
 
@@ -715,11 +725,10 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 {
 	char	*key, *val;
 
-	assert(NULL != p);
+	assert(p != NULL);
 
-	while ('\0' != *p) {
-		/* Skip leading whitespace. */
-		while (' ' == *p)
+	while (*p != '\0') {
+		while (*p == ' ')
 			p++;
 
 		key = p;
@@ -733,14 +742,14 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 
 		p += strcspn(p, "=;&");
 
-		if ('=' == *p) {
+		if (*p == '=') {
 			*p++ = '\0';
 			val = p;
 			p += strcspn(p, ";&");
 		} else
 			val = p;
 
-		if ('\0' != *p)
+		if (*p != '\0')
 			*p++ = '\0';
 
 		/*
@@ -751,15 +760,15 @@ parse_pairs_urlenc(const struct parms *pp, char *p)
 		 * failure.
 		 */
 
-		if ('\0' == *key)
-			XWARNX("RFC undefined behaviour: zero-length "
-				"URL-encoded form key (ignoring)");
-		else if (KCGI_FORM == khttp_urldecode_inplace(key))
-			XWARNX("RFC violation: invalid URL-encoding "
-				"for form key (ignoring)");
-		else if (KCGI_FORM == khttp_urldecode_inplace(val))
-			XWARNX("RFC violation: invalid URL-encoding "
-				"for form value (ignoring)");
+		if (*key == '\0')
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"zero-length URL-encoded key");
+		else if (khttp_urldecode_inplace(key) == KCGI_FORM)
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"malformed key URL-encoding");
+		else if (khttp_urldecode_inplace(val) == KCGI_FORM)
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"malformed value URL-encoding");
 		else
 			output(pp, key, val, strlen(val), NULL);
 	}
@@ -804,8 +813,8 @@ parse_multiform(const struct parms *pp, char *name,
 			bb + (first ? 2 : 0), 
 			bbsz - (first ? 2 : 0));
 
-		if (NULL == ln) {
-			XWARNX("RFC violation: unexpected "
+		if (ln == NULL) {
+			kutil_warnx(NULL, NULL, "RFC error: "
 				"EOF when scanning for boundary");
 			goto out;
 		}
@@ -824,8 +833,8 @@ parse_multiform(const struct parms *pp, char *name,
 		/* Check buffer space. */
 
 		if (endpos > len - 2) {
-			XWARNX("RFC violation: multipart section "
-				"writes into trailing CRLF");
+			kutil_warnx(NULL, NULL, "RFC error: multipart "
+				"section writes into trailing CRLF");
 			goto out;
 		}
 
@@ -837,12 +846,13 @@ parse_multiform(const struct parms *pp, char *name,
 		 */
 
 		if (memcmp(&buf[endpos], "--", 2)) {
-			while (endpos < len && ' ' == buf[endpos])
+			while (endpos < len && buf[endpos] == ' ')
 				endpos++;
 			if (endpos > len - 2 ||
 			    memcmp(&buf[endpos], "\r\n", 2)) {
-				XWARNX("RFC violation: multipart "
-					"boundary without CRLF");
+				kutil_warnx(NULL, NULL, "RFC error: "
+					"multipart boundary without "
+					"CRLF");
 				goto out;
 			}
 			endpos += 2;
@@ -861,16 +871,17 @@ parse_multiform(const struct parms *pp, char *name,
 		 * considering itself finished).
 		 */
 
-		if (0 == (partsz = ln - &buf[*pos])) {
-			XWARNX("RFC violation: zero-length "
-				"multipart section");
+		if ((partsz = ln - &buf[*pos]) == 0) {
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"zero-length multipart section");
 			continue;
 		}
 
 		/* We now read our MIME headers, bailing on error. */
 
-		if ( ! mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
-			XWARNX("nested error: MIME headers");
+		if (!mime_parse(pp, &mime, buf, *pos + partsz, pos)) {
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"nested error parsing MIME headers");
 			goto out;
 		}
 
@@ -880,11 +891,13 @@ parse_multiform(const struct parms *pp, char *name,
 		 * name of their parent, so the mime.name is ignored.
 		 */
 
-		if (NULL == mime.name && NULL == name) {
-			XWARNX("RFC violation: no MIME name");
+		if (mime.name == NULL && name == NULL) {
+			kutil_warnx(NULL, NULL, 
+				"RFC error: no MIME name");
 			continue;
-		} else if (NULL == mime.disp) {
-			XWARNX("RFC violation: no MIME disposition");
+		} else if (mime.disp == NULL) {
+			kutil_warnx(NULL, NULL, 
+				"RFC error: no MIME disposition");
 			continue;
 		}
 
@@ -893,9 +906,9 @@ parse_multiform(const struct parms *pp, char *name,
 		 * We then re-lookup the ctypepos after doing so.
 		 */
 
-		if (NULL == mime.ctype) {
+		if (mime.ctype == NULL) {
 			mime.ctype = XSTRDUP("text/plain");
-			if (NULL == mime.ctype)
+			if (mime.ctype == NULL)
 				_exit(EXIT_FAILURE);
 			mime.ctypepos = str2ctype(pp, mime.ctype);
 		}
@@ -909,33 +922,33 @@ parse_multiform(const struct parms *pp, char *name,
 		 * current name for content.
 		 */
 
-		if (0 == strcasecmp(mime.ctype, "multipart/mixed")) {
-			if (NULL == mime.bound) {
-				XWARNX("RFC violation: missing "
-					"mixed multipart boundary");
+		if (strcasecmp(mime.ctype, "multipart/mixed") == 0) {
+			if (mime.bound == NULL) {
+				kutil_warnx(NULL, NULL, "RFC error: "
+					"no mixed multipart boundary");
 				goto out;
 			}
-			if ( ! parse_multiform
-				(pp, NULL != name ? name :
-				 mime.name, mime.bound, buf, 
-				 *pos + partsz, pos)) {
-				XWARNX("nested error: mixed "
-					"multipart section parse");
+			if (!parse_multiform(pp, 
+			    name != NULL ? name : mime.name, 
+			    mime.bound, buf, *pos + partsz, pos)) {
+				kutil_warnx(NULL, NULL, "RFC error: "
+					"nested error parsing mixed "
+					"multipart section");
 				goto out;
 			}
 			continue;
 		}
 
-		assert('\r' == buf[*pos + partsz] || 
-		       '\0' == buf[*pos + partsz]);
+		assert(buf[*pos + partsz] == '\r' || 
+		       buf[*pos + partsz] == '\0');
 
-		if ('\0' != buf[*pos + partsz])
+		if (buf[*pos + partsz] != '\0')
 			buf[*pos + partsz] = '\0';
 
 		/* Assign all of our key-value pair data. */
 
-		output(pp, NULL != name ? name : 
-			mime.name, &buf[*pos], partsz, &mime);
+		output(pp, name != NULL ? name : mime.name, 
+			&buf[*pos], partsz, &mime);
 	}
 
 	/*
@@ -949,7 +962,7 @@ parse_multiform(const struct parms *pp, char *name,
 out:
 	free(bb);
 	mime_free(&mime);
-	return(rc);
+	return rc;
 }
 
 /*
@@ -963,52 +976,57 @@ parse_multi(const struct parms *pp, char *line, char *b, size_t bsz)
 	char		*cp;
 	size_t		 len = 0;
 
-	while (' ' == *line)
+	while (*line == ' ')
 		line++;
-	if (';' != *line++) {
-		XWARNX("RFC violation: expected semicolon following "
-			"multipart/form-data declaration");
+
+	if (*line++ != ';') {
+		kutil_warnx(NULL, NULL, "RFC error: expected "
+			"semicolon following multipart declaration");
 		return;
 	}
-	while (' ' == *line)
+
+	while (*line == ' ')
 		line++;
 
 	/* We absolutely need the boundary marker. */
+
 	if (strncmp(line, "boundary", 8)) {
-		XWARNX("RFC violation: expected \"boundary\" "
-			"following multipart/form-data declaration");
+		kutil_warnx(NULL, NULL, "RFC error: expected "
+			"boundary following multipart declaration");
 		return;
 	}
+
 	line += 8;
-	while (' ' == *line)
+
+	while (*line == ' ')
 		line++;
 
-	if ('=' != *line++) {
-		XWARNX("RFC violation: expected key-value "
-			"for multipart/form-data boundary");
+	if (*line++ != '=') {
+		kutil_warnx(NULL, NULL, "RFC error: expected "
+			"key-value for multipart boundary");
 		return;
 	}
 
-	while (' ' == *line)
+	while (*line == ' ')
 		line++;
 
-	/* Make sure the line is terminated in the right place. */
+	/* 
+	 * Make sure the line is terminated in the right place.
+	 * XXX: if it's not, what we do may not properly follow RFC
+	 * 2046, 5.1.1, which specifically lays out the boundary
+	 * characters.
+	 * We simply jump to the first whitespace.
+	 */
 
-	if ('"' == *line) {
-		if (NULL == (cp = strchr(++line, '"'))) {
-			XWARNX("RFC violation: unterminated "
-				"boundary quoted string");
+	if (*line == '"') {
+		if ((cp = strchr(++line, '"')) == NULL) {
+			kutil_warnx(NULL, NULL, "RFC error: "
+				"unterminated boundary quoted string");
 			return;
 		}
 		*cp = '\0';
-	} else {
-		/*
-		 * XXX: this may not properly follow RFC 2046, 5.1.1,
-		 * which specifically lays out the boundary characters.
-		 * We simply jump to the first whitespace.
-		 */
+	} else
 		line[strcspn(line, " ")] = '\0';
-	}
 
 	/*
 	 * If we have data following the boundary declaration, we simply
@@ -1036,25 +1054,24 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 	const char	*cp;
 
 	for (reqs = i = 0; i < envsz; i++)
-		if (0 == strncmp(env[i].key, "HTTP_", 5) &&
-		    '\0' != env[i].key[5])
+		if (strncmp(env[i].key, "HTTP_", 5) == 0 &&
+		    env[i].key[5] != '\0')
 			reqs++;
 
 	fullwrite(fd, &reqs, sizeof(size_t));
 
-	for (i = 0; i < envsz; i++) {
-		/*
-		 * First, search for the key name (HTTP_XXX) in our list
-		 * of known headers.
-		 * We must have non-zero-length keys.
-		 */
+	/*
+	 * Process known headers (starting with HTTP_).
+	 * We must have non-zero-length keys.
+	 */
 
+	for (i = 0; i < envsz; i++) {
 		if (strncmp(env[i].key, "HTTP_", 5) || 
-		    '\0' == env[i].key[5])
+		    env[i].key[5] == '\0')
 			continue;
 
 		for (requ = 0; requ < KREQU__MAX; requ++)
-			if (0 == strcmp(krequs[requ], env[i].key))
+			if (strcmp(krequs[requ], env[i].key) == 0)
 				break;
 
 		fullwrite(fd, &requ, sizeof(enum krequ));
@@ -1071,8 +1088,9 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 		sz = env[i].keysz - 5;
 		cp = env[i].key + 5;
 		fullwrite(fd, &sz, sizeof(size_t));
+
 		for (j = 0, first = 1; j < sz; j++) {
-			if ('_' == cp[j]) {
+			if (cp[j] == '_') {
 				c = '-';
 				first = 1;
 			} else if (first) {
@@ -1080,6 +1098,7 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 				first = 0;
 			} else
 				c = tolower((unsigned char)cp[j]);
+
 			fullwrite(fd, &c, 1);
 		}
 
@@ -1097,9 +1116,9 @@ kworker_env(struct env *env, size_t envsz, const char *key)
 	size_t	 i;
 
 	for (i = 0; i < envsz; i++) 
-		if (0 == strcmp(env[i].key, key))
-			return(env[i].val);
-	return(NULL);
+		if (strcmp(env[i].key, key) == 0)
+			return env[i].val;
+	return NULL;
 }
 
 /*
@@ -1117,12 +1136,13 @@ kworker_child_method(struct env *env, int fd, size_t envsz)
 	/* We assume GET if not supplied. */
 
 	meth = KMETHOD_GET;
-	if (NULL != (cp = kworker_env(env, envsz, "REQUEST_METHOD")))
+	if ((cp = kworker_env(env, envsz, "REQUEST_METHOD")) != NULL)
 		for (meth = 0; meth < KMETHOD__MAX; meth++)
-			if (0 == strcmp(kmethods[meth], cp))
+			if (strcmp(kmethods[meth], cp) == 0)
 				break;
+
 	fullwrite(fd, &meth, sizeof(enum kmethod));
-	return(meth);
+	return meth;
 }
 
 /*
@@ -1132,19 +1152,19 @@ kworker_child_method(struct env *env, int fd, size_t envsz)
 static void
 kworker_child_auth(struct env *env, int fd, size_t envsz)
 {
-	enum kauth	 auth;
+	enum kauth	 auth = KAUTH_NONE;
 	const char	*cp;	
 
 	/* Determine authentication: RFC 3875, 4.1.1. */
 
-	auth = KAUTH_NONE;
-	if (NULL != (cp = kworker_env(env, envsz, "AUTH_TYPE")))
+	if ((cp = kworker_env(env, envsz, "AUTH_TYPE")) != NULL)
 		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {
-			if (NULL == kauths[auth])
+			if (kauths[auth] == NULL)
 				continue;
-			if (0 == strcmp(kauths[auth], cp))
+			if (strcmp(kauths[auth], cp) == 0)
 				break;
 		}
+
 	fullwrite(fd, &auth, sizeof(enum kauth));
 }
 
@@ -1157,8 +1177,8 @@ static int
 kworker_child_rawauth(struct env *env, int fd, size_t envsz)
 {
 
-	return(kworker_auth_child(fd, kworker_env
-		(env, envsz, "HTTP_AUTHORIZATION")));
+	return kworker_auth_child(fd, 
+	  	kworker_env(env, envsz, "HTTP_AUTHORIZATION"));
 }
 
 /*
@@ -1176,9 +1196,11 @@ kworker_child_scheme(struct env *env, int fd, size_t envsz)
 	 * as the SERVER_PROTOCOL (RFC 3875, 4.1.16) doesn't reliably
 	 * return the scheme.
 	 */
-	if (NULL == (cp = kworker_env(env, envsz, "HTTPS")))
+
+	if ((cp = kworker_env(env, envsz, "HTTPS")) == NULL)
 		cp = "off";
-	scheme = 0 == strcasecmp(cp, "on") ?
+
+	scheme = strcasecmp(cp, "on") == 0 ?
 		KSCHEME_HTTPS : KSCHEME_HTTP;
 	fullwrite(fd, &scheme, sizeof(enum kscheme));
 }
@@ -1193,8 +1215,9 @@ kworker_child_remote(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	if (NULL == (cp = kworker_env(env, envsz, "REMOTE_ADDR"))) {
-		XWARNX("RFC violation: REMOTE_ADDR not set");
+	if ((cp = kworker_env(env, envsz, "REMOTE_ADDR")) == NULL) {
+		kutil_warnx(NULL, NULL, "RFC warning: "
+			"remote address not set");
 		cp = "127.0.0.1";
 	}
 
@@ -1209,18 +1232,19 @@ kworker_child_remote(struct env *env, int fd, size_t envsz)
 static void
 kworker_child_port(struct env *env, int fd, size_t envsz)
 {
-	uint16_t	 port;
+	uint16_t	 port = 80;
 	const char	*cp, *er;
 
-	port = 80;
-	if (NULL != (cp = kworker_env(env, envsz, "SERVER_PORT"))) {
+	if ((cp = kworker_env(env, envsz, "SERVER_PORT")) != NULL) {
 		port = strtonum(cp, 0, UINT16_MAX, &er);
-		if (NULL != er) {
-			XWARNX("RFC violation: invalid SERVER_PORT");
+		if (er != NULL) {
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"invalid server port value");
 			port = 80;
 		}
 	} else
-		XWARNX("RFC violation: SERVER_PORT not set");
+		kutil_warnx(NULL, NULL, "RFC warning: "
+			"server port not set");
 
 	fullwrite(fd, &port, sizeof(uint16_t));
 }
@@ -1235,8 +1259,8 @@ kworker_child_httphost(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	if (NULL == (cp = kworker_env(env, envsz, "HTTP_HOST"))) {
-		XWARNX("RFC violation: HTTP_HOST not set");
+	if ((cp = kworker_env(env, envsz, "HTTP_HOST")) == NULL) {
+		kutil_warnx(NULL, NULL, "RFC warning: host not set");
 		cp = "localhost";
 	}
 
@@ -1253,8 +1277,9 @@ kworker_child_scriptname(struct env *env, int fd, size_t envsz)
 {
 	const char	*cp;
 
-	if (NULL == (cp = kworker_env(env, envsz, "SCRIPT_NAME"))) {
-		XWARNX("RFC violation: SCRIPT_NAME not set");
+	if ((cp = kworker_env(env, envsz, "SCRIPT_NAME")) == NULL) {
+		kutil_warnx(NULL, NULL, "RFC warning: "
+			"script name not set");
 		cp = "";
 	}
 
@@ -1275,37 +1300,45 @@ kworker_child_path(struct env *env, int fd, size_t envsz)
 	 * subsequent path information, and the file suffix.  We convert
 	 * suffix and path element into the respective enum's inline.
 	 */
+
 	cp = kworker_env(env, envsz, "PATH_INFO");
 	fullwriteword(fd, cp);
 
 	/* This isn't possible in the real world. */
-	if (NULL != cp && '/' == *cp)
+
+	if (cp != NULL && *cp == '/')
 		cp++;
 
-	if (NULL != cp && '\0' != *cp) {
+	if (cp != NULL && *cp != '\0') {
 		ep = cp + strlen(cp) - 1;
-		while (ep > cp && '/' != *ep && '.' != *ep)
+		while (ep > cp && *ep != '/' && *ep != '.')
 			ep--;
 
 		/* Start with writing our suffix. */
-		if ('.' == *ep) {
+
+		if (*ep == '.') {
 			*ep++ = '\0';
 			fullwriteword(fd, ep);
 		} else
 			fullwriteword(fd, NULL);
 
 		/* Now find the top-most path part. */
-		if (NULL != (sub = strchr(cp, '/')))
+
+		if ((sub = strchr(cp, '/')) != NULL)
 			*sub++ = '\0';
 
 		/* Send the base path. */
+
 		fullwriteword(fd, cp);
 
 		/* Send the path part. */
+
 		fullwriteword(fd, sub);
 	} else {
 		len = 0;
+
 		/* Suffix, base path, and path part. */
+
 		fullwrite(fd, &len, sizeof(size_t));
 		fullwrite(fd, &len, sizeof(size_t));
 		fullwrite(fd, &len, sizeof(size_t));
@@ -1325,7 +1358,7 @@ kworker_child_bodymd5(int fd, const char *b, size_t bsz, int md5)
 	unsigned char 	 hab[MD5_DIGEST_LENGTH];
 	size_t		 sz;
 
-	if ( ! md5) {
+	if (!md5) {
 		sz = 0;
 		fullwrite(fd, &sz, sizeof(size_t));
 		return;
@@ -1351,7 +1384,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth, char *b, 
 	size_t bsz, unsigned int debugging, int md5)
 {
-	size_t 	 i, len, cur;
+	size_t 	 i, len = 0, cur;
 	char	*cp, *bp = b;
 
 	/*
@@ -1362,21 +1395,22 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * RFC 3875, 4.1.2.
 	 */
 
-	len = 0;
-	if (NULL != (cp = kworker_env(env, envsz, "CONTENT_LENGTH")))
+	if ((cp = kworker_env(env, envsz, "CONTENT_LENGTH")) != NULL)
 		len = strtonum(cp, 0, LLONG_MAX, NULL);
 
-	if (0 == len) {
-		/* Remember to print our MD5 value. */
+	/* If zero, remember to print our MD5 value. */
+
+	if (len == 0) {
 		kworker_child_bodymd5(fd, "", 0, md5);
 		return;
 	}
 
 	/* Check FastCGI input lengths. */
 
-	if (NULL != bp && bsz != len)
-		XWARNX("real (%zu) and reported (%zu) content "
-			"lengths differ", bsz, len);
+	if (bp != NULL && bsz != len)
+		kutil_warnx(NULL, NULL, "RFC warning: real (%zu) "
+			"and reported (%zu) content lengths differ", 
+			bsz, len);
 
 	/*
 	 * If a CONTENT_TYPE has been specified (i.e., POST or GET has
@@ -1395,16 +1429,16 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	 * Note that the "bsz" can come out as zero.
 	 */
 
-	if (NULL == b)
+	if (b == NULL)
 		b = scanbuf(len, &bsz);
 
-	assert(NULL != b);
+	assert(b != NULL);
 
 	/* If requested, print our MD5 value. */
 
 	kworker_child_bodymd5(fd, b, bsz, md5);
 
-	if (bsz && KREQ_DEBUG_READ_BODY & debugging) {
+	if (bsz && (KREQ_DEBUG_READ_BODY & debugging)) {
 		fprintf(stderr, "%u: ", getpid());
 		for (cur = i = 0; i < bsz; i++, cur++) {
 			/* Print at most BUFSIZ characters. */
@@ -1444,12 +1478,12 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 		fflush(stderr);
 	}
 
-	if (NULL != cp) {
-		if (0 == strcasecmp(cp, "application/x-www-form-urlencoded"))
+	if (cp != NULL) {
+		if (strcasecmp(cp, "application/x-www-form-urlencoded") == 0)
 			parse_pairs_urlenc(pp, b);
-		else if (0 == strncasecmp(cp, "multipart/form-data", 19)) 
+		else if (strncasecmp(cp, "multipart/form-data", 19) == 0) 
 			parse_multi(pp, cp + 19, b, bsz);
-		else if (KMETHOD_POST == meth && 0 == strcasecmp(cp, "text/plain"))
+		else if (meth == KMETHOD_POST && strcasecmp(cp, "text/plain") == 0)
 			parse_pairs_text(pp, b);
 		else
 			parse_body(cp, pp, b, bsz);
@@ -1458,7 +1492,7 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	/* Free CGI parsed buffer (FastCGI is done elsewhere). */
 
-	if (NULL == bp)
+	if (bp == NULL)
 		free(b);
 }
 
@@ -1491,7 +1525,7 @@ kworker_child_cookies(struct env *env,
 	char	*cp;
 
 	pp->type = IN_COOKIE;
-	if (NULL != (cp = kworker_env(env, envsz, "HTTP_COOKIE")))
+	if ((cp = kworker_env(env, envsz, "HTTP_COOKIE")) != NULL)
 		parse_pairs(pp, cp);
 }
 
@@ -1544,8 +1578,8 @@ kworker_child(int wfd,
 
 	if (envsz) {
 		envs = XCALLOC(envsz, sizeof(struct env));
-		if (NULL == envs)
-			return(KCGI_ENOMEM);
+		if (envs == NULL)
+			return KCGI_ENOMEM;
 	}
 
 	/* 
@@ -1555,13 +1589,12 @@ kworker_child(int wfd,
 	 * zero-length, non-ASCII, control characters, and whitespace.
 	 */
 
-	for (i = 0, evp = environ; NULL != *evp; evp++) {
-		if (NULL == (cp = strchr(*evp, '=')) ||
-		    cp == *evp)
+	for (i = 0, evp = environ; *evp != NULL; evp++) {
+		if ((cp = strchr(*evp, '=')) == NULL || cp == *evp)
 			continue;
-		for (start = *evp; '=' != *start; start++)
-			if ( ! isascii((unsigned char)*start) ||
-			     ! isgraph((unsigned char)*start))
+		for (start = *evp; *start != '='; start++)
+			if (!isascii((unsigned char)*start) ||
+			    !isgraph((unsigned char)*start))
 				break;
 
 		/* 
@@ -1569,15 +1602,15 @@ kworker_child(int wfd,
 		 * that the operator knows.
 		 */
 
-		if ('=' != *start) {
-			XWARNX("RFC violation: bad character "
-				"in environment array");
+		if (*start != '=') {
+			kutil_warnx(NULL, NULL, "RFC warning: "
+				"bad character in environment pair");
 			continue;
 		}
 
 		assert(i < envsz);
 
-		if (NULL == (envs[i].key = XSTRDUP(*evp)))
+		if ((envs[i].key = XSTRDUP(*evp)) == NULL)
 			_exit(EXIT_FAILURE);
 		envs[i].val = strchr(envs[i].key, '=');
 		*envs[i].val++ = '\0';
@@ -1619,7 +1652,7 @@ kworker_child(int wfd,
 	for (i = 0; i < envsz; i++) 
 		free(envs[i].key);
 	free(envs);
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 /*
@@ -1637,6 +1670,7 @@ kworker_fcgi_read(struct fcgi_buf *b, size_t nsz, enum kcgi_err *er)
 	void	*pp;
 	int	 rc;
 	size_t	 sz;
+
 again:
 	*er = KCGI_OK;
 	if (b->pos + nsz <= b->sz) {
@@ -1648,17 +1682,17 @@ again:
 
 	rc = fullread(b->fd, &sz, sizeof(size_t), 0, er);
 	if (rc <= 0) {
-		XWARNX("FastCGI: error reading "
-			"frame size from control");
+		kutil_warnx(NULL, NULL, "FastCGI: "
+			"error reading frame size from control");
 		return NULL;
-	} else if (0 == sz) {
-		XWARNX("FastCGI: connection unexpectedly "
-			"closed at frame size reading");
+	} else if (sz == 0) {
+		kutil_warnx(NULL, NULL, "FastCGI: connection "
+			"closed while reading frame size");
 		*er = KCGI_HUP;
 		return NULL;
 	} 
 
-	if (NULL == (pp = XREALLOC(b->buf, b->sz + sz))) {
+	if ((pp = XREALLOC(b->buf, b->sz + sz)) == NULL) {
 		*er = KCGI_ENOMEM;
 		return NULL;
 	}
@@ -1666,10 +1700,11 @@ again:
 	b->buf = pp;
 	rc = fullread(b->fd, b->buf + b->sz, sz, 0, er);
 	if (rc <= 0) {
-		XWARNX("FastCGI: error reading "
-			"frame data from control");
+		kutil_warnx(NULL, NULL, "FastCGI: error "
+			"reading frame data from control");
 		return NULL;
 	}
+
 	b->sz += sz;
 	goto again;
 }
@@ -1704,8 +1739,8 @@ kworker_fcgi_header(struct fcgi_buf *b, struct fcgi_hdr *hdr)
 	if (hdr->version == 1)
 		return KCGI_OK;
 
-	XWARNX("FastCGI: bad header version: "
-		"%" PRIu8 " (want 1)", hdr->version);
+	kutil_warnx(NULL, NULL, "FastCGI: bad header "
+		"version: %" PRIu8 " (want 1)", hdr->version);
 	return KCGI_FORM;
 }
 
@@ -1725,14 +1760,14 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 
 	/* Read the header entry. */
 
-	if (KCGI_OK != (er = kworker_fcgi_header(b, &hdr)))
+	if ((er = kworker_fcgi_header(b, &hdr)) != KCGI_OK)
 		return er;
 
 	*rid = hdr.requestId;
 
-	if (FCGI_BEGIN_REQUEST != hdr.type) {
-		XWARNX("FastCGI: bad type: %" PRIu8 " (want "
-			"%d)", hdr.type, FCGI_BEGIN_REQUEST);
+	if (hdr.type != FCGI_BEGIN_REQUEST) {
+		kutil_warnx(NULL, NULL, "FastCGI: bad type: %" PRIu8 
+			" (want %d)", hdr.type, FCGI_BEGIN_REQUEST);
 		return KCGI_FORM;
 	} 
 	
@@ -1745,7 +1780,7 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 	ptr = (const struct fcgi_bgn *)buf;
 
 	if (ptr->flags) {
-		XWARNX("FastCGI: bad flags: %" PRId8 
+		kutil_warnx(NULL, NULL, "FastCGI: bad flags: %" PRId8 
 			" (want 0)", ptr->flags);
 		return KCGI_FORM;
 	}
@@ -1781,7 +1816,7 @@ kworker_fcgi_stdin(struct fcgi_buf *b, const struct fcgi_hdr *hdr,
 	 * FastCGI connection.
 	 */
 
-	if (0 == hdr->contentLength)
+	if (hdr->contentLength == 0)
 		return KCGI_OK;
 
 	/* 
@@ -1794,7 +1829,7 @@ kworker_fcgi_stdin(struct fcgi_buf *b, const struct fcgi_hdr *hdr,
 	 */
 
 	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
-	if (NULL == ptr)
+	if (ptr == NULL)
 		return KCGI_ENOMEM;
 
 	*sbp = ptr;
@@ -1823,7 +1858,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		(buf, hdr->contentLength + 
 		 hdr->paddingLength, &er);
 
-	if (NULL == b)
+	if (b == NULL)
 		return er;
 
 	/*
@@ -1840,8 +1875,9 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
 			if (remain <= 3) {
-				XWARNX("FastCGI: bad params data");
-				return(0);
+				kutil_warnx(NULL, NULL, 
+					"FastCGI: bad parameter data");
+				return 0;
 			}
 			keysz = ((b[pos] & 0x7f) << 24) + 
 				  (b[pos + 1] << 16) + 
@@ -1853,14 +1889,18 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 			pos++;
 			remain--;
 		}
+
 		if (remain < 1) {
-			XWARNX("FastCGI: bad params data");
+			kutil_warnx(NULL, NULL, 
+				"FastCGI: bad parameter data");
 			return KCGI_FORM;
 		}
+
 		assert(pos < hdr->contentLength);
 		if (0 != b[pos] >> 7) {
 			if (remain <= 3) {
-				XWARNX("FastCGI: bad params data");
+				kutil_warnx(NULL, NULL, 
+					"FastCGI: bad parameter data");
 				return KCGI_FORM;
 			}
 			valsz = ((b[pos] & 0x7f) << 24) + 
@@ -1877,7 +1917,8 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		/* Make sure we have room for data. */
 
 		if (pos + keysz + valsz > hdr->contentLength) {
-			XWARNX("FastCGI: bad params data");
+			kutil_warnx(NULL, NULL, 
+				"FastCGI: bad parameter data");
 			return KCGI_FORM;
 		}
 
@@ -1892,19 +1933,18 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		 */
 
 		for (i = 0; i < keysz; i++)
-			if ( ! isascii((unsigned char)b[pos + i]) ||
-			     ! isgraph((unsigned char)b[pos + i]))
+			if (!isascii((unsigned char)b[pos + i]) ||
+			    !isgraph((unsigned char)b[pos + i]))
 				break;
 
-		if (0 == keysz) {
-			XWARNX("RFC (FastCGI) violation: empty "
-				"environment parameter");
+		if (keysz == 0) {
+			kutil_warnx(NULL, NULL, "FastCGI warning: "
+				"empty environment parameter");
 			pos += valsz;
 			continue;
 		} else if (i < keysz) {
-			XWARNX("RFC (FastCGI) violation: bad "
-				"character in environment "
-				"parameters");
+			kutil_warnx(NULL, NULL, "RFC warning: bad "
+				"character in environment parameters");
 			pos += keysz + valsz;
 			continue;
 		}
@@ -1914,7 +1954,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		for (i = 0; i < *envsz; i++) {
 			if ((*envs)[i].keysz != keysz)
 				continue;
-			if (0 == memcmp((*envs)[i].key, &b[pos], keysz))
+			if (memcmp((*envs)[i].key, &b[pos], keysz) == 0)
 				break;
 		}
 
@@ -1927,12 +1967,12 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 			ptr = XREALLOCARRAY
 				(*envs, *envsz + 1, 
 				 sizeof(struct env));
-			if (NULL == ptr)
+			if (ptr == NULL)
 				return KCGI_ENOMEM;
 
 			*envs = ptr;
 			(*envs)[i].key = XMALLOC(keysz + 1);
-			if (NULL == (*envs)[i].key)
+			if ((*envs)[i].key == NULL)
 				return KCGI_ENOMEM;
 
 			memcpy((*envs)[i].key, &b[pos], keysz);
@@ -1947,7 +1987,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		/* Copy the value. */
 
 		(*envs)[i].val = XMALLOC(valsz + 1);
-		if (NULL == (*envs)[i].val)
+		if ((*envs)[i].val == NULL)
 			return KCGI_ENOMEM;
 
 		memcpy((*envs)[i].val, &b[pos], valsz);
@@ -2033,26 +2073,28 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		rc = fullread(fbuf.fd, 
 			&cookie, sizeof(uint32_t), 1, &er);
 		if (rc < 0) {
-			XWARNX("FastCGI: error reading worker cookie");
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"error reading worker cookie");
 			break;
-		} else if (0 == rc) {
-			XWARNX("FastCGI: worker termination");
+		} else if (rc == 0) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"worker process termination");
 			break;
 		}
 
 		/* Now start the FastCGI sequence. */
 
 		er = kworker_fcgi_begin(&fbuf, &rid);
-		if (KCGI_HUP == er) {
-			XWARNX("FastCGI: connection severed at "
-				"start: ignoring connection");
+		if (er == KCGI_HUP) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"connection severed at start");
 			/* Note: writing error code... */
 			rc = 0;
 			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
-		} else if (KCGI_OK != er) {
-			XWARNX("FastCGI: unrecoverable error "
-				"at start sequence");
+		} else if (er != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"unrecoverable error at start");
 			break;
 		}
 
@@ -2068,43 +2110,41 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		envsz = 0;
 		memset(&hdr, 0, sizeof(struct fcgi_hdr));
 
-		while (KCGI_OK == er) {
+		while (er == KCGI_OK) {
 			er = kworker_fcgi_header(&fbuf, &hdr);
-			if (KCGI_OK != er) 
+			if (er != KCGI_OK)
 				break;
 			if (rid != hdr.requestId) {
-				XWARNX("FastCGI: unknown request ID: "
-					"%" PRIu16 " (want %" PRIu16 
-					")", hdr.requestId, rid);
+				kutil_warnx(NULL, NULL, 
+					"FastCGI: wrong request ID");
 				er = KCGI_FORM;
 				break;
 			} 
-			if (FCGI_PARAMS != hdr.type)
+			if (hdr.type != FCGI_PARAMS)
 				break;
 			er = kworker_fcgi_params
 				(&fbuf, &hdr, &envs, &envsz);
 		}
 
-		if (KCGI_HUP == er) {
-			XWARNX("FastCGI: connection severed at "
-				"parameters: ignoring connection");
+		if (er == KCGI_HUP) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"connection severed at parameters");
 			/* Note: writing error code... */
 			rc = 0;
 			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
-		} else if (KCGI_OK != er) {
-			XWARNX("FastCGI: unrecoverable error "
-				"at parameter sequence");
+		} else if (er != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"unrecoverable error at parameters");
 			break;
-		} else if (FCGI_STDIN != hdr.type) {
-			XWARNX("FastCGI: bad header type: %" PRIu8 " "
-				"(want %d)", hdr.type, FCGI_STDIN);
+		} else if (hdr.type != FCGI_STDIN) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"bad header type");
 			er = KCGI_FORM;
 			break;
 		} else if (rid != hdr.requestId) {
-			XWARNX("FastCGI: bad FastCGI request ID: "
-				"%" PRIu16 " (want %" PRIu16 ")", 
-				hdr.requestId, rid);
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"wrong request ID");
 			er = KCGI_FORM;
 			break;
 		}
@@ -2123,44 +2163,42 @@ kworker_fcgi_child(int wfd, int work_ctl,
 			 * we want to make sure we've drawn everything
 			 * from the socket before exiting.
 			 */
+
 			er = kworker_fcgi_stdin
 				(&fbuf, &hdr, &sbuf, &ssz);
-
-			if (KCGI_OK != er || 0 == hdr.contentLength)
+			if (er != KCGI_OK || hdr.contentLength == 0)
 				break;
 
 			/* Now read the next header. */
 
 			er = kworker_fcgi_header(&fbuf, &hdr);
-			if (KCGI_OK != er)
+			if (er != KCGI_OK)
 				break;
 			if (rid != hdr.requestId) {
-				XWARNX("FastCGI: bad FastCGI "
-					"request ID: %" PRIu16 " "
-					"(want %" PRIu16 ")", 
-					hdr.requestId, rid);
+				kutil_warnx(NULL, NULL, "FastCGI: "
+					"wrong FastCGI request ID");
 				er = KCGI_FORM;
 				break;
 			} 
 
-			if (FCGI_STDIN == hdr.type)
+			if (hdr.type == FCGI_STDIN)
 				continue;
-			XWARNX("FastCGI: bad header type: %" PRIu8 " "
-				"(want %d)", hdr.type, FCGI_STDIN);
+			kutil_warnx(NULL, NULL, 
+				"FastCGI: bad header type");
 			er = KCGI_FORM;
 			break;
 		}
 
-		if (KCGI_HUP == er) {
-			XWARNX("FastCGI: connection severed at "
-				"stdin: ignoring connection");
+		if (er == KCGI_HUP) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"connection severed at stdin");
 			/* Note: writing error code. */
 			rc = 0;
 			fullwrite(work_ctl, &rc, sizeof(int));
 			continue;
-		} else if (KCGI_OK != er) {
-			XWARNX("FastCGI: unrecoverable error "
-				"at stdin sequence");
+		} else if (er != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "FastCGI: "
+				"unrecoverable error at stdin");
 			break;
 		}
 
@@ -2186,12 +2224,12 @@ kworker_fcgi_child(int wfd, int work_ctl,
 
 		rc = fullread(fbuf.fd, &sz, sizeof(size_t), 0, &er);
 		if (rc <= 0) {
-			XWARNX("FastCGI: error reading "
-				"empty-frame trailer");
+			kutil_warnx(NULL, NULL, 
+				"FastCGI: error reading trailer");
 			break;
-		} else if (0 != sz) {
-			XWARNX("FastCGI: empty-frame trailer not "
-				"zero-length: %zu Bytes remain", sz);
+		} else if (sz != 0) {
+			kutil_warnx(NULL, NULL, 
+				"FastCGI: trailer not zero-length");
 			er = KCGI_FORM;
 			break;
 		} 
@@ -2219,7 +2257,7 @@ kworker_fcgi_child(int wfd, int work_ctl,
 		 * length.
 		 */
 
-		assert(0 == ssz || NULL != sbuf);
+		assert(ssz == 0 || sbuf != NULL);
 		kworker_child_body(envs, wfd, envsz, &pp, 
 			meth, (char *)sbuf, ssz, debugging, md5);
 		kworker_child_query(envs, wfd, envsz, &pp);
