@@ -821,10 +821,12 @@ khtml_printf(struct khtmlreq *req, const char *fmt, ...)
 		return KCGI_OK;
 
 	va_start(ap, fmt);
-	len = XVASPRINTF(&buf, fmt, ap);
+	len = kxvasprintf(&buf, fmt, ap);
 	va_end(ap);
+
 	if (len == -1)
 		return KCGI_ENOMEM;
+
 	er = khtml_write(buf, (size_t)len, req);
 	free(buf);
 	return er;

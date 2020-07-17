@@ -349,10 +349,12 @@ khttp_printf(struct kreq *req, const char *fmt, ...)
 		return KCGI_OK;
 
 	va_start(ap, fmt);
-	len = XVASPRINTF(&buf, fmt, ap);
+	len = kxvasprintf(&buf, fmt, ap);
 	va_end(ap);
+
 	if (len == -1)
 		return KCGI_ENOMEM;
+
 	er = khttp_write(req, buf, (size_t)len);
 	free(buf);
 	return er;
@@ -384,27 +386,28 @@ khttp_head(struct kreq *req, const char *key, const char *fmt, ...)
 	int		 len;
 	enum kcgi_err	 er;
 
-	assert(NULL != req->kdata);
-	assert(KSTATE_HEAD == req->kdata->state);
+	assert(req->kdata != NULL);
+	assert(req->kdata->state == KSTATE_HEAD);
 
 	va_start(ap, fmt);
-	len = XVASPRINTF(&buf, fmt, ap);
+	len = kxvasprintf(&buf, fmt, ap);
 	va_end(ap);
-	if (len < 0) 
-		return(KCGI_ENOMEM);
+
+	if (len == -1) 
+		return KCGI_ENOMEM;
 
 	ksz = strlen(key);
-	if (KCGI_OK != (er = kdata_write(req->kdata, key, ksz)))
+	if ((er = kdata_write(req->kdata, key, ksz)) != KCGI_OK)
 		goto out;
-	if (KCGI_OK != (er = kdata_write(req->kdata, ": ", 2)))
+	if ((er = kdata_write(req->kdata, ": ", 2)) != KCGI_OK)
 		goto out;
-	if (KCGI_OK != (er = kdata_write(req->kdata, buf, len)))
+	if ((er = kdata_write(req->kdata, buf, len)) != KCGI_OK)
 		goto out;
-	if (KCGI_OK != (er = kdata_write(req->kdata, "\r\n", 2)))
+	if ((er = kdata_write(req->kdata, "\r\n", 2)) != KCGI_OK)
 		goto out;
 out:
 	free(buf);
-	return(er);
+	return er;
 }
 
 /*

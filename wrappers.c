@@ -37,8 +37,7 @@
 #include "extern.h"
 
 int
-kxvasprintf(const char *file, int line, 
-	char **p, const char *fmt, va_list ap)
+kxvasprintf(char **p, const char *fmt, va_list ap)
 {
 	int	 len;
 
@@ -51,13 +50,13 @@ kxvasprintf(const char *file, int line,
 }
 
 int
-kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
+kxasprintf(char **p, const char *fmt, ...)
 {
 	va_list	 ap;
 	int	 ret;
 
 	va_start(ap, fmt);
-	ret = kxvasprintf(file, line, p, fmt, ap);
+	ret = kxvasprintf(p, fmt, ap);
 	va_end(ap);
 	return ret;
 }

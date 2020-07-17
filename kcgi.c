@@ -321,9 +321,9 @@ kstrdup(const char *cp)
 {
 	char	*p;
 
-	if ((p = kxstrdup(cp)) != NULL)
-		return p;
-	exit(EXIT_FAILURE);
+	if ((p = kxstrdup(cp)) == NULL)
+		exit(EXIT_FAILURE);
+	return p;
 }
 
 /*
@@ -334,9 +334,9 @@ krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
-	if ((p = kxrealloc(pp, sz)) != NULL)
-		return p;
-	exit(EXIT_FAILURE);
+	if ((p = kxrealloc(pp, sz)) == NULL)
+		exit(EXIT_FAILURE);
+	return p;
 }
 
 /*
@@ -347,9 +347,9 @@ kreallocarray(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if ((p = kxreallocarray(pp, nm, sz)) != NULL)
-		return p;
-	exit(EXIT_FAILURE);
+	if ((p = kxreallocarray(pp, nm, sz)) == NULL)
+		exit(EXIT_FAILURE);
+	return p;
 }
 
 /*
@@ -362,12 +362,11 @@ kasprintf(char **p, const char *fmt, ...)
 	int	 len;
 
 	va_start(ap, fmt);
-	len = XVASPRINTF(p, fmt, ap);
+	len = kxvasprintf(p, fmt, ap);
 	va_end(ap);
-
-	if (len >= 0)
-		return len;
-	exit(EXIT_FAILURE);
+	if (len == -1)
+		exit(EXIT_FAILURE);
+	return len;
 }
 
 /*
@@ -378,9 +377,9 @@ kvasprintf(char **p, const char *fmt, va_list ap)
 {
 	int	 len;
 
-	if ((len = XVASPRINTF(p, fmt, ap)) >= 0)
-		return len;
-	exit(EXIT_FAILURE);
+	if ((len = kxvasprintf(p, fmt, ap)) == -1)
+		exit(EXIT_FAILURE);
+	return len;
 }
 
 /*
@@ -391,9 +390,9 @@ kcalloc(size_t nm, size_t sz)
 {
 	char	*p;
 
-	if ((p = kxcalloc(nm, sz)) != NULL)
-		return p;
-	exit(EXIT_FAILURE);
+	if ((p = kxcalloc(nm, sz)) == NULL)
+		exit(EXIT_FAILURE);
+	return p;
 }
 
 /*
@@ -404,9 +403,9 @@ kmalloc(size_t sz)
 {
 	char	*p;
 
-	if ((p = kxmalloc(sz)) != NULL)
-		return p;
-	exit(EXIT_FAILURE);
+	if ((p = kxmalloc(sz)) == NULL)
+		exit(EXIT_FAILURE);
+	return p;
 }
 
 /*
@@ -691,7 +690,7 @@ kutil_urlabs(enum kscheme scheme,
 {
 	char	*p;
 
-	XASPRINTF(&p, "%s://%s:%" PRIu16 "%s", 
+	kxasprintf(&p, "%s://%s:%" PRIu16 "%s", 
 	    kschemes[scheme], host, port, path);
 	return p;
 }
@@ -717,16 +716,16 @@ khttp_vurlabs(enum kscheme scheme, const char *host,
 	int	 len;
 
 	if (host == NULL || host[0] == '\0') {
-		len = XASPRINTF(&p, "%s:%s", kschemes[scheme], 
+		len = kxasprintf(&p, "%s:%s", kschemes[scheme], 
 			path == NULL ? "" : path);
 	} else if (port == 0) {
-		len = XASPRINTF(&p, "%s://%s%s%s", 
+		len = kxasprintf(&p, "%s://%s%s%s", 
 		    kschemes[scheme], host, 
 		    path != NULL && path[0] != '\0' && 
 		    	path[0] != '/' ? "/" : "", 
 		    path == NULL ? "" : path);
 	} else {
-		len = XASPRINTF(&p, "%s://%s:%" PRIu16 "%s%s", 
+		len = kxasprintf(&p, "%s://%s:%" PRIu16 "%s%s", 
 		    kschemes[scheme], host, port, 
 		    path != NULL && path[0] != '\0' && 
 		    	path[0] != '/' ? "/" : "", 
@@ -782,13 +781,13 @@ khttp_vurlpartx(const char *path,
 
 	if ((mime == NULL || mime[0] == '\0') || 
 	    (page == NULL || page[0] == '\0'))
-		len = XASPRINTF(&p, "%s%s%s", 
+		len = kxasprintf(&p, "%s%s%s", 
 			path != NULL ? path : "",
 			path != NULL ? "/" : "", 
 			pageenc != NULL ? pageenc : "");
 	else {
 		assert(pageenc != NULL);
-		len = XASPRINTF(&p, "%s%s%s.%s", 
+		len = kxasprintf(&p, "%s%s%s.%s", 
 			path != NULL ? path : "",
 			path != NULL ? "/" : "", pageenc, mime);
 	}
@@ -849,13 +848,13 @@ khttp_vurlpart(const char *path,
 
 	if ((mime == NULL || mime[0] == '\0') || 
 	    (page == NULL || page[0] == '\0'))
-		len = XASPRINTF(&p, "%s%s%s", 
+		len = kxasprintf(&p, "%s%s%s", 
 			path != NULL ? path : "",
 			path != NULL ? "/" : "", 
 			pageenc != NULL ? pageenc : "");
 	else {
 		assert(pageenc != NULL);
-		len = XASPRINTF(&p, "%s%s%s.%s", 
+		len = kxasprintf(&p, "%s%s%s.%s", 
 			path != NULL ? path : "",
 			path != NULL ? "/" : "", pageenc, mime);
 	}
@@ -1417,7 +1416,7 @@ kcgi_buf_printf(struct kcgi_buf *buf, const char *fmt, ...)
 	/* Allocate temporary buffer. */
 
 	va_start(ap, fmt);
-	len = XVASPRINTF(&nbuf, fmt, ap);
+	len = kxvasprintf(&nbuf, fmt, ap);
 	va_end(ap);
 	if (len == -1)
 		return KCGI_ENOMEM;

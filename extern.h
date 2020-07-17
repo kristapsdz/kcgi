@@ -94,20 +94,14 @@ enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
 enum kcgi_err	 kxsocketprep(int);
 enum kcgi_err	 kxwaitpid(pid_t);
 
-int		 kxasprintf(const char *, int, 
-			char **, const char *, ...)
-			__attribute__((format(printf, 4, 5)));
-int		 kxvasprintf(const char *, int, 
-			char **, const char *, va_list);
+int		 kxasprintf(char **, const char *, ...)
+			__attribute__((format(printf, 2, 3)));
+int		 kxvasprintf(char **, const char *, va_list);
 void		*kxcalloc(size_t, size_t);
 void		*kxmalloc(size_t);
 void		*kxrealloc(void *, size_t);
 void		*kxreallocarray(void *, size_t, size_t);
 char		*kxstrdup(const char *);
-#define		 XASPRINTF(_p, ...) \
-		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
-#define		 XVASPRINTF(_p, _fmt, _va) \
-		 kxvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
 
 __END_DECLS
 

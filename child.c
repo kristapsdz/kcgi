@@ -791,7 +791,7 @@ parse_multiform(const struct parms *pp, char *name,
 
 	/* Define our buffer boundary. */
 	
-	if ((rc = XASPRINTF(&bb, "\r\n--%s", bound)) <= 0)
+	if ((rc = kxasprintf(&bb, "\r\n--%s", bound)) == -1)
 		_exit(EXIT_FAILURE);
 
 	assert(rc > 0);
