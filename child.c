@@ -385,7 +385,7 @@ mime_reset(char **dst, const char *src)
 {
 
 	free(*dst);
-	if (NULL == (*dst = XSTRDUP(src)))
+	if ((*dst = kxstrdup(src)) == NULL)
 		_exit(EXIT_FAILURE);
 }
 
@@ -659,7 +659,7 @@ parse_body(const char *ct, const struct parms *pp, char *b, size_t bsz)
 
 	memset(&mime, 0, sizeof(struct mime));
 
-	if (NULL == (mime.ctype = XSTRDUP(ct)))
+	if ((mime.ctype = kxstrdup(ct)) == NULL)
 		_exit(EXIT_FAILURE);
 	mime.ctypepos = str2ctype(pp, mime.ctype);
 
@@ -907,7 +907,7 @@ parse_multiform(const struct parms *pp, char *name,
 		 */
 
 		if (mime.ctype == NULL) {
-			mime.ctype = XSTRDUP("text/plain");
+			mime.ctype = kxstrdup("text/plain");
 			if (mime.ctype == NULL)
 				_exit(EXIT_FAILURE);
 			mime.ctypepos = str2ctype(pp, mime.ctype);
@@ -1610,7 +1610,7 @@ kworker_child(int wfd,
 
 		assert(i < envsz);
 
-		if ((envs[i].key = XSTRDUP(*evp)) == NULL)
+		if ((envs[i].key = kxstrdup(*evp)) == NULL)
 			_exit(EXIT_FAILURE);
 		envs[i].val = strchr(envs[i].key, '=');
 		*envs[i].val++ = '\0';

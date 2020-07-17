@@ -124,7 +124,7 @@ kxreallocarray(const char *file,
 }
 
 char *
-kxstrdup(const char *file, int line, const char *cp)
+kxstrdup(const char *cp)
 {
 	char	*p;
 

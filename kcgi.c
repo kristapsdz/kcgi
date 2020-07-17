@@ -321,7 +321,7 @@ kstrdup(const char *cp)
 {
 	char	*p;
 
-	if ((p = XSTRDUP(cp)) != NULL)
+	if ((p = kxstrdup(cp)) != NULL)
 		return p;
 	exit(EXIT_FAILURE);
 }
@@ -427,7 +427,7 @@ khttp_urlencode(const char *cp)
 	size_t	 sz, cur;
 
 	if (cp == NULL)
-		return XSTRDUP("");
+		return kxstrdup("");
 
 	/* 
 	 * Leave three bytes per input byte for encoding. 
@@ -533,7 +533,7 @@ khttp_urldecode(const char *src, char **dst)
 
 	if (src == NULL || dst == NULL)
 		return KCGI_FORM;
-	if ((*dst = XSTRDUP(src)) == NULL)
+	if ((*dst = kxstrdup(src)) == NULL)
 		return KCGI_ENOMEM;
 	if ((er = khttp_urldecode_inplace(*dst)) == KCGI_OK)
 		return KCGI_OK;

@@ -104,7 +104,7 @@ void		*kxmalloc(const char *, int, size_t);
 void		*kxrealloc(const char *, int, void *, size_t);
 void		*kxreallocarray(const char *, 
 			int, void *, size_t, size_t);
-char		*kxstrdup(const char *, int, const char *);
+char		*kxstrdup(const char *);
 #define		 XASPRINTF(_p, ...) \
 		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \
@@ -117,8 +117,6 @@ char		*kxstrdup(const char *, int, const char *);
 		 kxrealloc(__FILE__, __LINE__, (_p), (_sz))
 #define		 XREALLOCARRAY(_p, _nm, _sz) \
 		 kxreallocarray(__FILE__, __LINE__, (_p), (_nm), (_sz))
-#define		 XSTRDUP(_p) \
-		 kxstrdup(__FILE__, __LINE__, (_p))
 
 __END_DECLS
 
