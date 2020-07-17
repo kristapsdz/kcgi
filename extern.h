@@ -120,11 +120,6 @@ char		*kxstrdup(const char *, int, const char *);
 #define		 XSTRDUP(_p) \
 		 kxstrdup(__FILE__, __LINE__, (_p))
 
-#define		 XWARN(...) \
-		 kutil_warn(NULL, NULL, __VA_ARGS__)
-#define		 XWARNX(...) \
-		 kutil_warnx(NULL, NULL, __VA_ARGS__)
-
 __END_DECLS
 
 #endif

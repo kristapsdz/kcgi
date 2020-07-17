@@ -271,43 +271,46 @@ ssh_sandbox_child_debugging(enum sandtype type)
 int
 ksandbox_seccomp_init_child(enum sandtype type)
 {
-	struct rlimit rl_zero;
-	int nnp_failed = 0;
+	struct rlimit	rl_zero;
+	int 		nnp_failed = 0;
+
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
 	/* Set rlimits for completeness if possible. */
-	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
-		XWARN("setrlimit(RLIMIT_FSIZE)");
+		kutil_warn(NULL, NULL, "setrlimit");
 #if 0
 	/*
 	 * Don't do like OpenSSH: we need to pass stuff back and forth
 	 * over pipes, and this will prevent that from happening.
 	 */
 	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
-		XWARN("setrlimit(RLIMIT_NOFILE)");
+		kutil_warn(NULL, NULL, "setrlimit");
 #endif
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
-		XWARN("setrlimit(RLIMIT_NPROC)");
+		kutil_warn(NULL, NULL, "setrlimit");
 
 #ifdef SANDBOX_SECCOMP_DEBUG
 	ssh_sandbox_child_debugging(type);
 #endif 
 
 	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == -1) {
-		XWARN("prctl(PR_SET_NO_NEW_PRIVS)");
+		kutil_warn(NULL, NULL, "prctl");
 		nnp_failed = 1;
 	}
+
 	if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 
-		 SAND_WORKER != type ?
-		 &preauth_prog_ctrl :
-		 &preauth_prog_work) == -1)
-		XWARN("prctl(PR_SET_SECCOMP)");
+	    SAND_WORKER != type ?
+	    &preauth_prog_ctrl : &preauth_prog_work) == -1)
+		kutil_warn(NULL, NULL, "prctl");
 	else if (nnp_failed) {
-		XWARNX("SECCOMP_MODE_FILTER activated but "
+		kutil_warnx("SECCOMP_MODE_FILTER activated but "
 		    "PR_SET_NO_NEW_PRIVS failed");
 		_exit(EXIT_FAILURE);
 	}
-	return(1);
+
+	return 1;
 }
 
 #endif

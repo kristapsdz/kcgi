@@ -28,19 +28,17 @@
 int
 ksandbox_pledge_init_child(enum sandtype type)
 {
-	const char *fl;
+	const char	*fl;
 
-	fl = "stdio";
-	if (SAND_WORKER != type)
-		fl = "stdio unix sendfd recvfd";
+	fl = type != SAND_WORKER ?
+		"stdio unix sendfd recvfd" :
+		"stdio";
 
-	if (-1 == pledge(fl, NULL)) {
-		XWARN("pledge: %s",
-			SAND_WORKER != type ?
-			"control" : "worker");
-		return(0);
+	if (pledge(fl, NULL) == -1) {
+		kutil_warn(NULL, NULL, "pledge");
+		return 0;
 	}
-	return(1);
+	return 1;
 }
 
 #else

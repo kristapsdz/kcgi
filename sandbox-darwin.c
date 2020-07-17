@@ -35,14 +35,14 @@ ksandbox_darwin_init_child(enum sandtype type)
 	char		*er;
 	struct rlimit	 rl_zero;
 
-	rc = SAND_WORKER == type ?
+	rc = type == SAND_WORKER ?
 		sandbox_init(kSBXProfilePureComputation, 
 			SANDBOX_NAMED, &er) :
 		sandbox_init(kSBXProfileNoWrite, 
 			SANDBOX_NAMED, &er);
 
-	if (0 != rc) {
-		XWARNX("sandbox_init: %s", er);
+	if (rc != 0) {
+		kutil_warn(NULL, NULL, "sandbox_init: %s", er);
 		sandbox_free_error(er);
 		rc = 0;
 	} else
@@ -56,15 +56,15 @@ ksandbox_darwin_init_child(enum sandtype type)
 	 * EPERM no matter what (the same code runs fine when not run as
 	 * a CGI instance).
 	 */
-	if (-1 == setrlimit(RLIMIT_NOFILE, &rl_zero))
-		XWARN("setrlimit: rlimit_fsize");
+	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
+		kutil_warn(NULL, NULL, "setrlimit");
 #endif
-	if (-1 == setrlimit(RLIMIT_FSIZE, &rl_zero))
-		XWARN("setrlimit: rlimit_fsize");
-	if (-1 == setrlimit(RLIMIT_NPROC, &rl_zero))
-		XWARN("setrlimit: rlimit_nproc");
+	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
+		kutil_warn(NULL, NULL, "setrlimit");
+	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
+		kutil_warn(NULL, NULL, "setrlimit");
 
-	return(rc);
+	return rc;
 }
 
 #else
