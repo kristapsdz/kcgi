@@ -438,7 +438,7 @@ khttp_urlencode(const char *cp)
 
 	sz = strlen(cp) + 1;
 	if (SIZE_MAX / 3 < sz) {
-		XWARNX("multiplicative overflow: %zu", sz);
+		kutil_warnx(NULL, NULL, "multiplicative overflow");
 		return NULL;
 	}
 	if ((p = XCALLOC(sz, 3)) == NULL)
@@ -500,8 +500,8 @@ khttp_urldecode_inplace(char *p)
 
 		if (sscanf(tail + 1, "%1hhx%1hhx", &d, &c) != 2 ||
 		    (c |= d << 4) == '\0') {
-			XWARNX("khttp_urldecode_inplace: "
-				"bad percent-encoded sequence");
+			kutil_warnx(NULL, NULL, 
+				"malformed percent-encoded sequence");
 			return KCGI_FORM;
 		}
 		tail += 3;
@@ -957,36 +957,34 @@ khttp_parsex(struct kreq *req,
 	 * CPU.
 	 */
 
-	if (kxsocketprep(STDIN_FILENO) != KCGI_OK) {
-		XWARNX("kxsocketprep");
+	if (kxsocketprep(STDIN_FILENO) != KCGI_OK)
 		return KCGI_SYSTEM;
-	}
 
 	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat) != KCGI_OK)
 		return KCGI_SYSTEM;
 
 	if ((work_pid = fork()) == -1) {
 		er = errno;
-		XWARN("fork");
+		kutil_warn(NULL, NULL, "fork");
+
 		close(work_dat[KWORKER_PARENT]);
 		close(work_dat[KWORKER_CHILD]);
-		return EAGAIN == er ? KCGI_EAGAIN : KCGI_ENOMEM;
+		return (er == EAGAIN) ? KCGI_EAGAIN : KCGI_ENOMEM;
 	} else if (work_pid == 0) {
 		if (argfree != NULL)
 			(*argfree)(arg);
+
 		close(STDOUT_FILENO);
 		close(work_dat[KWORKER_PARENT]);
-		er = EXIT_FAILURE;
-		if (!ksandbox_init_child
-			(SAND_WORKER,
-			 work_dat[KWORKER_CHILD], -1, -1, -1)) {
-			XWARNX("ksandbox_init_child");
-		} else if (KCGI_OK != kworker_child
-			   (work_dat[KWORKER_CHILD], keys,
-			    keysz, mimes, mimesz, debugging)) {
-			XWARNX("kworker_child");
-		} else
-			er = EXIT_SUCCESS;
+
+		er = EXIT_SUCCESS;
+		if (!ksandbox_init_child(SAND_WORKER,
+		    work_dat[KWORKER_CHILD], -1, -1, -1))
+			er = EXIT_FAILURE;
+		else if (kworker_child(work_dat[KWORKER_CHILD],
+		    keys, keysz, mimes, mimesz, debugging) != KCGI_OK)
+			er = EXIT_FAILURE;
+
 		close(work_dat[KWORKER_CHILD]);
 		_exit(er);
 		/* NOTREACHED */
@@ -1040,7 +1038,8 @@ khttp_parsex(struct kreq *req,
 	 * assign them to our lookup table.
 	 */
 
-	kerr = kworker_parent(work_dat[KWORKER_PARENT], req, 1, mimesz);
+	kerr = kworker_parent
+		(work_dat[KWORKER_PARENT], req, 1, mimesz);
 	if (kerr != KCGI_OK)
 		goto err;
 
