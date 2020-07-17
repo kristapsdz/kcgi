@@ -67,7 +67,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 	ktemplate_writef fp;
 	enum kcgi_err	 er;
 
-	if (0 == sz)
+	if (sz == 0)
 		return KCGI_OK;
 
 	fp = opt->writer;
@@ -79,7 +79,7 @@ khttp_templatex_buf(const struct ktemplate *t,
 	 * provided.
 	 */
 
-	if (NULL == t && NULL == opt->fbk)
+	if (t == NULL && opt->fbk == NULL)
 		return fp(buf, sz, arg);
 
 	for (i = 0; i < sz - 1; i++) {
@@ -89,9 +89,9 @@ khttp_templatex_buf(const struct ktemplate *t,
 		 */
 
 		for (j = i; j < sz - 1; j++)
-			if ('\\' == buf[j] || '@' == buf[j])
+			if (buf[j] == '\\' || buf[j] == '@')
 				break;
-		if (j > i && KCGI_OK != (er = fp(&buf[i], j - i, arg)))
+		if (j > i && (er = fp(&buf[i], j - i, arg)) != KCGI_OK)
 			return er;
 		i = j;
 
@@ -101,9 +101,9 @@ khttp_templatex_buf(const struct ktemplate *t,
 		 * If we are, then emit the standalone @@.
 		 */
 
-		if (i < sz - 2 && '\\' == buf[i] &&
-		    '@' == buf[i + 1] && '@' == buf[i + 2]) {
-			if (KCGI_OK != (er = fp(&buf[i + 1], 2, arg)))
+		if (i < sz - 2 && buf[i] == '\\' &&
+		    buf[i + 1] == '@' && buf[i + 2] == '@') {
+			if ((er = fp(&buf[i + 1], 2, arg)) != KCGI_OK)
 				return er;
 			i += 2;
 			continue;
@@ -111,8 +111,8 @@ khttp_templatex_buf(const struct ktemplate *t,
 
 		/* Look for the starting @@ marker. */
 
-		if ( ! ('@' == buf[i] && '@' == buf[i + 1])) {
-			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+		if (!(buf[i] == '@' && buf[i + 1] == '@')) {
+			if ((er = fp(&buf[i], 1, arg)) != KCGI_OK)
 				return er;
 			continue;
 		} 
@@ -121,13 +121,13 @@ khttp_templatex_buf(const struct ktemplate *t,
 
 		start = i + 2;
 		for (end = start; end < sz - 1; end++)
-			if ('@' == buf[end] && '@' == buf[end + 1])
+			if (buf[end] == '@' && buf[end + 1] == '@')
 				break;
 
 		/* Continue printing if not found. */
 
 		if (end >= sz - 1) {
-			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+			if ((er = fp(&buf[i], 1, arg)) != KCGI_OK)
 				return er;
 			continue;
 		}
@@ -145,28 +145,30 @@ khttp_templatex_buf(const struct ktemplate *t,
 				continue;
 			else if (memcmp(&buf[start], t->key[j], len))
 				continue;
-			if ( ! (*t->cb)(j, t->arg)) {
-				XWARNX("template error");
+			if (!(*t->cb)(j, t->arg)) {
+				kutil_warnx(NULL, NULL, 
+					"template callback error");
 				return KCGI_FORM;
 			}
 			break;
 		}
 
-		if (j == t->keysz && NULL != opt->fbk) {
+		if (j == t->keysz && opt->fbk != NULL) {
 			len = end - start;
-			if ( ! (*opt->fbk)(&buf[start], len, t->arg)) {
-				XWARNX("template error");
+			if (!(*opt->fbk)(&buf[start], len, t->arg)) {
+				kutil_warnx(NULL, NULL, "template "
+					"default callback error");
 				return KCGI_FORM;
 			}
 			i = end + 1;
 		} else if (j == t->keysz) {
-			if (KCGI_OK != (er = fp(&buf[i], 1, arg)))
+			if ((er = fp(&buf[i], 1, arg)) != KCGI_OK)
 				return er;
 		} else
 			i = end + 1;
 	}
 
-	if (i < sz && KCGI_OK != (er = fp(&buf[i], 1, arg)))
+	if (i < sz && (er = fp(&buf[i], 1, arg)) != KCGI_OK)
 		return er;
 
 	return KCGI_OK;
@@ -190,9 +192,9 @@ khttp_templatex(const struct ktemplate *t,
 	int		 fd;
 	enum kcgi_err	 rc;
 
-	if (-1 == (fd = open(fname, O_RDONLY, 0))) {
-		XWARN("open: %s", fname);
-		return(KCGI_SYSTEM);
+	if ((fd = open(fname, O_RDONLY, 0)) == -1) {
+		kutil_warn(NULL, NULL, "%s", fname);
+		return KCGI_SYSTEM;
 	}
 
 	rc = khttp_templatex_fd(t, fd, fname, opt, arg);
@@ -221,25 +223,25 @@ khttp_templatex_fd(const struct ktemplate *t,
 	size_t		 sz;
 	enum kcgi_err	 rc;
 
-	if (NULL == fname)
+	if (fname == NULL)
 		fname = "<unknown descriptor>";
 
-	if (-1 == fstat(fd, &st)) {
-		XWARN("fstat: %s", fname);
+	if (fstat(fd, &st) == -1) {
+		kutil_warn(NULL, NULL, "%s", fname);
 		return KCGI_SYSTEM;
 	} else if (st.st_size > SSIZE_MAX) {
-		XWARNX("size overflow: %s", fname);
+		kutil_warnx(NULL, NULL, "%s: too large", fname);
 		return KCGI_SYSTEM;
 	} else if (st.st_size <= 0) {
-		XWARNX("zero-length: %s", fname);
+		kutil_warnx(NULL, NULL, "%s: zero-length", fname);
 		return KCGI_OK;
 	}
 
 	sz = (size_t)st.st_size;
 	buf = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
 
-	if (MAP_FAILED == buf) {
-		XWARN("mmap: %s", fname);
+	if (buf == MAP_FAILED) {
+		kutil_warn(NULL, NULL, "%s", fname);
 		return KCGI_SYSTEM;
 	}
 
