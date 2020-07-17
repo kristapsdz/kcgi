@@ -368,7 +368,7 @@ khttp_epoch2str(int64_t tt, char *buf, size_t sz)
 	    days[tm.tm_wday], tm.tm_mday,
 	    months[tm.tm_mon], tm.tm_year + 1900,
 	    tm.tm_hour, tm.tm_min, tm.tm_sec) == -1) {
-		XWARNX("snprintf");
+		kutil_warn(NULL, NULL, "snprintf");
 		return NULL;
 	}
 
@@ -405,7 +405,7 @@ khttp_epoch2ustr(int64_t tt, char *buf, size_t sz)
 	    "T%.2" PRId64 ":%.2" PRId64 ":%.2" PRId64 "Z",
 	    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
 	    tm.tm_hour, tm.tm_min, tm.tm_sec) == -1) {
-		XWARNX("snprintf");
+		kutil_warn(NULL, NULL, "snprintf");
 		return NULL;
 	}
 
