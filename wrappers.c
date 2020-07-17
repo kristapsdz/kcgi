@@ -93,7 +93,7 @@ kxmalloc(const char *file, int line, size_t sz)
 }
 
 void *
-kxrealloc(const char *file, int line, void *pp, size_t sz)
+kxrealloc(void *pp, size_t sz)
 {
 	void	 *p;
 
@@ -108,8 +108,7 @@ kxrealloc(const char *file, int line, void *pp, size_t sz)
 }
 
 void *
-kxreallocarray(const char *file, 
-	int line, void *pp, size_t nm, size_t sz)
+kxreallocarray(void *pp, size_t nm, size_t sz)
 {
 	void	 *p;
 

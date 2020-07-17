@@ -334,7 +334,7 @@ krealloc(void *pp, size_t sz)
 {
 	char	*p;
 
-	if ((p = XREALLOC(pp, sz)) != NULL)
+	if ((p = kxrealloc(pp, sz)) != NULL)
 		return p;
 	exit(EXIT_FAILURE);
 }
@@ -347,7 +347,7 @@ kreallocarray(void *pp, size_t nm, size_t sz)
 {
 	char	*p;
 
-	if ((p = XREALLOCARRAY(pp, nm, sz)) != NULL)
+	if ((p = kxreallocarray(pp, nm, sz)) != NULL)
 		return p;
 	exit(EXIT_FAILURE);
 }
@@ -577,7 +577,7 @@ khttp_url_query_string(char *p, va_list ap)
 
 		total += strlen(keyp) + strlen(valp) + 2;
 
-		if ((pp = XREALLOC(p, total)) == NULL) {
+		if ((pp = kxrealloc(p, total)) == NULL) {
 			free(p);
 			free(keyp);
 			free(valp);
@@ -657,7 +657,7 @@ khttp_url_query_stringx(char *p, va_list ap)
 
 		total += strlen(keyp) + strlen(valp) + 2;
 
-		if ((pp = XREALLOC(p, total)) == NULL) {
+		if ((pp = kxrealloc(p, total)) == NULL) {
 			free(p);
 			free(keyp);
 			free(valpp);
@@ -1388,8 +1388,7 @@ kcgi_buf_write(const char *s, size_t sz, void *arg)
 	if (b->sz + sz + 1 > b->maxsz) {
 		b->maxsz = b->sz + sz + 1 + 
 			(b->growsz == 0 ? 1024 : b->growsz);
-		pp = XREALLOC(b->buf, b->maxsz);
-		if (pp == NULL)
+		if ((pp = kxrealloc(b->buf, b->maxsz)) == NULL)
 			return KCGI_ENOMEM;
 		b->buf = pp;
 	}

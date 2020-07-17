@@ -1692,7 +1692,7 @@ again:
 		return NULL;
 	} 
 
-	if ((pp = XREALLOC(b->buf, b->sz + sz)) == NULL) {
+	if ((pp = kxrealloc(b->buf, b->sz + sz)) == NULL) {
 		*er = KCGI_ENOMEM;
 		return NULL;
 	}
@@ -1828,7 +1828,7 @@ kworker_fcgi_stdin(struct fcgi_buf *b, const struct fcgi_hdr *hdr,
 	 * FIXME: check for addition overflow.
 	 */
 
-	ptr = XREALLOC(*sbp, *ssz + hdr->contentLength + 1);
+	ptr = kxrealloc(*sbp, *ssz + hdr->contentLength + 1);
 	if (ptr == NULL)
 		return KCGI_ENOMEM;
 
@@ -1964,7 +1964,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 		 */
 
 		if (i == *envsz) {
-			ptr = XREALLOCARRAY
+			ptr = kxreallocarray
 				(*envs, *envsz + 1, 
 				 sizeof(struct env));
 			if (ptr == NULL)

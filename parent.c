@@ -181,8 +181,13 @@ input(enum input *type, struct kpair *kp, int fd,
 static struct kpair *
 kpair_expand(struct kpair **kv, size_t *kvsz)
 {
+	void	*pp;
 
-	*kv = XREALLOCARRAY(*kv, *kvsz + 1, sizeof(struct kpair));
+	pp = kxreallocarray(*kv, *kvsz + 1, sizeof(struct kpair));
+	if (pp == NULL)
+		return NULL;
+
+	*kv = pp;
 	memset(&(*kv)[*kvsz], 0, sizeof(struct kpair));
 	(*kvsz)++;
 	return(&(*kv)[*kvsz - 1]);
