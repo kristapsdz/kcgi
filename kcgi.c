@@ -391,7 +391,7 @@ kcalloc(size_t nm, size_t sz)
 {
 	char	*p;
 
-	if ((p = XCALLOC(nm, sz)) != NULL)
+	if ((p = kxcalloc(nm, sz)) != NULL)
 		return p;
 	exit(EXIT_FAILURE);
 }
@@ -404,7 +404,7 @@ kmalloc(size_t sz)
 {
 	char	*p;
 
-	if ((p = XMALLOC(sz)) != NULL)
+	if ((p = kxmalloc(sz)) != NULL)
 		return p;
 	exit(EXIT_FAILURE);
 }
@@ -441,7 +441,7 @@ khttp_urlencode(const char *cp)
 		kutil_warnx(NULL, NULL, "multiplicative overflow");
 		return NULL;
 	}
-	if ((p = XCALLOC(sz, 3)) == NULL)
+	if ((p = kxcalloc(sz, 3)) == NULL)
 		return NULL;
 
 	for (cur = 0; (ch = *cp) != '\0'; cp++) {
@@ -1019,16 +1019,16 @@ khttp_parsex(struct kreq *req,
 		goto err;
 
 	if (keysz) {
-		req->cookiemap = XCALLOC(keysz, sizeof(struct kpair *));
+		req->cookiemap = kxcalloc(keysz, sizeof(struct kpair *));
 		if (req->cookiemap == NULL)
 			goto err;
-		req->cookienmap = XCALLOC(keysz, sizeof(struct kpair *));
+		req->cookienmap = kxcalloc(keysz, sizeof(struct kpair *));
 		if (req->cookienmap == NULL)
 			goto err;
-		req->fieldmap = XCALLOC(keysz, sizeof(struct kpair *));
+		req->fieldmap = kxcalloc(keysz, sizeof(struct kpair *));
 		if (req->fieldmap == NULL)
 			goto err;
-		req->fieldnmap = XCALLOC(keysz, sizeof(struct kpair *));
+		req->fieldnmap = kxcalloc(keysz, sizeof(struct kpair *));
 		if (req->fieldnmap == NULL)
 			goto err;
 	}

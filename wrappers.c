@@ -63,7 +63,7 @@ kxasprintf(const char *file, int line, char **p, const char *fmt, ...)
 }
 
 void *
-kxcalloc(const char *file, int line, size_t nm, size_t sz)
+kxcalloc(size_t nm, size_t sz)
 {
 	void	 *p;
 
@@ -78,7 +78,7 @@ kxcalloc(const char *file, int line, size_t nm, size_t sz)
 }
 
 void *
-kxmalloc(const char *file, int line, size_t sz)
+kxmalloc(size_t sz)
 {
 	void	 *p;
 
@@ -457,7 +457,7 @@ fullreadwordsz(int fd, char **cp, size_t *sz)
 
 	/* TODO: check additive overflow of "sz + 1". */
 
-	if ((*cp = XMALLOC(*sz + 1)) == NULL) {
+	if ((*cp = kxmalloc(*sz + 1)) == NULL) {
 		*sz = 0;
 		return KCGI_ENOMEM;
 	}

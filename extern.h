@@ -99,8 +99,8 @@ int		 kxasprintf(const char *, int,
 			__attribute__((format(printf, 4, 5)));
 int		 kxvasprintf(const char *, int, 
 			char **, const char *, va_list);
-void		*kxcalloc(const char *, int, size_t, size_t);
-void		*kxmalloc(const char *, int, size_t);
+void		*kxcalloc(size_t, size_t);
+void		*kxmalloc(size_t);
 void		*kxrealloc(void *, size_t);
 void		*kxreallocarray(void *, size_t, size_t);
 char		*kxstrdup(const char *);
@@ -108,10 +108,6 @@ char		*kxstrdup(const char *);
 		 kxasprintf(__FILE__, __LINE__, (_p), __VA_ARGS__)
 #define		 XVASPRINTF(_p, _fmt, _va) \
 		 kxvasprintf(__FILE__, __LINE__, (_p), _fmt, _va)
-#define		 XCALLOC(_nm, _sz) \
-		 kxcalloc(__FILE__, __LINE__, (_nm), (_sz))
-#define		 XMALLOC(_sz) \
-		 kxmalloc(__FILE__, __LINE__, (_sz))
 
 __END_DECLS
 

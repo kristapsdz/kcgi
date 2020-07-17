@@ -536,7 +536,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 
 	/* Now allocate our device. */
 
-	*fcgip = fcgi = XCALLOC(1, sizeof(struct kfcgi));
+	*fcgip = fcgi = kxcalloc(1, sizeof(struct kfcgi));
 	if (fcgi == NULL) {
 		close(sock_ctl[KWORKER_PARENT]);
 		close(work_dat[KWORKER_PARENT]);
@@ -678,19 +678,19 @@ khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 	}
 
 	if (fcgi->keysz) {
-		req->cookiemap = XCALLOC
+		req->cookiemap = kxcalloc
 			(fcgi->keysz, sizeof(struct kpair *));
 		if (req->cookiemap == NULL)
 			goto err;
-		req->cookienmap = XCALLOC
+		req->cookienmap = kxcalloc
 			(fcgi->keysz, sizeof(struct kpair *));
 		if (req->cookienmap == NULL)
 			goto err;
-		req->fieldmap = XCALLOC
+		req->fieldmap = kxcalloc
 			(fcgi->keysz, sizeof(struct kpair *));
 		if (req->fieldmap == NULL)
 			goto err;
-		req->fieldnmap = XCALLOC
+		req->fieldnmap = kxcalloc
 			(fcgi->keysz, sizeof(struct kpair *));
 		if (req->fieldnmap == NULL)
 			goto err;

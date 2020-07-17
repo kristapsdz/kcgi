@@ -143,7 +143,7 @@ linebuf_init(struct kdata *p)
 	if (p->linebuf == NULL) {
 		p->linebufsz = 0;
 		p->linebufpos = 0;
-		if ((p->linebuf = XMALLOC(BUFSIZ)) == NULL)
+		if ((p->linebuf = kxmalloc(BUFSIZ)) == NULL)
 			return 0;
 		p->linebuf[0] = '\0';
 		p->linebufsz = BUFSIZ;
@@ -417,7 +417,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 {
 	struct kdata	*p;
 
-	if ((p = XCALLOC(1, sizeof(struct kdata))) == NULL)
+	if ((p = kxcalloc(1, sizeof(struct kdata))) == NULL)
 		return NULL;
 
 	p->debugging = debugging;
@@ -427,7 +427,7 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 
 	if (opts->sndbufsz > 0) {
 		p->outbufsz = opts->sndbufsz;
-		if ((p->outbuf = XMALLOC(p->outbufsz)) == NULL) {
+		if ((p->outbuf = kxmalloc(p->outbufsz)) == NULL) {
 			free(p);
 			return NULL;
 		}
@@ -677,7 +677,7 @@ kcgi_writer_get(struct kreq *r, int type)
 		abort();
 	}
 
-	if ((p = XMALLOC(sizeof(struct kcgi_writer))) != NULL)
+	if ((p = kxmalloc(sizeof(struct kcgi_writer))) != NULL)
 		p->kdata = r->kdata;
 
 	return p;

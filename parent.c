@@ -228,7 +228,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 	}
 
 	if (r->reqsz) {
-		r->reqs = XCALLOC(r->reqsz, sizeof(struct khead));
+		r->reqs = kxcalloc(r->reqsz, sizeof(struct khead));
 		if (r->reqs == NULL) {
 			ke = KCGI_ENOMEM;
 			goto out;
@@ -293,7 +293,7 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		goto out;
 	} else if (dgsz == MD5_DIGEST_LENGTH) {
 		/* This is a binary value. */
-		if ((r->rawauth.digest = XMALLOC(dgsz)) == NULL)
+		if ((r->rawauth.digest = kxmalloc(dgsz)) == NULL)
 			goto out;
 		if (fullread(fd, r->rawauth.digest, dgsz, 0, &ke) < 0) {
 			kutil_warnx(NULL, NULL, "failed read digest");

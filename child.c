@@ -333,7 +333,7 @@ scanbuf(size_t len, size_t *szp)
 
 	/* Allocate the entire buffer here. */
 
-	if ((p = XMALLOC(len + 1)) == NULL)
+	if ((p = kxmalloc(len + 1)) == NULL)
 		_exit(EXIT_FAILURE);
 
 	/* 
@@ -1577,7 +1577,7 @@ kworker_child(int wfd,
 		envsz++;
 
 	if (envsz) {
-		envs = XCALLOC(envsz, sizeof(struct env));
+		envs = kxcalloc(envsz, sizeof(struct env));
 		if (envs == NULL)
 			return KCGI_ENOMEM;
 	}
@@ -1971,7 +1971,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 				return KCGI_ENOMEM;
 
 			*envs = ptr;
-			(*envs)[i].key = XMALLOC(keysz + 1);
+			(*envs)[i].key = kxmalloc(keysz + 1);
 			if ((*envs)[i].key == NULL)
 				return KCGI_ENOMEM;
 
@@ -1986,7 +1986,7 @@ kworker_fcgi_params(struct fcgi_buf *buf, const struct fcgi_hdr *hdr,
 
 		/* Copy the value. */
 
-		(*envs)[i].val = XMALLOC(valsz + 1);
+		(*envs)[i].val = kxmalloc(valsz + 1);
 		if ((*envs)[i].val == NULL)
 			return KCGI_ENOMEM;
 

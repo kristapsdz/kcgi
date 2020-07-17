@@ -77,7 +77,7 @@ base64buf(char *enc, const char *str, size_t len)
 	}
 
 	*p++ = '\0';
-	return(p - enc);
+	return (p - enc);
 }
 
 int
@@ -88,27 +88,31 @@ khttpbasic_validate(const struct kreq *req,
 	size_t	 sz;
 	int	 rc;
 
-	if (KAUTH_BASIC != req->rawauth.type)
-		return(-1);
-	else if (KMETHOD__MAX == req->method)
-		return(-1);
-	else if (0 == req->rawauth.authorised)
-		return(-1);
+	if (req->rawauth.type != KAUTH_BASIC)
+		return (-1);
+	else if (req->method == KMETHOD__MAX)
+		return (-1);
+	else if (req->rawauth.authorised == 0)
+		return (-1);
 
 	/* Make sure we don't bail on memory allocation. */
+
 	sz = strlen(user) + 1 + strlen(pass) + 1;
-	if (NULL == (buf = XMALLOC(sz)))
-		return(-1);
+	if ((buf = kxmalloc(sz)) == NULL)
+		return (-1);
+
 	sz = snprintf(buf, sz, "%s:%s", user, pass);
-	if (NULL == (enc = XMALLOC(base64len(sz)))) {
+	if ((enc = kxmalloc(base64len(sz))) == NULL) {
 		free(buf);
-		return(-1);
+		return (-1);
 	}
+
 	base64buf(enc, buf, sz);
-	rc = 0 == strcmp(enc, req->rawauth.d.basic.response);
+	rc = strcmp(enc, req->rawauth.d.basic.response) == 0;
+
 	free(enc);
 	free(buf);
-	return(rc);
+	return rc;
 }
 
 int
