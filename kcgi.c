@@ -958,8 +958,7 @@ khttp_parsex(struct kreq *req,
 
 	if (kxsocketprep(STDIN_FILENO) != KCGI_OK)
 		return KCGI_SYSTEM;
-
-	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat) != KCGI_OK)
+	if (kxsocketpair(work_dat) != KCGI_OK)
 		return KCGI_SYSTEM;
 
 	if ((work_pid = fork()) == -1) {

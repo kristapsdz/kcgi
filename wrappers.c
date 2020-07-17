@@ -181,18 +181,18 @@ kxsocketprep(int sock)
 }
 
 /*
- * Create a non-blocking socketpair.
+ * Create a non-blocking socketpair (AF_UNIX, SOCK_STREAM, protocol 0).
  * Return KCGI_ENFILE on temporary failure, KCGI_SYSTEM on fatal error,
  * KCGI_OK on success.
  * The input socket pair is only valid on success.
  */
 enum kcgi_err
-kxsocketpair(int domain, int type, int protocol, int sock[2])
+kxsocketpair(int sock[2])
 {
 	int	 	 rc;
 	enum kcgi_err	 er;
 
-	rc = socketpair(domain, type, protocol, sock);
+	rc = socketpair(AF_UNIX, SOCK_STREAM, 0, sock);
 	if (rc == -1 && (EMFILE == errno || ENFILE == errno)) {
 		kutil_warn(NULL, NULL, "socketpair");
 		return KCGI_ENFILE;

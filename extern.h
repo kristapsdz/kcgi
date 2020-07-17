@@ -90,7 +90,7 @@ int	 	 ksandbox_seccomp_init_child(enum sandtype);
 #endif
 void		 kreq_free(struct kreq *);
 
-enum kcgi_err	 kxsocketpair(int, int, int, int[2]);
+enum kcgi_err	 kxsocketpair(int[2]);
 enum kcgi_err	 kxsocketprep(int);
 enum kcgi_err	 kxwaitpid(pid_t);
 

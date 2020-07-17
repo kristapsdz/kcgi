@@ -414,10 +414,10 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	sigprocmask(SIG_BLOCK, &mask, NULL);
 	sig = 0;
 
-	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_ctl) != KCGI_OK)
+	if (kxsocketpair(work_ctl) != KCGI_OK)
 		return KCGI_SYSTEM;
 
-	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, work_dat) != KCGI_OK) {
+	if (kxsocketpair(work_dat) != KCGI_OK) {
 		close(work_ctl[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_CHILD]);
 		return KCGI_SYSTEM;
@@ -482,7 +482,7 @@ khttp_fcgi_initx(struct kfcgi **fcgip,
 	close(work_dat[KWORKER_CHILD]);
 	close(work_ctl[KWORKER_CHILD]);
 
-	if (kxsocketpair(AF_UNIX, SOCK_STREAM, 0, sock_ctl) != KCGI_OK) {
+	if (kxsocketpair(sock_ctl) != KCGI_OK) {
 		close(work_dat[KWORKER_PARENT]);
 		close(work_ctl[KWORKER_PARENT]);
 		kxwaitpid(work_pid);
