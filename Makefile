@@ -409,11 +409,11 @@ $(LIBOBJS): kcgi.h config.h extern.h
 # Our companion libraries.
 # There are many of these.
 
-kcgihtml.o: kcgi.h config.h kcgihtml.h
+kcgihtml.o: kcgi.h config.h kcgihtml.h extern.h
 
-kcgijson.o: kcgi.h config.h kcgijson.h
+kcgijson.o: kcgi.h config.h kcgijson.h extern.h
 
-kcgixml.o: kcgi.h config.h kcgixml.h
+kcgixml.o: kcgi.h config.h kcgixml.h extern.h
 
 kcgiregress.o: config.h kcgiregress.h
 
