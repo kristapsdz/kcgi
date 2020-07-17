@@ -111,27 +111,24 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 	 * Break up the data stream into FastCGI-capable chunks of at
 	 * most UINT16_MAX bytes.
 	 * Send each of these in its own FastCGI frame.
+	 * Pad to 8-byte boundary. 
 	 */
 
 	do {
-		/* Pad to 8-byte boundary. */
-
 		rsz = sz > UINT16_MAX ? UINT16_MAX : sz;
 		padlen = -rsz % 8;
-
 		head = fcgi_header(type, p->requestId, rsz, padlen);
-
-		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, head, 8)))
+		if ((er = fullwritenoerr(p->fcgi, head, 8)) != KCGI_OK)
 			break;
-		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, buf, rsz)))
+		if ((er = fullwritenoerr(p->fcgi, buf, rsz)) != KCGI_OK)
 			break;
-		if (KCGI_OK != (er = fullwritenoerr(p->fcgi, pad, padlen)))
+		if ((er = fullwritenoerr(p->fcgi, pad, padlen)) != KCGI_OK)
 			break;
 		sz -= rsz;
 		buf += rsz;
 	} while (sz > 0);
 
-	return(er);
+	return er;
 }
 
 /*
@@ -143,15 +140,16 @@ static int
 linebuf_init(struct kdata *p)
 {
 
-	if (NULL == p->linebuf) {
+	if (p->linebuf == NULL) {
 		p->linebufsz = 0;
 		p->linebufpos = 0;
-		if (NULL == (p->linebuf = XMALLOC(BUFSIZ)))
-			return(0);
+		if ((p->linebuf = XMALLOC(BUFSIZ)) == NULL)
+			return 0;
 		p->linebuf[0] = '\0';
 		p->linebufsz = BUFSIZ;
 	}
-	return(1);
+
+	return 1;
 }
 
 /*
@@ -164,20 +162,22 @@ linebuf_flush(struct kdata *p, int newln)
 {
 	int	 rc;
 
-	if (0 == p->linebufpos)
-		return(1);
+	if (p->linebufpos == 0)
+		return 1;
 
 	rc = fprintf(stderr, "%u: %s%s", 
 		getpid(), p->linebuf, newln ? "\n" : "");
 	if (rc < 0)
-		return(0);
-	if (0 != fflush(stderr)) {
-		XWARN("flush");
-		return(0);
+		return 0;
+
+	if (fflush(stderr) != 0) {
+		kutil_warn(NULL, NULL, "fflush");
+		return 0;
 	}
+
 	p->linebufpos = 0;
 	p->linebuf[0] = '\0';
-	return(1);
+	return 1;
 }
 
 /*
@@ -191,32 +191,28 @@ linebuf_flush(struct kdata *p, int newln)
 static enum kcgi_err
 kdata_flush(struct kdata *p, const char *buf, size_t sz)
 {
-	enum kcgi_err	 er = KCGI_OK;
 
-	if (0 == sz || NULL == buf)
-		return(er);
+	if (sz == 0 || buf == NULL)
+		return KCGI_OK;
 
-	if (NULL != p->gz && KSTATE_HEAD != p->state) {
-		/*
-		 * FIXME: make this work properly on all systems.
-		 * This is known (?) to break on FreeBSD: we may need to
-		 * break the uncompressed buffer into chunks that will
-		 * not cause EAGAIN to be raised.
-		 */
+	/*
+	 * FIXME: make this work properly on all systems.
+	 * This is known (?) to break on FreeBSD: we may need to break
+	 * the uncompressed buffer into chunks that will not cause
+	 * EAGAIN to be raised.
+	 */
 
-		if (0 == gzwrite(p->gz, buf, sz)) {
-			XWARNX("gzwrite");
-			er = KCGI_SYSTEM;
+	if (p->gz != NULL && p->state != KSTATE_HEAD) {
+		if (gzwrite(p->gz, buf, sz) == 0) {
+			kutil_warnx(NULL, NULL, "gzwrite");
+			return KCGI_SYSTEM;
 		}
-		return(er);
+		return KCGI_OK;
 	}
 
-	if (-1 == p->fcgi)
-		er = fullwritenoerr(STDOUT_FILENO, buf, sz);
-	else 
-		er = fcgi_write(6, p, buf, sz);
-
-	return(er);
+	return (p->fcgi == -1) ?
+		fullwritenoerr(STDOUT_FILENO, buf, sz) :
+		fcgi_write(6, p, buf, sz);
 }
 
 /*
@@ -231,7 +227,7 @@ kdata_drain(struct kdata *p)
 
 	er = kdata_flush(p, p->outbuf, p->outbufpos);
 	p->outbufpos = 0;
-	return(er);
+	return er;
 }
 
 /*
@@ -252,10 +248,10 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	size_t	 	 i;
 	enum kcgi_err	 er = KCGI_OK;
 
-	assert(NULL != p);
+	assert(p != NULL);
 
-	if (0 == sz || NULL == buf)
-		return(er);
+	if (sz == 0 || buf == NULL)
+		return er;
 
 	/*
 	 * We want to debug writes.
@@ -300,8 +296,8 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 * the wire.
 	 */
 
-	if (0 == p->outbufsz)
-		return(kdata_flush(p, buf, sz));
+	if (p->outbufsz == 0)
+		return kdata_flush(p, buf, sz);
 
 	/*
 	 * If we want to accept new data and it exceeds the buffer size,
@@ -314,17 +310,17 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 	 */
 
 	if (p->outbufpos + sz > p->outbufsz) {
-		if (KCGI_OK != (er = kdata_drain(p)))
-			return(er);
+		if ((er = kdata_drain(p)) != KCGI_OK)
+			return er;
 		if (sz > p->outbufsz)
-			return(kdata_flush(p, buf, sz));
+			return kdata_flush(p, buf, sz);
 	}
 
 	assert(p->outbufpos + sz <= p->outbufsz);
-	assert(NULL != p->outbuf);
+	assert(p->outbuf != NULL);
 	memcpy(p->outbuf + p->outbufpos, buf, sz);
 	p->outbufpos += sz;
-	return(er);
+	return er;
 }
 
 enum kcgi_err
@@ -421,8 +417,8 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 {
 	struct kdata	*p;
 
-	if (NULL == (p = XCALLOC(1, sizeof(struct kdata))))
-		return(NULL);
+	if ((p = XCALLOC(1, sizeof(struct kdata))) == NULL)
+		return NULL;
 
 	p->debugging = debugging;
 	p->fcgi = fcgi;
@@ -431,13 +427,13 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 
 	if (opts->sndbufsz > 0) {
 		p->outbufsz = opts->sndbufsz;
-		if (NULL == (p->outbuf = XMALLOC(p->outbufsz))) {
+		if ((p->outbuf = XMALLOC(p->outbufsz)) == NULL) {
 			free(p);
-			return(NULL);
+			return NULL;
 		}
 	} 
 
-	return(p);
+	return p;
 }
 
 /*
@@ -451,19 +447,21 @@ kdata_free(struct kdata *p, int flush)
 	char	 	 buf[8];
 	uint32_t 	 appStatus;
 
-	if (NULL == p)
+	if (p == NULL)
 		return;
 
 	/* Debugging messages. */
-	if (flush && KREQ_DEBUG_WRITE & p->debugging) {
+
+	if (flush && (KREQ_DEBUG_WRITE & p->debugging)) {
 		(void)linebuf_flush(p, 1);
 		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
 			getpid(), p->bytes);
-		if (0 != fflush(stderr))
-			XWARN("flush");
+		if (fflush(stderr) != 0)
+			kutil_warn(NULL, NULL, "fflush");
 	}
 
 	/* Remaining buffered data. */
+
 	if (flush) 
 		kdata_drain(p);
 
@@ -475,42 +473,43 @@ kdata_free(struct kdata *p, int flush)
 	 * the file descriptors outright: we don't want gzclose()
 	 * flushing anything to the wire.
 	 */
-	if ( ! flush && -1 == p->fcgi) {
+
+	if (!flush && p->fcgi == -1) {
 		close(STDOUT_FILENO);
 		close(STDIN_FILENO);
 	}
 
-	if (NULL != p->gz)
+	if (p->gz != NULL)
 		gzclose(p->gz);
 
-	if (-1 == p->fcgi) {
+	if (p->fcgi == -1) {
 		free(p);
 		return;
 	}
 
+	/* 
+	 * If flushing, end the stream.
+	 * Note that we've already flushed our last FastCGI record to
+	 * the stream, but the standard implies that we need a blank
+	 * record to really shut this thing down.
+	 */
+
 	if (flush) {
-		/* 
-		 * End of stream.
-		 * Note that we've already flushed our last FastCGI
-		 * record to the stream, but the standard implies that
-		 * we need a blank record to really shut this thing
-		 * down.
-		 */
 		fcgi_write(6, p, "", 0);
 		appStatus = htonl(EXIT_SUCCESS);
 		memset(buf, 0, 8);
 		memcpy(buf, &appStatus, sizeof(uint32_t));
+
 		/* End of request. */
+
 		fcgi_write(3, p, buf, 8);
+
 		/* Close out. */
+
 		close(p->fcgi);
 		fullwrite(p->control, &p->requestId, sizeof(uint16_t));
-		p->control = -1;
-		p->fcgi = -1;
-	} else {
+	} else
 		close(p->fcgi);
-		p->fcgi = -1;
-	}
 
 	free(p);
 }
@@ -531,18 +530,18 @@ kdata_compress(struct kdata *p, int *ret)
 {
 
 	*ret = 0;
-	assert(KSTATE_HEAD == p->state);
+	assert(p->state == KSTATE_HEAD);
 
-	if (-1 != p->fcgi)
-		return(1);
-	assert(NULL == p->gz);
-	p->gz = gzdopen(STDOUT_FILENO, "w");
-	if (NULL == p->gz) {
-		XWARN("gzdopen");
-		return(0);
+	if (p->fcgi != -1)
+		return 1;
+
+	assert(p->gz == NULL);
+	if ((p->gz = gzdopen(STDOUT_FILENO, "w")) == NULL) {
+		kutil_warn(NULL, NULL, "gzdopen");
+		return 0;
 	}
 	*ret = 1;
-	return(1);
+	return 1;
 }
 
 /*
@@ -558,8 +557,8 @@ kdata_body(struct kdata *p)
 
 	assert(p->state == KSTATE_HEAD);
 
-	if (KCGI_OK != (er = kdata_write(p, "\r\n", 2)))
-		return(er);
+	if ((er = kdata_write(p, "\r\n", 2)) != KCGI_OK)
+		return er;
 
 	/*
 	 * XXX: we always drain our buffer after the headers have been
@@ -569,27 +568,22 @@ kdata_body(struct kdata *p)
 	 * Should an option be added to disable this?
 	 */
 
-	if (KCGI_OK != (er = kdata_drain(p)))
-		return(er);
+	if ((er = kdata_drain(p)) != KCGI_OK)
+		return er;
 
-	if (-1 == p->fcgi)
-		if (0 != fflush(stdout)) {
-			XWARN("flush");
-			return(KCGI_SYSTEM);
+	if (p->fcgi == -1)
+		if (fflush(stdout) != 0) {
+			kutil_warn(NULL, NULL, "fflush");
+			return KCGI_SYSTEM;
 		}
 
 	p->state = KSTATE_BODY;
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 enum kcgi_err
 khttp_body(struct kreq *req)
 {
-	/*
-	 * If we don't have zlib available to us, we're not doing any
-	 * compression regardless, so most of this function is moot and
-	 * we pass directly into the underlying kdata_body() function.
-	 */
 	int	 	 hasreq = 0;
 	enum kcgi_err	 er;
 	const char	*cp;
@@ -601,12 +595,12 @@ khttp_body(struct kreq *req)
 	 * compression.
 	 */
 
-	if (NULL != req->reqmap[KREQU_ACCEPT_ENCODING]) {
+	if (req->reqmap[KREQU_ACCEPT_ENCODING] != NULL) {
 		cp = req->reqmap[KREQU_ACCEPT_ENCODING]->val;
-		if (NULL != (cp = strstr(cp, "gzip"))) {
+		if ((cp = strstr(cp, "gzip")) != NULL) {
 			hasreq = 1;
 			cp += 4;
-			if (0 == strncmp(cp, ";q=0", 4)) 
+			if (strncmp(cp, ";q=0", 4) == 0) 
 				hasreq = '.' == cp[4];
 		}
 	}
@@ -626,17 +620,18 @@ khttp_body(struct kreq *req)
 		 * probably means other things are going to fail, so we
 		 * might as well just die now.
 		 */
-		if ( ! kdata_compress(req->kdata, &hasreq))
-			return(KCGI_ENOMEM);
+
+		if (!kdata_compress(req->kdata, &hasreq))
+			return KCGI_ENOMEM;
 		if (hasreq) {
 			er = khttp_head(req, 
 				kresps[KRESP_CONTENT_ENCODING], "gzip");
-			if (KCGI_OK != er)
-				return(er);
+			if (er != KCGI_OK)
+				return er;
 		}
 	}
 
-	return(kdata_body(req->kdata));
+	return kdata_body(req->kdata);
 }
 
 enum kcgi_err
@@ -649,20 +644,20 @@ khttp_body_compress(struct kreq *req, int comp)
 	 * body of the document.
 	 */
 
-	if ( ! comp)
-		return(kdata_body(req->kdata));
+	if (!comp)
+		return kdata_body(req->kdata);
 
 	/*
 	 * If we do have compression requested, try enabling it on the
 	 * output stream.
 	 */
 
-	if ( ! kdata_compress(req->kdata, &didcomp))
-		return(KCGI_ENOMEM);
-	else if ( ! didcomp)
-		return(KCGI_FORM);
+	if (!kdata_compress(req->kdata, &didcomp))
+		return KCGI_ENOMEM;
+	else if (!didcomp)
+		return KCGI_FORM;
 
-	return(kdata_body(req->kdata));
+	return kdata_body(req->kdata);
 }
 
 /*
@@ -677,7 +672,8 @@ kcgi_writer_get(struct kreq *r, int type)
 	struct kcgi_writer	*p;
 
 	if (r->kdata->disabled) {
-		XWARNX("kcgi_writer_get after kcgi_writer_disable");
+		kutil_warnx(NULL, NULL, 
+			"kcgi_writer_get after kcgi_writer_disable");
 		abort();
 	}
 
@@ -721,9 +717,9 @@ enum kcgi_err
 kcgi_writer_write(struct kcgi_writer *p, const void *buf, size_t sz)
 {
 
-	if (KSTATE_BODY != p->kdata->state)
+	if (p->kdata->state != KSTATE_BODY)
 		return KCGI_FORM;
-	return(kdata_write(p->kdata, buf, sz));
+	return kdata_write(p->kdata, buf, sz);
 }
 
 /*
@@ -733,7 +729,7 @@ enum kcgi_err
 kcgi_writer_puts(struct kcgi_writer *p, const char *cp)
 {
 
-	return(kcgi_writer_write(p, cp, strlen(cp)));
+	return kcgi_writer_write(p, cp, strlen(cp));
 }
 
 /*
@@ -743,5 +739,5 @@ enum kcgi_err
 kcgi_writer_putc(struct kcgi_writer *p, char c)
 {
 
-	return(kcgi_writer_write(p, &c, 1));
+	return kcgi_writer_write(p, &c, 1);
 }
