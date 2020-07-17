@@ -321,7 +321,8 @@ kjson_arrayp_open(struct kjsonreq *r, const char *key)
 	enum kcgi_err	 er;
 
 	if (r->stackpos >= KJSON_STACK_MAX - 1) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum json stack size exceeded");
 		return KCGI_ENOMEM;
 	}
 
@@ -408,7 +409,8 @@ kjson_stringp_open(struct kjsonreq *r, const char *key)
 	enum kcgi_err	 er;
 
 	if (r->stackpos >= KJSON_STACK_MAX - 1) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum json stack size exceeded");
 		return KCGI_ENOMEM;
 	}
 
@@ -449,7 +451,8 @@ kjson_objp_open(struct kjsonreq *r, const char *key)
 	enum kcgi_err	 er;
 
 	if (r->stackpos >= KJSON_STACK_MAX - 1) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum json stack size exceeded");
 		return KCGI_ENOMEM;
 	}
 

@@ -67,7 +67,8 @@ kxml_push(struct kxmlreq *r, size_t elem)
 	enum kcgi_err	 er;
 
 	if (r->stackpos >= KXML_STACK_MAX) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum xml stack size exceeded");
 		return KCGI_ENOMEM;
 	} else if (elem >= r->elemsz)
 		return KCGI_WRITER;
@@ -89,7 +90,8 @@ kxml_pushnull(struct kxmlreq *r, size_t elem)
 	enum kcgi_err	 er;
 
 	if (r->stackpos >= KXML_STACK_MAX) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum xml stack size exceeded");
 		return KCGI_ENOMEM;
 	} else if (elem >= r->elemsz)
 		return KCGI_WRITER;
@@ -162,7 +164,8 @@ kxml_pushattrs(struct kxmlreq *r, size_t elem, ...)
 	enum kcgi_err	 er = KCGI_OK;
 
 	if (r->stackpos >= KXML_STACK_MAX) {
-		XWARNX("maximum json stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum xml stack size exceeded");
 		return KCGI_ENOMEM;
 	} else if (elem >= r->elemsz)
 		return KCGI_WRITER;

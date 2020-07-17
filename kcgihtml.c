@@ -550,7 +550,8 @@ khtml_attrx(struct khtmlreq *req, enum kelem elem, ...)
 	if (tags[elem].flags != TAG_VOID &&
 	    tags[elem].flags != TAG_INSTRUCTION &&
 	    req->elemsz >= KHTML_STACK_MAX) {
-		XWARNX("maximum html stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum html stack size exceeded");
 		return KCGI_ENOMEM;
 	}
 
@@ -617,7 +618,8 @@ khtml_attr(struct khtmlreq *req, enum kelem elem, ...)
 	if (tags[elem].flags != TAG_VOID &&
 	    tags[elem].flags != TAG_INSTRUCTION &&
 	    req->elemsz >= KHTML_STACK_MAX) {
-		XWARNX("maximum html stack size exceeded");
+		kutil_warnx(NULL, NULL, 
+			"maximum html stack size exceeded");
 		return KCGI_ENOMEM;
 	}
 
