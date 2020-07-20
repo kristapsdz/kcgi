@@ -21,6 +21,9 @@
 #include <netinet/in.h>
 
 #include <ctype.h>
+#if HAVE_ERR
+# include <err.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +40,7 @@ dochild(void *arg)
 {
 	cb_child	child = arg;
 
-	return(child());
+	return child();
 }
 
 static int
@@ -47,27 +50,25 @@ doparent(void *arg)
 	cb_parent	 parent = arg;
 	int		 rc;
 
-	if (NULL == (curl = curl_easy_init())) {
-		perror(NULL);
-		exit(EXIT_FAILURE);
-	}
+	if ((curl = curl_easy_init()) == NULL)
+		errx(1, "curl_easy_init");
 
 	rc = parent(curl);
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
-	return(rc);
+	return rc;
 }
 
 int
 regress_cgi(cb_parent parent, cb_child child)
 {
 
-	return(kcgi_regress_cgi(doparent, parent, dochild, child));
+	return kcgi_regress_cgi(doparent, parent, dochild, child);
 }
 
 int
 regress_fcgi(cb_parent parent, cb_child child)
 {
 
-	return(kcgi_regress_fcgi(doparent, parent, dochild, child));
+	return kcgi_regress_fcgi(doparent, parent, dochild, child);
 }
