@@ -190,6 +190,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-basic-curl \
 		   regress/test-bigfile \
+		   regress/test-body-debug \
+		   regress/test-body-debug-long \
 		   regress/test-buf \
 		   regress/test-date2epoch \
 		   regress/test-datetime2epoch \

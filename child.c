@@ -1384,8 +1384,10 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	struct parms *pp, enum kmethod meth, char *b, 
 	size_t bsz, unsigned int debugging, int md5)
 {
-	size_t 	 i, len = 0, cur;
-	char	*cp, *bp = b;
+	size_t		 i, len = 0, sz;
+	char		*cp, *bp = b;
+	const char	*end;
+	int		 wrap;
 
 	/*
 	 * The CONTENT_LENGTH must be a valid integer.
@@ -1438,44 +1440,28 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 
 	kworker_child_bodymd5(fd, b, bsz, md5);
 
-	if (bsz && (KREQ_DEBUG_READ_BODY & debugging)) {
-		fprintf(stderr, "%u: ", getpid());
-		for (cur = i = 0; i < bsz; i++, cur++) {
-			/* Print at most BUFSIZ characters. */
-			if (BUFSIZ == cur) {
-				fputc('\n', stderr);
-				fflush(stderr);
-				fprintf(stderr, "%u: ", getpid());
-				cur = 0;
-			}
+	/*
+	 * If we're debugging read bodies, emit the body line by line
+	 * (or split at the 80-character mark).
+	 */
 
-			/* Filter output. */
-			if (isprint((unsigned char)b[i]) || '\n' == b[i])
-				fputc(b[i], stderr);
-			else if ('\t' == b[i])
-				fputs("\\t", stderr);
-			else if ('\r' == b[i])
-				fputs("\\r", stderr);
-			else if ('\v' == b[i])
-				fputs("\\v", stderr);
-			else if ('\b' == b[i])
-				fputs("\\b", stderr);
+	if (bsz && (debugging & KREQ_DEBUG_READ_BODY)) {
+		i = 0;
+		do {
+			if ((end = memchr(&b[i], '\n', bsz - i)) == NULL)
+				sz = bsz - i;
 			else
-				fputc('?', stderr);
+				sz = (size_t)(end - &b[i]);
+			if ((wrap = sz > 80))
+				sz = 80;
+			kutil_info(NULL, NULL, "%lu: %.*s%s",
+				(unsigned long)getpid(), (int)sz, 
+				&b[i], wrap ? "..." : "");
 
-			/* Handle newline. */
-			if ('\n' == b[i]) {
-				cur = 0;
-				fflush(stderr);
-				fprintf(stderr, "%u: ", getpid());
-			}
-		}
-		/* Terminate with newline. */
-		if ('\n' != b[bsz - 1])
-			fputc('\n', stderr);
-		/* Print some statistics. */
-		fprintf(stderr, "%u: %zu B rx\n", getpid(), bsz);
-		fflush(stderr);
+			i += wrap ? sz : sz + 1;
+		} while (i < bsz);
+		kutil_info(NULL, NULL, "%lu: %zu B rx",
+			(unsigned long)getpid(), bsz);
 	}
 
 	if (cp != NULL) {
