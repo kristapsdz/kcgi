@@ -37,18 +37,6 @@
 #define	TEMPL "/tmp/test-logging-error.XXXXXXXXXX"
 
 /*
- * These are all the components from the log message.
- */
-struct line {
-	const char *addr;
-	const char *ident;
-	const char *date;
-	const char *level;
-	const char *umsg;
-	const char *errmsg;
-};
-
-/*
  * Actually run the test pair of child and parent.
  * Child must log whatever it wants to log and parent processes the log
  * messages (if any).
@@ -107,69 +95,6 @@ test_runner(void (*child)(void), int (*parent)(FILE *))
 }
 
 /*
- * Parse to the end of the current word from a log message and NUL
- * terminate it.
- * The word either ends on a white-space (or NUL) boundary or the given
- * endchar if not NUL.
- * Returns the next word position, which may be the end of the buffer,
- * or NULL if the buffer could not be terminated.
- */
-static char *
-parse_word(char *msg, char endchar)
-{
-
-	if (endchar != '\0')
-		while (*msg != '\0' && *msg != endchar)
-			msg++;
-	else
-		while (*msg != '\0' && !isspace((unsigned char)*msg))
-			msg++;
-	if (*msg == '\0')
-		return NULL;
-	*msg++ = '\0';
-	while (*msg != '\0' && isspace((unsigned char)*msg))
-		msg++;
-	return msg;
-}
-
-/*
- * Parse all components of the line.
- * The error message may be NULL.
- * Return zero on failure, non-zero on success.
- */
-static int
-parse_line(char *msg, struct line *p)
-{
-	char	*tmp;
-
-	p->addr = msg;
-	if ((msg = parse_word(msg, '\0')) == NULL)
-		return 0;
-	p->ident = msg;
-	if ((msg = parse_word(msg, '\0')) == NULL)
-		return 0;
-	if ('[' != *msg)
-		return 0;
-	msg++;
-	p->date = msg;
-	if ((msg = parse_word(msg, ']')) == NULL)
-		return 0;
-	p->level = msg;
-	if ((msg = parse_word(msg, '\0')) == NULL)
-		return 0;
-	p->umsg = msg;
-	if ((tmp = strrchr(msg, ':')) != NULL) {
-		*tmp++ = '\0';
-		p->errmsg = ++tmp;
-	} else {
-		parse_word(msg, '\0');
-		p->errmsg = NULL;
-	}
-
-	return 1;
-}
-
-/*
  * Wrap around getline().
  */
 static char *
@@ -196,11 +121,11 @@ static int
 parent4(FILE *f)
 {
 	char		*buf;
-	struct line	 line;
+	struct log_line	 line;
 	int		 rc = 0;
 
 	buf = get_line(f);
-	if (!parse_line(buf, &line))
+	if (!log_line_parse(buf, &line))
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
@@ -225,11 +150,11 @@ static int
 parent3(FILE *f)
 {
 	char		*buf;
-	struct line	 line;
+	struct log_line	 line;
 	int		 rc = 0;
 
 	buf = get_line(f);
-	if (!parse_line(buf, &line))
+	if (!log_line_parse(buf, &line))
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
@@ -254,11 +179,11 @@ static int
 parent2(FILE *f)
 {
 	char		*buf;
-	struct line	 line;
+	struct log_line	 line;
 	int		 rc = 0;
 
 	buf = get_line(f);
-	if (!parse_line(buf, &line))
+	if (!log_line_parse(buf, &line))
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "foo") ||
@@ -283,11 +208,11 @@ static int
 parent1(FILE *f)
 {
 	char		*buf;
-	struct line	 line;
+	struct log_line	 line;
 	int		 rc = 0;
 
 	buf = get_line(f);
-	if (!parse_line(buf, &line))
+	if (!log_line_parse(buf, &line))
 		goto out;
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||

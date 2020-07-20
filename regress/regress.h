@@ -17,14 +17,21 @@
 #ifndef REGRESS_H
 #define REGRESS_H
 
-__BEGIN_DECLS
+struct log_line {
+	const char	*addr;
+	const char	*ident;
+	const char	*date;
+	const char	*level;
+	const char	*umsg;
+	const char	*errmsg;
+};
 
-typedef int (*cb_child)(void);
-typedef int (*cb_parent)(CURL *);
+typedef int	(*cb_child)(void);
+typedef int	(*cb_parent)(CURL *);
 
-int regress_cgi(cb_parent, cb_child);
-int regress_fcgi(cb_parent, cb_child);
+int		  log_line_parse(char *, struct log_line *);
 
-__END_DECLS
+int		  regress_cgi(cb_parent, cb_child);
+int		  regress_fcgi(cb_parent, cb_child);
 
 #endif

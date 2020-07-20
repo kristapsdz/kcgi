@@ -59,6 +59,69 @@ doparent(void *arg)
 	return rc;
 }
 
+/*
+ * Parse to the end of the current word from a log message and NUL
+ * terminate it.
+ * The word either ends on a white-space (or NUL) boundary or the given
+ * endchar if not NUL.
+ * Returns the next word position, which may be the end of the buffer,
+ * or NULL if the buffer could not be terminated.
+ */
+static char *
+log_line_parse_word(char *msg, char endchar)
+{
+
+	if (endchar != '\0')
+		while (*msg != '\0' && *msg != endchar)
+			msg++;
+	else
+		while (*msg != '\0' && !isspace((unsigned char)*msg))
+			msg++;
+	if (*msg == '\0')
+		return NULL;
+	*msg++ = '\0';
+	while (*msg != '\0' && isspace((unsigned char)*msg))
+		msg++;
+	return msg;
+}
+
+/*
+ * Parse all components of a log line, including newline.
+ * The error message may be NULL.
+ * Return zero on failure, non-zero on success.
+ */
+int
+log_line_parse(char *msg, struct log_line *p)
+{
+	char	*tmp;
+
+	p->addr = msg;
+	if ((msg = log_line_parse_word(msg, '\0')) == NULL)
+		return 0;
+	p->ident = msg;
+	if ((msg = log_line_parse_word(msg, '\0')) == NULL)
+		return 0;
+	if ('[' != *msg)
+		return 0;
+	msg++;
+	p->date = msg;
+	if ((msg = log_line_parse_word(msg, ']')) == NULL)
+		return 0;
+	p->level = msg;
+	if ((msg = log_line_parse_word(msg, '\0')) == NULL)
+		return 0;
+	p->umsg = msg;
+	if ((tmp = strrchr(msg, ':')) != NULL) {
+		*tmp++ = '\0';
+		p->errmsg = ++tmp;
+	} else {
+		log_line_parse_word(msg, '\0');
+		p->errmsg = NULL;
+	}
+
+	return 1;
+}
+
 int
 regress_cgi(cb_parent parent, cb_child child)
 {
