@@ -92,30 +92,25 @@ Function invoked with
 by the child process starting to parse untrusted network data.
 This makes sure that no unnecessary data is leaked into the child.
 .It Fa debugging
-This bit-field sets debugging of the underlying parse and/or write
+This bit-field enables debugging of the underlying parse and/or write
 routines.
-Debugging messages are sent to
-.Dv stderr
-and consist of the process ID, a colon, then the logged data.
-Logged data consists of printable ASCII characters and spaces.
-A newline will flush the existing line.
-There are at most
-.Dv BUFSIZ
-characters per line.
-Other characters are either escaped (\ev, \er, \eb) or replaced with a
-question mark.
-If the
-.Li KREQ_DEBUG_WRITE
-bit is set, write operations directly or indirectly via
-.Xr khttp_write 3
-will be logged.
-When the request is torn down with
-.Xr khttp_free 3 ,
-the process ID and total logged bytes are printed on their own line.
-If the
-.Li KREQ_DEBUG_READ_BODY
-bit is set, the entire input body is logged.
-The total byte count is printed on its own line afterward.
+It may have
+.Dv KREQ_DEBUG_WRITE
+for writes and
+.Dv KREQ_DEBUG_READ_BODY
+for the pre-parsed body.
+Debugging messages to
+.Xr kutil_info 3
+consist of the process ID followed by
+.Qq -tx
+or
+.Qq -rx
+for writing or reading, a colon and space, then the logged data.
+A newline will flush the existing line, as well reaching 80 characters.
+If flushed at 80 characters and not a newline, an ellipsis will follow
+the line.
+The total logged bytes will be emitted at the end of all reads or
+writes.
 .It Fa defmime
 If no MIME type is specified (that is, there's no suffix to the
 page request), use this index in the
