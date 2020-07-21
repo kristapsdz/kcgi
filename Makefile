@@ -190,12 +190,14 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-basic-curl \
 		   regress/test-bigfile \
-		   regress/test-body-debug \
-		   regress/test-body-debug-long \
 		   regress/test-buf \
 		   regress/test-date2epoch \
 		   regress/test-datetime2epoch \
 		   regress/test-datetime-deprecated \
+		   regress/test-debug-read \
+		   regress/test-debug-read-long \
+		   regress/test-debug-write \
+		   regress/test-debug-write-long \
 		   regress/test-digest \
 		   regress/test-digest-auth-int \
 		   regress/test-digest-auth-int-bad \

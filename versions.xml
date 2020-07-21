@@ -3,6 +3,33 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2020-05-11">2020-05-11</time>
+		</header>
+		<aside>
+			<div>
+				<b>Bug fix</b>: some errors encountered writing connection
+				file-descriptors to child processors in FastCGI were accidentally
+				ignored.
+				This came because the function returned success, failure, or hangup,
+				while the caller was testing for failure/success.
+				No such error has ever been reported in the wild&#8212;it would
+				probably signify much larger issues that would soon be caught
+				anyway&#8212;but the fix is still valid.
+			</div>
+			<div>
+				Significant simplification of the back-end in removing several
+				crufty interfaces.
+				Back-end logging now uses the front-end logging functions for
+				consistency and to avoid having separate loggers.
+				The same applies to the <code>debugging</code> parameter passed into
+				<a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.1</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-05-11">2020-05-11</time>
