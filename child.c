@@ -1454,13 +1454,13 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 				sz = (size_t)(end - &b[i]);
 			if ((wrap = sz > 80))
 				sz = 80;
-			kutil_info(NULL, NULL, "%lu: %.*s%s",
+			kutil_info(NULL, NULL, "%lu-rx: %.*s%s",
 				(unsigned long)getpid(), (int)sz, 
 				&b[i], wrap ? "..." : "");
 
 			i += wrap ? sz : sz + 1;
 		} while (i < bsz);
-		kutil_info(NULL, NULL, "%lu: %zu B rx",
+		kutil_info(NULL, NULL, "%lu-rx: %zu B",
 			(unsigned long)getpid(), bsz);
 	}
 

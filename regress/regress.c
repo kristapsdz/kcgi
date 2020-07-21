@@ -93,7 +93,6 @@ log_line_parse_word(char *msg, char endchar)
 int
 log_line_parse(char *msg, struct log_line *p)
 {
-	char	*tmp;
 
 	p->addr = msg;
 	if ((msg = log_line_parse_word(msg, '\0')) == NULL)
@@ -111,14 +110,8 @@ log_line_parse(char *msg, struct log_line *p)
 	if ((msg = log_line_parse_word(msg, '\0')) == NULL)
 		return 0;
 	p->umsg = msg;
-	if ((tmp = strrchr(msg, ':')) != NULL) {
-		*tmp++ = '\0';
-		p->errmsg = ++tmp;
-	} else {
-		log_line_parse_word(msg, '\0');
-		p->errmsg = NULL;
-	}
-
+	if ((p->errmsg = strstr(p->umsg, ": ")) != NULL)
+		p->errmsg += 2;
 	return 1;
 }
 

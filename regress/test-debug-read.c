@@ -31,28 +31,12 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-static char log[37] = "/tmp/test-body-debug-long.XXXXXXXXXX";
-
-static const char *data = "foo=0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456789"
-	"0123456";
+static char log[32] = "/tmp/test-debug-read.XXXXXXXXXX";
 
 static int
 parent(CURL *curl)
 {
+	const char	*data = "foo=ba\t\rr";
 
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
@@ -92,6 +76,7 @@ main(int argc, char *argv[])
 	int		 fd = -1, rc = 1;
 	FILE		*f = NULL;
 	char		*line = NULL;
+	const char	*cp;
 	size_t		 linesize = 0, lineno = 0;
 	ssize_t		 linelen;
 	struct log_line	 log_line;
@@ -114,35 +99,31 @@ main(int argc, char *argv[])
 			goto out;
 		if (strcmp(log_line.level, "INFO"))
 			continue;
-		printf("%s", log_line.errmsg);
-		switch (lineno) {
+
+		/* Extract after pid-rx. */
+
+		if ((cp = strchr(log_line.umsg, ':')) == NULL)
+			goto out;
+		cp++;
+		while (*cp == ' ')
+			cp++;
+
+		/* Look line-by-line. */
+
+		switch (lineno++) {
 		case 0:
-			if (strcmp(log_line.errmsg, "foo="
-			    "012345678901234567890123456789"
-			    "012345678901234567890123456789"
-			    "0123456789012345...\n"))
+			if (strcmp(cp, "foo=ba\\t\\rr\n"))
 				goto out;
 			break;
 		case 1:
-			if (strcmp(log_line.errmsg, "6789"
-			    "012345678901234567890123456789"
-			    "012345678901234567890123456789"
-			    "0123456789012345...\n"))
-				goto out;
-			break;
-		case 2:
-			if (strcmp(log_line.errmsg, "6\n"))
-				goto out;
-			break;
-		case 3:
+			/* Ignore. */
 			break;
 		default:
 			goto out;
 		}
-		lineno++;
 	}
 
-	if (ferror(f))
+	if (ferror(f) || lineno != 2)
 		goto out;
 
 	rc = 0;

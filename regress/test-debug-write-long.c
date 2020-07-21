@@ -31,16 +31,31 @@
 #include "../kcgi.h"
 #include "regress.h"
 
-static char log[32] = "/tmp/test-body-debug.XXXXXXXXXX";
+static char log[33] = "/tmp/test-debug-write.XXXXXXXXXX";
+
+static const char *data = "foo=0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456789"
+	"0123456";
 
 static int
 parent(CURL *curl)
 {
-	const char	*data = "foo=ba\t\rr";
 
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 	return curl_easy_perform(curl) == CURLE_OK;
 }
 
@@ -57,7 +72,7 @@ child(void)
 	er = khttp_parsex
 		(&r, ksuffixmap, kmimetypes, KMIME__MAX, 
 		 NULL, 0, &page, 1, KMIME_TEXT_HTML,
-		 0, NULL, NULL, KREQ_DEBUG_READ_BODY, NULL);
+		 0, NULL, NULL, KREQ_DEBUG_WRITE, NULL);
 	if (er != KCGI_OK)
 		return 0;
 
@@ -66,6 +81,7 @@ child(void)
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
 		"%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
+	khttp_puts(&r, data);
 	khttp_free(&r);
 	return 1;
 }
@@ -76,6 +92,7 @@ main(int argc, char *argv[])
 	int		 fd = -1, rc = 1;
 	FILE		*f = NULL;
 	char		*line = NULL;
+	const char	*cp;
 	size_t		 linesize = 0, lineno = 0;
 	ssize_t		 linelen;
 	struct log_line	 log_line;
@@ -98,20 +115,57 @@ main(int argc, char *argv[])
 			goto out;
 		if (strcmp(log_line.level, "INFO"))
 			continue;
-		switch (lineno) {
+
+		/* Extract after pid-tx. */
+
+		if ((cp = strchr(log_line.umsg, ':')) == NULL)
+			goto out;
+		cp++;
+		while (*cp == ' ')
+			cp++;
+
+		/* Examine line-by-line. */
+
+		switch (lineno++) {
 		case 0:
-			if (strcmp(log_line.errmsg, "foo=ba\\t\\rr\n"))
+			if (strcmp(cp, "Status: 200 OK\\r\n"))
 				goto out;
 			break;
 		case 1:
+			if (strcmp(cp, "Content-Type: text/html\\r\n"))
+				goto out;
+			break;
+		case 2:
+			if (strcmp(cp, "\\r\n"))
+				goto out;
+			break;
+		case 3:
+			if (strcmp(cp, "foo="
+			    "012345678901234567890123456789"
+			    "012345678901234567890123456789"
+			    "0123456789012345...\n"))
+				goto out;
+			break;
+		case 4:
+			if (strcmp(cp, "6789"
+			    "012345678901234567890123456789"
+			    "012345678901234567890123456789"
+			    "0123456789012345...\n"))
+				goto out;
+			break;
+		case 5:
+			if (strcmp(cp, "6\n"))
+				goto out;
+			break;
+		case 6:
+			/* Ignore. */
 			break;
 		default:
-			goto out;
+			break;
 		}
-		lineno++;
 	}
 
-	if (ferror(f))
+	if (ferror(f) || lineno != 7)
 		goto out;
 
 	rc = 0;

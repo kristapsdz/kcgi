@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2014 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2014, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,13 +17,13 @@
 #ifndef REGRESS_H
 #define REGRESS_H
 
-struct log_line {
-	const char	*addr;
-	const char	*ident;
-	const char	*date;
-	const char	*level;
-	const char	*umsg;
-	const char	*errmsg;
+struct	log_line {
+	const char	*addr; /* remote address */
+	const char	*ident; /* opaque identifier */
+	const char	*date; /* date (HTTP format) */
+	const char	*level; /* log level (INFO, etc.) */
+	const char	*umsg; /* user message */
+	const char	*errmsg; /* error message (in umsg) */
 };
 
 typedef int	(*cb_child)(void);

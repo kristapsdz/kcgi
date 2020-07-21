@@ -129,7 +129,7 @@ parent4(FILE *f)
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
 	    strcmp(line.level, "WARN") ||
-	    strcmp(line.umsg, "foo") ||
+	    strcmp(line.umsg, "foo: Invalid argument\n") ||
 	    line.errmsg == NULL)
 		goto out;
 	rc = 1;
@@ -159,7 +159,7 @@ parent3(FILE *f)
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
 	    strcmp(line.level, "WARN") ||
-	    strcmp(line.umsg, "foo") ||
+	    strcmp(line.umsg, "foo\n") ||
 	    line.errmsg != NULL)
 		goto out;
 	rc = 1;
@@ -189,7 +189,7 @@ parent2(FILE *f)
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "foo") ||
 	    strcmp(line.level, "WARN") ||
-	    strcmp(line.umsg, "-") ||
+	    strcmp(line.umsg, "-\n") ||
 	    line.errmsg != NULL)
 		goto out;
 	rc = 1;
@@ -219,7 +219,7 @@ parent1(FILE *f)
 	if (strcmp(line.addr, "-") ||
 	    strcmp(line.ident, "-") ||
 	    strcmp(line.level, "WARN") ||
-	    strcmp(line.umsg, "-") ||
+	    strcmp(line.umsg, "-\n") ||
 	    line.errmsg != NULL)
 		goto out;
 	rc = 1;

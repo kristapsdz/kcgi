@@ -52,9 +52,8 @@ struct	kdata {
 	int		 debugging; /* debugging flags */
 	int		 fcgi; /* file descriptor or -1 */
 	int		 control; /* control socket or -1 */
-	char		*linebuf; /* output line buffer */
-	size_t		 linebufpos; /* output line buffer */
-	size_t		 linebufsz;
+	char		 linebuf[80]; /* debugging output line buffer */
+	size_t		 linebufpos; /* position in line buffer */
 	uint64_t	 bytes; /* total bytes written */
 	uint16_t	 requestId; /* current requestId or 0 */
 	enum kstate	 state;
@@ -132,55 +131,6 @@ fcgi_write(uint8_t type, const struct kdata *p, const char *buf, size_t sz)
 }
 
 /*
- * Initialise the buffer holding our debugging lines of output.
- * This returns zero on failure (memory failure) or non-zero on success.
- * It does nothing if the line buffer is already initialised.
- */
-static int
-linebuf_init(struct kdata *p)
-{
-
-	if (p->linebuf == NULL) {
-		p->linebufsz = 0;
-		p->linebufpos = 0;
-		if ((p->linebuf = kxmalloc(BUFSIZ)) == NULL)
-			return 0;
-		p->linebuf[0] = '\0';
-		p->linebufsz = BUFSIZ;
-	}
-
-	return 1;
-}
-
-/*
- * Flush the debugging line to our output channel.
- * Returns zero on failure (system error), non-zero on success.
- * Does nothing (success) if there are no bytes in the line buffer.
- */
-static int
-linebuf_flush(struct kdata *p, int newln)
-{
-	int	 rc;
-
-	if (p->linebufpos == 0)
-		return 1;
-
-	rc = fprintf(stderr, "%u: %s%s", 
-		getpid(), p->linebuf, newln ? "\n" : "");
-	if (rc < 0)
-		return 0;
-
-	if (fflush(stderr) != 0) {
-		kutil_warn(NULL, NULL, "fflush");
-		return 0;
-	}
-
-	p->linebufpos = 0;
-	p->linebuf[0] = '\0';
-	return 1;
-}
-
-/*
  * Flushes a buffer "buf" of size "sz" to the wire (stdout in the case
  * of CGI, the socket for FastCGI, and a gz stream for compression IFF
  * in body parts).
@@ -245,7 +195,8 @@ kdata_drain(struct kdata *p)
 static enum kcgi_err
 kdata_write(struct kdata *p, const char *buf, size_t sz)
 {
-	size_t	 	 i;
+	size_t	 	 i, max;
+	int		 newln;
 	enum kcgi_err	 er = KCGI_OK;
 
 	assert(p != NULL);
@@ -254,42 +205,37 @@ kdata_write(struct kdata *p, const char *buf, size_t sz)
 		return er;
 
 	/*
-	 * We want to debug writes.
-	 * To do so, we write into a line buffer.
-	 * Whenever we hit a newline (or the line buffer is filled),
-	 * flush the buffer to stderr.
+	 * If we're debugging writes, first copy as many bytes as
+	 * possible into the output line buffer, stopping when it's full
+	 * or when we have a newline.  Keep flushing in these cases til
+	 * we have nothing left to add.  We'll flush any stray bytes
+	 * when we get back here or close the connection.
 	 */
 
-	if (KREQ_DEBUG_WRITE & p->debugging) {
-		if ( ! linebuf_init(p))
-			return(KCGI_ENOMEM);
-		for (i = 0; i < sz; i++, p->bytes++) {
-			if (p->linebufpos + 4 >= p->linebufsz)
-				if ( ! linebuf_flush(p, 1))
-					return(KCGI_SYSTEM);
-			if (isprint((unsigned char)buf[i]) || '\n' == buf[i]) {
-				p->linebuf[p->linebufpos++] = buf[i];
-			} else if ('\t' == buf[i]) {
-				p->linebuf[p->linebufpos++] = '\\';
-				p->linebuf[p->linebufpos++] = 't';
-			} else if ('\r' == buf[i]) {
-				p->linebuf[p->linebufpos++] = '\\';
-				p->linebuf[p->linebufpos++] = 'r';
-			} else if ('\v' == buf[i]) {
-				p->linebuf[p->linebufpos++] = '\\';
-				p->linebuf[p->linebufpos++] = 'v';
-			} else if ('\b' == buf[i]) {
-				p->linebuf[p->linebufpos++] = '\\';
-				p->linebuf[p->linebufpos++] = 'b';
-			} else
-				p->linebuf[p->linebufpos++] = '?';
-
-			p->linebuf[p->linebufpos] = '\0';
-			if ('\n' == buf[i])
-				if ( ! linebuf_flush(p, 0))
-					return(KCGI_SYSTEM);
+	if (sz && (p->debugging & KREQ_DEBUG_WRITE))
+		for (i = 0, max = sizeof(p->linebuf); i < sz; ) {
+			newln = 0;
+			while (i < sz && p->linebufpos < max) {
+				p->linebuf[p->linebufpos] = buf[i++];
+				p->bytes++;
+				if (p->linebuf[p->linebufpos] == '\n') {
+					newln = 1;
+					break;
+				}
+				p->linebufpos++;
+			}
+			if (newln) {
+				kutil_info(NULL, NULL, "%lu-tx: %.*s",
+					(unsigned long)getpid(), 
+					(int)p->linebufpos, p->linebuf);
+				p->linebufpos = 0;
+			} else if (p->linebufpos == max) {
+				kutil_info(NULL, NULL, "%lu-tx: %.*s...",
+					(unsigned long)getpid(), 
+					(int)p->linebufpos, p->linebuf);
+				p->linebufpos = 0;
+			}
 		}
-	}
 
 	/* 
 	 * Short-circuit: if we have no output buffer, flush directly to
@@ -455,12 +401,14 @@ kdata_free(struct kdata *p, int flush)
 
 	/* Debugging messages. */
 
-	if (flush && (KREQ_DEBUG_WRITE & p->debugging)) {
-		(void)linebuf_flush(p, 1);
-		fprintf(stderr, "%u: %" PRIu64 " B tx\n", 
-			getpid(), p->bytes);
-		if (fflush(stderr) != 0)
-			kutil_warn(NULL, NULL, "fflush");
+	if (flush && (p->debugging & KREQ_DEBUG_WRITE)) {
+		if (p->linebufpos)
+			kutil_info(NULL, NULL, "%lu-tx: %.*s",
+				(unsigned long)getpid(), 
+				(int)p->linebufpos, p->linebuf);
+		p->linebufpos = 0;
+		kutil_info(NULL, NULL, "%lu-tx: %" PRIu64 " B",
+			(unsigned long)getpid(), p->bytes);
 	}
 
 	/* Remaining buffered data. */
@@ -468,7 +416,6 @@ kdata_free(struct kdata *p, int flush)
 	if (flush) 
 		kdata_drain(p);
 
-	free(p->linebuf); 
 	free(p->outbuf);
 
 	/*
