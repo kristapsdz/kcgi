@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2016--2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2016--2018, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -111,10 +111,23 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 	/*
 	 * Copy message into final buffer, filtering unprintables
 	 * and whitespace.
+	 * This draws from strvis(3).
 	 */
 
 	for (i = 0; i < cmpsz; i++)
 		switch (cmp[i]) {
+		case '\a':
+			*p++ = '\\';
+			*p++ = 'a';
+			break;
+		case '\b':
+			*p++ = '\\';
+			*p++ = 'b';
+			break;
+		case '\f':
+			*p++ = '\\';
+			*p++ = 'f';
+			break;
 		case '\n':
 			*p++ = '\\';
 			*p++ = 'n';
@@ -126,6 +139,14 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 		case '\t':
 			*p++ = '\\';
 			*p++ = 't';
+			break;
+		case '\v':
+			*p++ = '\\';
+			*p++ = 'v';
+			break;
+		case '\0':
+			*p++ = '\\';
+			*p++ = '0';
 			break;
 		default:
 			if (isprint((unsigned char)cmp[i]))
@@ -139,7 +160,7 @@ logmsg(const struct kreq *r, const char *err, const char *lvl,
 
 	/* Append optional error message, and newline */
 
-	if (NULL != err) {
+	if (err != NULL) {
 		(void)strlcat(msg, ": ", sz);
 		(void)strlcat(msg, err, sz);
 	}
