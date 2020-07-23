@@ -5,7 +5,7 @@
 		<header>
 			<h1>0.12.2</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2020-05-11">2020-05-11</time>
+			<time datetime="2020-07-28">2020-07-28</time>
 		</header>
 		<aside>
 			<div>
@@ -25,6 +25,10 @@
 				consistency and to avoid having separate loggers.
 				The same applies to the <code>debugging</code> parameter passed into
 				<a href="khttp_parse.3.html">khttp_parse(3)</a>.
+			</div>
+			<div>
+				<b>Bug fix</b> for FreeBSD with Capsicum when logging to a file
+				opened with <a href="kutil_openlog.3.html">kutil_openlog(3)</a>.
 			</div>
 		</aside>
 	</article>
