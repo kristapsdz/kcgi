@@ -150,10 +150,16 @@ ksandbox_capsicum_init_worker(int fd1, int fd2)
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 
-	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1) {
+#if 0
+	/* Don't run this: if we use openlog, it will fail. */
+
+	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1) {
 		kutil_warn(NULL, NULL, "setrlimit");
 		return 0;
-	} else if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1) {
+	}
+#endif
+
+	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1) {
 		kutil_warn(NULL, NULL, "setrlimit");
 		return 0;
 	} else if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1) {
