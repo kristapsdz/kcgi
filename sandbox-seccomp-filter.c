@@ -171,6 +171,8 @@ static const struct sock_filter preauth_work[] = {
 #endif
 	SC_ALLOW(read),
 	SC_ALLOW(readv),
+	SC_ALLOW(lseek), /* for kutil_openlog logging */
+	SC_ALLOW(fstat), /* for kutil_openlog logging */
 	SC_ALLOW(write),
 	SC_ALLOW(writev),
 	SC_ALLOW(close),
@@ -275,12 +277,13 @@ ksandbox_seccomp_init_child(enum sandtype type)
 	int 		nnp_failed = 0;
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
-
-	/* Set rlimits for completeness if possible. */
-
+#if 0
+	/*
+	 * Don't do this: we might write into a kutil_openlog(3).
+	 */
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
 		kutil_warn(NULL, NULL, "setrlimit");
-#if 0
+
 	/*
 	 * Don't do like OpenSSH: we need to pass stuff back and forth
 	 * over pipes, and this will prevent that from happening.
@@ -288,6 +291,7 @@ ksandbox_seccomp_init_child(enum sandtype type)
 	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
 		kutil_warn(NULL, NULL, "setrlimit");
 #endif
+
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		kutil_warn(NULL, NULL, "setrlimit");
 
