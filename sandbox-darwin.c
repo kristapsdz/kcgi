@@ -49,7 +49,14 @@ ksandbox_darwin_init_child(enum sandtype type)
 		rc = 1;
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+
 #if 0
+	/*
+	 * This doesn't play with kutil_openlog.
+	 */
+	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
+		kutil_warn(NULL, NULL, "setrlimit");
+
 	/*
 	 * FIXME: I've taken out the RLIMIT_NOFILE setrlimit() because
 	 * it causes strange behaviour.  On Mac OS X, it fails with
@@ -59,8 +66,6 @@ ksandbox_darwin_init_child(enum sandtype type)
 	if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
 		kutil_warn(NULL, NULL, "setrlimit");
 #endif
-	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
-		kutil_warn(NULL, NULL, "setrlimit");
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		kutil_warn(NULL, NULL, "setrlimit");
 
