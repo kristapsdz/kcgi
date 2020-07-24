@@ -223,7 +223,7 @@
 				<a href="https://www.oracle.com/solaris/solaris11" itemprop="operatingSystem">Solaris</a>,
 				<a href="https://omniosce.org" itemprop="operatingSystem">OmniOS</a>, and 
 				<a href="https://www.apple.com/osx" itemprop="operatingSystem">Mac OS X</a> 
-				(only Mojave and newer!) on i386, AMD64, and SPARC64.
+				(only Mojave and newer!) on i386, amd64, powerpc, arm64, and sparc64.
 				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
 					href="https://nginx.org">nginx</a>, and OpenBSD's <a
 					href="https://man.openbsd.org/httpd.8">httpd(8)</a>

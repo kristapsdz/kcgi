@@ -5,7 +5,7 @@
 		<header>
 			<h1>0.12.2</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2020-07-28">2020-07-28</time>
+			<time datetime="2020-07-24">2020-07-24</time>
 		</header>
 		<aside>
 			<div>
@@ -29,6 +29,7 @@
 			<div>
 				<b>Bug fix</b> for FreeBSD with Capsicum when logging to a file
 				opened with <a href="kutil_openlog.3.html">kutil_openlog(3)</a>.
+				Same goes with the Linux and Darwin sandboxes.
 			</div>
 		</aside>
 	</article>
