@@ -305,8 +305,8 @@ ksandbox_seccomp_init_child(enum sandtype type)
 	    &preauth_prog_ctrl : &preauth_prog_work) == -1)
 		kutil_warn(NULL, NULL, "prctl");
 	else if (nnp_failed) {
-		kutil_warnx("SECCOMP_MODE_FILTER activated but "
-		    "PR_SET_NO_NEW_PRIVS failed");
+		kutil_warnx(NULL, NULL, "SECCOMP_MODE_FILTER "
+		    "activated but PR_SET_NO_NEW_PRIVS failed");
 		_exit(EXIT_FAILURE);
 	}
 
