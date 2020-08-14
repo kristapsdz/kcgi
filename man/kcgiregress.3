@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2015, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -41,33 +41,14 @@
 .Fa "void *serverData"
 .Fc
 .Sh DESCRIPTION
+Automated testing platform for
+.Xr kcgi 3 .
+Allow for emulated CGI or FastCGI environments over a local network
+port.
+.Pp
 The
-.Fn kcgi_regress_cgi
-and
-.Fn kcgi_regress_fcgi
-functions are used for automated testing of
-.Xr kcgi 3
-systems, both as CGI and FastCGI scripts.
-It is the mechanism used for internal regression tests as well.
-.Pp
-To compile and link, use
-.Xr pkg-config 1
-as follows:
-.Bd -literal
-% cc `pkg-config --cflags kcgi libcurl` -c -o sample.o sample.c
-% cc -o sample sample.o `pkg-config --libs kcgi libcurl`
-.Ed
-.Pp
-Some systems use a distinct
-.Xr curl-config 1 .
-.Pp
-Applications wishing to use this framework provide callback functions to
-.Fn kcgi_regress_cgi
-and
-.Fn kcgi_regress_fcgi ,
-which invoke
 .Fa server
-with argument
+callback is invoked with argument
 .Fa serverArg
 within a CGI or FastCGI environment as if it were spawned by a web
 server, upon which the usual
@@ -76,78 +57,121 @@ or
 .Xr khttp_fcgi_init 3
 and
 .Xr khttp_fcgi_parse 3
-functions are used to test behaviour.
-Meanwhile, the
-.Fa client
-function is invoked for communicating with the server over port 17123.
+functions are usually used to test behaviour.
 The
-.Xr libcurl 3
-library is used for internal testing on the client side.
-.Pp
-In most applications, the main function invokes
-.Fn kcgi_regress_cgi
-or
-.Fn kcgi_regress_fcgi ,
-prepares a libCURL request in the client callback, then runs the usual
-.Xr kcgi 3
-sequence in the server callback.
-.Sh RETURN VALUES
-Both the
 .Fa client
-and
-.Fa server
-functions should return zero on test failure.
-.Fn kcgi_regress_cgi
-and
-.Fn kcgi_regress_fcgi
-return zero if any tests or internal machinery fail.
+callback communicates with the server over port 17123.
+Usually this is orchestrated with
+.Xr libcurl 3 .
+The port number is fixed.
+.Pp
+Both of these callbacks must return zero on failure, non-zero on
+success.
+.Pp
+To compile and link, use
+.Xr pkg-config 1
+as follows:
+.Bd -literal -offset indent
+% cc `pkg-config --cflags kcgi-regress` -c -o sample.o sample.c
+% cc -o sample sample.o `pkg-config --libs kcgi-regress`
+.Ed
+.Pp
+.Xr kcgi 3
+components should use their respective
+.Xr pkg-config 1
+identifiers, such as
+.Qq kcgi-json
+for
+.Xr kcgijson 3
+output.
+Applications using
+.Xr libcurl 3
+should further use
+.Xr curl-config 1
+as well, or on some systems,
+.Xr pkg-config 1
+with
+.Qq libcurl .
+.Sh RETURN VALUES
+These functions return zero on failure, non-zero on success.
 .Sh EXAMPLES
-The following regression test simple checks whether a given URL,
-.Pa login.json ,
-is recognised (and returns HTTP error code 200) by CGI script
-.Pa foobar ,
-which is assumed to be accessible by
-.Xr execl 3 .
-.Bd -literal
+The following regression test simply checks that the server responds.
+Its only check is for operation and HTTP status code (201).
+.Bd -literal -offset indent
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
-
 #include <curl/curl.h>
+#include <kcgi.h>
+#include <kcgijson.h>
 #include <kcgiregress.h>
 
 static int
-child(void *arg)
+server(void *arg)
 {
-  execl("foobar", "foobar", (char *)NULL);
-  _exit(EXIT_FAILURE);
+  struct kreq      r;
+
+  if (khttp_parse(&r, NULL, 0, NULL, 0, 0) != KCGI_OK)
+    return 0;
+  khttp_head(&r, kresps[KRESP_STATUS],
+    "%s", khttps[KHTTP_201]);
+  khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
+    "%s", kmimetypes[KMIME_APP_JSON]);
+  khttp_body(&r);
+  khttp_free(&r);
+
+  return 1;
 }
 
 static int
-parent(void *fp)
+client(void *arg)
 {
-  CURL *curl;
-  long http;
+  CURL    *curl;
+  long     http;
 
-  curl = curl_easy_init();
+  if ((curl = curl_easy_init()) == NULL)
+    return 0;
   curl_easy_setopt(curl, CURLOPT_URL,
-    "http://localhost:17123/login.json");
-  if (CURLE_OK != curl_easy_perform(curl))
-    return(0);
+    "http://localhost:17123/index.json");
+  if (curl_easy_perform(curl) != CURLE_OK)
+    return 0;
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http);
   curl_easy_cleanup(curl);
   curl_global_cleanup();
-  return(200 == http);
+
+  return http == 201;
 }
 
 int
 main(void)
 {
-  return(kcgi_regress_cgi(parent, NULL, child, NULL) ?
-    EXIT_SUCCESS : EXIT_FAILURE);
+  return kcgi_regress_cgi
+    (client, NULL, server, NULL) ? 0 : 1;
 }
 .Ed
+.Pp
+To compile this simple regression test, the
+.Xr kcgi 3 ,
+.Xr kcgiregress 3 ,
+.Xr kcgijson 3 ,
+and
+.Xr libcurl 3
+libraries and headers are needed, along with further dependencies.
+Let the file be named
+.Pa sample.c .
+.Bd -literal -offset indent
+% export PKGS="kcgi-regress kcgi-json libcurl"
+% cc `pkg-config --cflags $PKGS` -c sample.c
+% cc -o sample sample.o `pkg-config --libs $PKGS`
+.Ed
+.Pp
+This assumes that
+.Xr libcurl 3
+has its configuration recognised by
+.Xr pkg-config 1 ,
+which isn't always the case: sometimes
+.Xr curl-config 1
+is required.
 .Sh AUTHORS
-The
-.Nm kcgiregress
-library was written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
