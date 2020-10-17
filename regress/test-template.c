@@ -205,6 +205,25 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
+	/* Found zero-length after escaped. */
+
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
+	test = "abc\\@@@@@@def";
+	testsz = strlen(test);
+	t.key = ekeys;
+	t.keysz = 1;
+	t.arg = &b;
+	t.cb = testempty_cmp;
+	tkx.fbk = NULL;
+	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
+	if (KCGI_OK != rc)
+		goto out;
+	r = "abc@@XXXdef";
+	rsz = strlen(r);
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
+		goto out;
+
 	/* Not found, no fallthrough, kept. */
 
 	free(b.buf);
