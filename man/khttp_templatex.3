@@ -16,12 +16,12 @@
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
 .Dd $Mdocdate$
-.Dt KHTTP_TEMPLATE 3
+.Dt KHTTP_TEMPLATEX 3
 .Os
 .Sh NAME
-.Nm khttp_template ,
-.Nm khttp_template_buf ,
-.Nm khttp_template_fd
+.Nm khttp_templatex ,
+.Nm khttp_templatex_buf ,
+.Nm khttp_templatex_fd
 .Nd emit filled-in templates for kcgi
 .Sh LIBRARY
 .Lb libkcgi
@@ -31,41 +31,33 @@
 .In stdint.h
 .In kcgi.h
 .Ft enum kcgi_err
-.Fo khttp_template
-.Fa "struct kreq *req"
+.Fo khttp_templatex
 .Fa "const struct ktemplate *t"
 .Fa "const char *filename"
+.Fa "const struct ktemplatex *x"
+.Fa "void *arg"
 .Fc
 .Ft enum kcgi_err
-.Fo khttp_template_buf
-.Fa "struct kreq *req"
+.Fo khttp_templatex_buf
 .Fa "const struct ktemplate *t"
 .Fa "const char *buf"
 .Fa "size_t sz"
+.Fa "const struct ktemplatex *x"
+.Fa "void *arg"
 .Fc
 .Ft enum kcgi_err
-.Fo khttp_template_fd
-.Fa "struct kreq *req"
+.Fo khttp_templatex_fd
 .Fa "const struct ktemplate *t"
 .Fa "int fd"
 .Fa "const char *filename"
+.Fa "const struct ktemplatex *x"
+.Fa "void *arg"
 .Fc
 .Sh DESCRIPTION
 Modify input by replacing keys in a template.
-May only be called after
-.Xr khttp_body 3 .
-Output is written with
-.Xr khttp_write 3
-using the
-.Fa req
-previously allocated with
-.Xr khttp_parse 3
-or
-.Xr khttp_fcgi_parse 3 .
-The
-.Xr khttp_templatex 3
-family allows for alternative writers.
-.Pp
+This generalises the
+.Xr khttp_template 3
+family of functions with generic writing functions.
 All functions accept a template
 .Fa t
 consisting of the following fields:
@@ -91,16 +83,37 @@ is passed the function.
 The function must return zero on failure, non-zero on success.
 .El
 .Pp
+They further accept an extension
+.Fa x
+consisting of the following:
+.Bl -tag -width Ds
+.It Fa writer
+A writing function for writing input that does not match key sequences.
+If it is invoked and the return value is not
+.Dv KCGI_OK ,
+templating stops and the return value is returned to the caller.
+.It Fa fbk
+A fall-back function invoked if a key sequences was not found in the
+.Fa c->key
+array.
+This accepts the key sequence, length of the sequence, and
+.Fa arg .
+If
+.Dv NULL ,
+key sequences not found are passed to
+.Fa writer .
+.El
+.Pp
 If
 .Fa t
 is
 .Dv NULL ,
 the input is passed through to
-.Xr khttp_write 3
+.Fa x->writer
 without any processing.
 .Pp
 Otherwise, the input is passed to
-.Xr khttp_write 3
+.Fa x->writer
 until a key sequence in encountered matching a key in
 .Fa t->key .
 The callback
@@ -111,20 +124,25 @@ If there are multiple matching keys in
 only one is used (which is not yet fixed).
 If the key sequence is not found in
 .Fa t->key ,
-it is passed unchanged to
-.Xr khttp_write 3 .
+it is passed to
+.Fa x->fbk ,
+if not
+.Dv NULL ,
+or passed directly to
+.Fa x->writer
+otherwise.
 .Pp
 The different input types are
-.Fn khttp_template ,
+.Fn khttpx_template ,
 which reads input from the file
 .Fa filename ;
-.Fn khttp_template_buf ,
+.Fn khttpx_template_buf ,
 which reads from a binary buffer
 .Fa buf
 of length
 .Fa sz ;
 and
-.Fn khttp_template_fd ,
+.Fn khttpx_template_fd ,
 which reads from a file descriptor
 .Fa fd
 with optional file-name
@@ -170,34 +188,49 @@ failed to
 .Fa t->cb
 returned 0.
 .El
+.Pp
+If the
+.Fa x->writer
+function returns anything but
+.Dv KCGI_OK ,
+the return code is passed as the return value.
 .Sh EXAMPLES
 The following simple example takes a buffer
 .Fa buf
 and applies the replacement template of two values, writing it to the
 current context
 .Fa req .
+It stores the result in the given buffer
+.Fa out .
 .Bd -literal -offset indent
 static int writer(size_t idx, void *arg)
 {
-  struct kreq *r = arg;
+  struct kcgi_buf *p = arg;
   if (idx == 0)
-    khttp_puts(r, "foo-value");
+    kcgi_buf_puts(p, "foo-value");
   else if (idx == 1)
-    khttp_puts(r, "bar-value");
+    kcgi_buf_puts(p, "bar-value");
   return 1;
 }
 
-enum kcgi_err format(struct kreq *r)
+enum kcgi_err format(struct kcgi_buf *out)
 {
   const char *const keys[] = { "foo", "bar" };
   struct ktemplate t = {
     .key = keys,
     .keysz = 2,
-    .arg = r,
+    .arg = out,
     .cb = writer
   };
-  const char *buf = "foo=@@foo@@, bar=@@bar@@";
-  return khttp_template_buf(r, &t, buf, strlen(buf));
+  struct ktemplatex x = {
+    .writer = kcgi_buf_write,
+    .fbk = NULL
+  };
+  const char *in = "foo=@@foo@@, bar=@@bar@@";
+
+  memset(&out, 0, sizeof(struct kcgi_buf));
+  return khttp_templatex_buf
+    (&t, in, strlen(in), &x, out);
 }
 .Ed
 .Pp
@@ -207,7 +240,7 @@ The function will produce
 .Xr kcgi 3 ,
 .Xr khttp_body 3 ,
 .Xr khttp_parse 3 ,
-.Xr khttp_templatex 3 ,
+.Xr khttp_template 3 ,
 .Xr khttp_write 3
 .Sh AUTHORS
 Written by
