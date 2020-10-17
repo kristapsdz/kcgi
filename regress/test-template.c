@@ -25,6 +25,17 @@
 #include "../kcgi.h"
 
 static int
+testmulti_cmp(size_t idx, void *arg)
+{
+
+	if (idx)
+		return(0);
+	kcgi_buf_puts(arg, "XXX");
+	return(1);
+}
+
+
+static int
 testempty_cmp(size_t idx, void *arg)
 {
 
@@ -58,18 +69,19 @@ test1_fallthrough(const char *k, size_t ksz, void *arg)
 	return(1);
 }
 
-static int
-test1(void)
+int
+main(void)
 {
 	struct ktemplate t;
 	struct ktemplatex tkx;
 	const char	*keys[] = { "foobar" };
+	const char	*multikeys[] = { "foobar", "foobar" };
 	const char	*ekeys[] = { "" };
 	const char	*test;
 	const char	*r;
 	size_t		 testsz, rsz;
 	struct kcgi_buf	 b;
-	int		 c = 0;
+	int		 c = EXIT_FAILURE;
 	enum kcgi_err	 rc;
 
 	memset(&t, 0, sizeof(struct ktemplate));
@@ -107,6 +119,24 @@ test1(void)
 	if (KCGI_OK != rc)
 		goto out;
 	r = "abcfoodef";
+	rsz = strlen(r);
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
+		goto out;
+
+	/* Found in keys (use only first). */
+
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
+	test = "abc@@foobar@@def";
+	testsz = strlen(test);
+	t.key = multikeys;
+	t.keysz = 2;
+	t.arg = &b;
+	t.cb = testmulti_cmp;
+	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
+	if (KCGI_OK != rc)
+		goto out;
+	r = "abcXXXdef";
 	rsz = strlen(r);
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
@@ -412,18 +442,8 @@ test1(void)
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
 
-	c = 1;
+	c = EXIT_SUCCESS;
 out:
 	free(b.buf);
 	return(c);
-}
-
-int
-main(void)
-{
-
-	if ( ! test1())
-		return(EXIT_FAILURE);
-
-	return(EXIT_SUCCESS);
 }
