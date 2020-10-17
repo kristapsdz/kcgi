@@ -25,6 +25,16 @@
 #include "../kcgi.h"
 
 static int
+testempty_cmp(size_t idx, void *arg)
+{
+
+	if (idx)
+		return(0);
+	kcgi_buf_puts(arg, "XXX");
+	return(1);
+}
+
+static int
 test1_cmp(size_t idx, void *arg)
 {
 	const char *res = "foo";
@@ -54,6 +64,7 @@ test1(void)
 	struct ktemplate t;
 	struct ktemplatex tkx;
 	const char	*keys[] = { "foobar" };
+	const char	*ekeys[] = { "" };
 	const char	*test;
 	const char	*r;
 	size_t		 testsz, rsz;
@@ -171,6 +182,25 @@ test1(void)
 	if (KCGI_OK != rc)
 		goto out;
 	r = "abcfoodef";
+	rsz = strlen(r);
+	if (b.sz != rsz || memcmp(r, b.buf, rsz))
+		goto out;
+
+	/* Found zero-length. */
+
+	free(b.buf);
+	memset(&b, 0, sizeof(struct kcgi_buf));
+	test = "abc@@@@def";
+	testsz = strlen(test);
+	t.key = ekeys;
+	t.keysz = 1;
+	t.arg = &b;
+	t.cb = testempty_cmp;
+	tkx.fbk = NULL;
+	rc = khttp_templatex_buf(&t, test, testsz, &tkx, &b);
+	if (KCGI_OK != rc)
+		goto out;
+	r = "abcXXXdef";
 	rsz = strlen(r);
 	if (b.sz != rsz || memcmp(r, b.buf, rsz))
 		goto out;
