@@ -3,6 +3,20 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2021-01-20">2021-01-20</time>
+		</header>
+		<aside>
+			<div>
+				<b>Bug fix</b>: fix some bad pointer arithmetic on a regression test
+				on Linux.  While here, fix how <code>make regress</code> would spam
+				some systems with erroneous warning messages.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.2</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2020-07-24">2020-07-24</time>
