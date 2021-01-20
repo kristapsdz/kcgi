@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 		vv = (int64_t)random() * (int64_t)random();
 		memcpy(&v, &vv, sizeof(uint32_t));
 		vv = (int64_t)random() * (int64_t)random();
-		memcpy(&v + sizeof(uint32_t), &vv, sizeof(uint32_t));
+		memcpy((void *)&v + sizeof(uint32_t), &vv, sizeof(uint32_t));
 #endif
 		khttp_epoch2datetime(v,
 			&tm_sec,
