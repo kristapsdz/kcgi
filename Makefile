@@ -282,7 +282,7 @@ REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
 # The -Wno-deprecated is because the regression tests still check
 # functions that have been since deprecated.
 
-REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG) -Wno-deprecated
+REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG) -Wno-deprecated-declarations
 
 all: kfcgi $(LIBS) $(PCS)
 
