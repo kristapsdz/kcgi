@@ -84,7 +84,8 @@ child(void)
 		}
 
 		for (i = 0; i < 1024 * 1024; i++)
-			if (r.fieldmap[0]->val[i] != (i % 10) + 65) {
+			if ((unsigned char)r.fieldmap[0]->val[i] != 
+			    (i % 10) + 65) {
 				khttp_free(&r);
 				khttp_fcgi_free(fcgi);
 				return(0);
