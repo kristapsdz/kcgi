@@ -150,7 +150,7 @@ const char *const pages[PAGE__MAX] = {
     return KHTTP_404;
   else if (r->mime != KMIME_TEXT_HTML)
     return KHTTP_404;
-  else if (r->metehod != KMETHOD_GET)
+  else if (r->method != KMETHOD_GET)
     return KHTTP_405;
   return KHTTP_200;
 }</pre> 
