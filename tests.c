@@ -93,13 +93,17 @@ main(void)
  */
 
 #include <err.h>
+#include <errno.h>
 
 int
 main(void)
 {
 	warnx("%d. warnx", 1);
+	warnc(ENOENT, "%d. warn", ENOENT);
 	warn("%d. warn", 2);
 	err(0, "%d. err", 3);
+	errx(0, "%d. err", 3);
+	errc(0, ENOENT, "%d. err", 3);
 	/* NOTREACHED */
 	return 1;
 }
@@ -117,6 +121,7 @@ main(void)
 }
 #endif /* TEST_EXPLICIT_BZERO */
 #if TEST_FTS
+#include <stddef.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fts.h>
@@ -415,7 +420,7 @@ main(void)
 	return setresuid(-1, -1, -1) == -1;
 }
 #endif /* TEST_SETRESUID */
-#if TEST_SHA2_H
+#if TEST_SHA2
 #include <sys/types.h>
 #include <sha2.h>
 
@@ -430,7 +435,7 @@ int main(void)
 
 	return 0;
 }
-#endif /* TEST_SHA2_H */
+#endif /* TEST_SHA2 */
 #if TEST_SOCK_NONBLOCK
 /*
  * Linux doesn't (always?) have this.
