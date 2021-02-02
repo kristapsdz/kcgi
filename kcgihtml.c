@@ -247,6 +247,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "legend" }, /* KELEM_LEGEND */
 	{ TAG_FLOW, "li" }, /* KELEM_LI */
 	{ TAG_VOID, "link" }, /* KELEM_LINK */
+	{ TAG_FLOW, "main" }, /* KELEM_MAIN */
 	{ TAG_FLOW, "map" }, /* KELEM_MAP */ /* XXX: TRANS */
 	{ TAG_PHRASE, "mark" }, /* KELEM_MARK */
 	{ TAG_FLOW, "menu" }, /* KELEM_MENU */
