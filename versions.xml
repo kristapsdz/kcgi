@@ -3,6 +3,20 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2021-03-02">2021-03-02</time>
+		</header>
+		<aside>
+			<div>
+				Add some attributes and elements for
+				<a href="https://www.w3.org/TR/html52/">HTML5.2</a>, which is the
+				standard supported by <a href="kcgihtml.3.html">kcgihtml(3)</a>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.3</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2021-01-20">2021-01-20</time>
