@@ -1,6 +1,6 @@
 /*	$Id$ */
 /*
- * Copyright (c) 2012, 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) 2012--2021 Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -247,6 +247,7 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "legend" }, /* KELEM_LEGEND */
 	{ TAG_FLOW, "li" }, /* KELEM_LI */
 	{ TAG_VOID, "link" }, /* KELEM_LINK */
+	{ TAG_FLOW, "main" }, /* KELEM_MAIN */
 	{ TAG_FLOW, "map" }, /* KELEM_MAP */ /* XXX: TRANS */
 	{ TAG_PHRASE, "mark" }, /* KELEM_MARK */
 	{ TAG_FLOW, "menu" }, /* KELEM_MENU */
