@@ -209,11 +209,13 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "code" }, /* KELEM_CODE */
 	{ TAG_VOID, "col" }, /* KELEM_COL */
 	{ TAG_PHRASE, "colgroup" }, /* KELEM_COLGROUP */
+	{ TAG_PHRASE, "data" }, /* KELEM_DATA*/
 	{ TAG_PHRASE, "datalist" }, /* KELEM_DATALIST */
 	{ TAG_FLOW, "dd" }, /* KELEM_DD */
 	{ TAG_PHRASE, "del" }, /* KELEM_DEL */ /* XXX: TRANS */
 	{ TAG_FLOW, "details" }, /* KELEM_DETAILS */
 	{ TAG_PHRASE, "dfn" }, /* KELEM_DFN */
+	{ TAG_FLOW, "dialog" }, /* KELEM_DIALOG */
 	{ TAG_FLOW, "div" }, /* KELEM_DIV */
 	{ TAG_FLOW, "dl" }, /* KELEM_DL */
 	{ TAG_INSTRUCTION, "!DOCTYPE html" }, /* KELEM_DOCTYPE */
@@ -262,11 +264,14 @@ static	const struct tag tags[KELEM__MAX] = {
 	{ TAG_PHRASE, "output" }, /* KELEM_OUTPUT */
 	{ TAG_PHRASE, "p" }, /* KELEM_P */
 	{ TAG_VOID, "param" }, /* KELEM_PARAM */
+	{ TAG_PHRASE, "picture" }, /* KELEM_PICTURE */ /* XXX: TRANS */
 	{ TAG_PHRASE, "pre" }, /* KELEM_PRE */
 	{ TAG_PHRASE, "progress" }, /* KELEM_PROGRESS */
 	{ TAG_PHRASE, "q" }, /* KELEM_Q */
+	{ TAG_PHRASE, "rb" }, /* KELEM_RB */
 	{ TAG_PHRASE, "rp" }, /* KELEM_RP */
 	{ TAG_PHRASE, "rt" }, /* KELEM_RT */
+	{ TAG_PHRASE, "rtc" }, /* KELEM_RTC */
 	{ TAG_PHRASE, "ruby" }, /* KELEM_RUBY */
 	{ TAG_PHRASE, "s" }, /* KELEM_S */
 	{ TAG_PHRASE, "samp" }, /* KELEM_SAMP */
