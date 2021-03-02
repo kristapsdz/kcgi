@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2014, 2015, 2017, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2014--2021 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -37,7 +37,7 @@ context allocated with
 To compile and link, use
 .Xr pkg-config 1
 as follows:
-.Bd -literal
+.Bd -literal -offset indent
 % cc `pkg-config --cflags kcgi-html` -c sample.c
 % cc -o sample sample.o `pkg-config --libs kcgi-html`
 .Ed
@@ -49,7 +49,7 @@ functions accept a
 object.
 To use this properly, open a context with
 .Fn khtml_open ,
-then use whichever functions you wish, then close the context with
+output desired HTML content, then close the context with
 .Fn khtml_close .
 .Sh EXAMPLES
 The following outputs a simple HTML page.
@@ -112,7 +112,8 @@ hints as to which scope is being closed.
 .Xr khtml_puts 3 ,
 .Xr khtml_write 3
 .Sh STANDARDS
-HTML5 compatible with the draft standard of February 2014.
+The referenced HTML5 standard is
+.Lk https://www.w3.org/TR/html52 HTML5.2 .
 .Sh AUTHORS
 Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
