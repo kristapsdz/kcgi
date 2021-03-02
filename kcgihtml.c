@@ -303,6 +303,8 @@ static	const char *const attrs[KATTR__MAX] = {
 	"accept-charset", /* KATTR_ACCEPT_CHARSET */
 	"accesskey", /* KATTR_ACCESSKEY */
 	"action", /* KATTR_ACTION */
+	"allowfullscreen", /* KATTR_ALLOWFULLSCREEN */
+	"allowpaymentrequest", /* KATTR_ALLOWPAYMENTREQUEST */
 	"alt", /* KATTR_ALT */
 	"async", /* KATTR_ASYNC */
 	"autocomplete", /* KATTR_AUTOCOMPLETE */
@@ -321,12 +323,15 @@ static	const char *const attrs[KATTR__MAX] = {
 	"contextmenu", /* KATTR_CONTEXTMENU */
 	"controls", /* KATTR_CONTROLS */
 	"coords", /* KATTR_COORDS */
+	"crossorigin", /* KATTR_CROSSORIGIN */
+	"data", /* KATTR_DATA */
 	"datetime", /* KATTR_DATETIME */
 	"default", /* KATTR_DEFAULT */
 	"defer", /* KATTR_DEFER */
 	"dir", /* KATTR_DIR */
 	"dirname", /* KATTR_DIRNAME */
 	"disabled", /* KATTR_DISABLED */
+	"download", /* KATTR_DOWNLOAD */
 	"draggable", /* KATTR_DRAGGABLE */
 	"dropzone", /* KATTR_DROPZONE */
 	"enctype", /* KATTR_ENCTYPE */
@@ -338,6 +343,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"formnovalidate", /* KATTR_FORMNOVALIDATE */
 	"formtarget", /* KATTR_FORMTARGET */
 	"header", /* KATTR_HEADER */
+	"headers", /* KATTR_HEADERS */
 	"height", /* KATTR_HEIGHT */
 	"hidden", /* KATTR_HIDDEN */
 	"high", /* KATTR_HIGH */
@@ -353,6 +359,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"lang", /* KATTR_LANG */
 	"language", /* KATTR_LANGUAGE */
 	"list", /* KATTR_LIST */
+	"longdesc", /* KATTR_LONGDESC */
 	"loop", /* KATTR_LOOP */
 	"low", /* KATTR_LOW */
 	"manifest", /* KATTR_MANIFEST */
@@ -362,24 +369,32 @@ static	const char *const attrs[KATTR__MAX] = {
 	"mediagroup", /* KATTR_MEDIAGROUP */
 	"method", /* KATTR_METHOD */
 	"min", /* KATTR_MIN */
+	"minlength", /* KATTR_MINLENGTH */
 	"multiple", /* KATTR_MULTIPLE */
 	"muted", /* KATTR_MUTED */
 	"name", /* KATTR_NAME */
+	"nonce", /* KATTR_NONCE */
 	"novalidate", /* KATTR_NOVALIDATE */
 	"onabort", /* KATTR_ONABORT */
 	"onafterprint", /* KATTR_ONAFTERPRINT */
+	"onauxclick", /* KATTR_ONAUXCLICK */
 	"onbeforeprint", /* KATTR_ONBEFOREPRINT */
 	"onbeforeunload", /* KATTR_ONBEFOREUNLOAD */
 	"onblur", /* KATTR_ONBLUR */
+	"oncancel", /* KATTR_ONCANCEL */
 	"oncanplay", /* KATTR_ONCANPLAY */
 	"oncanplaythrough", /* KATTR_ONCANPLAYTHROUGH */
 	"onchange", /* KATTR_ONCHANGE */
 	"onclick", /* KATTR_ONCLICK */
+	"onclose", /* KATTR_ONCLOSE */
 	"oncontextmenu", /* KATTR_ONCONTEXTMENU */
+	"oncuechange", /* KATTR_ONCUECHANGE */
+	"oncut", /* KATTR_ONCUT */
 	"ondblclick", /* KATTR_ONDBLCLICK */
 	"ondrag", /* KATTR_ONDRAG */
 	"ondragend", /* KATTR_ONDRAGEND */
 	"ondragenter", /* KATTR_ONDRAGENTER */
+	"ondragexit", /* KATTR_ONDRAGEXIT */
 	"ondragleave", /* KATTR_ONDRAGLEAVE */
 	"ondragover", /* KATTR_ONDRAGOVER */
 	"ondragstart", /* KATTR_ONDRAGSTART */
@@ -401,6 +416,8 @@ static	const char *const attrs[KATTR__MAX] = {
 	"onloadstart", /* KATTR_ONLOADSTART */
 	"onmessage", /* KATTR_ONMESSAGE */
 	"onmousedown", /* KATTR_ONMOUSEDOWN */
+	"onmouseenter", /* KATTR_ONMOUSEENTER */
+	"onmouseleave", /* KATTR_ONMOUSELEAVE */
 	"onmousemove", /* KATTR_ONMOUSEMOVE */
 	"onmouseout", /* KATTR_ONMOUSEOUT */
 	"onmouseover", /* KATTR_ONMOUSEOVER */
@@ -410,6 +427,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"ononline", /* KATTR_ONONLINE */
 	"onpagehide", /* KATTR_ONPAGEHIDE */
 	"onpageshow", /* KATTR_ONPAGESHOW */
+	"onpaste", /* KATTR_ONPASTE */
 	"onpause", /* KATTR_ONPAUSE */
 	"onplay", /* KATTR_ONPLAY */
 	"onplaying", /* KATTR_ONPLAYING */
@@ -429,9 +447,11 @@ static	const char *const attrs[KATTR__MAX] = {
 	"onsubmit", /* KATTR_ONSUBMIT */
 	"onsuspend", /* KATTR_ONSUSPEND */
 	"ontimeupdate", /* KATTR_ONTIMEUPDATE */
+	"ontoggle", /* KATTR_ONTOGGLE */
 	"onunload", /* KATTR_ONUNLOAD */
 	"onvolumechange", /* KATTR_ONVOLUMECHANGE */
 	"onwaiting", /* KATTR_ONWAITING */
+	"onwheel", /* KATTR_ONWHEEL */
 	"open", /* KATTR_OPEN */
 	"optimum", /* KATTR_OPTIMUM */
 	"pattern", /* KATTR_PATTERN */
@@ -440,8 +460,10 @@ static	const char *const attrs[KATTR__MAX] = {
 	"preload", /* KATTR_PRELOAD */
 	"radiogroup", /* KATTR_RADIOGROUP */
 	"readonly", /* KATTR_READONLY */
+	"referrerpolicy", /* KATTR_REFERRERPOLICY */
 	"rel", /* KATTR_REL */
 	"required", /* KATTR_REQUIRED */
+	"rev", /* KATTR_REV */
 	"reversed", /* KATTR_REVERSED */
 	"rows", /* KATTR_ROWS */
 	"rowspan", /* KATTR_ROWSPAN */
@@ -457,6 +479,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"src", /* KATTR_SRC */
 	"srcdoc", /* KATTR_SRCDOC */
 	"srclang", /* KATTR_SRCLANG */
+	"srcset", /* KATTR_SRCSET */
 	"start", /* KATTR_START */
 	"step", /* KATTR_STEP */
 	"style", /* KATTR_STYLE */
@@ -465,6 +488,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"title", /* KATTR_TITLE */
 	"translate", /* KATTR_TRANSLATE */
 	"type", /* KATTR_TYPE */
+	"typemustmatch", /* KATTR_TYPEMUSTMATCH */
 	"usemap", /* KATTR_USEMAP */
 	"value", /* KATTR_VALUE */
 	"width", /* KATTR_WIDTH */
