@@ -56,14 +56,14 @@ It is always NUL-terminated.
 .Pp
 The output of
 .Fn khttp_epoch2str
-conforms to RFC 5322:
-.Li Wed, 02 Oct 2002 13:00:00 GMT .
+conforms to RFC 5322
+.Pq Dq Wed, 02 Oct 2002 13:00:00 GMT .
 However, the year may be greater than four digits or less than 1900,
 or even be negative, which is contrary to RFC 5322 section 3.3.
 .Pp
 .Fn khttp_epoch2ustr
-conforms to ISO 8601:
-.Li 2002-10-02T13:00:00Z ,
+conforms to ISO 8601
+.Pq Dq 2002-10-02T13:00:00Z ,
 again with the stipulation that the year may be greater than 4 digits or
 be less than zero.
 .Pp
