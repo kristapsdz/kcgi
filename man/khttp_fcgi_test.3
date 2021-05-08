@@ -1,6 +1,6 @@
 .\"	$Id$
 .\"
-.\" Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) 2015, 2021 Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -31,15 +31,52 @@
 .Fo khttp_fcgi_test
 .Fc
 .Sh DESCRIPTION
-The
-.Fn khttp_fcgi_test
-function tests whether the
+Tests whether the
 .Xr kcgi 3
 application is being run under a FastCGI or regular CGI socket.
+This function may only be run prior to
+.Xr khttp_fcgi_init 3 .
+Afterward, its behaviour is undefined.
+.Sh EXAMPLES
+The following example starts an application in FastCGI or regular CGI
+mode depending upon the environment.
+.Bd -literal -offset indent
+int
+main(void)
+{
+  struct kreq	 req;
+  struct kfcgi	*fcgi;
+  enum kcgi_err	 er;
+
+  if (!khttp_fcgi_test()) {
+    er = khttp_parse(&req, NULL, 0, NULL, 0, 0);
+    if (er != KCGI_OK)
+      err(1, "khttp_parse: %s", kcgi_strerror(er));
+    /* Do something. */
+    khttp_free(&req);
+    return 0;
+  }
+
+  er = khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0);
+  if (er != KCGI_OK)
+    errx(1, "khttp_fcgi_init: %s", kcgi_strerror(er));
+  for (;;) {
+    er = khttp_fcgi_parse(fcgi, &req);
+    if (er != KCGI_OK)
+      err(1, "khttp_fcgi_parse: %s", kcgi_strerror(er));
+    if (KCGI_EXIT == er) {
+      khttp_free(&req);
+      break;
+    }
+    /* Do something. */
+    khttp_free(&req);
+  }
+  khttp_fcgi_free(fcgi);
+  return 0;
+}
+.Ed
 .Sh SEE ALSO
 .Xr kcgi 3
 .Sh AUTHORS
-The
-.Fn khttp_fcgi_test
-function was written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
