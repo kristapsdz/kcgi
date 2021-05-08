@@ -3,6 +3,22 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.12.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2021-03-02">2021-03-02</time>
+		</header>
+		<aside>
+			<div>
+				Add support for <q>bearer</q> authorisation tokens.  These are
+				described in 
+				<a href="https://tools.ietf.org/html/rfc6750">RFC 6750</a>.
+				Fix <a href="khttp_fcgi_test.3.html">khttp_fcgi_test(3)</a> to work
+				properly when in variable-pool mode.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.12.4</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2021-03-02">2021-03-02</time>
