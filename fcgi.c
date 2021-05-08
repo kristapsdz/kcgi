@@ -740,11 +740,11 @@ int
 khttp_fcgi_test(void)
 {
 	socklen_t	 len = 0;
-	const char	*cp, *ercp;
+	const char	*cp, *ercp = NULL;
 
 	if ((cp = getenv("FCGI_LISTENSOCK_DESCRIPTORS")) != NULL) {
 		strtonum(cp, 0, INT_MAX, &ercp);
-		if (ercp != NULL) 
+		if (ercp == NULL) 
 			return 1;
 	} 
 
