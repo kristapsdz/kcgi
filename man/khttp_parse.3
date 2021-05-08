@@ -199,10 +199,14 @@ This is
 .Dv KAUTH_DIGEST
 for the
 .Ev AUTH_TYPE
+of
 .Qq digest ,
 .Dv KAUTH_BASIC
 for
 .Qq basic ,
+.Dv KAUTH_BEARER
+for
+.Qq bearer ,
 .Dv KAUTH_UNKNOWN
 for other values of
 .Ev AUTH_TYPE ,
@@ -213,7 +217,8 @@ if
 is not set.
 See the
 .Va rawauth
-field for raw authorisation requests.
+field for raw (i.e., not processed by the web server) authorisation
+requests.
 .It Vt "struct kpair **" Ns Va cookiemap
 An array of
 .Fa keysz
@@ -454,9 +459,7 @@ header variable, or 80 if that is not defined or an invalid number.
 The raw authorization request according to the
 .Ev HTTP_AUTHORIZATION
 header variable passed by the web server.
-Some web servers, for example Apache, do not set
-.Ev HTTP_AUTHORIZATION
-by default.
+This is only set if the web server is not managing authorisation itself.
 .It Vt "char *" Ns Va remote
 The string form of the client's IPv4 or IPv6 address taken from the
 .Ev REMOTE_ADDR
@@ -694,19 +697,20 @@ If no data was passed by the server, the
 value is
 .Dv KAUTH_NONE .
 Otherwise it's
-.Dv KAUTH_BASIC
+.Dv KAUTH_BASIC ,
+.Dv KAUTH_BEARER ,
 or
-.Dv KAUTH_DIGEST ,
-with
+.Dv KAUTH_DIGEST .
 .Dv KAUTH_UNKNOWN
-if the authorisation type was not recognised.
+signals that the authorisation type was not recognised.
 .It Vt "int" Va authorised
 For
-.Dv KAUTH_BASIC
+.Dv KAUTH_BASIC ,
+.Dv KAUTH_BEARER ,
 or
 .Dv KAUTH_DIGEST
 authorisation, this field indicates whether all required values were
-specified.
+specified for the application to perform authorisation.
 .It Vt "char *" Ns Va digest
 An MD5 digest of
 .Ev REQUEST_METHOD ,
@@ -733,19 +737,26 @@ An anonymous union containing parsed fields per type:
 for
 .Dv KAUTH_BASIC
 or
+.Dv KAUTH_BEARER ,
+or
 .Vt "struct khttpdigest" Va digest
 for
 .Dv KAUTH_DIGEST .
 .El
 .Pp
 If the field for an HTTP authorisation request is
-.Dv KAUTH_BASIC ,
+.Dv KAUTH_BASIC
+or
+.Dv KAUTH_BEARER ,
 it will consist of the following for its parsed entities in its
 .Vt struct khttpbasic
 structure:
 .Bl -tag -width Ds
 .It Va response
-The hashed and encoded response string.
+The hashed and encoded response string for
+.Dv KAUTH_BASIC ,
+or an opaque string for
+.Dv KAUTH_BEARER .
 .El
 .Pp
 If the field for an HTTP authorisation request is
