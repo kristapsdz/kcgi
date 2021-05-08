@@ -190,6 +190,9 @@ AFL		 = afl/afl-multipart \
 REGRESS		 = regress/test-abort-validator \
 		   regress/test-basic \
 		   regress/test-basic-curl \
+		   regress/test-bearer \
+		   regress/test-bearer-curl \
+		   regress/test-bearer-empty \
 		   regress/test-bigfile \
 		   regress/test-buf \
 		   regress/test-date2epoch \
