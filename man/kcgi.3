@@ -105,7 +105,7 @@ To compile applications with
 include the
 .Pa kcgi.h
 as follows:
-.Bd -literal
+.Bd -literal -offset indent
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stdint.h> /* int64_t */
@@ -114,19 +114,17 @@ as follows:
 .Pp
 To compile and link, use
 .Xr pkg-config 1 :
-.Bd -literal
+.Bd -literal -offset indent
 % cc `pkg-config --cflags kcgi` -c -o sample.o sample.c
 % cc -o sample sample.o `pkg-config --libs kcgi`
 .Ed
 .Pp
 If the library will be statically linked (e.g., for running within a
 .Xr chroot 2 ) ,
-and assuming you'll use the
-.Xr kcgihtml 3
-library, link as follows:
-.Bd -literal
-% cc `pkg-config --cflags kcgi-html` -c -o sample.o sample.c
-% cc -static -o sample sample.o `pkg-config --static --libs kcgi-html`
+link as follows:
+.Bd -literal -offset indent
+% cc `pkg-config --static --cflags kcgi` -c -o sample.o sample.c
+% cc -static -o sample sample.o `pkg-config --static --libs kcgi`
 .Ed
 .Pp
 The current version of the library is defined in
@@ -187,7 +185,7 @@ library should have its error code checked!
 The following does nothing but emit
 .Dq Hello, world!
 to the output.
-.Bd -literal
+.Bd -literal -offset indent
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
@@ -215,7 +213,7 @@ int main(void) {
 .Pp
 This can be extended to work with the FastCGI interface by allowing the
 request parser to operate within a loop.
-.Bd -literal
+.Bd -literal -offset indent
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
@@ -252,7 +250,7 @@ accepts a single parameter
 to validate and display.
 This might be provided as part of an HTML form or directly as part of
 the URL query string.
-.Bd -literal
+.Bd -literal -offset indent
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stdint.h> /* int64_t */
@@ -300,6 +298,7 @@ string) for the full HTTP message body.
 .Xr kcgiregress 3 ,
 .Xr kcgixml 3 ,
 .Xr khttp_body 3 ,
+.Xr khttp_epoch2str 3 ,
 .Xr khttp_fcgi_free 3 ,
 .Xr khttp_fcgi_init 3 ,
 .Xr khttp_fcgi_parse 3 ,
@@ -312,15 +311,14 @@ string) for the full HTTP message body.
 .Xr khttp_puts 3 ,
 .Xr khttp_template 3 ,
 .Xr khttp_templatex 3 ,
+.Xr khttp_urlencode 3 ,
 .Xr khttp_write 3 ,
 .Xr khttpbasic_validate 3 ,
 .Xr khttpdigest_validate 3 ,
 .Xr kmalloc 3 ,
-.Xr khttp_epoch2str 3 ,
 .Xr kutil_invalidate 3 ,
 .Xr kutil_log 3 ,
 .Xr kutil_openlog 3 ,
-.Xr khttp_urlencode 3 ,
 .Xr kvalid_string 3 ,
 .Xr kfcgi 8
 .Sh STANDARDS
