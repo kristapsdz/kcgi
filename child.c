@@ -186,9 +186,10 @@ static	const char *const krequs[KREQU__MAX] = {
 };
 
 static	const char *const kauths[KAUTH_UNKNOWN] = {
-	NULL,
-	"basic",
-	"digest"
+	NULL, /* KAUTH_NONE */
+	"basic", /* KAUTH_BASIC */
+	"digest", /* KAUTH_DIGEST */
+	"bearer", /* KAUTH_BEARER */
 };
 
 /*

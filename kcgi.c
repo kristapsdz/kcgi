@@ -907,6 +907,7 @@ kreq_free(struct kreq *req)
 	free(req->pagename);
 	free(req->pname);
 	free(req->rawauth.digest);
+
 	if (req->rawauth.type == KAUTH_DIGEST) {
 		free(req->rawauth.d.digest.user);
 		free(req->rawauth.d.digest.uri);
@@ -915,8 +916,11 @@ kreq_free(struct kreq *req)
 		free(req->rawauth.d.digest.cnonce);
 		free(req->rawauth.d.digest.response);
 		free(req->rawauth.d.digest.opaque);
-	} else if (req->rawauth.type == KAUTH_BASIC) 
+	} else if (req->rawauth.type == KAUTH_BASIC) {
 		free(req->rawauth.d.basic.response);
+	} else if (req->rawauth.type == KAUTH_BEARER) {
+		free(req->rawauth.d.basic.response);
+	}
 }
 
 enum kcgi_err

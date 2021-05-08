@@ -249,13 +249,17 @@ kauth_eq(const char *p, const char *start, size_t sz, size_t want)
 	return(want == sz && 0 == strncasecmp(start, p, want));
 }
 
+/*
+ * The "bearer" or "basic" authentication is just that word followed by
+ * opaque text.  HTTP "basic" authentication has a well-defined username
+ * and password structure, but "bearer" is opaque.  These are both
+ * handled by the calling context: we don't do any validation here.
+ */
 static void
-khttpbasic_input(int fd, const char *cp)
+khttpbasic_input(int fd, const char *cp, enum kauth auth)
 {
-	enum kauth	 auth;
 	int		 authorised;
 
-	auth = KAUTH_BASIC;
 	fullwrite(fd, &auth, sizeof(enum kauth));
 	while (isspace((unsigned char)*cp))
 		cp++;
@@ -367,52 +371,53 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 	enum kcgi_err	 ke;
 
 	if (fullread(fd, &auth->type, sizeof(enum kauth), 0, &ke) < 0)
-		return(ke);
+		return ke;
 
 	switch (auth->type) {
-	case (KAUTH_DIGEST):
+	case KAUTH_DIGEST:
 		if (fullread(fd, &auth->authorised, sizeof(int), 0, &ke) < 0)
-			return(ke);
-		if ( ! auth->authorised)
+			return ke;
+		if (!auth->authorised)
 			break;
 		if (fullread(fd, &auth->d.digest.alg, sizeof(enum khttpalg), 0, &ke) < 0)
-			return(ke);
+			return ke;
 		if (fullread(fd, &auth->d.digest.qop, sizeof(enum khttpqop), 0, &ke) < 0)
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.user)))
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.uri)))
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.realm)))
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.nonce)))
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.cnonce)))
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.response)))
-			return(ke);
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.user)) != KCGI_OK)
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.uri)) != KCGI_OK)
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.realm)) != KCGI_OK)
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.nonce)) != KCGI_OK)
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.cnonce)) != KCGI_OK)
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.response)) != KCGI_OK)
+			return ke;
 		if (fullread(fd, &auth->d.digest.count, sizeof(uint32_t), 0, &ke) < 0)
-			return(ke);
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.digest.opaque)))
-			return(ke);
+			return ke;
+		if ((ke = fullreadword(fd, &auth->d.digest.opaque)) != KCGI_OK)
+			return ke;
 		break;
-	case (KAUTH_BASIC):
+	case KAUTH_BASIC:
+	case KAUTH_BEARER:
 		if (fullread(fd, &auth->authorised, sizeof(int), 0, &ke) < 0)
-			return(ke);
-		if ( ! auth->authorised)
+			return ke;
+		if (!auth->authorised)
 			break;
-		if (KCGI_OK != (ke = fullreadword(fd, &auth->d.basic.response)))
-			return(ke);
+		if ((ke = fullreadword(fd, &auth->d.basic.response)) != KCGI_OK)
+			return ke;
 		break;
 	default:
 		break;
 	}
 
-	return(KCGI_OK);
+	return KCGI_OK;
 }
 
 /*
- * Parse the "basic" or "digest" authorisation from the request.
+ * Parse the "basic", "digest", or "bearer" authorisation from the request.
  * We return non-zero if the body of the request needs to be MD5-hashed,
  * i.e., if we have auth-int digest QOP.
  */
@@ -423,21 +428,24 @@ kworker_auth_child(int fd, const char *cp)
 	size_t	 	 sz;
 	enum kauth	 auth;
 
-	if (NULL == cp || '\0' == *cp) {
+	if (cp == NULL || *cp == '\0') {
 		auth = KAUTH_NONE;
 		fullwrite(fd, &auth, sizeof(enum kauth));
-		return(0);
+		return 0;
 	}
 
 	start = kauth_nexttok(&cp, '\0', &sz);
-	if (sz == 6 && 0 == strncasecmp(start, "digest", sz)) {
-		return(khttpdigest_input(fd, cp));
-	} else if (sz == 5 && 0 == strncasecmp(start, "basic", sz)) {
-		khttpbasic_input(fd, cp);
-		return(0);
-	}
+
+	if (sz == 6 && strncasecmp(start, "bearer", sz) == 0) {
+		khttpbasic_input(fd, cp, KAUTH_BEARER);
+		return 0;
+	} else if (sz == 5 && strncasecmp(start, "basic", sz) == 0) {
+		khttpbasic_input(fd, cp, KAUTH_BASIC);
+		return 0;
+	} else if (sz == 6 && strncasecmp(start, "digest", sz) == 0)
+		return khttpdigest_input(fd, cp);
 
 	auth = KAUTH_UNKNOWN;
 	fullwrite(fd, &auth, sizeof(enum kauth));
-	return(0);
+	return 0;
 }
