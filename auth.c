@@ -88,7 +88,8 @@ khttpbasic_validate(const struct kreq *req,
 	size_t	 sz;
 	int	 rc;
 
-	if (req->rawauth.type != KAUTH_BASIC)
+	if (req->rawauth.type != KAUTH_BASIC &&
+	    req->rawauth.type != KAUTH_BEARER)
 		return (-1);
 	else if (req->method == KMETHOD__MAX)
 		return (-1);

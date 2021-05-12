@@ -40,18 +40,26 @@ function validates the given
 .Fa user
 and
 .Fa password
-with the HTTP basic-authorised request
+with the HTTP
+.Dq basic
+or
+.Dq bearer
+authorised request
 .Fa req
 as returned by
 .Xr khttp_parse 3
 or
 .Xr khttp_fcgi_parse 3 .
+.Pp
+In both cases, the request is validated by base64-encoding
+.Fa user Ns : Ns Fa password
+and comparing it to the given token.
 .Sh RETURN VALUES
 .Fn khttpbasic_validate
 will return zero if validation failed, less than zero if the request was
-not properly set up for HTTP basic validation (no HTTP method, not a
-basic request, not already authenticated by the web server), or greater
-than zero if the validation succeeded.
+not properly set up for HTTP basic or bearer validation (no HTTP method,
+not a basic or bearer request, not already authenticated by the web
+server), or greater than zero if the validation succeeded.
 .Sh EXAMPLES
 In the following fragment, assume
 .Fa r
@@ -65,7 +73,7 @@ The expected principle is
 password
 .Qq bond .
 Otherwise, it returns an HTTP 200.
-.Bd -literal
+.Bd -literal -offset indent
 if (khttpbasic_validate(r, "james", "bond") <= 0) {
   khttp_head(r, kresps[KRESP_STATUS],
     "%s", khttps[KHTTP_401]);
@@ -81,7 +89,5 @@ if (khttpbasic_validate(r, "james", "bond") <= 0) {
 .Xr khttp_parse 3 ,
 .Xr khttpdigest_validate 3
 .Sh AUTHORS
-The
-.Fn khttpbasic_validate
-function was written by
+Written by
 .An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .
