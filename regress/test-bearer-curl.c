@@ -27,6 +27,8 @@
 #include "../kcgi.h"
 #include "regress.h"
 
+#if defined(CURLAUTH_BEARER)
+
 static int
 parent(CURL *curl)
 {
@@ -70,3 +72,14 @@ main(int argc, char *argv[])
 
 	return regress_cgi(parent, child) ? 0 : 1;
 }
+
+#else
+
+int
+main(int argc, char *argv[])
+{
+
+	return 0;
+}
+
+#endif
