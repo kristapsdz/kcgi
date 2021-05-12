@@ -30,8 +30,8 @@
 static int
 parent(CURL *curl)
 {
-	struct curl_slist *list = NULL;
-	int c;
+	struct curl_slist	*list = NULL;
+	CURLcode		 c;
 
 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:17123/");
 	list = curl_slist_append(list, 
@@ -39,7 +39,7 @@ parent(CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 	c = curl_easy_perform(curl);
 	curl_slist_free_all(list); 
-	return(CURLE_OK == c);
+	return c == CURLE_OK;
 }
 
 static int

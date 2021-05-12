@@ -193,6 +193,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-bearer \
 		   regress/test-bearer-curl \
 		   regress/test-bearer-empty \
+		   regress/test-bearer-validate \
 		   regress/test-bigfile \
 		   regress/test-buf \
 		   regress/test-date2epoch \

@@ -30,8 +30,8 @@
 static int
 parent(CURL *curl)
 {
-	struct curl_slist *list = NULL;
-	int c;
+	struct curl_slist	*list = NULL;
+	int			 c;
 
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
@@ -40,7 +40,7 @@ parent(CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 	c = curl_easy_perform(curl);
 	curl_slist_free_all(list); 
-	return(CURLE_OK == c);
+	return c == CURLE_OK;
 }
 
 static int
@@ -52,12 +52,12 @@ child(void)
 
 	rc = 0;
 	if (khttp_fcgi_test())
-		return(0);
-	if (KCGI_OK != khttp_parse(&r, NULL, 0, &page, 1, 0))
-		return(0);
-	if (KAUTH_BASIC != r.rawauth.type) 
+		return 0;
+	if (khttp_parse(&r, NULL, 0, &page, 1, 0) != KCGI_OK)
+		return 0;
+	if (r.rawauth.type != KAUTH_BASIC) 
 		goto out;
-	else if (0 == r.rawauth.authorised)
+	else if (!r.rawauth.authorised)
 		goto out;
 	else if (khttpbasic_validate(&r, "Aladdin", "open sesame") <= 0)
 		goto out;
@@ -70,12 +70,12 @@ child(void)
 	rc = 1;
 out:
 	khttp_free(&r);
-	return(rc);
+	return rc;
 }
 
 int
 main(int argc, char *argv[])
 {
 
-	return(regress_cgi(parent, child) ? EXIT_SUCCESS : EXIT_FAILURE);
+	return !regress_cgi(parent, child);
 }

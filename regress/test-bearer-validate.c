@@ -30,11 +30,12 @@
 static int
 parent(CURL *curl)
 {
-	struct curl_slist 	*list = NULL;
+	struct curl_slist	*list = NULL;
 	CURLcode		 c;
 
 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:17123/");
-	list = curl_slist_append(list, "Authorization: Bearer  ");
+	list = curl_slist_append(list, 
+		"Authorization: Bearer QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 	c = curl_easy_perform(curl);
 	curl_slist_free_all(list); 
@@ -54,7 +55,9 @@ child(void)
 		return 0;
 	if (r.rawauth.type != KAUTH_BEARER) 
 		goto out;
-	if (r.rawauth.authorised)
+	if (!r.rawauth.authorised)
+		goto out;
+	else if (khttpbasic_validate(&r, "Aladdin", "open sesame") <= 0)
 		goto out;
 
 	khttp_head(&r, kresps[KRESP_STATUS], 
