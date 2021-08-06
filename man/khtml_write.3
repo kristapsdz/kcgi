@@ -102,7 +102,7 @@ khtml_elem(&req, KELEM_DOCTYPE);
 khtml_elem(&req, KELEM_HTML);
 khtml_elem(&req, KELEM_BODY);
 khtml_elem(&req, KELEM_P);
-khtml_write(&req, "Hello, world.", 13);
+khtml_write("Hello, world.", 13, &req);
 khtml_close(&req);
 .Ed
 .Sh SEE ALSO
