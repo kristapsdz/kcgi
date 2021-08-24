@@ -173,6 +173,9 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(readv),
 	SC_ALLOW(lseek), /* for kutil_openlog logging */
 	SC_ALLOW(fstat), /* for kutil_openlog logging */
+#ifdef __NR_newfstatat
+	SC_ALLOW(newfstatat), /* for kutil_openlog logging */
+#endif
 	SC_ALLOW(write),
 	SC_ALLOW(writev),
 	SC_ALLOW(close),
