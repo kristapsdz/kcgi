@@ -1,6 +1,7 @@
 *.[ao]
 *.pc
 *.swp
+*.core
 kfcgi
 Makefile.configure
 config.h
