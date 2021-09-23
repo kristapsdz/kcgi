@@ -9,6 +9,21 @@
 		</header>
 		<aside>
 			<div>
+				Allow
+				<a href="khttpbasic_validate.3.html">khttpbasic_validate(3)</a>
+				to validate both <q>bearer</q> and <q>basic</q> requests.
+				This follows from conventional usage of bearer tokens.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
+			<h1>0.12.5</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2021-05-08">2021-05-08</time>
+		</header>
+		<aside>
+			<div>
 				Add support for <q>bearer</q> authorisation tokens.  These are
 				described in 
 				<a href="https://tools.ietf.org/html/rfc6750">RFC 6750</a>.
