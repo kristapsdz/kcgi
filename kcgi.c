@@ -424,6 +424,7 @@ khttp_urlencode(const char *cp)
 	char	*p;
 	char	 ch;
 	size_t	 sz, cur;
+	int	 rc;
 
 	if (cp == NULL)
 		return kxstrdup("");
@@ -452,8 +453,14 @@ khttp_urlencode(const char *cp)
 			p[cur++] = '+';
 			continue;
 		}
-		cur += snprintf(p + cur, 4, "%%%.2hhX", 
+		rc = snprintf(p + cur, 4, "%%%.2hhX", 
 			(unsigned char)ch);
+		if (rc != 3) {
+			kutil_warn(NULL, NULL, "snprintf");
+			free(p);
+			return NULL;
+		}
+		cur += 3;
 	}
 
 	return p;
