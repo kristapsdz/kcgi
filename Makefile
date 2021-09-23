@@ -9,9 +9,11 @@ include Makefile.configure
 
 #LDADD_STATIC	 =
 
-# Linux apps might one seccomp debugging.
+# Seccomp is disabled by default.  To enable it, uncomment the following
+# line and run `make regress` to make sure it runs on your target
+# architecture and system.
 
-#CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG
+#CPPFLAGS	+= -DSANDBOX_SECCOMP_DEBUG -DENABLE_SECCOMP_FILTER=1
 
 # You probably don't need to change anything else...
 

@@ -16,7 +16,7 @@
  */
 #include "config.h"
 
-#if HAVE_SECCOMP_FILTER
+#if HAVE_SECCOMP_FILTER && ENABLE_SECCOMP_FILTER
 
 #ifndef SECCOMP_AUDIT_ARCH
 #error Unknown seccomp arch: please contact us with your uname -m
