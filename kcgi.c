@@ -456,7 +456,7 @@ khttp_urlencode(const char *cp)
 		rc = snprintf(p + cur, 4, "%%%.2hhX", 
 			(unsigned char)ch);
 		if (rc != 3) {
-			kutil_warn(NULL, NULL, "snprintf");
+			kutil_warnx(NULL, NULL, "snprintf");
 			free(p);
 			return NULL;
 		}
