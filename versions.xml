@@ -3,11 +3,20 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
-			<h1>0.12.5</h1>
+			<h1>0.13.0</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2021-05-08">2021-05-08</time>
+			<time datetime="2021-09-23">2021-09-23</time>
 		</header>
 		<aside>
+			<div>
+				<strong>Disable Linux's seccomp by default.</strong>
+				I'm just not able to maintain this facility in a reliable way.  For
+				future work, it looks like <a href="https://landlock.io">landlock</a>
+				might be a better solution.  Maintainers can enable seccomp by
+				editing the Makefile to re-add support.  (This will also add
+				debugging.)  I'll continue to add patches for those running with
+				seccomp, but don't have the bandwidth to test them.
+			</div>
 			<div>
 				Allow
 				<a href="khttpbasic_validate.3.html">khttpbasic_validate(3)</a>
