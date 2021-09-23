@@ -1,0 +1,7 @@
+*.[ao]
+*.pc
+*.swp
+kfcgi
+Makefile.configure
+config.h
+config.log
