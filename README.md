@@ -4,13 +4,9 @@
 It's minimal, secure, auditable, and fits within your
 [BCHS](https://learnbchs.org) software stack.
 
-This repository consists of bleeding-edge code between versions: to keep
-up to date with the current stable release of **kcgi**, visit the
-[website](https://kristaps.bsd.lv/kcgi).
-The website also contains canonical installation, deployment, examples,
-and usage documentation.
-
-What follows describes using the bleeding-edge version of the system.
+To keep up to date with the current stable release of **kcgi**, visit
+https://kristaps.bsd.lv/kcgi.  The website also contains canonical
+installation, deployment, examples, and usage documentation.
 
 ## Installation
 
