@@ -470,6 +470,7 @@ static	const char *const attrs[KATTR__MAX] = {
 	"required", /* KATTR_REQUIRED */
 	"rev", /* KATTR_REV */
 	"reversed", /* KATTR_REVERSED */
+	"role", /* KATTR_ROLE */
 	"rows", /* KATTR_ROWS */
 	"rowspan", /* KATTR_ROWSPAN */
 	"sandbox", /* KATTR_SANDBOX */
