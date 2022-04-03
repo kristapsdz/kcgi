@@ -56,12 +56,15 @@ struct	kdata {
 	size_t		 linebufpos; /* position in line buffer */
 	uint64_t	 bytes; /* total bytes written */
 	uint16_t	 requestId; /* current requestId or 0 */
-	enum kstate	 state;
-	gzFile		 gz;
-	char		*outbuf;
-	size_t		 outbufpos;
-	size_t		 outbufsz;
-	int		 disabled;
+	enum kstate	 state; /* see enum kstate */
+	gzFile		 gz; /* if not NULL, then compressor */
+	char		*outbuf; /* buffered output */
+	size_t		 outbufpos; /* position in output buffer */
+	size_t		 outbufsz; /* size of output buffer */
+	int		 disabled; /* no more writers */
+#if 0
+	int		 headerflush; /* flush before body */
+#endif
 };
 
 /*
@@ -373,6 +376,9 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 	p->fcgi = fcgi;
 	p->control = control;
 	p->requestId = requestId;
+#if 0
+	p->headerflush = !(opts->opts & KOPTS_NO_HEADER_FLUSH);
+#endif
 
 	if (opts->sndbufsz > 0) {
 		p->outbufsz = opts->sndbufsz;
@@ -520,12 +526,6 @@ kdata_body(struct kdata *p)
 
 	if ((er = kdata_drain(p)) != KCGI_OK)
 		return er;
-
-	if (p->fcgi == -1)
-		if (fflush(stdout) != 0) {
-			kutil_warn(NULL, NULL, "fflush");
-			return KCGI_SYSTEM;
-		}
 
 	p->state = KSTATE_BODY;
 	return KCGI_OK;
