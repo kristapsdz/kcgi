@@ -10,9 +10,8 @@ installation, deployment, examples, and usage documentation.
 
 ## Installation
 
-To use the bleeding-edge version of **kcgi** (instead of from your system's
-packages or a stable version), the process it the similar as for source
-releases.
+Building the bleeding-edge version of **kcgi** (instead of from your system's
+packages or a stable version) is similar to building the source releases.
 
 Begin by cloning or downloading.  Then configure with `./configure`,
 compile with `make` (BSD make, so it may be `bmake` on your system),
