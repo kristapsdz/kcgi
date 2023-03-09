@@ -372,7 +372,7 @@ compats.o: config.h
 # The FastCGI manager is pretty standalone.
 
 kfcgi: kfcgi.o compats.o
-	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o $(LDADD_LIB_SOCKET)
+	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o $(LDADD_LIB_SOCKET) $(LDFLAGS)
 
 kfcgi.o: config.h
 
