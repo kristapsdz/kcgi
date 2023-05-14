@@ -59,14 +59,13 @@ already be initialised, and the request be for
 The following fragment prints out a simple JSON object.
 Error checking is omitted for brevity.
 .Bd -literal -offset indent
-kjson_open(&req, r);
 kcgi_writer_disable(r);
 khttp_head(r, kresps[KRESP_STATUS],
   "%s", khttps[KHTTP_200]);
 khttp_head(r, kresps[KRESP_CONTENT_TYPE],
   "%s", kmimetypes[KMIME_APP_JSON]);
 khttp_body(r);
-kjson_open(&req);
+kjson_open(&req, r);
 kjson_objp_open(&req, "anobj");
 kjson_putstringp(&req, "astring", "baz");
 kjson_putintp(&req, "anint", 12345);
