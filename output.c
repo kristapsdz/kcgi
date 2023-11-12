@@ -62,9 +62,6 @@ struct	kdata {
 	size_t		 outbufpos; /* position in output buffer */
 	size_t		 outbufsz; /* size of output buffer */
 	int		 disabled; /* no more writers */
-#if 0
-	int		 headerflush; /* flush before body */
-#endif
 };
 
 /*
@@ -376,9 +373,6 @@ kdata_alloc(int control, int fcgi, uint16_t requestId,
 	p->fcgi = fcgi;
 	p->control = control;
 	p->requestId = requestId;
-#if 0
-	p->headerflush = !(opts->opts & KOPTS_NO_HEADER_FLUSH);
-#endif
 
 	if (opts->sndbufsz > 0) {
 		p->outbufsz = opts->sndbufsz;
