@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.3.5"
+OCONFIGURE_VERSION="0.3.12"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -74,23 +74,28 @@ if [ -n "$MAKE_FLAGS" ]; then
 fi
 
 #----------------------------------------------------------------------
-# Initialize all variables here such that nothing can leak in from the
-# environment except for CC and CFLAGS, which we might have passed in.
+# Initialise all variables here such that nothing can leak in from the
+# environment except for AR, CC and CFLAGS, which we might have passed
+# in.
 #----------------------------------------------------------------------
 
+AR=`printf "all:\\n\\t@echo \\\$(AR)\\n" | make ${MAKE_FLAGS} -sf -`
 CC=`printf "all:\\n\\t@echo \\\$(CC)\\n" | make ${MAKE_FLAGS} -sf -`
 CFLAGS=`printf "all:\\n\\t@echo \\\$(CFLAGS)\\n" | make ${MAKE_FLAGS} -sf -`
 CFLAGS="${CFLAGS} -g -W -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes"
 CFLAGS="${CFLAGS} -Wwrite-strings -Wno-unused-parameter"
+LDLIBS=
 LDADD=
 LDADD_B64_NTOP=
 LDADD_CRYPT=
 LDADD_MD5=
 LDADD_SHA2=
 LDADD_LIB_SOCKET=
+LDADD_SCAN_SCALED=
 LDADD_STATIC=
 CPPFLAGS=
 LDFLAGS=
+LINKER_SONAME=
 DESTDIR=
 PREFIX="/usr/local"
 BINDIR=
@@ -141,8 +146,12 @@ do
 	case "$key" in
 	LDADD)
 		LDADD="$val" ;;
+	LDLIBS)
+		LDLIBS="$val" ;;
 	LDFLAGS)
 		LDFLAGS="$val" ;;
+	LINKER_SONAME)
+		LINKER_SONAME="$val" ;;
 	CPPFLAGS)
 		CPPFLAGS="$val" ;;
 	DESTDIR)
@@ -167,6 +176,38 @@ do
 	esac
 done
 
+#----------------------------------------------------------------------
+# If the user doesn't specify whether we want "-soname" or
+# "-install_name" for the linker option to generate shared libraries,
+# try to figure it out here.  If we can't figure it out, just set it to
+# -soname and let the user figure it out.
+
+if [ -z "$LINKER_SONAME" ]
+then
+	test_soname="`mktemp`" || {
+		echo "mktemp: failed" 1>&2
+		echo "mktemp: failed" 1>&3
+		exit 1
+	}
+	echo "int foo(void) { return 1; }" > "${test_soname}.c"
+	${CC} -fPIC -o ${test_soname}.o -c ${test_soname}.c || {
+		echo "${CC} -fPIC -o ${test_soname}.o -c ${test_soname}.c: failed" 1>&2
+		echo "${CC} -fPIC -o ${test_soname}.o -c ${test_soname}.c: failed" 1>&3
+	}
+	LINKER_SONAME="-soname"
+	echo "LINKER_SONAME: testing -soname" 1>&3
+	${CC} -shared -o ${test_soname}.so.0 ${test_soname}.o -Wl,${LINKER_SONAME},${test_soname}.so.0 || {
+		LINKER_SONAME="-install_name"
+		echo "LINKER_SONAME: testing -install_name" 1>&3
+		${CC} -shared -o ${test_soname}.so.0 ${test_soname}.o -Wl,-install_name,${test_soname}.so.0 || {
+			echo "LINKER_SONAME: cannot determine: default to -soname" 1>&2
+			echo "LINKER_SONAME: cannot determine: default to -soname" 1>&3
+			LINKER_SONAME="-soname"
+		}
+	}
+	echo "LINKER_SONAME: $LINKER_SONAME" 1>&3
+	rm -f "$test_soname" "${test_soname}.*"
+fi
 
 #----------------------------------------------------------------------
 # These are the values that will be pushed into config.h after we test
@@ -180,6 +221,7 @@ HAVE_ARC4RANDOM=
 HAVE_B64_NTOP=
 HAVE_CAPSICUM=
 HAVE_CRYPT=
+HAVE_CRYPT_NEWHASH=
 HAVE_ENDIAN_H=
 HAVE_ERR=
 HAVE_EXPLICIT_BZERO=
@@ -187,6 +229,7 @@ HAVE_FTS=
 HAVE_GETEXECNAME=
 HAVE_GETPROGNAME=
 HAVE_INFTIM=
+HAVE_LANDLOCK=
 HAVE_MD5=
 HAVE_MEMMEM=
 HAVE_MEMRCHR=
@@ -201,6 +244,7 @@ HAVE_READPASSPHRASE=
 HAVE_REALLOCARRAY=
 HAVE_RECALLOCARRAY=
 HAVE_SANDBOX_INIT=
+HAVE_SCAN_SCALED=
 HAVE_SECCOMP_FILTER=
 HAVE_SETRESGID=
 HAVE_SETRESUID=
@@ -219,6 +263,7 @@ HAVE_SYS_QUEUE=
 HAVE_SYS_SYSMACROS=
 HAVE_SYS_TREE=
 HAVE_SYSTRACE=0
+HAVE_TERMIOS=
 HAVE_UNVEIL=
 HAVE_WAIT_ANY=
 HAVE___PROGNAME=
@@ -346,6 +391,7 @@ runtest arc4random	ARC4RANDOM			  || true
 runtest b64_ntop	B64_NTOP "" "" "-lresolv"	  || true
 runtest capsicum	CAPSICUM			  || true
 runtest crypt		CRYPT "" "" "-lcrypt"	  	  || true
+runtest crypt_newhash	CRYPT_NEWHASH		  	  || true
 runtest endian_h	ENDIAN_H			  || true
 runtest err		ERR				  || true
 runtest explicit_bzero	EXPLICIT_BZERO			  || true
@@ -353,6 +399,7 @@ runtest fts		FTS				  || true
 runtest getexecname	GETEXECNAME			  || true
 runtest getprogname	GETPROGNAME			  || true
 runtest INFTIM		INFTIM				  || true
+runtest landlock	LANDLOCK			  || true
 runtest lib_socket	LIB_SOCKET "" "" "-lsocket -lnsl" || true
 runtest md5		MD5 "" "" "-lmd"		  || true
 runtest memmem		MEMMEM			  	  || true
@@ -368,6 +415,7 @@ runtest readpassphrase	READPASSPHRASE			  || true
 runtest reallocarray	REALLOCARRAY			  || true
 runtest recallocarray	RECALLOCARRAY			  || true
 runtest sandbox_init	SANDBOX_INIT	"-Wno-deprecated" || true
+runtest scan_scaled	SCAN_SCALED "" "" "-lutil"	|| true
 runtest seccomp-filter	SECCOMP_FILTER			  || true
 runtest setresgid	SETRESGID			  || true
 runtest setresuid	SETRESUID			  || true
@@ -385,6 +433,7 @@ runtest sys_mkdev_h	SYS_MKDEV_H			  || true
 runtest sys_sysmacros_h	SYS_SYSMACROS_H			  || true
 runtest sys_queue	SYS_QUEUE			  || true
 runtest sys_tree	SYS_TREE			  || true
+runtest termios		TERMIOS				  || true
 runtest unveil		UNVEIL				  || true
 runtest WAIT_ANY	WAIT_ANY			  || true
 runtest __progname	__PROGNAME			  || true
@@ -411,7 +460,7 @@ cat << __HEREDOC__
 #if !defined(__GNUC__) || (__GNUC__ < 4)
 # define __attribute__(x)
 #endif
-#if defined(__linux__) || defined(__MINT__)
+#if defined(__linux__) || defined(__MINT__) || defined(__wasi__)
 # define _GNU_SOURCE /* memmem, memrchr, setresuid... */
 # define _DEFAULT_SOURCE /* le32toh, crypt, ... */
 #endif
@@ -506,6 +555,7 @@ cat << __HEREDOC__
 #define HAVE_B64_NTOP ${HAVE_B64_NTOP}
 #define HAVE_CAPSICUM ${HAVE_CAPSICUM}
 #define HAVE_CRYPT ${HAVE_CRYPT}
+#define HAVE_CRYPT_NEWHASH ${HAVE_CRYPT_NEWHASH}
 #define HAVE_ENDIAN_H ${HAVE_ENDIAN_H}
 #define HAVE_ERR ${HAVE_ERR}
 #define HAVE_EXPLICIT_BZERO ${HAVE_EXPLICIT_BZERO}
@@ -513,6 +563,7 @@ cat << __HEREDOC__
 #define HAVE_GETEXECNAME ${HAVE_GETEXECNAME}
 #define HAVE_GETPROGNAME ${HAVE_GETPROGNAME}
 #define HAVE_INFTIM ${HAVE_INFTIM}
+#define HAVE_LANDLOCK ${HAVE_LANDLOCK}
 #define HAVE_MD5 ${HAVE_MD5}
 #define HAVE_MEMMEM ${HAVE_MEMMEM}
 #define HAVE_MEMRCHR ${HAVE_MEMRCHR}
@@ -527,6 +578,7 @@ cat << __HEREDOC__
 #define HAVE_REALLOCARRAY ${HAVE_REALLOCARRAY}
 #define HAVE_RECALLOCARRAY ${HAVE_RECALLOCARRAY}
 #define HAVE_SANDBOX_INIT ${HAVE_SANDBOX_INIT}
+#define HAVE_SCAN_SCALED ${HAVE_SCAN_SCALED}
 #define HAVE_SECCOMP_FILTER ${HAVE_SECCOMP_FILTER}
 #define HAVE_SETRESGID ${HAVE_SETRESGID}
 #define HAVE_SETRESUID ${HAVE_SETRESUID}
@@ -546,6 +598,7 @@ cat << __HEREDOC__
 #define HAVE_SYS_TREE ${HAVE_SYS_TREE}
 #define HAVE_SYSTRACE ${HAVE_SYSTRACE}
 #define HAVE_UNVEIL ${HAVE_UNVEIL}
+#define HAVE_TERMIOS ${HAVE_TERMIOS}
 #define HAVE_WAIT_ANY ${HAVE_WAIT_ANY}
 #define HAVE___PROGNAME ${HAVE___PROGNAME}
 
@@ -773,6 +826,13 @@ fi
 extern int b64_ntop(unsigned char const *, size_t, char *, size_t);
 extern int b64_pton(char const *, unsigned char *, size_t);
 
+__HEREDOC__
+
+[ ${HAVE_SCAN_SCALED} -eq 0 ] && \
+	cat << __HEREDOC__
+#define	FMT_SCALED_STRSIZE	7 /* minus sign, 4 digits, suffix, null byte */
+int	fmt_scaled(long long, char *);
+int	scan_scaled(char *, long long *);
 __HEREDOC__
 
 [ ${HAVE_EXPLICIT_BZERO} -eq 0 ] && \
@@ -2304,10 +2364,6 @@ name##_RB_MINMAX(struct name *head, int val)				\\
 __HEREDOC__
 fi
 
-cat << __HEREDOC__
-#endif /*!OCONFIGURE_CONFIG_H*/
-__HEREDOC__
-
 if [ ${HAVE_FTS} -eq 0 ]; then
 	cat << __HEREDOC__
 /*
@@ -2392,6 +2448,10 @@ int	 fts_set(FTS *, FTSENT *, int);
 __HEREDOC__
 fi
 
+cat << __HEREDOC__
+#endif /*!OCONFIGURE_CONFIG_H*/
+__HEREDOC__
+
 echo "config.h: written" 1>&2
 echo "config.h: written" 1>&3
 
@@ -2417,17 +2477,21 @@ exec > Makefile.configure
 [ -z "${INSTALL_DATA}"    ] && INSTALL_DATA="${INSTALL} -m 0444"
 
 cat << __HEREDOC__
+AR		 = ${AR}
 CC		 = ${CC}
 CFLAGS		 = ${CFLAGS}
 CPPFLAGS	 = ${CPPFLAGS}
+LDLIBS		 = ${LDLIBS}
 LDADD		 = ${LDADD}
 LDADD_B64_NTOP	 = ${LDADD_B64_NTOP}
 LDADD_CRYPT	 = ${LDADD_CRYPT}
 LDADD_LIB_SOCKET = ${LDADD_LIB_SOCKET}
 LDADD_MD5	 = ${LDADD_MD5}
 LDADD_SHA2	 = ${LDADD_SHA2}
+LDADD_SCAN_SCALED= ${LDADD_SCAN_SCALED}
 LDADD_STATIC	 = ${LDADD_STATIC}
 LDFLAGS		 = ${LDFLAGS}
+LINKER_SONAME	 = ${LINKER_SONAME}
 STATIC		 = ${STATIC}
 PREFIX		 = ${PREFIX}
 BINDIR		 = ${BINDIR}
