@@ -1002,10 +1002,11 @@ khttp_parsex(struct kreq *req,
 	close(work_dat[KWORKER_CHILD]);
 	work_dat[KWORKER_CHILD] = -1;
 
-	if (opts == NULL)
+	if (opts == NULL) {
+		memset(&kopts, 0, sizeof(struct kopts));
 		kopts.sndbufsz = -1;
-	else
-		memcpy(&kopts, opts, sizeof(struct kopts));
+	} else
+		kopts = *opts;
 
 	if (kopts.sndbufsz < 0)
 		kopts.sndbufsz = 1024 * 8;
