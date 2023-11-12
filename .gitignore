@@ -6,3 +6,5 @@ kfcgi
 Makefile.configure
 config.h
 config.log
+regress/**
+!regress/*.c
