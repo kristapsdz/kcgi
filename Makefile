@@ -372,7 +372,7 @@ compats.o: config.h
 # The FastCGI manager is pretty standalone.
 
 kfcgi: kfcgi.o compats.o
-	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o $(LDADD_LIB_SOCKET)
+	$(CC) $(CFLAGS) -o $@ kfcgi.o compats.o $(LDFLAGS) $(LDADD_LIB_SOCKET)
 
 kfcgi.o: config.h
 
@@ -391,7 +391,8 @@ $(REGRESS): libkcgi.a libkcgiregress.a libkcgijson.a libkcgihtml.a
 .for BIN in $(REGRESS)
 $(BIN): $(BIN).c
 	$(CC) $(CFLAGS) $(REGRESS_CFLAGS) -o $@ $(BIN).c regress/regress.o \
-		libkcgiregress.a libkcgijson.a libkcgihtml.a libkcgi.a $(REGRESS_LIBS)
+		libkcgiregress.a libkcgijson.a libkcgihtml.a libkcgi.a \
+		$(LDFLAGS) $(REGRESS_LIBS)
 .endfor
 
 regress/regress.o: regress/regress.h kcgiregress.h config.h
