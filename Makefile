@@ -444,13 +444,13 @@ libkcgiregress.a: kcgiregress.o
 # These demonstrate FastCGI, CGI, and standard.
 
 samplepp: samplepp.cc libkcgi.a libkcgihtml.a kcgi.h
-	c++ $(CFLAGS) $(CFLAGS_PKG) $(LDADD_STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LIBS_PKG)
+	c++ $(CFLAGS) $(CFLAGS_PKG) $(LDADD_STATIC) -o $@ samplepp.cc -L. libkcgi.a $(LIBS_PKG) $(LDADD_MD5)
 
 sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
-	$(CC) -o $@ $(LDADD_STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LIBS_PKG)
+	$(CC) -o $@ $(LDADD_STATIC) sample.o -L. libkcgihtml.a libkcgi.a $(LIBS_PKG) $(LDADD_MD5)
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
-	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LIBS_PKG)
+	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LIBS_PKG) $(LDADD_MD5)
 
 sample-cgi: sample-cgi.o 
 	$(CC) -o $@ $(LDADD_STATIC) sample-cgi.o 
