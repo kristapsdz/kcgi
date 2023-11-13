@@ -8,3 +8,7 @@ config.h
 config.log
 regress/**
 !regress/*.c
+sample
+sample-cgi
+sample-fcgi
+samplepp
