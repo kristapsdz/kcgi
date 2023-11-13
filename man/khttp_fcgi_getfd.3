@@ -1,0 +1,86 @@
+.\" Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KHTTP_FCGI_GETFD 3
+.Os
+.Sh NAME
+.Nm khttp_fcgi_getfd
+.Nd get the FastCGI control socket
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft int
+.Fo khttp_fcgi_getfd
+.Fa "const struct kfcgi *fcgi"
+.Fc
+.Sh DESCRIPTION
+Get the control socket used for handling FastCGI processes.
+This should
+.Em only
+be used for polling purposes in asynchronous applications.
+If the returned socket descriptor is manipulated in any other way, the results
+are undefined.
+.Pp
+The returned descriptor is only valid after
+.Xr khttp_fcgi_init 3
+and prior to
+.Xr khttp_fcgi_free 3 .
+.Sh EXAMPLES
+The following example starts an application in FastCGI or regular CGI
+mode depending upon the environment.
+.Bd -literal -offset indent
+int
+main(void)
+{
+  struct pollfd  pfd;
+  struct kreq	 req;
+  struct kfcgi	*fcgi;
+  enum kcgi_err	 er;
+  int rc;
+
+  er = khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0);
+  if (er != KCGI_OK)
+    errx(1, "khttp_fcgi_init: %s", kcgi_strerror(er));
+
+  pfd.events = POLLIN;
+  pfd.fd = khttp_fcgi_getfd(fcgi);
+
+  /* Poll on other sockets here... */
+  while ((rc = poll(&pfd, 1, INFTIM)) != -1) {
+    er = khttp_fcgi_parse(fcgi, &req);
+    if (er != KCGI_OK)
+      err(1, "khttp_fcgi_parse: %s", kcgi_strerror(er));
+    if (KCGI_EXIT == er) {
+      khttp_free(&req);
+      break;
+    }
+    /* Do something. */
+    khttp_free(&req);
+  }
+  khttp_fcgi_free(fcgi);
+  if (rc == -1)
+    err(1, "poll");
+  return 0;
+}
+.Ed
+.Sh SEE ALSO
+.Xr kcgi 3
+.Sh AUTHORS
+Written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

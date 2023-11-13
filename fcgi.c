@@ -637,6 +637,12 @@ again:
 	return KCGI_SYSTEM;
 }
 
+int
+khttp_fcgi_getfd(const struct kfcgi *fcgi)
+{
+	return fcgi->sock_ctl;
+}
+
 enum kcgi_err
 khttp_fcgi_parse(struct kfcgi *fcgi, struct kreq *req)
 {

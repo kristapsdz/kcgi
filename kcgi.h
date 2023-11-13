@@ -579,6 +579,7 @@ int		 kvalid_uint(struct kpair *);
 
 void		 kcgi_writer_disable(struct kreq *);
 
+int		 khttp_fcgi_getfd(const struct kfcgi *);
 enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *);
 enum kcgi_err	 khttp_fcgi_init(struct kfcgi **, 
 			const struct kvalid *, size_t,
