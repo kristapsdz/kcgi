@@ -30,6 +30,15 @@ that *~/.local/lib/pkgconfig* is recognised as a path to package
 specifications.  You'll also want to make sure that `man` can access the
 installed location of *~/.local/man*, in this case.
 
+A common idiom for deploying on Linux is to use
+[libbsd](https://libbsd.freedesktop.org/wiki/) as noted in the
+[oconfigure](https://github.com/kristapsdz/oconfigure) documentation:
+
+```
+CFLAGS=$(pkg-config --cflags libbsd-overlay) \
+    ./configure LDFLAGS=$(pkg-config --libs libbsd-overlay)
+```
+
 ## Tests
 
 It's useful to run the installed regression tests on the bleeding edge
