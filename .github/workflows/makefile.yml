@@ -72,6 +72,17 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-aarch64.sh
+    - name: Setup latest Alpine Linux for armv7
+      uses: jirutka/setup-alpine@v1.1.4
+      with:
+        arch: armv7
+        packages: >
+          build-base
+          curl-dev
+          bmake
+          zlib-dev
+          linux-headers
+        shell-name: alpine-armv7.sh
     - name: Configure, build, and test on x86_64
       run: |
         cat /etc/alpine-release
@@ -81,6 +92,12 @@ jobs:
     - name: Configure, build, and test on aarch64
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DSANDBOX_SECCOMP_DEBUG -DENABLE_SECCOMP_FILTER=1"
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
         bmake regress
       shell: alpine-aarch64.sh {0}
+    - name: Configure, build, and test on armv7
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-armv7.sh {0}
