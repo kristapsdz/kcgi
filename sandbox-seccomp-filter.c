@@ -89,7 +89,12 @@ static const struct sock_filter preauth_ctrl[] = {
 	/* Load the syscall number for checking. */
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS,
 		offsetof(struct seccomp_data, nr)),
+#ifdef __NR_open
 	SC_DENY(open, EACCES),
+#endif
+#ifdef __NR_openat
+	SC_DENY(openat, EACCES),
+#endif
 	SC_ALLOW(getpid),
 #ifdef __NR_getrandom
 	SC_ALLOW(getrandom),
@@ -162,7 +167,12 @@ static const struct sock_filter preauth_work[] = {
 	/* Load the syscall number for checking. */
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS,
 		offsetof(struct seccomp_data, nr)),
+#ifdef __NR_open
 	SC_DENY(open, EACCES),
+#endif
+#ifdef __NR_openat
+	SC_DENY(openat, EACCES),
+#endif
 	SC_ALLOW(getpid),
 #ifdef __NR_getrandom
 	SC_ALLOW(getrandom),
