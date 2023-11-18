@@ -1,4 +1,4 @@
-.SUFFIXES: .3 .3.html .8 .8.html .dot .svg .gnuplot .png .xml .html .in.pc .pc
+.SUFFIXES: .3 .3.html .8 .8.html .dot .svg .xml .html .in.pc .pc
 .PHONY: regress afl
 
 include Makefile.configure
@@ -264,7 +264,6 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-valid-email \
 		   regress/test-write
 SVGS		 = figure1.svg \
-		   figure2.png \
 		   figure4.svg \
 		   extending01-a.svg \
 		   extending01-b.svg \
@@ -505,9 +504,6 @@ atom.xml: versions.xml
 
 .dot.svg:
 	dot -Tsvg -o $@ $<
-
-.gnuplot.png:
-	gnuplot $<
 
 # Distribution files.
 # Also only used with the `www' target.

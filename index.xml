@@ -54,13 +54,6 @@
 					<a title="Version feed" href="atom.xml">
 						<i class="fa fa-fw fa-rss"></i>
 					</a>
-					<span id="build-status">
-						<a title="Build status" 
-						 href="https://kristaps.bsd.lv/cgi-bin/minci.cgi/index.html?project-name=kcgi">
-							<i class="fa fa-fw fa-tachometer"></i>
-							Build status
-						</a>
-					</span>
 				</nav>
 			</section>
 		</header>
@@ -375,7 +368,12 @@
 					(Linux)
 				</dt>
 				<dd>
-					This requires a fairly new kernel (&#x2265;Linux 3.5).
+					<strong>Disabled by default</strong> and must be manually enabled at build time
+					(see <code>ENABLE_SECCOMP_FILTER</code> in the Makefile).
+					The reasons for disabling follow those in an
+					<a href="https://github.com/kristapsdz/acme-client-portable/blob/master/Linux-seccomp.md">old article</a>
+					about another system.
+					If manually enabled, this requires a seccomp-enabled Linux kernel.
 					It is supplemented by <code>setrlimit(2)</code> limiting.
 					For the time being, this feature is only available for x86, x86_64, and arm architectures.
 					If you're using another one, please send me your <code>uname -m</code> and, if you know if it,
@@ -454,23 +452,6 @@
 				In the case of running CGI scripts, <span class="nm">kcgi</span> performance is bound to the operating
 				system's ability to spawn and reap processes.
 				For FastCGI, the bottleneck becomes the transfer of data.
-				In the following graph, I graph the responsiveness of <span class="nm">kcgi</span> against the baseline
-				web-server performance.
-			</p>
-			<figure>
-				<img src="figure2.png" alt="Performance Graph" />
-			</figure>
-			<p>
-				This shows the empirical cumulative distribution of a statisically-significant number of page requests
-				as measured by <a href="https://httpd.apache.org/docs/2.2/programs/ab.html">ab(1)</a> with 10 concurrent
-				requests.
-				The <strong>CGI</strong> line is the CGI sample included in the source;
-				the <strong>FastCGI</strong> line is the FastCGI sample;
-				the <strong>CGI (simple)</strong> simply emits a 200 HTTP status and <q>Hello, World</q>; and
-				the <strong>static</strong> is a small static file on the web server.
-				The operating system is Mac OS X 10.7.5 <q>Air</q> laptop (1.86 GHz Intel Core 2 Duo, 2 GB RAM) with the
-				stock Apache.
-				The FastCGI server was started using the <a href="kfcgi.8.html">kfcgi(8)</a> defaults.
 			</p>
 		</section>
 		<footer>
