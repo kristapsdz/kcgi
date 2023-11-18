@@ -47,6 +47,7 @@ jobs:
           curl-dev
           bmake
           zlib-dev
+          linux-headers
         shell-name: alpine-x86_64.sh
     - name: Setup latest Alpine Linux for aarch64
       uses: jirutka/setup-alpine@v1.1.4
