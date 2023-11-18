@@ -10,6 +10,6 @@ jobs:
     - name: configure
       run: ./configure
     - name: Compile
-      run: make
+      run: bmake
     - name: Run regress
-      run: make regress
+      run: bmake regress
