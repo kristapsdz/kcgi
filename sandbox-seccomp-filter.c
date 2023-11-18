@@ -89,7 +89,7 @@ static const struct sock_filter preauth_ctrl[] = {
 	/* Load the syscall number for checking. */
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS,
 		offsetof(struct seccomp_data, nr)),
-#ifdef __NR_open
+#ifdef __NR_open /* not defined on aarch64 */
 	SC_DENY(open, EACCES),
 #endif
 #ifdef __NR_openat
@@ -129,7 +129,9 @@ static const struct sock_filter preauth_ctrl[] = {
 #ifdef __NR_ppoll
 	SC_ALLOW(ppoll),
 #endif
+#ifdef __NR_poll /* not defined on aarch64 */
 	SC_ALLOW(poll),
+#endif
 #ifdef __NR__newselect
 	SC_ALLOW(_newselect),
 #else
@@ -167,7 +169,7 @@ static const struct sock_filter preauth_work[] = {
 	/* Load the syscall number for checking. */
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS,
 		offsetof(struct seccomp_data, nr)),
-#ifdef __NR_open
+#ifdef __NR_open /* not defined on aarch64 */
 	SC_DENY(open, EACCES),
 #endif
 #ifdef __NR_openat
@@ -202,7 +204,9 @@ static const struct sock_filter preauth_work[] = {
 #ifdef __NR_ppoll
 	SC_ALLOW(ppoll),
 #endif
+#ifdef __NR_poll /* not defined on aarch64 */
 	SC_ALLOW(poll),
+#endif
 #ifdef __NR__newselect
 	SC_ALLOW(_newselect),
 #else
