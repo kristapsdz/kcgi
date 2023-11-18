@@ -1,7 +1,7 @@
-name: Makefile CI
+name: Linux Regression Tests
 on: [push]
 jobs:
-  build:
+  standard:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -9,6 +9,18 @@ jobs:
       run: sudo apt-get install -y libcurl4-openssl-dev bmake
     - name: configure
       run: ./configure
+    - name: Compile
+      run: bmake
+    - name: Run regress
+      run: bmake regress
+  sandboxed:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get install -y libcurl4-openssl-dev bmake
+    - name: configure
+      run: ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
     - name: Compile
       run: bmake
     - name: Run regress
