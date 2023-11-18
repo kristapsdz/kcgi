@@ -7,11 +7,11 @@ jobs:
     - uses: actions/checkout@master
     - name: Install dependencies
       run: sudo apt-get install -y libcurl4-openssl-dev bmake
-    - name: configure
-      run: ./configure
-    - name: Compile
-      run: bmake
-    - name: Run regress
+    - name: Configure
+      run: |
+        cat /etc/os-release
+        ./configure
+    - name: Build and test
       run: bmake regress
   linux_sandboxed:
     runs-on: ubuntu-latest
@@ -19,11 +19,11 @@ jobs:
     - uses: actions/checkout@master
     - name: Install dependencies
       run: sudo apt-get install -y libcurl4-openssl-dev bmake
-    - name: configure
-      run: ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
-    - name: Compile
-      run: bmake
-    - name: Run regress
+    - name: Configure
+      run: |
+        cat /etc/os-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+    - name: Build and test
       run: bmake regress
   macos_standard:
     runs-on: macos-latest
@@ -31,12 +31,10 @@ jobs:
     - uses: actions/checkout@master
     - name: Install dependencies
       run: brew install bmake
-    - name: configure
+    - name: Configure
       run: ./configure
-    - name: Compile
-      run: bmake
-    - name: Run regress
-      run:  bmake regress
+    - name: Build and test
+      run: bmake regress
   alpine_sandboxed:
     runs-on: ubuntu-latest
     steps:
@@ -60,15 +58,19 @@ jobs:
           bmake
           zlib-dev
         shell-name: alpine-aarch64.sh
-    - name: Compile and run regress on x86_64
+    - name: Configure, build, and test on x86_64
       run: |
+        cat /etc/alpine-release
         ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        cat config.log
         bmake
         bmake regress
       shell: alpine-x86_64.sh {0}
-    - name: Compile and run regress on aarc64
+    - name: Configure, build, and test on aarch64
       run: |
+        cat /etc/alpine-release
         ./configure
+        cat config.log
         bmake
         bmake regress
       shell: alpine-aarch64.sh {0}
