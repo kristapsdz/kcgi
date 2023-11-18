@@ -29,9 +29,11 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@master
+    - name: Install dependencies
+      run: sudo brew install bmake
     - name: configure
       run: ./configure
     - name: Compile
-      run: make
+      run: bmake
     - name: Run regress
-      run:  make regress
+      run:  bmake regress
