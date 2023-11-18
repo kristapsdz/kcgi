@@ -41,16 +41,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Setup Alpine Linux environment
+    - name: Setup Alpine Linux environment for x86_64
       uses: jirutka/setup-alpine@v1.1.4
-    - name: Install dependencies
-      run: |
-        cat /etc/alpine-release
-        apk add build-base curl-dev bmake zlib-dev
-      shell: alpine.sh --root {0}
-    - name: Compile and run regress
+      with:
+        packages: >
+          build-base
+          curl-dev
+          bmake
+          zlib-dev
+        shell-name: alpine-x86_64.sh
+    - name: Setup latest Alpine Linux for aarch64
+      uses: jirutka/setup-alpine@v1.1.4
+      with:
+        arch: aarch64
+        packages: >
+          build-base
+          curl-dev
+          bmake
+          zlib-dev
+        shell-name: alpine-aarch64.sh
+    - name: Compile and run regress on x86_64
       run: |
         ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
         bmake
         bmake regress
-      shell: alpine.sh {0}
+      shell: alpine-x86_64.sh {0}
+    - name: Compile and run regress on aarc64
+      run: |
+        ./configure
+        bmake
+        bmake regress
+      shell: alpine-aarch64.sh {0}
