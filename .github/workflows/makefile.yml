@@ -37,3 +37,19 @@ jobs:
       run: bmake
     - name: Run regress
       run:  bmake regress
+  alpine_sandboxed:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Alpine Linux environment
+      uses: jirutka/setup-alpine@v1.1.4
+    - name: Install dependencies
+      run: |
+        cat /etc/alpine-release
+        apk add build-base libcurl bmake
+      shell: alpine.sh --root {0}
+    - name: Compile and run regress
+      run: |
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake
+        bmake regress
+      shell: alpine.sh {0}
