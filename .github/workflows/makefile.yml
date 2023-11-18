@@ -46,7 +46,7 @@ jobs:
     - name: Install dependencies
       run: |
         cat /etc/alpine-release
-        apk add build-base libcurl bmake
+        apk add build-base libcurl bmake zlib
       shell: alpine.sh --root {0}
     - name: Compile and run regress
       run: |
