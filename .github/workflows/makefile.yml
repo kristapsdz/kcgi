@@ -1,10 +1,10 @@
-name: Linux Regression Tests
+name: Regression Tests
 on: [push]
 jobs:
-  standard:
+  linux_standard:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@master
     - name: Install dependencies
       run: sudo apt-get install -y libcurl4-openssl-dev bmake
     - name: configure
@@ -13,10 +13,10 @@ jobs:
       run: bmake
     - name: Run regress
       run: bmake regress
-  sandboxed:
+  linux_sandboxed:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@master
     - name: Install dependencies
       run: sudo apt-get install -y libcurl4-openssl-dev bmake
     - name: configure
@@ -25,3 +25,13 @@ jobs:
       run: bmake
     - name: Run regress
       run: bmake regress
+  macos_standard:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: configure
+      run: ./configure
+    - name: Compile
+      run: make
+    - name: Run regress
+      run:  make regress
