@@ -3,6 +3,25 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.13.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2023-11-18">2023-11-18</time>
+		</header>
+		<aside>
+			<div>
+				Remove stray seccomp bits if not enabled at compile-time and fix
+				some new white-listed system calls for x86.
+			</div>
+			<div>
+				Add
+				<a href="khttp_fcgi_getfd.3.html">khttp_fcgi_getfd(3)</a>, which
+				allows for asynchronous applications (those with a descriptor
+				polling loop) to incorporate <span class="nm">kcgi</span>.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.13.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2021-09-23">2021-09-23</time>
