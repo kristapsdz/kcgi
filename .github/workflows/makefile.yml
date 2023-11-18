@@ -40,6 +40,7 @@ jobs:
   alpine_sandboxed:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@master
     - name: Setup Alpine Linux environment
       uses: jirutka/setup-alpine@v1.1.4
     - name: Install dependencies
