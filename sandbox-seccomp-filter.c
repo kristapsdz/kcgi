@@ -139,7 +139,7 @@ static const struct sock_filter preauth_ctrl[] = {
 	SC_ALLOW(select),
 #endif
 #ifdef __NR_pselect6
-	SC_ALLOW(__NR_pselect6),
+	SC_ALLOW(pselect6),
 #endif
 	SC_ALLOW(madvise),
 #ifdef __NR_mmap2 /* EABI ARM only has mmap2() */
@@ -218,7 +218,7 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(select),
 #endif
 #ifdef __NR_pselect6
-	SC_ALLOW(__NR_pselect6),
+	SC_ALLOW(pselect6),
 #endif
 	SC_ALLOW(madvise),
 #ifdef __NR_mmap2 /* EABI ARM only has mmap2() */
