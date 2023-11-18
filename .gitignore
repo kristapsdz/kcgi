@@ -2,6 +2,9 @@
 *.pc
 *.swp
 *.core
+*.svg
+*.html
+man/*.html
 kfcgi
 Makefile.configure
 config.h
@@ -12,3 +15,6 @@ sample
 sample-cgi
 sample-fcgi
 samplepp
+kcgi.tgz
+kcgi.tgz.sha512
+atom.xml
