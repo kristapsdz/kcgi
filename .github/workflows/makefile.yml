@@ -130,3 +130,24 @@ jobs:
         ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
         bmake regress
       shell: alpine-ppc64le.sh {0}
+  alpine_sandboxed_s390x:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup latest Alpine Linux for ppc64le
+      uses: jirutka/setup-alpine@v1.1.4
+      with:
+        arch: s390x
+        packages: >
+          build-base
+          curl-dev
+          bmake
+          zlib-dev
+          linux-headers
+        shell-name: alpine-s390x.sh
+    - name: Configure, build, and test on s390x
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-s390x.sh {0}
