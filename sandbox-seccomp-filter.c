@@ -18,10 +18,6 @@
 
 #if HAVE_SECCOMP_FILTER && ENABLE_SECCOMP_FILTER
 
-#ifndef SECCOMP_AUDIT_ARCH
-#error Unknown seccomp arch: please contact us with your uname -m
-#endif 
-
 /*
  * Copyright (c) 2012 Will Drewry <wad@dataspill.org>
  *
