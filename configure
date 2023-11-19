@@ -810,7 +810,7 @@ if [ ${HAVE_SECCOMP_FILTER} -eq 1 ]; then
 	i*86)
 		seccomp_audit_arch=AUDIT_ARCH_I386
 		;;
-	arm)
+	arm*)
 		seccomp_audit_arch=AUDIT_ARCH_ARM
 		;;
 	aarch64*)
@@ -843,6 +843,7 @@ if [ ${HAVE_SECCOMP_FILTER} -eq 1 ]; then
 	esac
 	if [ -n "$seccomp_audit_arch" ]
 	then
+		echo "seccomp-arch: $seccomp_audit_arch" 1>&2
 		cat << __HEREDOC__
 /*
  * Seccomp is both available and has a recognised architecture.
@@ -852,6 +853,7 @@ if [ ${HAVE_SECCOMP_FILTER} -eq 1 ]; then
 
 __HEREDOC__
 	else
+		echo "seccomp-arch: disabling (unknown: `uname -m`)" 1>&2
 		cat << __HEREDOC__
 /**
  * Seccomp is available, but not with a recognised architecture.
