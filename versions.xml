@@ -5,11 +5,13 @@
 		<header>
 			<h1>0.13.1</h1>
 			<address>Kristaps Dzonsons</address>
-			<time datetime="2023-11-18">2023-11-18</time>
+			<time datetime="2023-11-19">2023-11-19</time>
 		</header>
 		<aside>
 			<div>
-				Re-enable seccomp by default after introducing GitHub testing on
+				Re-enable seccomp by default after introducing
+				<a href="https://github.com/kristapsdz/kcgi/actions">GitHub actions</a>
+				to test on
 				alternate architectures (armv7, aarch64, etc.).
 			</div>
 			<div>

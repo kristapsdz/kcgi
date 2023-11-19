@@ -10,16 +10,13 @@ installation, deployment, examples, and usage documentation.
 
 # Installation
 
-Building the bleeding-edge version of **kcgi** (instead of from your
-system's packages or a stable version) is similar to building the source
-releases.
-
-You'll a C compiler ([gcc](https://gcc.gnu.org/) or
-[clang](https://clang.llvm.org/), [zlib](https://zlib.net) (*zlib* or
+You'll need a C compiler ([gcc](https://gcc.gnu.org/) or
+[clang](https://clang.llvm.org/)), [zlib](https://zlib.net) (*zlib* or
 *zlib-dev* for some package managers), and BSD make (*bmake* for some
-managers) for building.  On some Linux systems, you might additionally
-need the Linux kernel headers installed using the *linux-headers*
-package or similar.
+managers) for building.
+
+On some Linux systems, you might additionally need the Linux kernel
+headers installed using the *linux-headers* package or similar.
 
 Begin by cloning or downloading.  Then configure with `./configure`,
 compile with `make` (BSD make, so it may be `bmake` on your system),
@@ -48,7 +45,9 @@ make install
 
 It's useful to run the installed regression tests on the bleeding edge
 sources.  (Again, this uses BSD make, so it may be `bmake` on your
-system.)
+system.)  You'll need [libcurl](https://curl.se/libcurl/) installed
+(*curl-dev*, *libcurl-dev*, or *libcurl4-openssl-dev* with some package
+managers).
 
 ```sh
 make regress
