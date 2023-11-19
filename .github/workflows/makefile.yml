@@ -47,7 +47,7 @@ jobs:
       run: ./configure
     - name: Build and test
       run: bmake regress
-  alpine_sandboxed:
+  alpine_sandboxed_x86_64:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -61,6 +61,16 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-x86_64.sh
+    - name: Configure, build, and test on x86_64
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-x86_64.sh {0}
+  alpine_sandboxed_aarch64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
     - name: Setup latest Alpine Linux for aarch64
       uses: jirutka/setup-alpine@v1.1.4
       with:
@@ -72,6 +82,16 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-aarch64.sh
+    - name: Configure, build, and test on aarch64
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-aarch64.sh {0}
+  alpine_sandboxed_armv7:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
     - name: Setup latest Alpine Linux for armv7
       uses: jirutka/setup-alpine@v1.1.4
       with:
@@ -83,6 +103,16 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-armv7.sh
+    - name: Configure, build, and test on armv7
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-armv7.sh {0}
+  alpine_sandboxed_ppc64le:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
     - name: Setup latest Alpine Linux for ppc64le
       uses: jirutka/setup-alpine@v1.1.4
       with:
@@ -94,24 +124,6 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-ppc64le.sh
-    - name: Configure, build, and test on x86_64
-      run: |
-        cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
-        bmake regress
-      shell: alpine-x86_64.sh {0}
-    - name: Configure, build, and test on aarch64
-      run: |
-        cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
-        bmake regress
-      shell: alpine-aarch64.sh {0}
-    - name: Configure, build, and test on armv7
-      run: |
-        cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
-        bmake regress
-      shell: alpine-armv7.sh {0}
     - name: Configure, build, and test on ppc64le
       run: |
         cat /etc/alpine-release
