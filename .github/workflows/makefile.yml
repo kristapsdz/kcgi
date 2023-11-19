@@ -1,7 +1,7 @@
 name: Regression Tests
 on: [push]
 jobs:
-  ubuntu_standard:
+  ubuntu:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -13,19 +13,7 @@ jobs:
         ./configure
     - name: Build and test
       run: bmake regress
-  ubuntu_sandboxed:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: Install dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev bmake
-    - name: Configure
-      run: |
-        cat /etc/os-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
-    - name: Build and test
-      run: bmake regress
-  ubuntu_libbsd_sandboxed:
+  ubuntu_libbsd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -34,7 +22,7 @@ jobs:
     - name: Configure
       run: |
         cat /etc/os-release
-        CFLAGS=$(pkg-config --cflags libbsd-overlay) ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1" LDFLAGS=$(pkg-config --libs libbsd-overlay)
+        CFLAGS=$(pkg-config --cflags libbsd-overlay) ./configure LDFLAGS=$(pkg-config --libs libbsd-overlay)
     - name: Build and test
       run: bmake regress
   macos_standard:
@@ -47,7 +35,7 @@ jobs:
       run: ./configure
     - name: Build and test
       run: bmake regress
-  alpine_sandboxed_x86_64:
+  alpine_x86_64:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -64,10 +52,10 @@ jobs:
     - name: Configure, build, and test on x86_64
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        ./configure
         bmake regress
       shell: alpine-x86_64.sh {0}
-  alpine_sandboxed_aarch64:
+  alpine_aarch64:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -85,10 +73,10 @@ jobs:
     - name: Configure, build, and test on aarch64
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        ./configure
         bmake regress
       shell: alpine-aarch64.sh {0}
-  alpine_sandboxed_armv7:
+  alpine_armv7:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -106,10 +94,10 @@ jobs:
     - name: Configure, build, and test on armv7
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        ./configure
         bmake regress
       shell: alpine-armv7.sh {0}
-  alpine_sandboxed_ppc64le:
+  alpine_ppc64le:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -127,10 +115,10 @@ jobs:
     - name: Configure, build, and test on ppc64le
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        ./configure
         bmake regress
       shell: alpine-ppc64le.sh {0}
-  alpine_sandboxed_s390x:
+  alpine_s390x:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -148,10 +136,10 @@ jobs:
     - name: Configure, build, and test on s390x
       run: |
         cat /etc/alpine-release
-        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        ./configure
         bmake regress
       shell: alpine-s390x.sh {0}
-  freebsd_sandboxed:
+  freebsd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -162,18 +150,5 @@ jobs:
         prepare: pkg install -y curl
         run: |
           freebsd-version
-          ./configure
-          make regress
-  openbsd_sandboxed:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: Test in OpenBSD
-      uses: vmactions/openbsd-vm@v1
-      with:
-        usesh: true
-        prepare: pkg_add curl
-        run: |
-          uname -a
           ./configure
           make regress

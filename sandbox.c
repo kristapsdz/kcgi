@@ -62,7 +62,7 @@ ksandbox_init_child(enum sandtype type,
 #elif HAVE_PLEDGE
 	if (!ksandbox_pledge_init_child(type))
 		return 0;
-#elif HAVE_SECCOMP_FILTER && ENABLE_SECCOMP_FILTER
+#elif HAVE_SECCOMP_FILTER
 	if (!ksandbox_seccomp_init_child(type))
 		return 0;
 #endif

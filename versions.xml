@@ -9,8 +9,8 @@
 		</header>
 		<aside>
 			<div>
-				Remove stray seccomp bits if not enabled at compile-time and fix
-				some new white-listed system calls for x86.
+				Re-enable seccomp by default after introducing GitHub testing on
+				alternate architectures (armv7, aarch64, etc.).
 			</div>
 			<div>
 				Add

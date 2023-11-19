@@ -16,7 +16,7 @@
  */
 #include "config.h"
 
-#if HAVE_SECCOMP_FILTER && ENABLE_SECCOMP_FILTER
+#if HAVE_SECCOMP_FILTER
 
 /*
  * Copyright (c) 2012 Will Drewry <wad@dataspill.org>

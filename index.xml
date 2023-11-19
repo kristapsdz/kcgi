@@ -368,16 +368,8 @@
 					(Linux)
 				</dt>
 				<dd>
-					<strong>Disabled by default</strong> and must be manually enabled at build time
-					(see <code>ENABLE_SECCOMP_FILTER</code> in the Makefile).
-					The reasons for disabling follow those in an
-					<a href="https://github.com/kristapsdz/acme-client-portable/blob/master/Linux-seccomp.md">old article</a>
-					about another system.
-					If manually enabled, this requires a seccomp-enabled Linux kernel.
+					This requires a seccomp-enabled Linux kernel and a recognised hardware architecture.
 					It is supplemented by <code>setrlimit(2)</code> limiting.
-					For the time being, this feature is only available for x86, x86_64, and arm architectures.
-					If you're using another one, please send me your <code>uname -m</code> and, if you know if it,
-					the correct <code>AUDIT_ARCH_xxx</code> found in <code>/usr/include/linux/audit.h</code>.
 				</dd>
 				<dt>
 					<a href="https://man.openbsd.org/pledge.2">pledge(2)</a>
