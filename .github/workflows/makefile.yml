@@ -83,6 +83,17 @@ jobs:
           zlib-dev
           linux-headers
         shell-name: alpine-armv7.sh
+    - name: Setup latest Alpine Linux for ppc64le
+      uses: jirutka/setup-alpine@v1.1.4
+      with:
+        arch: ppc64le
+        packages: >
+          build-base
+          curl-dev
+          bmake
+          zlib-dev
+          linux-headers
+        shell-name: alpine-ppc64le.sh
     - name: Configure, build, and test on x86_64
       run: |
         cat /etc/alpine-release
@@ -101,3 +112,9 @@ jobs:
         ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
         bmake regress
       shell: alpine-armv7.sh {0}
+    - name: Configure, build, and test on ppc64le
+      run: |
+        cat /etc/alpine-release
+        ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+        bmake regress
+      shell: alpine-ppc64le.sh {0}
