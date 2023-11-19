@@ -151,3 +151,29 @@ jobs:
         ./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
         bmake regress
       shell: alpine-s390x.sh {0}
+  freebsd_sandboxed:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Test in FreeBSD
+      uses: vmactions/freebsd-vm@v1
+      with:
+        usesh: true
+        prepare: pkg install -y curl
+        run: |
+          freebsd-version
+          ./configure
+          make regress
+  openbsd_sandboxed:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Test in OpenBSD
+      uses: vmactions/openbsd-vm@v1
+      with:
+        usesh: true
+        prepare: pkg_add curl
+        run: |
+          uname -a
+          ./configure
+          make regress

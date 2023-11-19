@@ -10,8 +10,12 @@ installation, deployment, examples, and usage documentation.
 
 ## Installation
 
-Building the bleeding-edge version of **kcgi** (instead of from your system's
-packages or a stable version) is similar to building the source releases.
+Building the bleeding-edge version of **kcgi** (instead of from your
+system's packages or a stable version) is similar to building the source
+releases.
+
+You'll a C compiler, zlib (zlib-dev on some systems), and BSD make
+(bmake on some systems) for building.
 
 Begin by cloning or downloading.  Then configure with `./configure`,
 compile with `make` (BSD make, so it may be `bmake` on your system),
@@ -39,6 +43,17 @@ CFLAGS=$(pkg-config --cflags libbsd-overlay) \
     ./configure LDFLAGS=$(pkg-config --libs libbsd-overlay)
 ```
 
+If you intend to run on Linux with seccomp sandboxing, pass the
+following to the configuration:
+
+```
+./configure CPPFLAGS="-DENABLE_SECCOMP_FILTER=1"
+```
+
+You'll need the Linux kernel headers installed, which are usually by
+default but sometimes require the *linux-headers* package or similar.
+
+
 ## Tests
 
 It's useful to run the installed regression tests on the bleeding edge
@@ -59,6 +74,27 @@ make afl
 cd afl
 afl-fuzz -i in/urlencoded -o out -- ./afl-urlencoded
 ```
+
+## Automated testing
+
+The public GitHub repository repository for **kcgi** uses automated
+testing on each check-in to run the regression tests.  The following
+systems are checked:
+
+- Alpine/musl Linux (latest, aarch64, sandboxed)
+- Alpine/musl Linux (latest, armv7, sandboxed)
+- Alpine/musl Linux (latest, ppc64le, sandboxed)
+- Alpine/musl Linux (latest, s390x, sandboxed)
+- Alpine/musl Linux (latest, x86\_64, sandboxed)
+- FreeBSD (latest, x86\_64, sandboxed)
+- Mac OS X (latest, x86, sandboxed)
+- OpenBSD (latest, x86\_64, sandboxed)
+- Ubuntu/glibc Linux (latest, x86\_64, un-sandboxed)
+- Ubuntu/glibc Linux (latest, x86\_64, sandboxed)
+- Ubuntu/glibc Linux (latest, x86\_64, sandboxed, libbsd)
+
+These are also run weekly to catch any changes as new operating system
+features come into play.
 
 ## License
 
