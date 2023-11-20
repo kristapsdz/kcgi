@@ -103,6 +103,9 @@ static const struct sock_filter preauth_ctrl[] = {
 #ifdef __NR_accept /* not defined for __i386__ (linux) */
 	SC_ALLOW(accept),
 #endif
+#ifdef __NR_socketcall /* used for accept on __i386__ (linux) */
+	SC_ALLOW(socketcall),
+#endif
 	SC_ALLOW(fcntl),
 #ifdef __NR_fcntl64 /* only noted on arm */
 	SC_ALLOW(fcntl64),
@@ -190,6 +193,9 @@ static const struct sock_filter preauth_work[] = {
 	SC_ALLOW(fstat), /* for kutil_openlog logging */
 #ifdef __NR_newfstatat
 	SC_ALLOW(newfstatat), /* for kutil_openlog logging */
+#endif
+#ifdef __NR_statx
+	SC_ALLOW(statx), /* for kutil_openlog logging */
 #endif
 	SC_ALLOW(write),
 	SC_ALLOW(writev),
