@@ -3,6 +3,32 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.13.2</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2023-11-25">2023-11-25</time>
+		</header>
+		<aside>
+			<div>
+				Un-break seccomp for i386.
+			</div>
+			<div>
+				Start installing shared libraries alongside the static archives.
+				Also restrict symbol visibility to the contents of the public header
+				files.
+			</div>
+			<div>
+				Decouple writer libraries (<a href="kcgihtml.3.html">kcgihtml(3)</a>
+				and such) from reaching into private functions of 
+				<a href="libkcgi.3.html">libkcgi(3)</a>.  This meant moving some
+				writer functions (e.g., 
+				<a href="kcgi_writer_write.3.html">kcgi_writer_write(3)</a> into the
+				public header file.
+				This also allows for creating external writer routines.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.13.1</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2023-11-19">2023-11-19</time>
