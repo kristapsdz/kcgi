@@ -47,6 +47,7 @@ VMAJOR		!= grep 'define	KCGI_VMAJOR' kcgi.h | cut -f3
 VMINOR		!= grep 'define	KCGI_VMINOR' kcgi.h | cut -f3
 VBUILD		!= grep 'define	KCGI_VBUILD' kcgi.h | cut -f3
 VERSION		:= $(VMAJOR).$(VMINOR).$(VBUILD)
+LIBVER		 = 1
 LIBOBJS 	 = auth.o \
 		   child.o \
 		   datetime.o \
@@ -277,10 +278,19 @@ LIBS		 = libkcgi.a \
 		   libkcgijson.a \
 		   libkcgixml.a \
 		   libkcgiregress.a
+SOLIBS		 = libkcgi.so.$(LIBVER) \
+		   libkcgihtml.so.$(LIBVER) \
+		   libkcgijson.so.$(LIBVER) \
+		   libkcgixml.so.$(LIBVER) \
+		   libkcgiregress.so.$(LIBVER)
 CURL_LIBS_PKG	 != curl-config --libs 2>/dev/null || echo "-lcurl"
 CURL_CFLAGS_PKG	 != curl-config --cflags 2>/dev/null || echo ""
 LIBS_PKG	 != pkg-config --libs zlib 2>/dev/null || echo "-lz"
 CFLAGS_PKG	 != pkg-config --cflags zlib 2>/dev/null || echo ""
+# Because the objects will be compiled into a shared library:
+CFLAGS		+= -fPIC
+# To avoid exporting internal functions (kcgi.h etc. have default visibility).
+CFLAGS		+= -fvisibility=hidden
 
 REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
 
@@ -289,7 +299,7 @@ REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
 
 REGRESS_CFLAGS	  = $(CURL_CFLAGS_PKG) $(CFLAGS_PKG) -Wno-deprecated-declarations
 
-all: kfcgi $(LIBS) $(PCS)
+all: kfcgi $(LIBS) $(SOLIBS) $(PCS)
 
 afl: $(AFL)
 
@@ -317,6 +327,10 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN8DIR)
 	mkdir -p $(DESTDIR)$(SBINDIR)
 	$(INSTALL_LIB) $(LIBS) $(DESTDIR)$(LIBDIR)
+	$(INSTALL_LIB) $(SOLIBS) $(DESTDIR)$(LIBDIR)
+	for f in $(SOLIBS) ; do \
+		( cd $(DESTDIR)$(LIBDIR) && ln -sf $$f `basename $$f .$(LIBVER)` ) ; \
+	done
 	$(INSTALL_DATA) kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL_DATA) $(PCS) $(DESTDIR)$(LIBDIR)/pkgconfig
 	$(INSTALL_MAN) $(MAN3S) $(DESTDIR)$(MAN3DIR)
@@ -356,7 +370,8 @@ clean:
 	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
 	rm -f $(SBLGS) $(THTMLS) extending01.html atom.xml
 	rm -f $(LIBOBJS) compats.o 
-	rm -f $(LIBS) kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o regress/regress.o
+	rm -f $(LIBS) *.so *.so.$(LIBVER)
+	rm -f kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o regress/regress.o
 	rm -f *.core
 	rm -f $(REGRESS) $(AFL) regress/*.o
 	rm -f $(PCS)
@@ -415,6 +430,11 @@ $(BIN): $(BIN).o libkcgi.a
 libkcgi.a: $(LIBOBJS) compats.o
 	$(AR) rs $@ $(LIBOBJS) compats.o
 
+libkcgi.so.$(LIBVER): $(LIBOBJS) compats.o
+	$(CC) -shared -o $@ $(LIBOBJS) compats.o $(LDFLAGS) $(LDADD_MD5) \
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+	ln -sf $@ `basename $@ .$(LIBVER)`
+
 $(LIBOBJS): kcgi.h config.h extern.h
 
 # Our companion libraries.
@@ -439,6 +459,26 @@ libkcgixml.a: kcgixml.o
 
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
+
+libkcgihtml.so.$(LIBVER): kcgihtml.o
+	$(CC) -shared -o $@ kcgihtml.o $(LDFLAGS) \
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+	ln -sf $@ `basename $@ .$(LIBVER)`
+
+libkcgijson.so.$(LIBVER): kcgijson.o
+	$(CC) -shared -o $@ kcgijson.o $(LDFLAGS) \
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+	ln -sf $@ `basename $@ .$(LIBVER)`
+
+libkcgixml.so.$(LIBVER): kcgixml.o
+	$(CC) -shared -o $@ kcgixml.o $(LDFLAGS) \
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+	ln -sf $@ `basename $@ .$(LIBVER)`
+
+libkcgiregress.so.$(LIBVER): kcgiregress.o
+	$(CC) -shared -o $@ kcgiregress.o $(LDFLAGS) \
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+	ln -sf $@ `basename $@ .$(LIBVER)`
 
 # Sample programs.
 # These demonstrate FastCGI, CGI, and standard.

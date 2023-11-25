@@ -16,6 +16,10 @@
  */
 #ifndef KCGIJSON_H
 #define KCGIJSON_H
+/*
+ * The only visible symbols should be those in this header file.
+ */
+#pragma GCC visibility push(default)
 
 #if !defined(__BEGIN_DECLS)
 #  ifdef __cplusplus
@@ -93,4 +97,5 @@ enum kcgi_err	kjson_string_puts(struct kjsonreq *, const char *);
 
 __END_DECLS
 
+#pragma GCC visibility pop /* visibility(default) */
 #endif

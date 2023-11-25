@@ -16,6 +16,10 @@
  */
 #ifndef KCGIREGRESS_H
 #define KCGIREGRESS_H
+/*
+ * The only visible symbols should be those in this header file.
+ */
+#pragma GCC visibility push(default)
 
 #if !defined(__BEGIN_DECLS)
 #  ifdef __cplusplus
@@ -45,4 +49,5 @@ int 		  kcgi_regress_cgi(kcgi_regress_client,
 
 __END_DECLS
 
+#pragma GCC visibility pop /* visibility(default) */
 #endif
