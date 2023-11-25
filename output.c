@@ -655,7 +655,7 @@ kcgi_writer_free(struct kcgi_writer *p)
  * Write "sz" bytes of "buf" into the output.
  * This doesn't necessarily mean that the output has been written: it
  * may be further buffered.
- * Returns KCGI_OK, KCGI_ENOMEM, or KCGI_SYSTEM.
+ * Returns KCGI_FORM and those from kdata_write().
  */
 enum kcgi_err
 kcgi_writer_write(struct kcgi_writer *p, const void *buf, size_t sz)

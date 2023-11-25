@@ -57,7 +57,7 @@
 /*
  * Build version.
  */
-#define	KCGI_VBUILD	1
+#define	KCGI_VBUILD	2
 
 /*
  * Version string of major.minor.build (as a literal string).
@@ -378,6 +378,7 @@ struct	kpair {
 
 struct	kreq; /* forward declaration */
 struct	kfcgi;
+struct 	kcgi_writer;
 
 struct	kvalid {
 	int		(*valid)(struct kpair *kp);
@@ -582,6 +583,12 @@ int		 kvalid_udouble(struct kpair *);
 int		 kvalid_uint(struct kpair *);
 
 void		 kcgi_writer_disable(struct kreq *);
+void		 kcgi_writer_free(struct kcgi_writer *);
+struct kcgi_writer *kcgi_writer_get(struct kreq *, int);
+enum kcgi_err	 kcgi_writer_putc(struct kcgi_writer *, char);
+enum kcgi_err	 kcgi_writer_puts(struct kcgi_writer *, const char *);
+enum kcgi_err	 kcgi_writer_write(struct kcgi_writer *,
+			const void *, size_t);
 
 int		 khttp_fcgi_getfd(const struct kfcgi *);
 enum kcgi_err	 khttp_fcgi_parse(struct kfcgi *, struct kreq *);
