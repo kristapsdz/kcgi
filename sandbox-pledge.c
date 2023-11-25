@@ -41,6 +41,4 @@ ksandbox_pledge_init_child(enum sandtype type)
 	return 1;
 }
 
-#else
-int dummy;
 #endif

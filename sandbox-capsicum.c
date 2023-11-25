@@ -207,6 +207,4 @@ ksandbox_capsicum_init_child(enum sandtype type,
 	return rc;
 }
 
-#else
-int dummy;
 #endif

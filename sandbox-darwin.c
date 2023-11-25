@@ -72,6 +72,4 @@ ksandbox_darwin_init_child(enum sandtype type)
 	return rc;
 }
 
-#else
-int dummy;
 #endif
