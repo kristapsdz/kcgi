@@ -1,4 +1,6 @@
 *.[ao]
+*.so.*
+*.so
 *.pc
 *.swp
 *.core
