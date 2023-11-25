@@ -851,7 +851,7 @@ khtml_printf(struct khtmlreq *req, const char *fmt, ...)
 		return KCGI_OK;
 
 	va_start(ap, fmt);
-	len = asprintf(&buf, fmt, ap);
+	len = vasprintf(&buf, fmt, ap);
 	va_end(ap);
 
 	if (len < 0)
