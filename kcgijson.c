@@ -26,7 +26,6 @@
 
 #include "kcgi.h"
 #include "kcgijson.h"
-#include "extern.h"
 
 enum kcgi_err
 kjson_open(struct kjsonreq *r, struct kreq *req)

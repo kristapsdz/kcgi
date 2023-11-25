@@ -26,7 +26,6 @@
 
 #include "kcgi.h"
 #include "kcgihtml.h"
-#include "extern.h"
 
 /*
  * Maximum size of printing a signed 64-bit integer.
@@ -852,10 +851,10 @@ khtml_printf(struct khtmlreq *req, const char *fmt, ...)
 		return KCGI_OK;
 
 	va_start(ap, fmt);
-	len = kxvasprintf(&buf, fmt, ap);
+	len = asprintf(&buf, fmt, ap);
 	va_end(ap);
 
-	if (len == -1)
+	if (len < 0)
 		return KCGI_ENOMEM;
 
 	er = khtml_write(buf, (size_t)len, req);

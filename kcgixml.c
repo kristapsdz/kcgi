@@ -26,7 +26,6 @@
 
 #include "kcgi.h"
 #include "kcgixml.h"
-#include "extern.h"
 
 enum kcgi_err
 kxml_open(struct kxmlreq *r, struct kreq *req,
