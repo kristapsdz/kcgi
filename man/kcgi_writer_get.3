@@ -1,0 +1,56 @@
+.\" Copyright (c) 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGI_WRITER_GET 3
+.Os
+.Sh NAME
+.Nm kcgi_writer_get
+.Nd open a writer allocation
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft "struct kcgi_writer *"
+.Fo kcgi_writer_get
+.Fa "struct kreq *req"
+.Fa "int type"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn kcgi_writer_get
+function opens a writer from request
+.Fa r
+for subsequent use by the
+.Xr kcgi_writer_write 3
+family.
+The
+.Fa type
+argument is reserved for future use and should be set to zero.
+It may only be used prior to
+.Xr kcgi_writer_disable 3 ,
+otherwise it will cause a program abort.
+.Sh RETURN VALUES
+Returns a writer or
+.Dv NULL
+if allocation fails.
+.Sh SEE ALSO
+.Xr kcgi_writer_disable 3 ,
+.Xr kcgi_writer_write 3
+.Sh AUTHORS
+This function was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

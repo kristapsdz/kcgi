@@ -1,0 +1,80 @@
+.\" Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate$
+.Dt KCGI_WRITER_PUTC 3
+.Os
+.Sh NAME
+.Nm kcgi_writer_putc
+.Nd write into a writer
+.Sh LIBRARY
+.Lb libkcgi
+.Sh SYNOPSIS
+.In sys/types.h
+.In stdarg.h
+.In stdint.h
+.In kcgi.h
+.Ft "enum kcgi_err"
+.Fo kcgi_writer_putc
+.Fa "struct kcgi_writer *writer"
+.Fa "char c"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn kcgi_writer_putc
+function writes character
+.Fa c
+to a
+.Fa writer
+channel opened by
+.Xr kcgi_writer_get 3 .
+This allows writing after
+.Xr kcgi_writer_disable 3 ,
+unlike
+.Xr khttp_write 3 .
+.Fn kcgi_writer_putc
+is backed by
+.Xr kcgi_writer_write 3 .
+.Sh RETURN VALUES
+Returns an
+.Ft enum kcgi_err
+indicating the error state.
+.Bl -tag -width -Ds
+.It Dv KCGI_OK
+Success (not an error).
+.It Dv KCGI_ENOMEM
+Internal memory allocation failure.
+.It Dv KCGI_HUP
+The output connection has been terminated.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_FORM
+The connection is still expecting headers with
+.Xr khttp_head 3 .
+Indicates that
+.Xr khttp_body 3
+did not return with success or was not invoked.
+For FastCGI connections, the current connection should be released with
+.Xr khttp_free 3
+and parse loop reentered.
+.It Dv KCGI_SYSTEM
+Internal system error writing to the output stream.
+.El
+.Sh SEE ALSO
+.Xr kcgi_writer_disable 3 ,
+.Xr kcgi_writer_get 3
+.Sh AUTHORS
+This function was written by
+.An Kristaps Dzonsons Aq Mt kristaps@bsd.lv .

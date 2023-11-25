@@ -74,6 +74,11 @@ MAN3S		 = man/kcgi.3 \
 		   man/kcgi_buf_puts.3 \
 		   man/kcgi_buf_write.3 \
 		   man/kcgi_writer_disable.3 \
+		   man/kcgi_writer_free.3 \
+		   man/kcgi_writer_get.3 \
+		   man/kcgi_writer_putc.3 \
+		   man/kcgi_writer_puts.3 \
+		   man/kcgi_writer_write.3 \
 		   man/kcgi_strerror.3 \
 		   man/khtml_attr.3 \
 		   man/khtml_close.3 \
