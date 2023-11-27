@@ -437,7 +437,7 @@ libkcgi.a: $(LIBOBJS) compats.o
 
 libkcgi.so.$(LIBVER): $(LIBOBJS) compats.o
 	$(CC) -shared -o $@ $(LIBOBJS) compats.o $(LDFLAGS) $(LDADD_MD5) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) $(LIBS_PKG)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
 $(LIBOBJS): kcgi.h config.h extern.h
@@ -465,24 +465,24 @@ libkcgixml.a: kcgixml.o
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
 
-libkcgihtml.so.$(LIBVER): kcgihtml.o
+libkcgihtml.so.$(LIBVER): kcgihtml.o libkcgi.so.$(LIBVER)
 	$(CC) -shared -o $@ kcgihtml.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.so.$(LIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgijson.so.$(LIBVER): kcgijson.o
+libkcgijson.so.$(LIBVER): kcgijson.o libkcgi.so.$(LIBVER)
 	$(CC) -shared -o $@ kcgijson.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.so.$(LIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgixml.so.$(LIBVER): kcgixml.o
+libkcgixml.so.$(LIBVER): kcgixml.o libkcgi.so.$(LIBVER)
 	$(CC) -shared -o $@ kcgixml.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.so.$(LIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgiregress.so.$(LIBVER): kcgiregress.o
+libkcgiregress.so.$(LIBVER): kcgiregress.o libkcgi.so.$(LIBVER)
 	$(CC) -shared -o $@ kcgiregress.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.so.$(LIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
 # Sample programs.
