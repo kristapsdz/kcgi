@@ -6,13 +6,15 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev bmake
+      run: sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
     - name: Configure
       run: |
         cat /etc/os-release
         ./configure
     - name: Build and test
       run: bmake regress
+    - name: Memory check
+      run: bmake valgrind
   ubuntu_libbsd:
     runs-on: ubuntu-latest
     steps:

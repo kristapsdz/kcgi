@@ -53,8 +53,10 @@ parent(CURL *curl)
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, p);
 	curl_easy_setopt(curl, CURLOPT_URL, 
 		"http://localhost:17123/");
-	if (CURLE_OK != curl_easy_perform(curl))
+	if (CURLE_OK != curl_easy_perform(curl)) {
+		free(p);
 		return(0);
+	}
 	free(p);
 	return(i >= 1024 * 1024);
 }

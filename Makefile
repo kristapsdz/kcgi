@@ -296,6 +296,8 @@ CFLAGS_PKG	 != pkg-config --cflags zlib 2>/dev/null || echo ""
 CFLAGS		+= -fPIC
 # To avoid exporting internal functions (kcgi.h etc. have default visibility).
 CFLAGS		+= -fvisibility=hidden
+VALGRIND_ARGS	 = -q --leak-check=full --leak-resolution=high --show-reachable=yes
+VALGRIND_ARGS	+= --suppressions=valgrind.suppressions
 
 REGRESS_LIBS	  = $(CURL_LIBS_PKG) $(LIBS_PKG) $(LDADD_MD5) -lm
 
@@ -316,6 +318,22 @@ regress: $(REGRESS)
 		./$$f >/dev/null 2>/dev/null || { echo "fail" ; exit 1 ; } ; \
 		echo "ok" ; \
 	done
+
+valgrind: $(REGRESS)
+	@tmp=`mktemp` ; \
+	err=0 ; \
+	for f in $(REGRESS) ; do \
+		echo "valgrind $$f... " ; \
+		valgrind $(VALGRIND_ARGS) --log-fd=3 ./$$f 1>&2 2>/dev/null 3>>$$tmp ; \
+	done ; \
+	cat $$tmp ; \
+	if [ -s $$tmp ] ; then \
+		err=1 ; \
+	else \
+		err=0 ; \
+	fi ; \
+	rm -f $$tmp ; \
+	exit $$err
 
 installcgi: sample samplepp sample-fcgi sample-cgi
 	$(INSTALL_PROGRAM) sample $(PREFIX)/sample.cgi
