@@ -3,6 +3,18 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.13.3</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2023-12-02">2023-12-02</time>
+		</header>
+		<aside>
+			<div>
+				Fix shared library on Mac OS X.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.13.2</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2023-11-25">2023-11-25</time>
