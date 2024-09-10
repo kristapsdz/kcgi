@@ -1,6 +1,5 @@
-.\"	$Id$
 .\"
-.\" Copyright (c) 2015, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+.\" Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -64,6 +63,12 @@ callback communicates with the server over port 17123.
 Usually this is orchestrated with
 .Xr libcurl 3 .
 The port number is fixed.
+Clients are restricted to the HTTP
+.Cm GET ,
+.Cm OPTIONS ,
+and
+.Cm POST
+methods.
 .Pp
 Both of these callbacks must return zero on failure, non-zero on
 success.

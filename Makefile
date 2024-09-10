@@ -204,6 +204,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-bearer-validate \
 		   regress/test-bigfile \
 		   regress/test-buf \
+		   regress/test-cors-options \
 		   regress/test-date2epoch \
 		   regress/test-datetime2epoch \
 		   regress/test-datetime-deprecated \

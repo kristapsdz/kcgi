@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2014--2016, 2019 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -480,8 +479,12 @@ dochild_params(int fd, void *arg, size_t *length,
 				path = head + 4;
 			} else if (strncmp(head, "POST ", 5) == 0) {
 				if (!fp("REQUEST_METHOD", "POST", arg))
-					return(0);
+					return 0;
 				path = head + 5;
+			} else if (strncmp(head, "OPTIONS ", 8) == 0) {
+				if (!fp("REQUEST_METHOD", "OPTIONS", arg))
+					return 0;
+				path = head + 8;
 			} else {
 				fprintf(stderr, "Unknown HTTP "
 					"first line: %s\n", head);
