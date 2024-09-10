@@ -248,6 +248,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-logging-errors \
 		   regress/test-nogzip \
 		   regress/test-nullqueryval \
+		   regress/test-origin \
 		   regress/test-path-check \
 		   regress/test-ping \
 		   regress/test-ping-double \

@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -179,6 +178,7 @@ static	const char *const krequs[KREQU__MAX] = {
 	"HTTP_IF_RANGE", /* KREQU_IF_RANGE */
 	"HTTP_IF_UNMODIFIED_SINCE", /* KREQU_IF_UNMODIFIED_SINCE */
 	"HTTP_MAX_FORWARDS", /* KREQU_MAX_FORWARDS */
+	"HTTP_ORIGIN", /* KREQU_ORIGIN */
 	"HTTP_PROXY_AUTHORIZATION", /* KREQU_PROXY_AUTHORIZATION */
 	"HTTP_RANGE", /* KREQU_RANGE */
 	"HTTP_REFERER", /* KREQU_REFERER */

@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -150,6 +149,7 @@ enum	krequ {
 	KREQU_IF_RANGE,
 	KREQU_IF_UNMODIFIED_SINCE,
 	KREQU_MAX_FORWARDS,
+	KREQU_ORIGIN,
 	KREQU_PROXY_AUTHORIZATION,
 	KREQU_RANGE,
 	KREQU_REFERER,
