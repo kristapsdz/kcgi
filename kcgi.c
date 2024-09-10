@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2012, 2014--2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -133,7 +132,12 @@ const char *const kschemes[KSCHEME__MAX] = {
 };
 
 const char *const kresps[KRESP__MAX] = {
+	"Access-Control-Allow-Credentials", /* KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS */
+	"Access-Control-Allow-Headers", /* KRESP_ACCESS_CONTROL_ALLOW_HEADERS */
+	"Access-Control-Allow-Methods", /* KRESP_ACCESS_CONTROL_ALLOW_METHODS */
 	"Access-Control-Allow-Origin", /* KRESP_ACCESS_CONTROL_ALLOW_ORIGIN */
+	"Access-Control-Expose-Headers", /* KRESP_ACCESS_CONTROL_EXPOSE_HEADERS */
+	"Access-Control-Max-Age", /* KRESP_ACCESS_CONTROL_MAX_AGE */
 	"Accept-Ranges", /* KRESP_ACCEPT_RANGES */
 	"Age", /* KRESP_AGE */
 	"Allow", /* KRESP_ALLOW */
