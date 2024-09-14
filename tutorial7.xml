@@ -1,0 +1,225 @@
+<article data-sblg-article="1" data-sblg-tags="tutorial" itemscope="itemscope"
+ itemtype="http://schema.org/BlogPosting">
+	<header>
+		<h2 itemprop="name">
+			CORS and kcgi
+		</h2>
+		<address itemprop="author">
+			<a href="https://github.com/kristapsdz">
+				Kristaps Dzonsons
+			</a>
+		</address>
+		<time itemprop="datePublished" datetime="2024-09-14">
+			14 September, 2024
+		</time>
+	</header>
+	<p>
+		<aside itemprop="about">
+			This article isn't about CORS (cross-origin resource sharing) but
+			rather the enumerations and functions available in
+			<a href="kcgi.3.html">kcgi(3)</a> to handle CORS requests.
+		</aside>
+	</p>
+	<h3>
+		Background
+	</h3>
+	<p>
+		Read the <a href="https://developer.mozilla.org">MDN</a> article on 
+		<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a>
+		to get started, or jump directly to its definition in the
+		<a href="https://fetch.spec.whatwg.org/">fetch spec</a> (the
+		<a href="https://www.w3.org/TR/2014/REC-cors-20140116/">CORS spec</a>
+		is obsolete).  In short, CORS (Cross-Origin Resource Sharing) is a way to
+		specify how a user visiting one address (say,
+		<a href="https://bsd.lv">https://bsd.lv</a>), is allowed to make a
+		request of another page on a different domain (say,
+		<a href="https://kristaps.bsd.lv">https://kristaps.bsd.lv</a>).
+	</p>
+	<p>
+		Why is CORS important?  Without it, a sneaky page might make requests of a
+		different domain (say, your bank), masquerading as you.  CORS is a
+		technology for protecting <strong>users</strong>, not websites.
+	</p>
+	<p>
+		CORS is an evolving concept, so it's wise to make sure nothing has changed
+		in the field since I've written this article.  Or better yet, make a
+		<a href="https://github.com/kristaps/kcgi">pull request</a> with any
+		changes.
+	</p>
+	<h3>
+		Simple Pre-flight Handling
+	</h3>
+	<p>
+		Let's start with <code>OPTIONS</code> handling, documented lightly in
+		<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS">MDN</a>
+		or described completely in the
+		<a href="https://httpwg.org/specs/rfc9110.html#OPTIONS">RFC</a>.
+		A CORS <q>pre-flight</q> is an <code>OPTIONS</code> HTTP request with the
+		<code>Origin</code> request header
+		(<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">MDN</a>,
+		<a href="https://fetch.spec.whatwg.org/#origin-header">standard</a>)
+		set.  The browser sends this to determine what capabilities a client from
+		an origin host be permitted.  The simplest reply to a CORS request is to
+		wildcard permission.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
+#include &lt;kcgi.h&gt;
+
+int 
+main(void) {
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+    if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
+        return 0;
+    if (r.method == KMETHOD_OPTIONS &amp;&amp;
+        r.reqmap[KREQU_ORIGIN] != NULL) {
+	/* This is a CORS pre-flight request. */
+        khttp_head(&amp;r,
+            kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+            "%s", "*");
+        khttp_head(&amp;r, kresps[KRESP_VARY],
+	    "%s", "Origin");
+        khttp_head(&amp;r, kresps[KRESP_STATUS], 
+            "%s", khttps[KHTTP_204]);
+	khttp_body(&amp;r);
+    } else {
+        /* Do other processing here... */
+    }
+    khttp_free(&amp;r);
+    return 0;
+}</pre>
+	</figure>
+	<p>
+		A wildcard response with <code>Access-Control-Allow-Origin</code> header
+		(<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">MDN</a>,
+		<a href="https://fetch.spec.whatwg.org/#http-access-control-allow-origin">standard</a>)
+		instructs the browser that any request is allowed.
+		There are some limitations not covered in this document: for instance,
+		credentials are not allowed.
+	</p>
+	<p>
+		This uses the HTTP error code 204 
+		(<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/204">MDN</a>,
+		<a href="https://www.rfc-editor.org/rfc/rfc9110#status.204">RFC</a>)
+		instead of code 200.
+		There exist warnings suggesting that code 204 for this purpose is not
+		handled properly by all browsers, but it's not exactly clear by which
+		browser and in which circumstances.
+	</p>
+	<p>
+		Use of the <code>Vary</code> header
+		(<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary">MDN</a>,
+		<a href="https://httpwg.org/specs/rfc9110.html#field.vary">RFC</a>)
+		may not be relevant for simple cases, but as per the
+		<a href="https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches">specification</a>,
+		it should be considered best practice.
+	</p>
+	<p>
+		Another common invocation that reduce some of the aforementioned
+		limitations is to specifically assign possible responses to the origin,
+		but not to investigate the origin in any way.  This is similar to the Bad
+		Old Days, when arbitrary requests were accepted from arbitrary origins.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">#include &lt;sys/types.h&gt; /* size_t, ssize_t */
+#include &lt;stdarg.h&gt; /* va_list */
+#include &lt;stddef.h&gt; /* NULL */
+#include &lt;stdint.h&gt; /* int64_t */
+#include &lt;kcgi.h&gt;
+
+int 
+main(void) {
+    struct kreq r;
+    const char *const pages[1] = { "index" };
+    if (khttp_parse(&amp;r, NULL, 0, pages, 1, 0) != KCGI_OK)
+        return 0;
+    if (r.method == KMETHOD_OPTIONS &amp;&amp;
+        r.reqmap[KREQU_ORIGIN] != NULL) {
+	/* This is a CORS pre-flight request. */
+        khttp_head(&amp;r,
+            kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+	    "%s", r.reqmap[KREQU_ORIGIN]->val);
+        khttp_head(&amp;r,
+            kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS],
+	    "%s", "GET, POST");
+        khttp_head(&amp;r, kresps[KRESP_VARY],
+	    "%s", "Origin");
+        khttp_head(&amp;r, kresps[KRESP_STATUS], 
+            "%s", khttps[KHTTP_204]);
+	khttp_body(&amp;r);
+    } else {
+        /* Do other processing here... */
+    }
+    khttp_free(&amp;r);
+    return 0;
+}</pre>
+	</figure>
+	<p>
+		This further leverages the <code>Access-Control-Allow-Methods</code>
+		header
+		(<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods">MDN</a>,
+		<a href="https://fetch.spec.whatwg.org/#http-access-control-allow-methods">standard</a>)
+		to limit available HTTP methods to those given.
+		All possible <code>Access-Control-Allow-XXX</code> headers are supported
+		by <span class="nm">kcgi</span>.
+	</p>
+	<h3>
+		Complex Pre-flight Handling
+	</h3>
+	<p>
+		All of the above can just as easily be enacted by using a reverse proxy
+		such as <a href="https://man.openbsd.org/relayd">relayd(8)</a> or, for
+		heavy-weight users married to Docker,
+		<a href="https://nginx.org">nginx</a>.
+		In most web applications, responses are going to be mapped from specific
+		origins to specific operations.
+	</p>
+	<p>
+		In the general case, a strategy is to contain all possible responses in a
+		well-defined structure.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">struct resp {
+    const char *headers;
+    const char *methods;
+    const char *credentials;
+};</pre>
+	</figure>
+	<p>
+		This can then be defined over all possible resources.
+	</p>
+	<figure class="sample">
+		<pre class="prettyprint linenums">const char *const pages[1] = { "index" };
+const struct resp resps[1] = {
+    { NULL, "GET, POST", "true" } /* index */
+};</pre>
+	</figure>
+	<p>
+		The response can then condition on the <code>page</code> field in
+		<code>struct kreq</code> and deliver any matching headers
+		(<code>KRESP_ACCESS_CONTROL_ALLOW_HEADERS</code>,
+		 <code>KRESP_ACCESS_CONTROL_ALLOW_METHODS</code>, and
+		 <code>KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS</code>, respectively),
+		or inhibit the header if the value is <code>NULL</code> as appears above
+		with the <code>headers</code> variable.
+		This assumes that the origin is being set opaquely from the request.
+	</p>
+	<p>
+		Filtering on an origin request is just as easy.  If origins may be
+		hard-coded or read from a file at startup, the <code>KREQU_ORIGIN</code>
+		value may be compared with an array of known origins.
+	</p>
+	<p>
+		In the most complex cases, the <code>resps</code> array above may be
+		rendered multi-dimensional to map individual origins to individual
+		resources.
+		<strong>
+			If a given origin is not known, simply do not respond with a
+			<code>KRESP_ACCESS_CONTROL_ALLOW_ORIGIN</code> header.
+		</strong>
+	</p>
+</article>

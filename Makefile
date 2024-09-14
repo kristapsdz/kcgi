@@ -24,7 +24,8 @@ TXMLS		 = tutorial0.xml \
 		   tutorial3.xml \
 		   tutorial4.xml \
 		   tutorial5.xml \
-		   tutorial6.xml
+		   tutorial6.xml \
+		   tutorial7.xml
 PCS		 = kcgi.pc \
 		   kcgi-html.pc \
 		   kcgi-json.pc \
@@ -36,7 +37,8 @@ THTMLS		 = tutorial0.html \
 		   tutorial3.html \
 		   tutorial4.html \
 		   tutorial5.html \
-		   tutorial6.html
+		   tutorial6.html \
+		   tutorial7.html
 SBLGS		 = archive.html \
 		   index.html \
 		   sample.c.html \
