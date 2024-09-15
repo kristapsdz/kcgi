@@ -181,7 +181,6 @@ SRCS 		 = auth.c \
 		   output.c \
 		   parent.c \
      		   sample.c \
-     		   sample-cgi.c \
      		   sample-fcgi.c \
 		   samplepp.cc \
      		   sandbox.c \
@@ -315,7 +314,7 @@ all: kfcgi $(LIBS) $(SOLIBS) $(PCS)
 
 afl: $(AFL)
 
-samples: sample samplepp sample-fcgi sample-cgi
+samples: sample samplepp sample-fcgi
 
 regress: $(REGRESS)
 	@for f in $(REGRESS) ; do \
@@ -340,10 +339,9 @@ valgrind: $(REGRESS)
 	rm -f $$tmp ; \
 	exit $$err
 
-installcgi: sample samplepp sample-fcgi sample-cgi
+installcgi: sample samplepp sample-fcgi
 	$(INSTALL_PROGRAM) sample $(PREFIX)/sample.cgi
 	$(INSTALL_PROGRAM) samplepp $(PREFIX)/samplepp.cgi
-	$(INSTALL_PROGRAM) sample-cgi $(PREFIX)/sample-simple.cgi
 	$(INSTALL_PROGRAM) sample-fcgi $(PREFIX)/sample-fcgi.cgi
 	$(INSTALL_DATA) template.xml $(PREFIX)
 
@@ -364,7 +362,7 @@ install: all
 	$(INSTALL_MAN) $(MAN3S) $(DESTDIR)$(MAN3DIR)
 	$(INSTALL_MAN) $(MAN8S) $(DESTDIR)$(MAN8DIR)
 	$(INSTALL_PROGRAM) kfcgi $(DESTDIR)$(SBINDIR)
-	$(INSTALL_DATA) template.xml sample.c samplepp.cc sample-fcgi.c sample-cgi.c $(DESTDIR)$(DATADIR)
+	$(INSTALL_DATA) template.xml sample.c samplepp.cc sample-fcgi.c $(DESTDIR)$(DATADIR)
 
 www: $(SVGS) $(SBLGS) kcgi.tgz kcgi.tgz.sha512 $(HTMLS) $(THTMLS) extending01.html atom.xml
 
@@ -395,7 +393,7 @@ distcheck: kcgi.tgz.sha512
 
 clean:
 	rm -f kcgi.tgz kcgi.tgz.sha512 $(SVGS) $(HTMLS) 
-	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o sample-cgi sample-cgi.o
+	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o
 	rm -f $(SBLGS) $(THTMLS) extending01.html atom.xml
 	rm -f $(LIBOBJS) compats.o 
 	rm -f $(LIBS) *.so *.so.$(LIBVER)
@@ -519,9 +517,6 @@ sample: sample.o libkcgi.a libkcgihtml.a kcgi.h kcgihtml.h
 
 sample-fcgi: sample-fcgi.o libkcgi.a kcgi.h
 	$(CC) -o $@ $(LDADD_STATIC) sample-fcgi.o -L. libkcgi.a $(LIBS_PKG) $(LDADD_MD5)
-
-sample-cgi: sample-cgi.o 
-	$(CC) -o $@ $(LDADD_STATIC) sample-cgi.o 
 
 # Now a lot of HTML and web media files.
 # These are only used with the `www' target, so we can assume
