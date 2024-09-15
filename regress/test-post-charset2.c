@@ -29,12 +29,18 @@
 static int
 parent(CURL *curl)
 {
-	const char	*data = "foo=bar";
+	const char		*data = "foo=bar";
+	struct curl_slist	*list = NULL;
+	int			 c;
 
-	curl_easy_setopt(curl, CURLOPT_URL, 
-		"http://localhost:17123/");
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-	return(CURLE_OK == curl_easy_perform(curl));
+	list = curl_slist_append(list, "Content-Type: "
+		"application/x-www-form-urlencoded;");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:17123/");
+	c = curl_easy_perform(curl);
+	curl_slist_free_all(list); 
+	return c == CURLE_OK;
 }
 
 static int
@@ -49,10 +55,9 @@ child(void)
 	    strcmp(r.fields[0].key, "foo") != 0 ||
 	    strcmp(r.fields[0].val, "bar") != 0)
 		return 0;
-	khttp_head(&r, kresps[KRESP_STATUS], 
-		"%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[KMIME_TEXT_HTML]);
+	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s",
+		kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
 	khttp_free(&r);
 	return 1;

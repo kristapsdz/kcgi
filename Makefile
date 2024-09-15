@@ -257,6 +257,8 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-ping \
 		   regress/test-ping-double \
 		   regress/test-post \
+		   regress/test-post-charset \
+		   regress/test-post-charset2 \
 		   regress/test-returncode \
 		   regress/test-template \
 		   regress/test-upload \

@@ -1468,7 +1468,15 @@ kworker_child_body(struct env *env, int fd, size_t envsz,
 	}
 
 	if (cp != NULL) {
+		/*
+		 * The application/x-www-form-urlencoded can take
+		 * arbitrary parameters (usually "charset", but really
+		 * anything) after the type and subtype.  XXX: should
+		 * these be passed into the front-end in any way?
+		 */
 		if (strcasecmp(cp, "application/x-www-form-urlencoded") == 0)
+			parse_pairs_urlenc(pp, b);
+		else if (strncasecmp(cp, "application/x-www-form-urlencoded;", 34) == 0)
 			parse_pairs_urlenc(pp, b);
 		else if (strncasecmp(cp, "multipart/form-data", 19) == 0) 
 			parse_multi(pp, cp + 19, b, bsz);
