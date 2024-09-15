@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2015 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,9 +29,6 @@
 #if HAVE_ZLIB
 
 #define	BUFSZ	(1024 * 1024)
-#ifdef __linux__
-#define arc4random random
-#endif
 
 static size_t
 doign(void *ptr, size_t sz, size_t nm, void *arg)

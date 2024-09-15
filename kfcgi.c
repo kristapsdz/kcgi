@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2015--2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -681,11 +680,7 @@ pollagain:
 
 	assert(i < wsz);
 	ws[i].fd = afd;
-#if HAVE_ARC4RANDOM
 	ws[i].cookie = arc4random();
-#else
-	ws[i].cookie = random();
-#endif
 	dbg("worker-%u: acquire %d "
 		"(pollers %zu/%zu: workers %zu/%zu)", 
 		ws[i].pid, afd, pfdsz, pfdmaxsz, wsz, maxwsz);

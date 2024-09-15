@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -46,11 +45,7 @@ main(int argc, char *argv[])
 	 */
 
 	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
 		v = arc4random();
-#else
-		v = random();
-#endif
 		if (!KHTTP_EPOCH2TM(v, &test))
 			errx(1, "KHTTP_EPOCH2TM");
 		if (!khttp_datetime2epoch(&res,
@@ -67,11 +62,7 @@ main(int argc, char *argv[])
 	}
 
 	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
 		v = (int64_t)arc4random() * -1;
-#else
-		v = (int64_t)random() * -1;
-#endif
 		if (!KHTTP_EPOCH2TM(v, &test))
 			errx(1, "KHTTP_EPOCH2TM");
 		if (!khttp_datetime2epoch(&res,

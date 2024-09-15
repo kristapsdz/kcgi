@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2016 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -41,19 +40,7 @@ main(int argc, char *argv[])
 	char	 	 inbuf[64], testbuf[64];
 
 	for (i = 0; i < 100000; i++) {
-		/*
-		 * arc4random_uniform is of course fine on BSD systems,
-		 * but isn't implemented properly on all systems, e.g.,
-		 * Alpine Linux, so we don't pull in <bsd/stdlib.h> and
-		 * this might cause compile problems.
-		 * We would do more values, but Linux sometimes has
-		 * 32-bit time.
-		 */
-#if HAVE_ARC4RANDOM
 		v = arc4random_uniform(50 * 365 * 24 * 60 * 60);
-#else
-		v = random() % (50 * 365 * 24 * 60 * 60);
-#endif
 		tm = gmtime(&v);
 		strftime(inbuf, sizeof(inbuf), "%a, %d %b %Y %T GMT", tm);
 		kutil_epoch2str(v, testbuf, sizeof(testbuf));

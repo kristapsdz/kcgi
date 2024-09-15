@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2015--2016, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -169,11 +168,7 @@ kfcgi_control(int work, int ctrl,
 
 		/* This doesn't need to be crypto quality. */
 
-#if HAVE_ARC4RANDOM
 		cookie = arc4random();
-#else
-		cookie = random();
-#endif
 
 		/* Write a header cookie to the work. */
 

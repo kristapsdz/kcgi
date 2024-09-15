@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -43,11 +42,7 @@ main(int argc, char *argv[])
 	int		 c;
 
 	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
 		v = (time_t)arc4random();
-#else
-		v = (time_t)random();
-#endif
 		if ((tm = gmtime(&v)) == NULL) {
 			warnx("gmtime: %" PRId64, (int64_t)v);
 			continue;

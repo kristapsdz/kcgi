@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -95,14 +94,7 @@ main(int argc, char *argv[])
 	/* Test across random values.  */
 
 	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
 		arc4random_buf(&v, sizeof(int64_t));
-#else
-		vv = (int64_t)random() * (int64_t)random();
-		memcpy(&v, &vv, sizeof(uint32_t));
-		vv = (int64_t)random() * (int64_t)random();
-		memcpy((void *)&v + sizeof(uint32_t), &vv, sizeof(uint32_t));
-#endif
 		khttp_epoch2datetime(v,
 			&tm_sec,
 			&tm_min,

@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2016, 2020 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,11 +46,7 @@ main(int argc, char *argv[])
 	 */
 
 	for (i = 0; i < 100000; i++) {
-#if HAVE_ARC4RANDOM
 		v = (int32_t)arc4random();
-#else
-		v = (int32_t)(random() + random());
-#endif
 		tm = gmtime(&v);
 		strftime(buf, sizeof(buf), "%a, %d %b %Y %T GMT", tm);
 		khttp_epoch2str(v, testbuf, sizeof(testbuf));
