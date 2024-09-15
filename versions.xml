@@ -3,6 +3,37 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>0.13.4</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2024-09-15">2024-09-15</time>
+		</header>
+		<aside>
+			<div>
+				Adding CORS request and response headers:
+				<code>Access-Control-Allow-Credentials</code>,
+				<code>Access-Control-Allow-Headers</code>,
+				<code>Access-Control-Allow-Methods</code>,
+				<code>Access-Control-Allow-Origin</code>,
+				<code>Access-Control-Expose-Headers</code>,
+				<code>Access-Control-Max-Age</code>,
+				<code>Origin</code>,
+				<code>Access-Control-Request-Headers</code>,
+				and
+				<code>Access-Control-Request-Method</code>.
+				While here, also add a brief tutorial on handling CORS
+				pre-flight requests.
+			</div>
+			<div>
+				Fix a big in handling <code>POST</code> forms
+				with parameters passed in with the
+				<code>application/x-www-form-urlencoded</code>
+				content type.  These are now correctly
+				processed.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.13.3</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2023-12-02">2023-12-02</time>
