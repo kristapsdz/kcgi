@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2014, 2015, 2017 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,15 +24,13 @@
 #include "kcgihtml.h"
 
 /*
- * Simple CGI application.
- * Compile it with `make samples` (or using gmake) and install it into
- * your web server's /cgi-bin.
- * The "template.xml" file should be in the /cgi-bin directory as well
- * and readable by the server process.
+ * Simple CGI application.  Compile it with `make samples` (or using gmake) and
+ * install it into your web server's /cgi-bin.  The "template.xml" file should
+ * be in the /cgi-bin directory as well and readable by the server process.
  * (Obviously this is just for a sample.)
  *
- * Assuming localhost/cgi-bin, the script is localhost/cgi-bin/sample.
- * The pages recognised are:
+ * Assuming localhost/cgi-bin, the script is localhost/cgi-bin/sample.  The
+ * pages recognised are:
  *
  *   - /cgi-bin/sample/index.html
  *   - /cgi-bin/sample/template.html
@@ -51,9 +48,8 @@ enum	page {
 };
 
 /*
- * All of the keys (input field names) we accept. 
- * The key names are in the "keys" array.
- * See sendindex() for how these are used.
+ * All of the keys (input field names) we accept.  The key names are in the
+ * "keys" array.  See sendindex() for how these are used.
  */
 enum	key {
 	KEY_INTEGER, 
@@ -64,9 +60,8 @@ enum	key {
 };
 
 /*
- * The elements in our template file.
- * The element key names are in the "templs" array.
- * See sendtemplate() for how this is used.
+ * The elements in our template file.  The element key names are in the "templs"
+ * array.  See sendtemplate() for how this is used.
  */
 enum	templ {
 	TEMPL_TITLE,
@@ -76,8 +71,8 @@ enum	templ {
 };
 
 /*
- * We need a structure because we can't get the "r" from the request.
- * This is used by our template callback.
+ * We need a structure because we can't get the "r" from the request.  This is
+ * used by our template callback.
  */
 struct	tstrct {
 	struct khtmlreq	 req;
@@ -85,9 +80,8 @@ struct	tstrct {
 };
 
 /*
- * We'll use this to route pages by creating an array indexed by our
- * page.
- * Then when the page is parsed, we'll route directly into it.
+ * We'll use this to route pages by creating an array indexed by our page.  Then
+ * when the page is parsed, we'll route directly into it.
  */
 typedef	void (*disp)(struct kreq *);
 
@@ -118,8 +112,8 @@ static const char *const templs[TEMPL__MAX] = {
 };
 
 /* 
- * Page names (as in the URL component) mapped from the first name part
- * of requests, e.g., /sample.cgi/index.html -> index -> PAGE_INDEX.
+ * Page names (as in the URL component) mapped from the first name part of
+ * requests, e.g., /sample.cgi/index.html -> index -> PAGE_INDEX.
  */
 static const char *const pages[PAGE__MAX] = {
 	"index", /* PAGE_INDEX */
@@ -128,10 +122,9 @@ static const char *const pages[PAGE__MAX] = {
 };
 
 /*
- * Open an HTTP response with a status code and a particular
- * content-type, then open the HTTP content body.
- * You can call khttp_head(3) before this: CGI doesn't dictate any
- * particular header order.
+ * Open an HTTP response with a status code and a particular content-type, then
+ * open the HTTP content body.  You can call khttp_head(3) before this: CGI
+ * doesn't dictate any particular header order.
  */
 static void
 resp_open(struct kreq *req, enum khttp http)
@@ -139,23 +132,20 @@ resp_open(struct kreq *req, enum khttp http)
 	enum kmime	 mime;
 
 	/*
-	 * If we've been sent an unknown suffix like '.foo', we won't
-	 * know what it is.
-	 * Default to an octet-stream response.
+	 * If we've been sent an unknown suffix like '.foo', we won't know what
+	 * it is.  Default to an octet-stream response.
 	 */
-	if (KMIME__MAX == (mime = req->mime))
-		mime = KMIME_APP_OCTET_STREAM;
 
-	khttp_head(req, kresps[KRESP_STATUS], 
-		"%s", khttps[http]);
-	khttp_head(req, kresps[KRESP_CONTENT_TYPE], 
-		"%s", kmimetypes[mime]);
+	if ((mime = req->mime) == KMIME__MAX)
+		mime = KMIME_APP_OCTET_STREAM;
+	khttp_head(req, kresps[KRESP_STATUS], "%s", khttps[http]);
+	khttp_head(req, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[mime]);
 	khttp_body(req);
 }
 
 /*
- * Callback for filling in a particular template part.
- * Let's just be simple for simplicity's sake.
+ * Callback for filling in a particular template part.  Let's just be simple for
+ * simplicity's sake.
  */
 static int
 template(size_t key, void *arg)
@@ -163,25 +153,25 @@ template(size_t key, void *arg)
 	struct tstrct	*p = arg;
 
 	switch (key) {
-	case (TEMPL_TITLE):
+	case TEMPL_TITLE:
 		khtml_puts(&p->req, "title");
 		break;
-	case (TEMPL_NAME):
+	case TEMPL_NAME:
 		khtml_puts(&p->req, "name");
 		break;
-	case (TEMPL_REMOTE_ADDR):
+	case TEMPL_REMOTE_ADDR:
 		khtml_puts(&p->req, p->r->remote);
 		break;
 	default:
-		return(0);
+		return 0;
 	}
 
-	return(1);
+	return 1;
 }
 
 /*
- * Demonstrates how to use templates.
- * Returns HTTP 200 and the template content.
+ * Demonstrates how to use templates.  Returns HTTP 200 and the template
+ * content.
  */
 static void
 sendtemplate(struct kreq *req)
@@ -205,11 +195,9 @@ sendtemplate(struct kreq *req)
 }
 
 /*
- * Send a random amount of data.
- * Requires KEY_PAGECOUNT (optional), KEY_PAGESIZE (optional).
- * Page count is the number of times we flush a page (with the given
- * size) to the wire.
- * Returns HTTP 200 and the random data.
+ * Send a random amount of data.  Requires KEY_PAGECOUNT (optional),
+ * KEY_PAGESIZE (optional).  Page count is the number of times we flush a page
+ * (with the given size) to the wire.  Returns HTTP 200 and the random data.
  */
 static void
 senddata(struct kreq *req)
@@ -218,15 +206,15 @@ senddata(struct kreq *req)
 	char	 *buf;
 
 	nm = 1024 * 1024;
-	if (NULL != req->fieldmap[KEY_PAGECOUNT])
+	if (req->fieldmap[KEY_PAGECOUNT] != NULL)
 		nm = req->fieldmap[KEY_PAGECOUNT]->parsed.i;
-	if (0 == nm)
+	if (nm == 0)
 		nm = 1;
 
 	sz = 1;
-	if (NULL != req->fieldmap[KEY_PAGESIZE])
+	if (req->fieldmap[KEY_PAGESIZE] != NULL)
 		sz = req->fieldmap[KEY_PAGESIZE]->parsed.i;
-	if (0 == sz || (uint64_t)sz > SIZE_MAX)
+	if (sz == 0 || (uint64_t)sz > SIZE_MAX)
 		sz = 1;
 	
 	buf = kmalloc(sz);
@@ -246,9 +234,8 @@ senddata(struct kreq *req)
 }
 
 /*
- * Demonstrates how to use GET and POST forms and building with the HTML
- * builder functions.
- * Returns HTTP 200 and HTML content.
+ * Demonstrates how to use GET and POST forms and building with the HTML builder
+ * functions.  Returns HTTP 200 and HTML content.
  */
 static void
 sendindex(struct kreq *req)
@@ -257,7 +244,7 @@ sendindex(struct kreq *req)
 	struct khtmlreq	 r;
 	const char	*cp;
 
-	cp = NULL == req->fieldmap[KEY_INTEGER] ?
+	cp = req->fieldmap[KEY_INTEGER] == NULL ?
 		"" : req->fieldmap[KEY_INTEGER]->val;
 	kasprintf(&page, "%s/%s", req->pname, pages[PAGE_INDEX]);
 
@@ -292,13 +279,13 @@ sendindex(struct kreq *req)
 		KATTR_MULTIPLE, "",
 		KATTR_NAME, keys[KEY_FILE].name,
 		KATTR__MAX);
-	if (NULL != req->fieldmap[KEY_FILE]) {
-		if (NULL != req->fieldmap[KEY_FILE]->file) {
+	if (req->fieldmap[KEY_FILE] != NULL) {
+		if (req->fieldmap[KEY_FILE]->file != NULL) {
 			khtml_puts(&r, "file: ");
 			khtml_puts(&r, req->fieldmap[KEY_FILE]->file);
 			khtml_puts(&r, " ");
 		} 
-		if (NULL != req->fieldmap[KEY_FILE]->ctype) {
+		if (req->fieldmap[KEY_FILE]->ctype != NULL) {
 			khtml_puts(&r, "ctype: ");
 			khtml_puts(&r, req->fieldmap[KEY_FILE]->ctype);
 		} 
@@ -321,33 +308,32 @@ main(void)
 
 	/* Set up our main HTTP context. */
 
-	er = khttp_parse(&r, keys, KEY__MAX, 
-		pages, PAGE__MAX, PAGE_INDEX);
-
-	if (KCGI_OK != er)
-		return(EXIT_FAILURE);
+	er = khttp_parse(&r, keys, KEY__MAX, pages, PAGE__MAX, PAGE_INDEX);
+	if (er != KCGI_OK)
+		return 1;
 
 	/* 
-	 * Accept only GET, POST, and OPTIONS.
-	 * Restrict to text/html and a valid page.
-	 * If all of our parameters are valid, use a dispatch array to
-	 * send us to the page handlers.
+	 * Accept only GET, POST, and OPTIONS.  Restrict to text/html and a
+	 * valid page.  If all of our parameters are valid, use a dispatch array
+	 * to send us to the page handlers.  Start with CORS handling, which
+	 * we'll allow to any origin.
 	 */
 
-	if (KMETHOD_OPTIONS == r.method) {
-		khttp_head(&r, kresps[KRESP_ALLOW], 
-			"OPTIONS GET POST");
-		resp_open(&r, KHTTP_200);
-	} else if (KMETHOD_GET != r.method && 
-		   KMETHOD_POST != r.method) {
+	if (r.reqmap[KREQU_ORIGIN] != NULL)
+		khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+			"%s", r.reqmap[KREQU_ORIGIN]->val);
+
+	if (r.method == KMETHOD_OPTIONS) {
+		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS GET POST");
+		resp_open(&r, KHTTP_204);
+	} else if (r.method != KMETHOD_GET && r.method != KMETHOD_POST) {
 		resp_open(&r, KHTTP_405);
-	} else if (PAGE__MAX == r.page || 
-		   KMIME_TEXT_HTML != r.mime) {
+	} else if (r.page == PAGE__MAX || r.mime != KMIME_TEXT_HTML) {
 		resp_open(&r, KHTTP_404);
 	} else
 		(*disps[r.page])(&r);
 
 	khttp_free(&r);
-	return(EXIT_SUCCESS);
+	return 0;
 }
 

@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,17 +32,39 @@ main(int argc, char *argv[])
 	/* Set up our main HTTP context. */
 
 	er = khttp_parse(&r, NULL, 0, pages, 1, 0);
-	if (KCGI_OK != er)
+	if (er != KCGI_OK)
 		return 0;
 
-	khttp_head(&r, kresps[KRESP_STATUS], 
-	  "%s", khttps[KHTTP_200]);
-	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], 
-	  "%s", kmimetypes[r.mime]);
-	khttp_body(&r);
-	khttp_puts(&r, "Hello, world!\n");
+	/* Handle CORS. */
 
-	std::cerr << "Said hello!";
+	if (r.reqmap[KREQU_ORIGIN] != NULL)
+		khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+			"%s", r.reqmap[KREQU_ORIGIN]->val);
+
+	/* Accept OPTIONS and GET. */
+
+	if (r.method == KMETHOD_OPTIONS) {
+		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS GET");
+		khttp_head(&r, kresps[KRESP_STATUS], "%s",
+			khttps[KHTTP_204]);
+	} else if (r.method != KMETHOD_GET) {
+		khttp_head(&r, kresps[KRESP_STATUS], "%s",
+			khttps[KHTTP_405]);
+	} else if (r.page != 0) {
+		khttp_head(&r, kresps[KRESP_STATUS], "%s",
+			khttps[KHTTP_404]);
+	} else {
+		khttp_head(&r, kresps[KRESP_STATUS], "%s",
+			khttps[KHTTP_200]);
+		/*
+		 * Let the content type inherit the request.
+		 */
+		khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s",
+			kmimetypes[r.mime]);
+		khttp_body(&r);
+		khttp_puts(&r, "Hello, world!\n");
+		std::cerr << "Said hello!";
+	}
 
 	khttp_free(&r);
 	return 0;
