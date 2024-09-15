@@ -1,6 +1,5 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2015, 2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,70 +24,50 @@
 int
 main(void)
 {
-	struct kreq	 req;
+	struct kreq	 r;
 	struct kfcgi	*fcgi;
 	enum kcgi_err	 er;
 
-	if (KCGI_OK != khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0))
+	/* Set up our FastCGI context. */
+
+	if (khttp_fcgi_init(&fcgi, NULL, 0, NULL, 0, 0) != KCGI_OK)
 		return 0;
 
 	for (;;) {
-		er = khttp_fcgi_parse(fcgi, &req);
-		if (KCGI_EXIT == er) {
+		/* Set up the current HTTP context. */
+
+		er = khttp_fcgi_parse(fcgi, &r);
+		if (er == KCGI_EXIT)
 			fprintf(stderr, "khttp_fcgi_parse: terminate\n");
-			break;
-		} else if (KCGI_OK != er) {
+		else if (er != KCGI_OK)
 			fprintf(stderr, "khttp_fcgi_parse: error: %d\n", er);
+		if (er != KCGI_OK)
 			break;
+
+		/* 
+		 * Accept only GET and OPTIONS.  Start with CORS handling, which
+		 * we'll allow to any origin.  XXX: this ignores errors in
+		 * handling, which is probably not what you want.
+		 */
+
+		if (r.reqmap[KREQU_ORIGIN] != NULL)
+			khttp_head(&r,
+				kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+				"%s", r.reqmap[KREQU_ORIGIN]->val);
+		if (r.method == KMETHOD_OPTIONS) {
+			khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS, GET");
+			khttp_head(&r, kresps[KRESP_STATUS], "%s",
+				khttps[KHTTP_204]);
+			khttp_body(&r);
+		} else if (r.method == KMETHOD_GET) {
+			/* Inherit the MIME type. */
+			khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s",
+				kmimetypes[r.mime]);
+			khttp_body(&r);
+			khttp_puts(&r, "Hello, world!\n");
 		}
 
-		er = khttp_head(&req, kresps[KRESP_STATUS], 
-			"%s", khttps[KHTTP_200]);
-		if (KCGI_HUP == er) {
-			fprintf(stderr, "khttp_head: interrupt\n");
-			khttp_free(&req);
-			continue;
-		} else if (KCGI_OK != er) {
-			fprintf(stderr, "khttp_head: error: %d\n", er);
-			khttp_free(&req);
-			break;
-		}
-
-		er = khttp_head(&req, kresps[KRESP_CONTENT_TYPE], 
-			"%s", kmimetypes[req.mime]);
-		if (KCGI_HUP == er) {
-			fprintf(stderr, "khttp_head: interrupt\n");
-			khttp_free(&req);
-			continue;
-		} else if (KCGI_OK != er) {
-			fprintf(stderr, "khttp_head: error: %d\n", er);
-			khttp_free(&req);
-			break;
-		}
-
-		er = khttp_body(&req);
-		if (KCGI_HUP == er) {
-			fprintf(stderr, "khttp_body: interrupt\n");
-			khttp_free(&req);
-			continue;
-		} else if (KCGI_OK != er) {
-			fprintf(stderr, "khttp_body: error: %d\n", er);
-			khttp_free(&req);
-			break;
-		}
-
-		er = khttp_puts(&req, "Hello, world!\n");
-		if (KCGI_HUP == er) {
-			fprintf(stderr, "khttp_puts: interrupt\n");
-			khttp_free(&req);
-			continue;
-		} else if (KCGI_OK != er) {
-			fprintf(stderr, "khttp_puts: error: %d\n", er);
-			khttp_free(&req);
-			break;
-		}
-
-		khttp_free(&req);
+		khttp_free(&r);
 	}
 
 	khttp_fcgi_free(fcgi);

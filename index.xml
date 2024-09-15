@@ -163,8 +163,10 @@
 		</figure>
 		<section class="text">
 			<p>
-				For a fuller example, see <a href="sample.c.html">sample.c</a>, or jump to the <a href="#usage">Documentation</a> section.
-				(Want a C++ version?  See <a href="samplepp.cc.html">samplepp.cc</a>.)
+				For fuller examples, see <a href="sample.c.html">sample.c</a> (C and CGI),
+				<a href="samplepp.cc.html">samplepp.cc</a> (C++ and CGI),
+				<a href="sample-fcgi.c.html">sample-fcgi.c</a> (C and FastCGI), or
+				or jump to the <a href="#usage">Documentation</a> section.
 			</p>
 			<p>
 				<i>kcgi</i> supports many features: auto-compression, handling of all HTTP input operations (query strings,

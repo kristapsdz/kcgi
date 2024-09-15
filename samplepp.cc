@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	/* Accept OPTIONS and GET. */
 
 	if (r.method == KMETHOD_OPTIONS) {
-		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS GET");
+		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS, GET");
 		khttp_head(&r, kresps[KRESP_STATUS], "%s",
 			khttps[KHTTP_204]);
 	} else if (r.method != KMETHOD_GET) {

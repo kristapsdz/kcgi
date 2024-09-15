@@ -42,6 +42,7 @@ THTMLS		 = tutorial0.html \
 SBLGS		 = archive.html \
 		   index.html \
 		   sample.c.html \
+		   sample-fcgi.c.html \
 		   samplepp.cc.html
 MAN3DIR	 	 = $(MANDIR)/man3
 MAN8DIR	 	 = $(MANDIR)/man8
@@ -527,6 +528,9 @@ index.html: index.xml versions.xml $(THTMLS) $(MANHTMLS)
 
 sample.c.html: sample.c
 	highlight -o $@ --inline-css --doc sample.c
+
+sample-fcgi.c.html: sample-fcgi.c
+	highlight -o $@ --inline-css --doc sample-fcgi.c
 
 samplepp.cc.html: samplepp.cc
 	highlight -o $@ --inline-css --doc samplepp.cc

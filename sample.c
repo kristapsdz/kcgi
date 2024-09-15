@@ -316,7 +316,8 @@ main(void)
 	 * Accept only GET, POST, and OPTIONS.  Restrict to text/html and a
 	 * valid page.  If all of our parameters are valid, use a dispatch array
 	 * to send us to the page handlers.  Start with CORS handling, which
-	 * we'll allow to any origin.
+	 * we'll allow to any origin.  XXX: this ignores errors in handling,
+	 * which is probably not what you want.
 	 */
 
 	if (r.reqmap[KREQU_ORIGIN] != NULL)
@@ -324,7 +325,7 @@ main(void)
 			"%s", r.reqmap[KREQU_ORIGIN]->val);
 
 	if (r.method == KMETHOD_OPTIONS) {
-		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS GET POST");
+		khttp_head(&r, kresps[KRESP_ALLOW], "OPTIONS, GET, POST");
 		resp_open(&r, KHTTP_204);
 	} else if (r.method != KMETHOD_GET && r.method != KMETHOD_POST) {
 		resp_open(&r, KHTTP_405);
