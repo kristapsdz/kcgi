@@ -228,7 +228,7 @@ enum kcgi_err format(struct kcgi_buf *out)
   };
   const char *in = "foo=@@foo@@, bar=@@bar@@";
 
-  memset(&out, 0, sizeof(struct kcgi_buf));
+  memset(out, 0, sizeof(struct kcgi_buf));
   return khttp_templatex_buf
     (&t, in, strlen(in), &x, out);
 }
