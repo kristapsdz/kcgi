@@ -15,6 +15,21 @@ jobs:
       run: bmake regress
     - name: Memory check
       run: bmake valgrind
+  ubuntu_fsanitize:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install dependencies
+      run: sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
+    - name: Configure
+      run: |
+        cat /etc/os-release
+        echo "HAVE_SECCOMP_HEADER=0" > configure.local
+        ./configure
+        echo "CFLAGS += -fsanitize=undefined,address" >> Makefile.configure
+        echo "LDFLAGS += -fsanitize=undefined,address" >> Makefile.configure
+    - name: Build and test
+      run: bmake regress
   ubuntu_libbsd:
     runs-on: ubuntu-latest
     steps:
