@@ -6,7 +6,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
     - name: Configure
       run: |
         cat /etc/os-release
@@ -20,7 +22,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev bmake valgrind
     - name: Configure
       run: |
         cat /etc/os-release
@@ -35,7 +39,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev bmake pkg-config libbsd-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev bmake pkg-config libbsd-dev
     - name: Configure
       run: |
         cat /etc/os-release
