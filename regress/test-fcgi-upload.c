@@ -50,7 +50,7 @@ parent(CURL *curl)
 	 */
 	namelength = strlen(namebuffer);
 	htmlbufferlength = strlen(htmlbuffer);
-	record_length = strlen(htmlbuffer);
+	record_length = strlen(record);
 	htmlbuffer[8] = '\0';
 	post = last = NULL;
 
