@@ -28,7 +28,7 @@ jobs:
     - name: Configure
       run: |
         cat /etc/os-release
-        echo "HAVE_SECCOMP_HEADER=0" > configure.local
+        echo "HAVE_SECCOMP_FILTER=0" > configure.local
         ./configure
         echo "CFLAGS += -fsanitize=undefined,address" >> Makefile.configure
         echo "LDFLAGS += -fsanitize=undefined,address" >> Makefile.configure
