@@ -82,11 +82,12 @@ jobs:
   alpine_aarch64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Setup latest Alpine Linux for aarch64
-      uses: jirutka/setup-alpine@v1.1.4
+      uses: jirutka/setup-alpine@v1
       with:
         arch: aarch64
+        branch: v3.15
         packages: >
           build-base
           curl-dev
@@ -103,11 +104,12 @@ jobs:
   alpine_armv7:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Setup latest Alpine Linux for armv7
-      uses: jirutka/setup-alpine@v1.1.4
+      uses: jirutka/setup-alpine@v1
       with:
         arch: armv7
+        branch: v3.15
         packages: >
           build-base
           curl-dev
@@ -124,11 +126,12 @@ jobs:
   alpine_ppc64le:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Setup latest Alpine Linux for ppc64le
-      uses: jirutka/setup-alpine@v1.1.4
+      uses: jirutka/setup-alpine@v1
       with:
         arch: ppc64le
+        branch: v3.15
         packages: >
           build-base
           curl-dev
@@ -145,11 +148,12 @@ jobs:
   alpine_s390x:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Setup latest Alpine Linux for ppc64le
-      uses: jirutka/setup-alpine@v1.1.4
+      uses: jirutka/setup-alpine@v1
       with:
         arch: s390x
+        branch: v3.15
         packages: >
           build-base
           curl-dev
