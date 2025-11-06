@@ -61,23 +61,24 @@ jobs:
   alpine_x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: Setup Alpine Linux environment for x86_64
-      uses: jirutka/setup-alpine@v1.1.4
+      uses: jirutka/setup-alpine@v1
       with:
+        branch: v3.15
         packages: >
           build-base
           curl-dev
           bmake
           zlib-dev
           linux-headers
-        shell-name: alpine-x86_64.sh
+        shell: alpine.sh {0}
     - name: Configure, build, and test on x86_64
       run: |
         cat /etc/alpine-release
         ./configure
         bmake regress
-      shell: alpine-x86_64.sh {0}
+      shell: bash
   alpine_aarch64:
     runs-on: ubuntu-latest
     steps:
