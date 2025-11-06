@@ -72,13 +72,13 @@ jobs:
           bmake
           zlib-dev
           linux-headers
-        shell-name: alpine.sh {0}
+        shell-name: alpine-x86_64.sh
     - name: Configure, build, and test on x86_64
       run: |
         cat /etc/alpine-release
         ./configure
         bmake regress
-      shell: alpine.sh {0}
+      shell: alpine-x86_64.sh {0}
   alpine_aarch64:
     runs-on: ubuntu-latest
     steps:
