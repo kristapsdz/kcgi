@@ -1164,7 +1164,7 @@ kworker_child_auth(struct env *env, int fd, size_t envsz)
 		for (auth = 0; auth < KAUTH_UNKNOWN; auth++) {
 			if (kauths[auth] == NULL)
 				continue;
-			if (strcmp(kauths[auth], cp) == 0)
+			if (strcasecmp(kauths[auth], cp) == 0)
 				break;
 		}
 
