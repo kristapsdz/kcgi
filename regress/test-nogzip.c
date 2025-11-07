@@ -32,7 +32,7 @@ struct	buf {
 	size_t	  sz;
 };
 
-static int
+static size_t
 parentwrite(void *ptr, size_t sz, size_t nm, void *dat)
 {
 	struct buf	*buf = dat;
@@ -42,7 +42,7 @@ parentwrite(void *ptr, size_t sz, size_t nm, void *dat)
 	memcpy(buf->buf + buf->sz, ptr, sz * nm);
 	buf->sz += sz * nm;
 	buf->buf[buf->sz] = '\0';
-	return(sz * nm);
+	return sz * nm;
 }
 
 static int
