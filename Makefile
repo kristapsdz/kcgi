@@ -232,6 +232,7 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-fcgi-ping \
 		   regress/test-fcgi-ping-double \
 		   regress/test-fcgi-upload \
+		   regress/test-fetch-metadata-request \
 		   regress/test-file-get \
 		   regress/test-fork \
 		   regress/test-gzip \
