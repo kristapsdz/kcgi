@@ -36,7 +36,7 @@ parent3(CURL *curl)
 
 	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/plain.txt");
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
 	list = curl_slist_append(list,
 		"Authorization: Digest username=\"admin\","
@@ -65,7 +65,7 @@ parent2(CURL *curl)
 
 	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/plain.txt");
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
 	list = curl_slist_append(list,
 		"Authorization: Digest username=\"admin\","
@@ -94,7 +94,7 @@ parent1(CURL *curl)
 
 	curl_easy_setopt(curl, CURLOPT_URL,
 		"http://localhost:17123/plain.txt");
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
 	list = curl_slist_append(list,
 		"Authorization: Digest username=\"admin\","
