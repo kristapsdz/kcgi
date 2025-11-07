@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-OCONFIGURE_VERSION="0.3.15"
+OCONFIGURE_VERSION="0.5.1"
 
 #
 # This script outputs two files: config.h and Makefile.configure.
@@ -76,14 +76,50 @@ fi
 #----------------------------------------------------------------------
 # Initialise all variables here such that nothing can leak in from the
 # environment except for AR, CC and CFLAGS, which we might have passed
-# in.
+# in.  Allow these to be overridden by the command line forms.
 #----------------------------------------------------------------------
 
+for keyvals in "$@"
+do
+	key=`echo $keyvals | cut -s -d '=' -f 1`
+	if [ -z "$key" ]
+	then
+		continue
+	fi
+	val=`echo $keyvals | cut -d '=' -f 2-`
+	# Re-export these variables now so that they override whatever
+	# was passed in from the environment.
+	case "$key" in
+	AR)
+		export AR="$val" ;;
+	CC)
+		export CC="$val" ;;
+	CFLAGS)
+		export CFLAGS="$val" ;;
+	*)
+		;;
+	esac
+done
+
+# The AR, CC, and CFLAGS are set by the environment (which was possibly
+# overriden by those on the command line).  Let `make` tell which flags
+# will ultimately be used in the event that none were passed in.
+
+PASSED_IN_CFLAGS=$CFLAGS
 AR=`printf "all:\\n\\t@echo \\\$(AR)\\n" | make ${MAKE_FLAGS} -sf -`
 CC=`printf "all:\\n\\t@echo \\\$(CC)\\n" | make ${MAKE_FLAGS} -sf -`
 CFLAGS=`printf "all:\\n\\t@echo \\\$(CFLAGS)\\n" | make ${MAKE_FLAGS} -sf -`
-CFLAGS="${CFLAGS} -g -W -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes"
-CFLAGS="${CFLAGS} -Wwrite-strings -Wno-unused-parameter"
+
+# If there are no passed-in CFLAGS, so the CFLAGS are coming from `make,
+# add some additional useful defaults.
+
+if [ -z "$PASSED_IN_CFLAGS" ]
+then
+	CFLAGS="${CFLAGS} -g -W -Wall -Wextra"
+	CFLAGS="${CFLAGS} -Wmissing-prototypes -Wstrict-prototypes"
+	CFLAGS="${CFLAGS} -Wwrite-strings -Wno-unused-parameter"
+fi
+
 LDLIBS=
 LDADD=
 LDADD_B64_NTOP=
@@ -109,6 +145,10 @@ INSTALL_PROGRAM=
 INSTALL_LIB=
 INSTALL_MAN=
 INSTALL_DATA=
+
+# Additional unrecognised variables.
+
+EXTRA_VARS=
 
 # SunOS sets "cc", but this doesn't exist.
 # It does have gcc, so try that instead.
@@ -144,6 +184,8 @@ do
 	fi
 	val=`echo $keyvals | cut -d '=' -f 2-`
 	case "$key" in
+	CC|CFLAGS|AR)
+		;;
 	LDADD)
 		LDADD="$val" ;;
 	LDLIBS)
@@ -171,8 +213,7 @@ do
 	INCLUDEDIR)
 		INCLUDEDIR="$val" ;;
 	*)
-		echo "$0: invalid key: $key" 1>&2
-		exit 1
+		EXTRA_VARS="$EXTRA_VARS\n$key = $val" ;;
 	esac
 done
 
@@ -571,6 +612,7 @@ then
 fi
 
 if [ ${HAVE_ARC4RANDOM} -eq 0 -o \
+     ${HAVE_BLOWFISH} -eq 0 -o \
      ${HAVE_MD5} -eq 0 -o \
      ${HAVE_SHA2} -eq 0 ]
 then
@@ -2437,23 +2479,23 @@ then
 #define BLF_MAXKEYLEN ((BLF_N-2)*4)
 #define BLF_MAXUTILIZED ((BLF_N+2)*4)
 typedef struct BlowfishContext {
-	u_int32_t S[4][256];
-	u_int32_t P[BLF_N + 2];
+	uint32_t S[4][256];
+	uint32_t P[BLF_N + 2];
 } blf_ctx;
-void Blowfish_encipher(blf_ctx *, u_int32_t *, u_int32_t *);
-void Blowfish_decipher(blf_ctx *, u_int32_t *, u_int32_t *);
+void Blowfish_encipher(blf_ctx *, uint32_t *, uint32_t *);
+void Blowfish_decipher(blf_ctx *, uint32_t *, uint32_t *);
 void Blowfish_initstate(blf_ctx *);
-void Blowfish_expand0state(blf_ctx *, const u_int8_t *, u_int16_t);
-void Blowfish_expandstate(blf_ctx *, const u_int8_t *, u_int16_t,
-    const u_int8_t *, u_int16_t);
-u_int32_t Blowfish_stream2word(const u_int8_t *, u_int16_t , u_int16_t *);
-void blf_key(blf_ctx *, const u_int8_t *, u_int16_t);
-void blf_enc(blf_ctx *, u_int32_t *, u_int16_t);
-void blf_dec(blf_ctx *, u_int32_t *, u_int16_t);
-void blf_ecb_encrypt(blf_ctx *, u_int8_t *, u_int32_t);
-void blf_ecb_decrypt(blf_ctx *, u_int8_t *, u_int32_t);
-void blf_cbc_encrypt(blf_ctx *, u_int8_t *, u_int8_t *, u_int32_t);
-void blf_cbc_decrypt(blf_ctx *, u_int8_t *, u_int8_t *, u_int32_t);
+void Blowfish_expand0state(blf_ctx *, const uint8_t *, uint16_t);
+void Blowfish_expandstate(blf_ctx *, const uint8_t *, uint16_t,
+    const uint8_t *, uint16_t);
+uint32_t Blowfish_stream2word(const uint8_t *, uint16_t , uint16_t *);
+void blf_key(blf_ctx *, const uint8_t *, uint16_t);
+void blf_enc(blf_ctx *, uint32_t *, uint16_t);
+void blf_dec(blf_ctx *, uint32_t *, uint16_t);
+void blf_ecb_encrypt(blf_ctx *, uint8_t *, uint32_t);
+void blf_ecb_decrypt(blf_ctx *, uint8_t *, uint32_t);
+void blf_cbc_encrypt(blf_ctx *, uint8_t *, uint8_t *, uint32_t);
+void blf_cbc_decrypt(blf_ctx *, uint8_t *, uint8_t *, uint32_t);
 __HEREDOC__
 fi
 
@@ -2532,6 +2574,13 @@ INSTALL_LIB	 = ${INSTALL_LIB}
 INSTALL_MAN	 = ${INSTALL_MAN}
 INSTALL_DATA	 = ${INSTALL_DATA}
 __HEREDOC__
+
+# Optionally output extra variables.
+
+if [ -n "$EXTRA_VARS" ]
+then
+	echo "$EXTRA_VARS"
+fi
 
 echo "Makefile.configure: written" 1>&2
 echo "Makefile.configure: written" 1>&3
