@@ -455,6 +455,8 @@ struct	kreq {
 	struct khead		 *reqmap[KREQU__MAX];
 	struct khead		 *reqs;
 	size_t		 	  reqsz;
+	struct khead		 *envs;
+	size_t		 	  envsz;
 	enum kmethod		  method;
 	enum kauth		  auth;
 	struct khttpauth	  rawauth;

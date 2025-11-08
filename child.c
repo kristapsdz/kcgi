@@ -1060,17 +1060,23 @@ kworker_child_env(const struct env *env, int fd, size_t envsz)
 	char		 c;
 	const char	*cp;
 
-	for (reqs = i = 0; i < envsz; i++)
+	/* Serialise all environment variables and count HTTPs. */
+
+	fullwrite(fd, &envsz, sizeof(size_t));
+
+	for (reqs = i = 0; i < envsz; i++) {
+		fullwrite(fd, &env[i].keysz, sizeof(size_t));
+		fullwrite(fd, env[i].key, env[i].keysz);
+		fullwrite(fd, &env[i].valsz, sizeof(size_t));
+		fullwrite(fd, env[i].val, env[i].valsz);
 		if (strncmp(env[i].key, "HTTP_", 5) == 0 &&
 		    env[i].key[5] != '\0')
 			reqs++;
+	}
+
+	/* Serialise known headers (starting with HTTP_). */
 
 	fullwrite(fd, &reqs, sizeof(size_t));
-
-	/*
-	 * Process known headers (starting with HTTP_).
-	 * We must have non-zero-length keys.
-	 */
 
 	for (i = 0; i < envsz; i++) {
 		if (strncmp(env[i].key, "HTTP_", 5) || 

@@ -216,10 +216,36 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 
 	memset(&kp, 0, sizeof(struct kpair));
 
+	/* Read all environment variables. */
+
+	if (fullread(fd, &r->envsz, sizeof(size_t), 0, &ke) < 0) {
+		kutil_warnx(NULL, NULL, "read environment size");
+		goto out;
+	}
+
+	if (r->envsz) {
+		r->envs = kxcalloc(r->envsz, sizeof(struct khead));
+		if (r->envs == NULL) {
+			ke = KCGI_ENOMEM;
+			goto out;
+		}
+	}
+
+	for (i = 0; i < r->envsz; i++) {
+		if ((ke = fullreadword(fd, &r->envs[i].key)) != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "read environment key");
+			goto out;
+		}
+		if ((ke = fullreadword(fd, &r->envs[i].val)) != KCGI_OK) {
+			kutil_warnx(NULL, NULL, "read environment value");
+			goto out;
+		}
+	}
+
 	/*
-	 * First read all of our parsed parameters.
-	 * Each parsed parameter is handled a little differently.
-	 * This list will end with META__MAX.
+	 * Read all of parsed and formatted HTTP parameters.  If the
+	 * request value is not KREQU__MAX, assign the value to the
+	 * request map.  (The last parsed wins.)
 	 */
 
 	if (fullread(fd, &r->reqsz, sizeof(size_t), 0, &ke) < 0) {
@@ -251,6 +277,8 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		if (requ != KREQU__MAX)
 			r->reqmap[requ] = &r->reqs[i];
 	}
+
+	/* Read remaining variables. */
 
 	if (fullread(fd, &r->method, sizeof(enum kmethod), 0, &ke) < 0) {
 		kutil_warnx(NULL, NULL, "failed read request method");

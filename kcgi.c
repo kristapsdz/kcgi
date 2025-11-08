@@ -903,6 +903,11 @@ kreq_free(struct kreq *req)
 		free(req->reqs[i].val);
 	}
 
+	for (i = 0; i < req->envsz; i++) {
+		free(req->envs[i].key);
+		free(req->envs[i].val);
+	}
+
 	free(req->reqs);
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);

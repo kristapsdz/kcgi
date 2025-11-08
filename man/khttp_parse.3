@@ -466,22 +466,43 @@ header variable, or
 if that is not defined.
 The address format of the string is not checked.
 .It Vt "struct khead *" Ns Va reqmap Ns Bq Dv KREQU__MAX
-Mapping of
+Map of
 .Vt "enum krequ"
-enumeration values to
-.Va reqs
-parsed from the input stream.
+enumeration values to pairs in
+.Va reqs .
+If an enumerated request was not specified, it is
+.Dv NULL .
 .It Vt "struct khead *" Ns Va reqs
-List of all HTTP request headers, known via
-.Vt "enum krequ"
-and not known, parsed from the input stream, or
+List of all HTTP request headers or
 .Dv NULL
 if
 .Va reqsz
 is 0.
+The request headers are in HTTP syntax with all lowercase and
+underscores as hyphens, e.g., the CGI variable
+.Dv HTTP_ACCEPT_LANGUAGE
+is stored as
+.Dv http-accept-language .
+See
+.Va envs
+for unmodified environment variables.
 .It Vt size_t Va reqsz
 Number of request headers in
 .Va reqs .
+.It Vt "struct khead *" Ns Va envs
+List of all environment variables in the CGI or FastCGI context or
+.Dv NULL
+if
+.Va envsz
+is 0.
+See
+.Va reqs
+for parsed and formatted HTTP headers, defined as environment variables
+starting with
+.Dq HTTP_ .
+.It Vt size_t Va envsz
+Number of environment variables in
+.Va envs .
 .It Vt "enum kscheme" Va scheme
 The access scheme according to the
 .Ev HTTPS
