@@ -337,50 +337,44 @@ and the
 version 1.0, published 29 April 1996.
 .Bl -bullet
 .It
-Metadata request headers are specified by
-.Lk https://w3c.github.io/webappsec-fetch-metadata "Fetch Metadata Request Headers" .
-.It
-Cookies are parsed according to
+Cookies are defined in
 .Dq HTTP State Management Mechanism ,
 RFC 6265.
-However, quoted cookies are
+Quoted cookies are
 .Em not
 supported.
 .It
-The
-.Dq Authentication
-header is parsed for digest or basic tokens as defined by RFC 2617,
+Digest and basic authentication headers are defined in RFC 2617,
 .Dq HTTP Authentication: Basic and Digest Access Authentication ,
 and RFC 6750,
 .Dq The OAuth 2.0 Authorization Framework: Bearer Token Usage .
 .It
-The partial multipart form data support is defined by RFC 2388,
+Partial multipart form data support is defined in RFC 2388,
 .Dq Returning Values from Forms: multipart/form-data ,
-which is further defined by RFCs 2045 and 2046,
+which is further defined in RFCs 2045 and 2046,
 .Dq Multipurpose Internet Mail Extensions .
 .It
-MIME type names are registered with IANA.
-.It
-URLs are formatted according to RFC 1630,
+URLs are defined in RFC 1630,
 .Dq Universal Resource Identifiers in WWW .
 .It
-HTTP response headers are standardised in RFC 2616,
+General HTTP response headers are defined in RFC 2616,
 .Dq HTTP/1.1
 and further in RFC 4229,
 .Dq HTTP Header Field Registrations .
+Metadata request headers are defined in
+.Lk https://w3c.github.io/webappsec-fetch-metadata "Fetch Metadata Request Headers" .
 .It
-Permanent URI schemes are registered with IANA.
+Permanent URI schemes and MIME type names are defined by the IANA.
 .It
-The
 .Lk https://kristaps.bsd.lv/kcgi/extending01.html "FastCGI Extensions for Management Control" .
 .It
-HTTP dates (logging and date-time management) are specified by
+HTTP dates (logging and date-time management) are defined in
 .Dq RFC 822 .
 .It
-URL encoding and decoding is defined by RFC 3986,
+URL encoding and decoding is defined in RFC 3986,
 .Dq Uniform Resource Identifier (URI): Generic Syntax .
 .It
-Additional HTTP methods are defined by RFC 4918,
+Additional HTTP methods are defined in RFC 4918,
 .Dq HTTP Extensions for Web Distributed Authoring and Versioning ;
 and RFC 4791 ,
 .Dq Calendaring Extensions to WebDAV .
