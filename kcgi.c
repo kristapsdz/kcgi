@@ -159,6 +159,7 @@ const char *const kresps[KRESP__MAX] = {
 	"Location", /* KRESP_LOCATION */
 	"P3P", /* KRESP_P3P */
 	"Pragma", /* KRESP_PRAGMA */
+	"Priority", /* KRESP_PRIORITY */
 	"Proxy-Authenticate", /* KRESP_PROXY_AUTHENTICATE */
 	"Refresh", /* KRESP_REFRESH */
 	"Retry-After", /* KRESP_RETRY_AFTER */
