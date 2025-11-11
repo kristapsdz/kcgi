@@ -33,7 +33,7 @@
 		The workers then inherit the open transport socket and wait to accept transport connections.
 		These are passed directly from the web server (steps 4&#8211;6).
 		Unfortunately, if the transport socket backlog is filled, there is no way in the FastCGI specification for the manager to be
-		appraised of the fact: no (known) systems supported by <span class="nm">kcgi</span> allow querying of the backlog size or being
+		apprised of the fact: no (known) systems supported by <span class="nm">kcgi</span> allow querying of the backlog size or being
 		notified of backlog saturation.
 		Since the manager is blind to anything but worker process status, the burden falls to the operator to pre-allocate workers.
 	</p>
@@ -83,7 +83,7 @@
 	<p>
 		While an attractive fix, this puts a considerable burden on the transport manager to act both as a process manager and an I/O
 		broker&#8212;the same problem in the <q>Existing Solutions</q> above, but for the manager instead of the server!
-		Moreover, it puts considerable I/O overhead on the system for copying data: the manager will not be appraised of terminating
+		Moreover, it puts considerable I/O overhead on the system for copying data: the manager will not be apprised of terminating
 		transport connections unless it inspects the data itself.
 		The result is that FastCGI responses cannot be spliced&#8212;it must be analysed.
 	</p>
