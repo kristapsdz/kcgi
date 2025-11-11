@@ -1,14 +1,6 @@
 .SUFFIXES: .3 .3.html .8 .8.html .dot .svg .xml .html .in.pc .pc
 .PHONY: regress afl
 
-include Makefile.configure
-
-# Uncomment this to disable -static linking.
-# This is set to -static only for supporting systems.
-# This is only for the sample program!
-
-#LDADD_STATIC	 =
-
 # If running Linux and seccomp is causing issues, cause violators to trap and
 # output a debug message instead of just failing.  This is disabled by default
 # so that violations are properly killed instead of providing an escape hatch.
@@ -16,7 +8,10 @@ include Makefile.configure
 
 # You probably don't need to change anything else...
 
+include Makefile.configure
 WWWDIR		 = /var/www/vhosts/kristaps.bsd.lv/htdocs/kcgi
+sinclude Makefile.local
+
 DATADIR 	 = $(SHAREDIR)/kcgi
 TXMLS		 = tutorial0.xml \
 		   tutorial1.xml \

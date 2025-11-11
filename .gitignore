@@ -9,6 +9,7 @@
 man/*.html
 kfcgi
 Makefile.configure
+Makefile.local
 config.h
 config.log
 regress/**
