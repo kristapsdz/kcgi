@@ -113,7 +113,7 @@
 		workers, who then operate on the FastCGI data.
 		This avoids the penalty (and complexity) of channeling I/O, but allows the manager to keep track of connections and allocate
 		more workers, if necessary.
-		This changes the current logic of <a href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S3.2">section 3.2</a> as follows:
+		This changes the current logic of <a href="https://www.mit.edu/~yandros/doc/specs/fcgi-spec.html#S3.2">section 3.2</a> as follows:
 	</p>
 	<ol>
 		<li>accept descriptor from the <code>FCGI_LISTENSOCK_FILENO</code> descriptor (standard input)</li>
@@ -121,7 +121,8 @@
 		<li>close descriptor</li>
 	</ol>
 	<p>
-		To the following, noting the additional shut-down sequence that changes <a href="http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S3.5">section 3.5</a>.
+		To the following, noting the additional shut-down sequence that changes
+		<a href="https://www.mit.edu/~yandros/doc/specs/fcgi-spec.html#S3.5">section 3.5</a>.
 	</p>
 	<ol>
 		<li>read descriptor and a 64-bit cookie from the <code>FCGI_LISTENSOCK_DESCRIPTORS</code> descriptor as specified in the environment</li>
