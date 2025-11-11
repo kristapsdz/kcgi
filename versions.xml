@@ -3,6 +3,40 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>1.0.0</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2025-11-10">2025-11-10</time>
+		</header>
+		<aside>
+			<div>
+				Initial 1.0.0 release:
+				this system has been stable for quite some time.
+			</div>
+			<div>
+				Adding fetch metadata headers:
+				<code>Sec-Fetch-Dest</code>,
+				<code>Sec-Fetch-Mode</code>,
+				<code>Sec-Fetch-User</code>, and
+				<code>Sec-Fetch-Site</code>.
+				<code>Access-Control-Request-Headers</code>,
+				and
+				<code>Access-Control-Request-Method</code>.
+				Also add
+				<code>Priority</code> from RFC 9218.
+			</div>
+			<div>
+				Export all CGI environment variables (or FastCGI
+				context variables) and not just HTTP header
+				variables.
+			</div>
+			<div>
+				Bundle properly as a Mac OS X dynlib (instead of
+				just a dynamically-loaded library).
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>0.13.4</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2024-09-15">2024-09-15</time>

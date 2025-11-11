@@ -50,7 +50,7 @@ VMAJOR		!= grep 'define	KCGI_VMAJOR' kcgi.h | cut -f3
 VMINOR		!= grep 'define	KCGI_VMINOR' kcgi.h | cut -f3
 VBUILD		!= grep 'define	KCGI_VBUILD' kcgi.h | cut -f3
 VERSION		:= $(VMAJOR).$(VMINOR).$(VBUILD)
-LIBVER		 = 1
+LIBVER		 = 1.1
 LIBOBJS 	 = auth.o \
 		   child.o \
 		   datetime.o \

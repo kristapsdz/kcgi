@@ -46,17 +46,17 @@
 /*
  * Major version.
  */
-#define	KCGI_VMAJOR	0
+#define	KCGI_VMAJOR	1
 
 /*
  * Minor version.
  */
-#define	KCGI_VMINOR	13
+#define	KCGI_VMINOR	0
 
 /*
  * Build version.
  */
-#define	KCGI_VBUILD	4
+#define	KCGI_VBUILD	0
 
 /*
  * Version string of major.minor.build (as a literal string).
