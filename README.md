@@ -35,8 +35,9 @@ A common idiom for deploying on Linux is to use
 [oconfigure](https://github.com/kristapsdz/oconfigure) documentation:
 
 ```
-CFLAGS=$(pkg-config --cflags libbsd-overlay) \
-    ./configure LDFLAGS=$(pkg-config --libs libbsd-overlay)
+./configure \
+    CFLAGS=$(pkg-config --cflags libbsd-overlay) \
+    LDFLAGS=$(pkg-config --libs libbsd-overlay)
 make
 make install
 ```

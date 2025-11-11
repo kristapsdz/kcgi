@@ -17,7 +17,7 @@
 		<meta name="description" 
 		 content="A C/C++ library for security-oriented web applications." />
 	</head>
-	<body itemscope="itemscope" itemtype="http://schema.org/SoftwareApplication">
+	<body>
 		<header>
 			<section id="breadcrumbs" class="text">
 				<a href="https://www.bsd.lv">BSD.lv</a> tools for <a href="https://learnbchs.org">BCHS</a>: 
@@ -27,9 +27,11 @@
 			</section>
 			<section id="header" class="text">
 				<h1>
-					<a href="index.html" itemprop="name" class="nm">kcgi</a> 
+					<a href="index.html" class="nm">kcgi</a> 
 					&#8211; 
-					<span itemprop="description" class="nd">minimal CGI and FastCGI library for C/C++</span>
+					<span class="nd">
+						minimal CGI and FastCGI library for C/C++
+					</span>
 				</h1>
 				<nav>
 					<span class="version">
@@ -39,7 +41,7 @@
 							${sblg-titletext}
 						</nav>
 					</span>
-					<a title="Source code" itemprop="downloadURL" href="snapshots/kcgi.tgz">
+					<a title="Source code" href="snapshots/kcgi.tgz">
 						<i class="fa fa-fw fa-gears"></i>
 					</a>
 					<a title="Source fingerprint" href="snapshots/kcgi.tgz.sha512">
@@ -58,17 +60,13 @@
 			</section>
 		</header>
 		<section class="text">
-			<p id="intro">
-				<span class="nm">kcgi</span> is an <a href="http://opensource.org/licenses/ISC" rel="license">open
-					source</a> CGI and FastCGI <span itemprop="applicationCategory">library for C/C++ web
-					applications</span>.
-				It is minimal, secure, and auditable.
-			</p>
 			<p>
-				To start, <a href="#install">install</a> the library.
-				Then read the <a href="#deploying">deployment</a> and <a href="#usage">usage</a> guides.
-				Use the <a href="https://github.com/kristapsdz/kcgi">GitHub</a> tracker for questions or comments,
-				or find contact information there for direct contact.
+				<span class="nm">kcgi</span> is an 
+				<a href="http://opensource.org/licenses/ISC" rel="license">open source</a> 
+				CGI and FastCGI library for C/C++ web applications.  It is minimal,
+				secure, and auditable.  To start, <a href="#install">install</a> the
+				library.  Then read the <a href="#deploying">deployment</a> and
+				<a href="#usage">usage</a> guides.
 			</p>
 		</section>
 		<figure id="sample">
@@ -83,7 +81,8 @@
 				</label>
 			</nav>
 			<figcaption class="text">
-				The following echoes <q>Hello, World!</q> as an HTTP response to a CGI request.
+				The following echoes <q>Hello, World!</q> as an HTTP response to a
+				CGI request.
 			</figcaption>
 			<pre id="nocomments" class="text prettyprint"><span class="cpp">#include</span> <span class="literal">&lt;sys/types.h&gt;</span> /* size_t, ssize_t */
 <span class="cpp">#include</span> <span class="literal">&lt;stdarg.h&gt;</span> /* va_list */
@@ -163,17 +162,18 @@
 		</figure>
 		<section class="text">
 			<p>
-				For fuller examples, see <a href="sample.c.html">sample.c</a> (C and CGI),
-				<a href="samplepp.cc.html">samplepp.cc</a> (C++ and CGI),
+				For fuller examples, see <a href="sample.c.html">sample.c</a> (C and
+				CGI), <a href="samplepp.cc.html">samplepp.cc</a> (C++ and CGI),
 				<a href="sample-fcgi.c.html">sample-fcgi.c</a> (C and FastCGI), or
-				or jump to the <a href="#usage">Documentation</a> section.
+				jump to the <a href="#usage">Documentation</a> section.
 			</p>
 			<p>
-				<i>kcgi</i> supports many features: auto-compression, handling of all HTTP input operations (query strings,
-				cookies, page bodies, multipart) with validation, authentication, configurable output caching, request
-				debugging, and so on.
-				Its strongest differentiating feature is using sandboxing and process separation for handling the untrusted
-				input path.
+				<i>kcgi</i> supports many features: auto-compression, handling of
+				all HTTP input operations (query strings, cookies, page bodies,
+				multipart) with validation, authentication, configurable output
+				caching, request debugging, formatted writers (JSON, XML, etc.) and
+				so on.  Its strongest differentiating feature is using sandboxing
+				and process separation for handling the untrusted input path.
 			</p>
 		</section>
 		<section id="version">
@@ -181,7 +181,8 @@
 				<h2>
 					current release
 				</h2>
-				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1" data-sblg-navcontent="1">
+				<nav data-sblg-nav="1" data-sblg-navtag="version" data-sblg-navsz="1"
+				 data-sblg-navcontent="1">
 					<div>
 						<div class="title">
 							Version <span class="version">${sblg-title}</span>:
@@ -200,52 +201,41 @@
 				installation
 			</h2>
 			<p>
-				First, check if <span class="nm">kcgi</span> isn't already packaged for your system, such as
-				for <a href="https://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/kcgi/">OpenBSD</a>, <a
-					href="https://svnweb.freebsd.org/ports/head/www/kcgi/">FreeBSD</a>,
-				<a href="https://aur.archlinux.org/packages/kcgi/">Arch Linux</a>, and so on.
-				(If it is, make sure it's up to date!)
-				If so, install using that system.
+				First, check if <span class="nm">kcgi</span> isn't already packaged
+				for your system, such as with
+				<code>pkg_add kcgi</code> (OpenBSD),
+				<code>pkg install kcgi</code> (FreeBSD),
+				<code>brew install kcgi</code> (brew),
+				<code>pacman -S kcgi</code> (Arch Linux),
+				and so on.  If so, install using that system.
 			</p>
 			<p>
-				If not, you'll need a modern <span itemprop="operatingSystem">UNIX</span> system.  
-				To date, <span class="nm">kcgi</span> has been built and run on 
-				GNU/<a href="https://www.linux.org" itemprop="operatingSystem">Linux</a> machines 
-				(musl and glibc), BSD 
-				(<a href="https://www.openbsd.org" itemprop="operatingSystem">OpenBSD</a>, 
-				<a href="https://www.netbsd.org" itemprop="operatingSystem">NetBSD</a>, 
-				<a href="https://www.freebsd.org" itemprop="operatingSystem">FreeBSD</a>),
-				<a href="https://www.oracle.com/solaris/solaris11" itemprop="operatingSystem">Solaris</a>,
-				<a href="https://omniosce.org" itemprop="operatingSystem">OmniOS</a>, and 
-				<a href="https://www.apple.com/osx" itemprop="operatingSystem">Mac OS X</a> 
-				(only Mojave and newer!) on i386, amd64, powerpc, arm64, and sparc64.
-				It has been deployed under <a href="https://httpd.apache.org/">Apache</a>, <a
-					href="https://nginx.org">nginx</a>, and OpenBSD's <a
-					href="https://man.openbsd.org/httpd.8">httpd(8)</a>
-				(the latter two natively over FastCGI and via the <code>slowcgi</code> wrapper).
-				The only hard dependency is BSD make (<code>bmake</code> on Linux).
-				If you're running the regression tests (see <a href="#testing">Testing</a>), you'll need <a
-					href="https://curl.haxx.se/libcurl/">libcurl</a>.
+				If not, <span class="nm">kcgi</span> has been built and run on 
+				GNU/<a href="https://www.linux.org">Linux</a> (musl and glibc),
+				<a href="https://www.openbsd.org">OpenBSD</a>, 
+				<a href="https://www.netbsd.org">NetBSD</a>, 
+				<a href="https://www.freebsd.org">FreeBSD</a>),
+				<a href="https://www.oracle.com/solaris/solaris11">Solaris</a>,
+				<a href="https://omniosce.org">OmniOS</a>, and 
+				<a href="https://www.apple.com/osx">Mac OS X</a> 
+				(only Mojave and newer!) on i386, amd64, powerpc, arm64, and
+				sparc64.
+				Download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the
+				archive with
+				<a href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
+				To run bleeding-edge code between releases, the
+				repository is on
+				<a href="https://github.com/kristapsdz/kcgi">GitHub</a>.
+				In both cases, build and install instructions may be
+				found on the repository page.
 			</p>
 			<p>
-				Download <a href="snapshots/kcgi.tgz">kcgi.tgz</a> and verify the archive with <a
-					href="snapshots/kcgi.tgz.sha512">kcgi.tgz.sha512</a>.
-				Configure with <code>./configure</code>, compile with <code>make</code> (or <code>bmake</code>
-				on Linux systems).
-				Finally, install the software using <code>make install</code>. 
-				Optionally override default paths with a <code>configure.local</code> file (see the 
-				<a href="https://github.com/kristapsdz/kcgi/blob/master/configure">configure</a> script 
-				for details) prior to configuration.
-			</p>
-			<p>
-				If <span class="nm">kcgi</span> doesn't compile, please send me the <span class="file">config.log</span>
-				file and the output of the failed compilation.
-				Along with all of your operating system information of course.
-			</p>
-			<p>
-				To run bleeding-edge code between releases, the CVS repository is mirrored on 
-				<a href="https://github.com/kristapsdz/kcgi">GitHub</a>.  Installation instructions tracking the repository
-				version may be found on that page.
+				The only hard build-time dependency is BSD make
+				(<code>bmake</code> on Linux)
+				and <a href="https://www.zlib.net/">zlib</a>.
+				If you're running the regression tests (see
+				<a href="#testing">Testing</a>), you'll also need 
+				<a href="https://curl.haxx.se/libcurl/">libcurl</a>.
 			</p>
 		</section>
 		<section id="deploying" class="text">
@@ -253,24 +243,37 @@
 				deployment
 			</h2>
 			<p>
-				To compile <span class="nm">kcgi</span> applications, use the package configuration.
-				Linking is similarly normative.
+				To use <span class="nm">kcgi</span>, you'll need a web server
+				capable of running CGI or FastCGI.
+				<a href="https://httpd.apache.org/">Apache</a>, 
+				<a href="https://nginx.org">nginx</a>, and OpenBSD's
+				<a href="https://man.openbsd.org/httpd.8">httpd(8)</a>
+				have all been used extensively, with the latter two natively over
+				FastCGI and via the <code>slowcgi</code> wrapper.
+			</p>
+			<p>
+				To compile <span class="nm">kcgi</span> applications, use the
+				package configuration.  Linking is similarly normative.
 			</p>
 			<pre class="prettyprint">% cc `pkg-config --cflags kcgi` -c yourprog.c
 % cc yourprog.o `pkg-config --libs kcgi`</pre>
 			<p>
-				Well-deployed web servers, such as the default <a href="https://www.openbsd.org">OpenBSD</a> server, by
-				default are deployed within a <a
-					href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If
-				this is the case, you'll need to statically link your binary.
+				Well-deployed web servers, such as the default
+				<a href="https://www.openbsd.org">OpenBSD</a> server, by default are
+				deployed within a
+				<a href="https://man.openbsd.org/chroot.2">chroot(2)</a>.  If this
+				is the case, you'll need to statically link your binary (or pull all
+				shared libraries into the shadow root).
 			</p>
 			<pre class="prettyprint">% cc -static yourprog.o `pkg-config --static --libs kcgi`</pre>
 			<p>
-				FastCGI applications may either be started directly by the web server (which is popular with <a
-					href="https://httpd.apache.org/">Apache</a>) or <q>externally</q> given a socket and <a
-					href="kfcgi.8.html">kfcgi(8)</a> (this method is normative for OpenBSD's <a
-					href="https://man.openbsd.org/httpd.8">httpd(8)</a> and
-				suggested for the security precautions taken by the wrapper).
+				FastCGI applications may either be started directly by the web
+					server (which is popular with
+				<a href="https://httpd.apache.org/">Apache</a>) or <q>externally</q>
+				given a socket and <a href="kfcgi.8.html">kfcgi(8)</a> (this method
+				is normative for OpenBSD's
+				<a href="https://man.openbsd.org/httpd.8">httpd(8)</a> and suggested
+				for the security precautions taken by the wrapper).
 			</p>
 		</section>
 		<section id="usage" class="text">
@@ -278,47 +281,60 @@
 				documentation
 			</h2>
 			<p>
-				The <span class="nm">kcgi</span> manpages, starting with <a href="kcgi.3.html">kcgi(3)</a>, are the
-				canonical source of documentation.  
-				The following is a list of all manpages:
+				The <span class="nm">kcgi</span> manpages, starting with
+				<a href="kcgi.3.html">kcgi(3)</a>, are the canonical source of
+				documentation.  The following is a list of all manpages:
 			</p>
-			<nav id="mannav" data-sblg-nav="1" data-sblg-navtag="man" data-sblg-navcontent="1" data-sblg-navsort="title">
+			<nav id="mannav" data-sblg-nav="1" data-sblg-navtag="man" data-sblg-navcontent="1"
+			 data-sblg-navsort="title">
 				<a href="${sblg-stripbase}.html">${sblg-title}</a>
 			</nav>
 			<p>
-				If it's easier to start by example, you can use 
-				<a href="https://github.com/kristapsdz/kcgi-framework">kcgi-framework</a> as an initial boilerplate to
-				start your project.
-				The following are introductory materials to the system.
+				Alternatively, the following are introductory materials to the
+				system:
 			</p>
-			<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1" data-sblg-navsort="rdate">
+			<nav data-sblg-nav="1" data-sblg-navtag="tutorial" data-sblg-navcontent="1"
+			 data-sblg-navsort="rdate">
 				<h3><a href="${sblg-base}.html">${sblg-titletext}</a></h3>
 				${sblg-aside}
 			</nav>
 			<p>
-				In addition to these resources, the following conference sessions have referenced <span class="nm">kcgi</span>.
+				In addition to these resources, the following conference sessions
+				have referenced <span class="nm">kcgi</span>.
 			</p>
 			<ul>
 				<li> 
-					Dzonsons, Kristaps. <i>Role-based Access Control in BCHS Web Applications</i>. 
-					Proceedings of <a href="https://2018.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2018.
+					Dzonsons, Kristaps.
+					<i>Role-based Access Control in BCHS Web Applications</i>. 
+					Proceedings of 
+					<a href="https://2018.asiabsdcon.org">AsiaBSDCon</a>, Tokyo,
+					Japan, March 2018.
 					(<a href="https://kristaps.bsd.lv/absdcon2018">Slides</a>,
 					<a href="https://www.youtube.com/watch?v=FzF9e4jrnJ4">video</a>.)
 					<a href="https://kristaps.bsd.lv/absdcon2018/paper.pdf">paper</a>.)
 				</li>
 				<li> 
-					Dzonsons, Kristaps. <i>Secure BSD Web Applications in C: Practical Strategies</i>. 
-					Proceedings of <a href="https://2017.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2017.
+					Dzonsons, Kristaps.
+					<i>Secure BSD Web Applications in C: Practical Strategies</i>. 
+					Proceedings of
+					<a href="https://2017.asiabsdcon.org">AsiaBSDCon</a>, Tokyo,
+					Japan, March 2017.
 					(<a href="https://kristaps.bsd.lv/absdcon2017">Slides</a>.)
 				</li>
 				<li> 
-					Dzonsons, Kristaps. <i>Secure BSD Web Application Development in C</i>. 
-					Proceedings of <a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2016.
+					Dzonsons, Kristaps.
+					<i>Secure BSD Web Application Development in C</i>. 
+					Proceedings of
+					<a href="https://2016.asiabsdcon.org">AsiaBSDCon</a>,
+					Tokyo, Japan, March 2016.
 					(<a href="https://kristaps.bsd.lv/absdcon2016">Slides</a>.)
 				</li>
 				<li> 
-					Dzonsons, Kristaps. <i>kcgi: securing CGI applications in C</i>. 
-					Proceedings of <a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>, Tokyo, Japan, March 2015.
+					Dzonsons, Kristaps.
+					<i>kcgi: securing CGI applications in C</i>. 
+					Proceedings of
+					<a href="https://2015.asiabsdcon.org">AsiaBSDCon</a>,
+					Tokyo, Japan, March 2015.
 					(<a href="https://kristaps.bsd.lv/absdcon2015/talk.pdf">Slides</a>,
 					 <a href="https://kristaps.bsd.lv/absdcon2015/paper.pdf">paper</a>.)
 				</li>
@@ -328,8 +344,9 @@
 			</p>
 			<ul>
 				<li>
-					Dzonsons, Kristaps.  <a href="extending01.html">FastCGI Extensions for Management Control</a>.  March
-					2016.
+					Dzonsons, Kristaps.
+					<a href="extending01.html">FastCGI Extensions for Management Control</a>.
+					March 2016.
 				</li>
 			</ul>
 		</section>
@@ -338,31 +355,36 @@
 				implementation details
 			</h2>
 			<p>
-				The bulk of <span class="nm">kcgi</span>'s CGI handling lies in <a
-					href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses the HTTP request.
-				Application developers must invoke this function before all others.
-				For FastCGI, this function is split between <a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, which
-				initialises context; and <a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, which receives new
-				parsed requests.
-				In either case, requests must be freed by <a href="khttp_free.3.html">khttp_free(3)</a>.
+				The bulk of <span class="nm">kcgi</span>'s CGI handling lies in
+				<a href="khttp_parse.3.html">khttp_parse(3)</a>, which fully parses
+				the HTTP request.  Application developers must invoke this function
+				before all others.  For FastCGI, this function is split between
+				<a href="khttp_fcgi_init.3.html">khttp_fcgi_init(3)</a>, which
+				initialises context; and
+				<a href="khttp_fcgi_parse.3.html">khttp_fcgi_parse(3)</a>, which
+				receives new parsed requests.  In either case, requests must be
+				freed by
+				<a href="khttp_free.3.html">khttp_free(3)</a>.
 			</p>
 			<p>
-				All functions isolate the parsing and validation of untrusted network data within a <i>sandboxed</i>
-				child process.
-				Sandboxes limit the environment available to a process, so exploitable errors in the parsing process (or
-				validation with third-party libraries) cannot touch the system environment.
-				This parsed data is returned to the parent process over a socket.
-				In the following, the <i>HTTP parser</i> and <i>input validator</i> manage a single HTTP request, while
-				<i>connection delegator</i> accepts new HTTP requests and passes them along.
+				All functions isolate the parsing and validation of untrusted
+				network data within a <i>sandboxed</i> child process.  Sandboxes
+				limit the environment available to a process, so exploitable errors
+				in the parsing process (or validation with third-party libraries)
+				cannot touch the system environment.  This parsed data is returned
+				to the parent process over a socket.  In the following, the <i>HTTP
+				parser</i> and <i>input validator</i> manage a single HTTP request,
+				while <i>connection delegator</i> accepts new HTTP requests and
+				passes them along.
 			</p>
 			<figure>
 				<img src="figure1.svg" alt="Implementation Details" />
 				<img src="figure4.svg" alt="Implementation Details" />
 			</figure>
 			<p>
-				This method of sandboxing the untrusted parsing process follows <a
-					href="http://www.openssh.org">OpenSSH</a>, and requires special handling for each operating
-				system:
+				This method of sandboxing the untrusted parsing process follows 
+				<a href="http://www.openssh.org">OpenSSH</a>, and requires special
+				handling for each operating system:
 			</p>
 			<dl>
 				<dt>
@@ -370,8 +392,9 @@
 					(Linux)
 				</dt>
 				<dd>
-					This requires a seccomp-enabled Linux kernel and a recognised hardware architecture.
-					It is supplemented by <code>setrlimit(2)</code> limiting.
+					This requires a seccomp-enabled Linux kernel and a
+					recognised hardware architecture.  It is supplemented by
+					<code>setrlimit(2)</code> limiting.
 				</dd>
 				<dt>
 					<a href="https://man.openbsd.org/pledge.2">pledge(2)</a>
@@ -385,29 +408,34 @@
 					(<a href="https://www.apple.com/osx/">Apple OSX</a>)
 				</dt>
 				<dd>
-					This uses the sandboxing profile for <q>pure computation</q> as provided in Mac OS X Leopard and
-					later.
-					This is supplemented by resource limiting via <code>setrlimit(2)</code>.
+					This uses the sandboxing profile for <q>pure computation</q>
+					as provided in Mac OS X Leopard and later.  This is
+					supplemented by resource limiting via
+					<code>setrlimit(2)</code>.
 				</dd>
 				<dt>
 					<a href="https://www.freebsd.org/cgi/man.cgi?query=capsicum&amp;sektion=4">capsicum(4)</a>
 					(<a href="https://www.freebsd.org">FreeBSD</a>)
 				</dt>
 				<dd>
-					Uses the capabilities facility on <a href="https://www.freebsd.org">FreeBSD</a> 10 and later.
-					This is supplemented by resource limiting with <code>setrlimit(2)</code>.
+					Uses the capabilities facility on
+					<a href="https://www.freebsd.org">FreeBSD</a> 10 and later.
+					This is supplemented by resource limiting with
+					<code>setrlimit(2)</code>.
 				</dd>
 			</dl>
 			<p>
-				Since validation occurs within the sandbox, special care must be taken that validation routines don't
-				access the environment (e.g., by opening files, network connections, etc.), as the child
+				Since validation occurs within the sandbox, special care must be
+				taken that validation routines don't access the environment (e.g.,
+				by opening files, network connections, etc.), as the child
 				<strong>might</strong> be abruptly killed by the sandbox facility.
-				(Not all sandboxes do this.)
-				If required, this kind of validation can take place after the parse validation sequence.
+				(Not all sandboxes do this.) If required, this kind of validation
+				can take place after the parse validation sequence.
 			</p>
 			<p>
-				The connection delegator is similar, but has different sandboxing rules, as it must manage an open
-				socket connection and respond to new requests.
+				The connection delegator is similar, but has different sandboxing
+				rules, as it must manage an open socket connection and respond to
+				new requests.
 			</p>
 		</section>
 		<section class="text">
@@ -415,23 +443,33 @@
 				testing
 			</h2>
 			<p>
-				<span class="nm">kcgi</span> is shipped with a fully automated testing framework executed with
-				<code>make regress</code>.
-				To test your own applications, use the <a href="kcgiregress.3.html">kcgiregress(3)</a> library.
-				This framework acts as a mini-webserver, listening on a local port, translating an HTTP document into a
-				minimal CGI request, and passing the request to a <span class="nm">kcgi</span> CGI client.
-				For internal tests, test requests are constructed with <a
-					href="https://curl.haxx.se/libcurl/">libcurl</a>.
-				The binding local port is fixed: if you plan on running the regression suite, you may need to
-				tweak its access port.
+				<span class="nm">kcgi</span> is shipped with a fully automated
+				testing framework executed with <code>make regress</code>.  To test
+				your own applications, use the
+				<a href="kcgiregress.3.html">kcgiregress(3)</a> library.
+				This framework acts as a mini-webserver, listening on a local port,
+				translating an HTTP document into a minimal CGI request, and passing
+				the request to a <span class="nm">kcgi</span> CGI client.  For
+				internal tests, test requests are constructed with 
+				<a href="https://curl.haxx.se/libcurl/">libcurl</a>.
+				The binding local port is fixed: if you plan on running the
+				regression suite, you may need to tweak its access port.
 			</p>
 			<p>
-				Another testing framework exists for use with the <a href="http://lcamtuf.coredump.cx/afl/">American
-					fuzzy lop</a>.
-				To use this, you'll need to compile the <code>make afl</code> target with your compiler of choice, e.g.,
-				<code>make clean</code>, then <code>make afl CC=afl-gcc</code>.
-				Then run the <code>afl-fuzz</code> tool on the <code>afl-multipart</code>, <code>afl-plain</code>, and
-				<code>afl-urlencoded</code> binaries using the test cases (and dictionaries, for the first) provided.
+				The testing framework is used by the GitHub
+				<a href="https://github.com/kristapsdz/kcgi/actions">Actions</a>
+				to make sure that all commits pass the regression tests on all
+				supported systems (including with compiler sanitisation).
+			</p>
+			<p>
+				Another testing framework exists for use with the
+				<a href="http://lcamtuf.coredump.cx/afl/">American fuzzy lop</a>.
+				To use this, you'll need to compile the <code>make afl</code> target
+				with your compiler of choice, e.g., <code>make clean</code>, then
+				<code>make afl CC=afl-gcc</code>.  Then run the
+				<code>afl-fuzz</code> tool on the <code>afl-multipart</code>,
+				<code>afl-plain</code>, and <code>afl-urlencoded</code> binaries
+				using the test cases (and dictionaries, for the first) provided.
 			</p>
 		</section>
 		<section class="text">
@@ -439,26 +477,20 @@
 				performance
 			</h2>
 			<p>
-				Security comes at a price&#8212;but not a stiff price.
-				By design, <span class="nm">kcgi</span> incurs overhead in three ways: first, spawning a child to
-				process the untrusted network data; second, enacting the sandbox framework; and third, passing parsed
-				pairs back to the parent context.
-				In the case of running CGI scripts, <span class="nm">kcgi</span> performance is bound to the operating
+				Security comes at a price&#8212;but not a stiff price.  By design,
+				<span class="nm">kcgi</span> incurs overhead in three ways: first,
+				spawning a child to process the untrusted network data; second,
+				enacting the sandbox framework; and third, passing parsed pairs back
+					to the parent context.  In the case of running CGI scripts,
+				<span class="nm">kcgi</span> performance is bound to the operating
 				system's ability to spawn and reap processes.
 				For FastCGI, the bottleneck becomes the transfer of data.
 			</p>
 		</section>
 		<footer>
 			<div>
-				&#169; 2014&#8211;2020
+				&#169;
 				<a rel="author" href="https://github.com/kristapsdz">Kristaps Dzonsons</a>
-			</div>
-			<div>
-				<a href="snapshots/kcgi.tgz"><i class="fa fa-fw fa-gears"></i></a>
-				<a href="snapshots/kcgi.tgz.sha512"><i class="fa fa-fw fa-lock"></i></a>
-				<a href="snapshots"><i class="fa fa-fw fa-archive"></i></a>
-				<a href="https://www.github.com/kristapsdz/kcgi"><i class="fa fa-fw fa-github"></i></a>
-				<span>Built with <a href="https://kristaps.bsd.lv/sblg">sblg</a> on <a href="https://www.openbsd.org">OpenBSD</a></span>
 			</div>
 		</footer>
 	</body>

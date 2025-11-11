@@ -11,8 +11,6 @@
 			<div>
 				Initial 1.0.0 release:
 				this system has been stable for quite some time.
-			</div>
-			<div>
 				Adding fetch metadata headers:
 				<code>Sec-Fetch-Dest</code>,
 				<code>Sec-Fetch-Mode</code>,
@@ -23,13 +21,9 @@
 				<code>Access-Control-Request-Method</code>.
 				Also add
 				<code>Priority</code> from RFC 9218.
-			</div>
-			<div>
 				Export all CGI environment variables (or FastCGI
 				context variables) and not just HTTP header
 				variables.
-			</div>
-			<div>
 				Bundle properly as a Mac OS X dynlib (instead of
 				just a dynamically-loaded library).
 			</div>
@@ -1418,7 +1412,8 @@
 		</header>
 		<aside>
 			<div>
-				This release includes an initial implementation of <a href="http://www.fastcgi.com">FastCGI</a>.
+					This release includes an initial implementation of <a
+						href="https://www.mit.edu/~yandros/doc/specs/fcgi-spec.html">FastCGI</a>.
 				While the existing functionality wasn't logically altered, it was shuffled around quite a lot and abstracted to
 				accomodate for the new FastCGI functions.
 				The implementation is documented in <a href="kfcgi.8.html">kfcgi(8)</a>, <a
@@ -1483,7 +1478,8 @@
 		</header>
 		<aside>
 			<div>
-				Implement the <a href="http://www.fastcgi.com/drupal/node/6?q=node/22">FastCGI</a> control process's sandbox for all
+				Implement the <a
+					href="https://www.mit.edu/~yandros/doc/specs/fcgi-spec.html">FastCGI</a> control process's sandbox for all
 				supported operating systems.
 				(The FastCGI control process is forked from each application process, and is responsible for accepting new FastCGI
 				connections and passing the descriptors to the application for output and worker process for parsing.)
