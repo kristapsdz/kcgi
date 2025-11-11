@@ -76,7 +76,7 @@ constant maintenance.  The following systems are checked:
 - Alpine/musl Linux (latest, s390x, sandboxed)
 - Alpine/musl Linux (latest, x86\_64, sandboxed)
 - FreeBSD (latest, x86\_64, sandboxed)
-- Mac OS X (latest, x86, sandboxed)
+- Mac OS X (latest, arm64, sandboxed)
 - Ubuntu/glibc Linux (latest, x86\_64, un-sandboxed)
 - Ubuntu/glibc Linux (latest, x86\_64, sandboxed)
 - Ubuntu/glibc Linux (latest, x86\_64, sandboxed, libbsd)
