@@ -360,7 +360,7 @@ install: all
 	$(INSTALL_LIB) $(LIBS) $(DESTDIR)$(LIBDIR)
 	$(INSTALL_LIB) $(SOLIBS) $(DESTDIR)$(LIBDIR)
 	for f in $(SOLIBS) ; do \
-		( cd $(DESTDIR)$(LIBDIR) && ln -sf $$f `basename $$f .$(LIBVER)` ) ; \
+		( cd $(DESTDIR)$(LIBDIR) && ln -sf $$f `basename $$f .$(SOLIBVER)`.$(LINKER_SOSUFFIX) ) ; \
 	done
 	$(INSTALL_DATA) kcgi.h kcgihtml.h kcgijson.h kcgixml.h kcgiregress.h $(DESTDIR)$(INCLUDEDIR)
 	$(INSTALL_DATA) $(PCS) $(DESTDIR)$(LIBDIR)/pkgconfig
@@ -464,7 +464,7 @@ libkcgi.a: $(LIBOBJS) compats.o
 libkcgi.$(SOLIBVER): $(LIBOBJS) compats.o
 	$(CC) $(LINKER_SOFLAG) -o $@ $(LIBOBJS) compats.o $(LDFLAGS) $(LDADD_MD5) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) $(LIBS_PKG)
-	ln -sf $@ `basename $@ .$(LIBVER)`
+	ln -sf $@ `basename $@ .$(SOLIBVER)`.$(LINKER_SOSUFFIX)
 
 $(LIBOBJS): kcgi.h config.h extern.h
 
@@ -494,22 +494,22 @@ libkcgiregress.a: kcgiregress.o
 libkcgihtml.$(SOLIBVER): kcgihtml.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgihtml.o $(LDFLAGS) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
-	ln -sf $@ `basename $@ .$(LIBVER)`
+	ln -sf $@ `basename $@ .$(SOLIBVER)`.$(LINKER_SOSUFFIX)
 
 libkcgijson.$(SOLIBVER): kcgijson.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgijson.o $(LDFLAGS) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
-	ln -sf $@ `basename $@ .$(LIBVER)`
+	ln -sf $@ `basename $@ .$(SOLIBVER)`.$(LINKER_SOSUFFIX)
 
 libkcgixml.$(SOLIBVER): kcgixml.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgixml.o $(LDFLAGS) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
-	ln -sf $@ `basename $@ .$(LIBVER)`
+	ln -sf $@ `basename $@ .$(SOLIBVER)`.$(LINKER_SOSUFFIX)
 
 libkcgiregress.$(SOLIBVER): kcgiregress.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgiregress.o $(LDFLAGS) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
-	ln -sf $@ `basename $@ .$(LIBVER)`
+	ln -sf $@ `basename $@ .$(SOLIBVER)`.$(LINKER_SOSUFFIX)
 
 # Sample programs.
 # These demonstrate FastCGI, CGI, and standard.
