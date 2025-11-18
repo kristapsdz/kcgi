@@ -3,6 +3,21 @@
 <articles>
 	<article data-sblg-article="1" data-sblg-tags="version">
 		<header>
+			<h1>1.0.1</h1>
+			<address>Kristaps Dzonsons</address>
+			<time datetime="2025-11-17">2025-11-17</time>
+		</header>
+		<aside>
+			<div>
+				Hot-fix 1.0.0 with proper naming of Mac OS X
+				shared libraries, which use a different
+				convention of version suffix than other
+				Unix-like systems.
+			</div>
+		</aside>
+	</article>
+	<article data-sblg-article="1" data-sblg-tags="version">
+		<header>
 			<h1>1.0.0</h1>
 			<address>Kristaps Dzonsons</address>
 			<time datetime="2025-11-10">2025-11-10</time>
