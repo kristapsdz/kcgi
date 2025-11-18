@@ -287,11 +287,16 @@ LIBS		 = libkcgi.a \
 		   libkcgijson.a \
 		   libkcgixml.a \
 		   libkcgiregress.a
-SOLIBS		 = libkcgi.$(LINKER_SOSUFFIX).$(LIBVER) \
-		   libkcgihtml.$(LINKER_SOSUFFIX).$(LIBVER) \
-		   libkcgijson.$(LINKER_SOSUFFIX).$(LIBVER) \
-		   libkcgixml.$(LINKER_SOSUFFIX).$(LIBVER) \
-		   libkcgiregress.$(LINKER_SOSUFFIX).$(LIBVER)
+.if $(LINKER_SOSUFFIX) == "dylib"
+SOLIBVER         = $(LIBVER).$(LINKER_SOSUFFIX)
+.else
+SOLIBVER         = $(LINKER_SOSUFFIX).$(LIBVER)
+.endif
+SOLIBS		 = libkcgi.$(SOLIBVER) \
+		   libkcgihtml.$(SOLIBVER) \
+		   libkcgijson.$(SOLIBVER) \
+		   libkcgixml.$(SOLIBVER) \
+		   libkcgiregress.$(SOLIBVER)
 CURL_LIBS_PKG	 != curl-config --libs 2>/dev/null || echo "-lcurl"
 CURL_CFLAGS_PKG	 != curl-config --cflags 2>/dev/null || echo ""
 LIBS_PKG	 != pkg-config --libs zlib 2>/dev/null || echo "-lz"
@@ -396,7 +401,7 @@ clean:
 	rm -f sample samplepp samplepp.o sample-fcgi sample.o sample-fcgi.o kfcgi kfcgi.o
 	rm -f $(SBLGS) $(THTMLS) extending01.html atom.xml
 	rm -f $(LIBOBJS) compats.o 
-	rm -f $(LIBS) *.$(LINKER_SOSUFFIX) *.$(LINKER_SOSUFFIX).$(LIBVER)
+	rm -f $(LIBS) *.$(LINKER_SOSUFFIX) *.$(SOLIBVER)
 	rm -f kcgihtml.o kcgijson.o kcgixml.o kcgiregress.o regress/regress.o
 	rm -f *.core
 	rm -f $(REGRESS) $(AFL) regress/*.o
@@ -456,7 +461,7 @@ $(BIN): $(BIN).o libkcgi.a
 libkcgi.a: $(LIBOBJS) compats.o
 	$(AR) rs $@ $(LIBOBJS) compats.o
 
-libkcgi.$(LINKER_SOSUFFIX).$(LIBVER): $(LIBOBJS) compats.o
+libkcgi.$(SOLIBVER): $(LIBOBJS) compats.o
 	$(CC) $(LINKER_SOFLAG) -o $@ $(LIBOBJS) compats.o $(LDFLAGS) $(LDADD_MD5) \
 		-Wl,${LINKER_SONAME},$@ $(LDLIBS) $(LIBS_PKG)
 	ln -sf $@ `basename $@ .$(LIBVER)`
@@ -486,24 +491,24 @@ libkcgixml.a: kcgixml.o
 libkcgiregress.a: kcgiregress.o
 	$(AR) rs $@ kcgiregress.o
 
-libkcgihtml.$(LINKER_SOSUFFIX).$(LIBVER): kcgihtml.o libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+libkcgihtml.$(SOLIBVER): kcgihtml.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgihtml.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgijson.$(LINKER_SOSUFFIX).$(LIBVER): kcgijson.o libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+libkcgijson.$(SOLIBVER): kcgijson.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgijson.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgixml.$(LINKER_SOSUFFIX).$(LIBVER): kcgixml.o libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+libkcgixml.$(SOLIBVER): kcgixml.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgixml.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
-libkcgiregress.$(LINKER_SOSUFFIX).$(LIBVER): kcgiregress.o libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+libkcgiregress.$(SOLIBVER): kcgiregress.o libkcgi.$(SOLIBVER)
 	$(CC) $(LINKER_SOFLAG) -o $@ kcgiregress.o $(LDFLAGS) \
-		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(LINKER_SOSUFFIX).$(LIBVER)
+		-Wl,${LINKER_SONAME},$@ $(LDLIBS) libkcgi.$(SOLIBVER)
 	ln -sf $@ `basename $@ .$(LIBVER)`
 
 # Sample programs.
