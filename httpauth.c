@@ -60,7 +60,9 @@ struct	pdigest {
  */
 static	const char *const httpalgs[KHTTPALG__MAX] = {
 	"MD5", /* KHTTPALG_MD5 */
-	"MD5-sess" /* KHTTPALG_MD5_SESS */
+	"MD5-sess", /* KHTTPALG_MD5_SESS */
+	"SHA-256", /* KHTTPALG_SHA256 */
+	"SHA-256-sess" /* KHTTPALG_SHA256_SESS */
 };
 
 /*
@@ -330,6 +332,10 @@ khttpdigest_input(int fd, const char *cp)
 	if (authorised && KHTTPALG_MD5_SESS == d.alg) 
 		authorised = 0 != d.cnonce.sz;
 
+	/* Additional requirements: SHA256-sess. */
+	if (authorised && KHTTPALG_SHA256_SESS == d.alg) 
+		authorised = 0 != d.cnonce.sz;
+
 	/* Additional requirements: qop. */
 	if (authorised && 
 		(KHTTPQOP_AUTH == d.qop ||
@@ -361,7 +367,7 @@ khttpdigest_input(int fd, const char *cp)
 	fullwrite(fd, &d.opaque.sz, sizeof(size_t));
 	fullwrite(fd, d.opaque.pos, d.opaque.sz);
 
-	/* Do we need to MD5-hash our contents? */
+	/* Do we need to hash our contents? */
 	return(KHTTPQOP_AUTH_INT == d.qop);
 }
 
@@ -418,7 +424,7 @@ kworker_auth_parent(int fd, struct khttpauth *auth)
 
 /*
  * Parse the "basic", "digest", or "bearer" authorisation from the request.
- * We return non-zero if the body of the request needs to be MD5-hashed,
+ * We return non-zero if the body of the request needs to be hashed,
  * i.e., if we have auth-int digest QOP.
  */
 int

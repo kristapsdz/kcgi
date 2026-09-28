@@ -1,7 +1,7 @@
-/*	$Id$ */
 /*
- * Copyright (c) 2015--2018 Kristaps Dzonsons <kristaps@bsd.lv>
+ * Copyright (c) Kristaps Dzonsons <kristaps@bsd.lv>
  * Copyright (c) 2018 Charles Collicutt <charles@collicutt.co.uk>
+ * Copyright (c) 2026 Stefan Sperling <stsp@stsp.name>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,10 @@
 # include <sys/types.h>
 # include <md5.h>
 #endif
+#if HAVE_SHA2
+# include <sys/types.h>
+# include <sha2.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -33,6 +37,8 @@
 
 #define MD5Updatec(_ctx, _b, _sz) \
 	MD5Update((_ctx), (const uint8_t *)(_b), (_sz))
+#define SHA256Updatec(_ctx, _b, _sz) \
+	SHA256Update((_ctx), (const uint8_t *)(_b), (_sz))
 
 static const char b64[] = 
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -81,8 +87,8 @@ base64buf(char *enc, const char *str, size_t len)
 }
 
 int
-khttpbasic_validate(const struct kreq *req, 
-	const char *user, const char *pass)
+khttpbasic_validate(const struct kreq *req, const char *user,
+    const char *pass)
 {
 	char	*buf, *enc;
 	size_t	 sz;
@@ -116,8 +122,108 @@ khttpbasic_validate(const struct kreq *req,
 	return rc;
 }
 
-int
-khttpdigest_validatehash(const struct kreq *req, const char *skey4)
+static int
+validatehash_sha256(const struct kreq *req, const char *skey4,
+    const struct khttpdigest *auth)
+{
+	SHA2_CTX	 ctx;
+	unsigned char	 ha1[SHA256_DIGEST_LENGTH],
+			 ha2[SHA256_DIGEST_LENGTH],
+			 ha3[SHA256_DIGEST_LENGTH];
+	char		 skey1[SHA256_DIGEST_LENGTH * 2 + 1],
+			 skey2[SHA256_DIGEST_LENGTH * 2 + 1],
+			 skey3[SHA256_DIGEST_LENGTH * 2 + 1],
+	                 skeyb[SHA256_DIGEST_LENGTH * 2 + 1],
+			 count[9];
+	size_t		 i;
+
+	/*
+	 * SHA-256-sess hashes the nonce and client nonce as well as the
+	 * existing hash (user/real/pass).
+	 */
+
+	if (KHTTPALG_SHA256_SESS == auth->alg) {
+		SHA256Init(&ctx);
+		SHA256Updatec(&ctx, skey4, strlen(skey4));
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, auth->cnonce, strlen(auth->cnonce));
+		SHA256Final(ha1, &ctx);
+		for (i = 0; i < SHA256_DIGEST_LENGTH; i++) 
+			snprintf(&skey1[i * 2], 3, "%02x", ha1[i]);
+	} else 
+		strlcpy(skey1, skey4, sizeof(skey1));
+
+	/* Now start the "auth" hash sequence. */
+
+	SHA256Init(&ctx);
+	SHA256Updatec(&ctx, kmethods[req->method],
+		strlen(kmethods[req->method]));
+	SHA256Updatec(&ctx, ":", 1);
+	SHA256Updatec(&ctx, auth->uri, strlen(auth->uri));
+
+	/*
+	 * If we're requesting integrity authentication ("auth-int"),
+	 * then we also bring in the hash of the message body.
+	 */
+
+	if (KHTTPQOP_AUTH_INT == auth->qop) {
+		/* This shouldn't happen... */
+		if (req->rawauth.digest2 == NULL)
+			return(-1);
+
+		for (i = 0; i < SHA256_DIGEST_LENGTH; i++)
+			snprintf(&skeyb[i * 2], 3, "%02x",
+			    (unsigned char)req->rawauth.digest2[i]);
+
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, skeyb, SHA256_DIGEST_LENGTH * 2);
+	}
+
+	SHA256Final(ha2, &ctx);
+
+	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) 
+		snprintf(&skey2[i * 2], 3, "%02x", ha2[i]);
+
+	if (KHTTPQOP_AUTH_INT == auth->qop || 
+	    KHTTPQOP_AUTH == auth->qop) {
+		snprintf(count, sizeof(count), "%08" PRIx32, auth->count);
+		SHA256Init(&ctx);
+		SHA256Updatec(&ctx, skey1, SHA256_DIGEST_LENGTH * 2);
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, count, strlen(count));
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, auth->cnonce, strlen(auth->cnonce));
+		SHA256Updatec(&ctx, ":", 1);
+		if (KHTTPQOP_AUTH_INT == auth->qop)
+			SHA256Updatec(&ctx, "auth-int", 8);
+		else
+			SHA256Updatec(&ctx, "auth", 4);
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, skey2, SHA256_DIGEST_LENGTH * 2);
+		SHA256Final(ha3, &ctx);
+	} else {
+		SHA256Init(&ctx);
+		SHA256Updatec(&ctx, skey1, SHA256_DIGEST_LENGTH * 2);
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, auth->nonce, strlen(auth->nonce));
+		SHA256Updatec(&ctx, ":", 1);
+		SHA256Updatec(&ctx, skey2, SHA256_DIGEST_LENGTH * 2);
+		SHA256Final(ha3, &ctx);
+	}
+
+	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) 
+		snprintf(&skey3[i * 2], 3, "%02x", ha3[i]);
+
+	return strcmp(auth->response, skey3) == 0;
+}
+
+static int
+validatehash_md5(const struct kreq *req, const char *skey4,
+    const struct khttpdigest *auth)
 {
 	MD5_CTX	 	 ctx;
 	unsigned char	 ha1[MD5_DIGEST_LENGTH],
@@ -129,19 +235,6 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 	                 skeyb[MD5_DIGEST_LENGTH * 2 + 1],
 			 count[9];
 	size_t		 i;
-	const struct khttpdigest *auth;
-
-	/*
-	 * Make sure we're a digest with all fields intact.
-	 */
-	if (KAUTH_DIGEST != req->rawauth.type)
-		return(-1);
-	else if (KMETHOD__MAX == req->method)
-		return(-1);
-	else if (0 == req->rawauth.authorised)
-		return(-1);
-
-	auth = &req->rawauth.d.digest;
 
 	/*
 	 * MD5-sess hashes the nonce and client nonce as well as the
@@ -176,7 +269,7 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 
 	if (KHTTPQOP_AUTH_INT == auth->qop) {
 		/* This shouldn't happen... */
-		if (NULL == req->rawauth.digest)
+		if (req->rawauth.digest == NULL)
 			return(-1);
 
 		for (i = 0; i < MD5_DIGEST_LENGTH; i++)
@@ -224,30 +317,69 @@ khttpdigest_validatehash(const struct kreq *req, const char *skey4)
 	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
 		snprintf(&skey3[i * 2], 3, "%02x", ha3[i]);
 
-	return(0 == strcmp(auth->response, skey3));
+	return strcmp(auth->response, skey3) == 0;
 }
 
 int
-khttpdigest_validate(const struct kreq *req, const char *pass)
+khttpdigest_validatehash(const struct kreq *req, const char *skey4)
+{
+	const struct khttpdigest *auth;
+
+	/* Make sure we're a digest with all fields intact. */
+
+	if (req->rawauth.type != KAUTH_DIGEST)
+		return(-1);
+	else if (req->method == KMETHOD__MAX)
+		return(-1);
+	else if (req->rawauth.authorised == 0)
+		return(-1);
+
+	auth = &req->rawauth.d.digest;
+
+	if (KHTTPALG_SHA256 == auth->alg ||
+	    KHTTPALG_SHA256_SESS == auth->alg)
+		return validatehash_sha256(req, skey4, auth);
+
+	return validatehash_md5(req, skey4, auth);
+}
+
+/*
+ * Construct HA1 using SHA256 algorithm.
+ */
+static int
+validate_sha256(const struct kreq *req, const char *pass,
+    const struct khttpdigest *auth)
+{
+	SHA2_CTX	 ctx;
+	unsigned char	 ha4[SHA256_DIGEST_LENGTH];
+	char		 skey4[SHA256_DIGEST_LENGTH * 2 + 1];
+	size_t		 i;
+
+	SHA256Init(&ctx);
+	SHA256Updatec(&ctx, auth->user, strlen(auth->user));
+	SHA256Updatec(&ctx, ":", 1);
+	SHA256Updatec(&ctx, auth->realm, strlen(auth->realm));
+	SHA256Updatec(&ctx, ":", 1);
+	SHA256Updatec(&ctx, pass, strlen(pass));
+	SHA256Final(ha4, &ctx);
+
+	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) 
+		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
+
+	return khttpdigest_validatehash(req, skey4);
+}
+
+/*
+ * Construct HA1 using MD5 algorithm.
+ */
+static int
+validate_md5(const struct kreq *req, const char *pass,
+    const struct khttpdigest *auth)
 {
 	MD5_CTX	 	 ctx;
 	unsigned char	 ha4[MD5_DIGEST_LENGTH];
 	char		 skey4[MD5_DIGEST_LENGTH * 2 + 1];
 	size_t		 i;
-	const struct khttpdigest *auth;
-
-	/*
-	 * Make sure we're a digest with all fields intact.
-	 */
-
-	if (KAUTH_DIGEST != req->rawauth.type)
-		return(-1);
-	else if (KMETHOD__MAX == req->method)
-		return(-1);
-	else if (0 == req->rawauth.authorised)
-		return(-1);
-
-	auth = &req->rawauth.d.digest;
 
 	MD5Init(&ctx);
 	MD5Updatec(&ctx, auth->user, strlen(auth->user));
@@ -260,5 +392,30 @@ khttpdigest_validate(const struct kreq *req, const char *pass)
 	for (i = 0; i < MD5_DIGEST_LENGTH; i++) 
 		snprintf(&skey4[i * 2], 3, "%02x", ha4[i]);
 
-	return(khttpdigest_validatehash(req, skey4));
+	return khttpdigest_validatehash(req, skey4);
+}
+
+int
+khttpdigest_validate(const struct kreq *req, const char *pass)
+{
+	const struct khttpdigest *auth;
+
+	/* Make sure we're a digest with all fields intact. */
+
+	if (KAUTH_DIGEST != req->rawauth.type)
+		return(-1);
+	else if (KMETHOD__MAX == req->method)
+		return(-1);
+	else if (req->rawauth.authorised == 0)
+		return(-1);
+
+	/* Pass to either SHA2 or MD5. */
+
+	auth = &req->rawauth.d.digest;
+
+	if (KHTTPALG_SHA256 == auth->alg ||
+	    KHTTPALG_SHA256_SESS == auth->alg)
+		return validate_sha256(req, pass, auth);
+
+	return validate_md5(req, pass, auth);
 }

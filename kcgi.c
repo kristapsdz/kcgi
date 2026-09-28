@@ -924,6 +924,7 @@ kreq_free(struct kreq *req)
 	free(req->pagename);
 	free(req->pname);
 	free(req->rawauth.digest);
+	free(req->rawauth.digest2);
 
 	if (req->rawauth.type == KAUTH_DIGEST) {
 		free(req->rawauth.d.digest.user);

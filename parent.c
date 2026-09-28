@@ -21,6 +21,10 @@
 # include <sys/types.h>
 # include <md5.h>
 #endif
+#if HAVE_SHA2
+# include <sys/types.h>
+# include <sha2.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -316,7 +320,9 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 	} else if (fullread(fd, &r->port, sizeof(uint16_t), 0, &ke) < 0) {
 		kutil_warnx(NULL, NULL, "failed read port");
 		goto out;
-	} else if (fullread(fd, &dgsz, sizeof(size_t), 0, &ke) < 0) {
+	}
+
+	if (fullread(fd, &dgsz, sizeof(size_t), 0, &ke) < 0) {
 		kutil_warnx(NULL, NULL, "failed read digest length");
 		goto out;
 	} else if (dgsz == MD5_DIGEST_LENGTH) {
@@ -324,6 +330,19 @@ kworker_parent(int fd, struct kreq *r, int eofok, size_t mimesz)
 		if ((r->rawauth.digest = kxmalloc(dgsz)) == NULL)
 			goto out;
 		if (fullread(fd, r->rawauth.digest, dgsz, 0, &ke) < 0) {
+			kutil_warnx(NULL, NULL, "failed read digest");
+			goto out;
+		}
+	}
+
+	if (fullread(fd, &dgsz, sizeof(size_t), 0, &ke) < 0) {
+		kutil_warnx(NULL, NULL, "failed read digest length");
+		goto out;
+	} else if (dgsz == SHA256_DIGEST_LENGTH) {
+		/* This is a binary value. */
+		if ((r->rawauth.digest2 = kxmalloc(dgsz)) == NULL)
+			goto out;
+		if (fullread(fd, r->rawauth.digest2, dgsz, 0, &ke) < 0) {
 			kutil_warnx(NULL, NULL, "failed read digest");
 			goto out;
 		}

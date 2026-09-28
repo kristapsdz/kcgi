@@ -1,4 +1,3 @@
-/*	$Id$ */
 /*
  * Copyright (c) 2018 Charles Collicutt <charles@collicutt.co.uk>
  *

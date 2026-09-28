@@ -369,6 +369,7 @@ enum	kpairstate {
 
 #define KREQ_DEBUG_WRITE	  0x01
 #define KREQ_DEBUG_READ_BODY	  0x02
+#define KREQ_DEBUG_READ_HEAD	  0x04
 
 struct	kpair {
 	char		*key; /* key name */
@@ -409,6 +410,8 @@ enum	kauth {
 enum	khttpalg {
 	KHTTPALG_MD5 = 0,
 	KHTTPALG_MD5_SESS,
+	KHTTPALG_SHA256,
+	KHTTPALG_SHA256_SESS,
 	KHTTPALG__MAX
 };
 
@@ -439,7 +442,8 @@ struct	khttpbasic {
 struct	khttpauth {
 	enum kauth	 type;
 	int		 authorised;
-	char		*digest;
+	char		*digest; /* MD5 */
+	char		*digest2; /* SHA2 */
 	union {
 		struct khttpdigest digest;
 		struct khttpbasic basic;
