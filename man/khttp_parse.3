@@ -743,13 +743,17 @@ Only filled in when
 .Ev HTTP_AUTHORIZATION
 is
 .Qq digest
-and
+for the legacy MD5 algorithm and
 .Va authorised
 is non-zero.
 Otherwise, it remains
 .Dv NULL .
 Used in
 .Xr khttpdigest_validatehash 3 .
+.It Vt "char *" Ns Va digest2
+Like
+.Va digest ,
+but for the SHA256 algorithm variants.
 .It Va d
 An anonymous union containing parsed fields per type:
 .Vt "struct khttpbasic" Va basic
@@ -786,9 +790,11 @@ structure:
 .Bl -tag -width Ds
 .It Va alg
 The encoding algorithm, parsed from the possible
-.Li MD5
+.Li MD5 ,
+.Li MD5-Sess ,
+.Li SHA256 ,
 or
-.Li MD5-Sess
+.Li SHA256-Sess
 values.
 .It Va qop
 The quality of protection algorithm, which may be unspecified,
