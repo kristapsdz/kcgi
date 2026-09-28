@@ -213,6 +213,10 @@ REGRESS		 = regress/test-abort-validator \
 		   regress/test-digest \
 		   regress/test-digest-auth-int \
 		   regress/test-digest-auth-int-bad \
+		   regress/test-digest-auth-sha2 \
+		   regress/test-digest-auth-sha2-int \
+		   regress/test-digest-auth-sha2-sess \
+		   regress/test-digest-auth-sha2-sess-int \
 		   regress/test-environment \
 		   regress/test-epoch2datetime \
 		   regress/test-epoch2str \
