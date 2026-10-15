@@ -910,6 +910,7 @@ kreq_free(struct kreq *req)
 	}
 
 	free(req->reqs);
+	free(req->envs);
 	kpair_free(req->cookies, req->cookiesz);
 	kpair_free(req->fields, req->fieldsz);
 	free(req->path);
