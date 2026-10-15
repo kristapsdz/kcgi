@@ -1825,11 +1825,24 @@ kworker_fcgi_begin(struct fcgi_buf *b, uint16_t *rid)
 		return KCGI_FORM;
 	} 
 	
-	/* Read the "begin" content and discard padding. */
+	/*
+     * Read the "begin" content and discard padding. The content must
+     * be at least as large as the begin request body, otherwise we'd
+     * read past the end of the record below.
+	 */
 
 	buf = kworker_fcgi_read(b, 
 		hdr.contentLength + 
 		hdr.paddingLength, &er);
+
+	if (buf == NULL)
+		return er;
+	else if (hdr.contentLength < sizeof(struct fcgi_bgn)) {
+		kutil_warnx(NULL, NULL, "FastCGI: bad begin "
+			"request size: %" PRIu16 " (want >= %zu)",
+			hdr.contentLength, sizeof(struct fcgi_bgn));
+		return KCGI_FORM;
+	}
 
 	ptr = (const struct fcgi_bgn *)buf;
 
@@ -1863,6 +1876,9 @@ kworker_fcgi_stdin(struct fcgi_buf *b, const struct fcgi_hdr *hdr,
 	bp = kworker_fcgi_read(b, 
 		hdr->contentLength + 
 		hdr->paddingLength, &er);
+
+	if (bp == NULL)
+		return er;
 
 	/* 
 	 * Short-circuit: no data to read.
