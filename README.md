@@ -36,8 +36,8 @@ A common idiom for deploying on Linux is to use
 
 ```
 ./configure \
-    CFLAGS=$(pkg-config --cflags libbsd-overlay) \
-    LDFLAGS=$(pkg-config --libs libbsd-overlay)
+    CFLAGS="$(pkg-config --cflags libbsd-overlay)" \
+    LDFLAGS="$(pkg-config --libs libbsd-overlay)"
 make
 make install
 ```
